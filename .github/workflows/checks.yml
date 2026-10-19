@@ -14,6 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: android-actions/setup-android@v3
       - name: JavaScript syntax and protocol parser
         run: |
           for f in app/src/main/assets/ui/*.js; do node --check "$f"; done

@@ -1,5 +1,9 @@
 # Corresponding native sources
 
+Full application sources and Gradle project: https://github.com/Bony-Lord/gcc-cpp-studio
+This archive contains corresponding native component sources and recipes; the
+application's Java/JavaScript sources and Gradle wrapper are in that repository.
+
 This directory accompanies GCC-CPP-Studio-arm64.apk. Original GNU/copyleft source archives
 are provided here, with SHA256 values and source URLs in sources.lock.json.
 Full Termux and TUR recipe/build-system snapshots include downstream patches and
