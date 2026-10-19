@@ -3,7 +3,7 @@ const workspaceMethods={
   initWorkspace(){
     this.primaryEditor=this.editor;this.attachWorkspaceEditor(this.editor);registerForgeThemes(monaco);
     this.settings.uiScale??=100;this.settings.codeScale??=100;this.settings.layout??={};
-    this.scaleCSS=Promise.all(['style.css','clion.css','tools.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
+    this.scaleCSS=Promise.all(['style.css','clion.css','tools.css','project-tools.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
     this.applyUIScale();
     onNative('keyboardGeometry',geometry=>{this.keyboardGeometry=geometry;requestAnimationFrame(()=>this.updateKeyboardOcclusion());});
     window.addEventListener('resize',()=>this.updateKeyboardOcclusion());
@@ -62,7 +62,7 @@ const workspaceMethods={
   saveWorkspaceSettings(){clearTimeout(this.workspaceSaveTimer);this.workspaceSaveTimer=setTimeout(()=>native('settings',this.settings).catch(safeError),220);},
   splitEditor(direction,persist=true){
     const model=this.editor.getModel();
-    if(!this.secondaryEditor){this.secondaryEditor=monaco.editor.create($('#secondaryEditor'),{...this.editorOptions(),model:null});this.attachWorkspaceEditor(this.secondaryEditor);}
+    if(!this.secondaryEditor){this.secondaryEditor=attachNativeEditor(monaco.editor.create($('#secondaryEditor'),{...this.editorOptions(),automaticLayout:false,model:null}),'secondary');this.attachWorkspaceEditor(this.secondaryEditor);}
     $('#secondaryEditor').classList.remove('hidden');$('#editorSplitResizer').classList.remove('hidden');$('#editorArea').classList.add('split-editor');$('#editorArea').classList.toggle('split-stacked',direction==='stacked');
     this.settings.layout={...this.settings.layout,split:direction,splitRatio:this.settings.layout?.splitRatio||.5};
     if(!this.secondaryEditor.getModel()&&model){this.secondaryEditor.setModel(model);this.secondaryEditor.updateOptions({readOnly:!!this.docs.get(model.uri.toString())?.readonly});}this.layoutEditors();if(persist)this.saveWorkspaceSettings();
@@ -79,7 +79,9 @@ const workspaceMethods={
   },
   workspaceKeydown(e){
     if($('dialog[open]'))return false;const ctrl=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();let fn;
-    if(ctrl&&e.altKey&&(k==='+'||k==='='||k==='-'))fn=()=>this.setUIScale(this.settings.uiScale+(k==='-'?-5:5));
+    if(ctrl&&e.altKey&&e.shiftKey&&k==='l')fn=()=>this.openFormatter();
+    else if(ctrl&&e.altKey&&k==='o')fn=()=>this.openDeviceFolder();
+    else if(ctrl&&e.altKey&&(k==='+'||k==='='||k==='-'))fn=()=>this.setUIScale(this.settings.uiScale+(k==='-'?-5:5));
     else if(ctrl&&e.altKey&&k==='0')fn=()=>this.setUIScale(100);
     else if(ctrl&&k==='0')fn=()=>this.setCodeScale(100);
     else if(ctrl&&(k==='+'||k==='='||k==='-'))fn=()=>this.setCodeScale(this.settings.codeScale+(k==='-'?-10:10));

@@ -28,7 +28,7 @@ final class ToolsEngine {
         if(debuggerRunning())throw new IOException("Отладчик уже запущен");
         if(ide.execution!=null&&ide.execution.isAlive())throw new IOException("Сначала остановите программу");
         File root=ide.project(ide.currentProject),file=new File(d.getString("executable")).getCanonicalFile();
-        if(!ide.inside(file,root)||!file.isFile())throw new IOException("Программа для отладки не найдена");
+        if(!ide.workspace.canExecute(file)||!file.isFile())throw new IOException("Программа для отладки не найдена");
         file.setExecutable(true,true);
         String id=d.optString("id",UUID.randomUUID().toString());session=id;
         Process io=ide.spawn(Arrays.asList(ide.bin("forge-pty")),root,false);relay=io;
@@ -67,7 +67,7 @@ final class ToolsEngine {
     JSONObject gitCommand(List<String> arguments,File root)throws Exception {
         File excludes=new File(ide.app.getFilesDir(),"git-excludes");
         if(!excludes.isFile())Files.write(excludes.toPath(),".forge/\n".getBytes(StandardCharsets.UTF_8));
-        List<String> command=new ArrayList<>();command.add(ide.bin("git"));command.add("--no-pager");command.add("-c");command.add("core.excludesFile="+excludes.getAbsolutePath());command.addAll(arguments);
+        List<String> command=new ArrayList<>();command.add(ide.bin("git"));command.add("--no-pager");command.add("-c");command.add("core.excludesFile="+excludes.getAbsolutePath());command.add("-c");command.add("safe.directory="+root.getCanonicalPath());command.addAll(arguments);
         Process p=ide.spawn(command,root,true);
         Future<String> output=ide.pool.submit(()->IdeEngine.slurp(p.getInputStream(),2*1024*1024));
         if(!p.waitFor(120,TimeUnit.SECONDS)){p.destroyForcibly();throw new IOException("Git: превышено время ожидания");}

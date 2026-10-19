@@ -1,0 +1,80 @@
+{
+  "device": "realme RMX3951 / Android 16",
+  "keyboard": "Yandex Keyboard, actual screen taps",
+  "results": [
+    {
+      "test": "Actual Yandex keys keep std lowercase after spaces",
+      "passed": true,
+      "evidence": {
+        "committedText": [
+          "std ",
+          "std std ",
+          "std std std "
+        ]
+      }
+    },
+    {
+      "test": "Characters arrive before space/composition finish",
+      "passed": true,
+      "evidence": {
+        "text": "qwerty",
+        "tap_to_shadow_upper_bound_ms": [
+          136.4,
+          174.6,
+          151.0,
+          147.3,
+          128.3,
+          153.7
+        ]
+      }
+    },
+    {
+      "test": "IME requests no suggestions and no autocorrect",
+      "passed": true,
+      "evidence": {
+        "inputTypes": [
+          "a0091",
+          "0",
+          "a0001"
+        ]
+      }
+    },
+    {
+      "test": "Holding keyboard Backspace repeatedly deletes text",
+      "passed": true,
+      "evidence": {
+        "before": 425,
+        "after": 397
+      }
+    },
+    {
+      "test": "Long press selects a word with native selection",
+      "passed": true,
+      "evidence": {
+        "startLineNumber": 1,
+        "startColumn": 7,
+        "endLineNumber": 1,
+        "endColumn": 11,
+        "selectionStartLineNumber": 1,
+        "selectionStartColumn": 7,
+        "positionLineNumber": 1,
+        "positionColumn": 11
+      }
+    },
+    {
+      "test": "Hardware clipboard copy/paste reaches native text",
+      "passed": true,
+      "evidence": "alpha beta gamma\nbetasecond line\n"
+    },
+    {
+      "test": "Disk, visible native buffer and LSP shadow stay in sync",
+      "passed": true,
+      "evidence": {
+        "savedLength": 33,
+        "shadowLength": 33
+      }
+    }
+  ],
+  "passed": 7,
+  "total": 7
+}

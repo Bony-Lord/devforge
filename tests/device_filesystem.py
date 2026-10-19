@@ -1,0 +1,23 @@
+import json,pathlib,subprocess,sys,time,shlex
+source=pathlib.Path(__file__).resolve().parents[1];root=source;sys.path.insert(0,str(source/'tools'))
+from device_cdp import Device,ADB
+fixture=root/'work/external-project-fixture';fixture.mkdir(exist_ok=True,parents=True)
+files={'CMakeLists.txt':'cmake_minimum_required(VERSION 3.16)\nproject(pc_project LANGUAGES CXX)\nadd_executable(app src/main.cpp src/math.cpp)\ntarget_include_directories(app PRIVATE include)\n','src/main.cpp':'#include <fstream>\n#include <iostream>\n#include <string>\n#include <unistd.h>\n#include "math.hpp"\nint main(){std::ifstream in("data/input.txt");std::string s;std::getline(in,s);char cwd[4096];getcwd(cwd,sizeof(cwd));std::cout<<"data="<<s<<"\\nanswer="<<answer()<<"\\ncwd="<<cwd<<"\\n";return s=="shared-folder-data"?0:7;}\n','src/math.cpp':'#include "math.hpp"\nint answer(){return 42;}\n','include/math.hpp':'#pragma once\nint answer();\n','data/input.txt':'shared-folder-data\n','src/extra.cpp':'int extra(){return 99;}\n'}
+for name,text in files.items():p=fixture/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8',newline='\n')
+path='/storage/emulated/0/Documents/GCC Studio PC Test '+str(int(time.time()))
+subprocess.run([ADB,'shell','mkdir','-p',shlex.quote(path)],check=True,capture_output=True)
+subprocess.run([ADB,'push',str(fixture)+'/.',path+'/'],check=True,capture_output=True)
+(root/'work').mkdir(exist_ok=True);d=Device();original=d.evaluate('forge.state.project');report={'device':'realme RMX3951','android':'16','folder':path,'results':[]}
+def check(name,expr,predicate):
+ value=d.evaluate(expr);passed=predicate(value);report['results'].append({'test':name,'passed':passed,'evidence':value});print('PASS' if passed else 'FAIL',name,flush=True);assert passed,str(value)[:2500];return value
+try:
+ check('Open a PC-style project directly, with spaces in its path',"(async()=>{window.fsCheck={events:[],exits:[]};onNative('output',e=>fsCheck.events.push(e));onNative('exit',e=>fsCheck.exits.push(e));const opened=await native('openFolder',{path:"+json.dumps(path)+"});await forge.switchProject(opened.project);await native('formatterConfig');await forge.refreshTree();await forge.openFile(forge.state.root+'/src/main.cpp');return {root:forge.state.root,external:forge.state.external,cache:forge.state.cache};})()",lambda r:r['root']==path and r['external'] and r['cache'].startswith('/data/user/0/com.forgex/'))
+ check('CMake compiles sources and headers without changing the project layout',"(async()=>{fsCheck.build=await native('build',{path:forge.active.path,mode:'cmake',options:forge.settings,id:'fs-build'});return fsCheck.build;})()",lambda r:r['code']==0 and r['exists'] and '/workspaces/' in r['executable'])
+ check('Executable reads relative files using the project root as cwd',"(async()=>{await native('run',{executable:fsCheck.build.executable,id:'fs-run'});for(let n=0;n<100&&!fsCheck.exits.some(e=>e.id==='fs-run');n++)await new Promise(r=>setTimeout(r,50));return {output:fsCheck.events.filter(e=>e.id==='fs-run').map(e=>e.text).join(''),exit:fsCheck.exits.find(e=>e.id==='fs-run')};})()",lambda r:'data=shared-folder-data' in r['output'] and 'answer=42' in r['output'] and 'cwd='+path in r['output'] and r['exit']['code']==0)
+ check('External file writes are saved in the original folder',"(async()=>{const p=forge.state.root+'/data/input.txt';await native('write',{path:p,text:'updated-from-IDE\\n'});return (await native('read',{path:p})).text;})()",lambda r:r=='updated-from-IDE\n')
+ check('CMake detects an unlisted translation unit',"(async()=>{await forge.openFile(forge.state.root+'/src/extra.cpp');await forge.refreshCMakeStatus();return {status:forge.cmakeSnapshot,markers:monaco.editor.getModelMarkers({owner:'cmake-project'})};})()",lambda r:not r['status']['included'] and bool(r['markers']) and r['status']['targets'][0]['name']=='app')
+ check('CMake quick fix adds target_sources and reconfigures real CMake',"(async()=>{await forge.offerCMakeSource();return {status:forge.cmakeSnapshot,cmake:(await native('read',{path:forge.state.root+'/CMakeLists.txt'})).text,db:await native('cmakeSources')};})()",lambda r:r['status']['included'] and 'target_sources(app PRIVATE' in r['cmake'] and any(f.endswith('/src/extra.cpp') for f in r['db']['files']))
+finally:
+ try:d.evaluate('forge.switchProject('+json.dumps(original)+')')
+ except Exception:pass
+ d.close();report['passed']=sum(t['passed'] for t in report['results']);report['total']=len(report['results']);(source/'verification-filesystem.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8');print(json.dumps({'passed':report['passed'],'total':report['total']}),flush=True)

@@ -1,0 +1,15 @@
+{
+  "coordinate": "io.github.rosemoe:editor:0.24.4",
+  "repository": "https://github.com/Rosemoe/sora-editor",
+  "commit": "1e199e11dcbf9e6526cdcbdf1bdb25b74140496a",
+  "license": "LGPL-2.1-or-later",
+  "modified": false,
+  "sourceArchive": "sora-editor-0.24.4-sources.zip",
+  "sourceArchiveSha256": "8b5c128b26e31437fca1aa504cc3a5d35de4af5f3794c318fbbdcb7b0eaa287a",
+  "sourceArchiveCommand": "git archive --format=zip --prefix=sora-editor-0.24.4/ HEAD",
+  "dependencies": {
+    "org.jetbrains.kotlin:kotlin-stdlib": "2.2.21",
+    "androidx.collection:collection": "1.5.0",
+    "androidx.annotation:annotation": "1.9.1"
+  }
+}

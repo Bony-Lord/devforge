@@ -32,6 +32,7 @@ public final class MainActivity extends Activity {
     String secret = UUID.randomUUID().toString();
     String pendingExport;
     FrameLayout editorRoot;
+    NativeEditorHost nativeEditors;
     int keyboardOverlap=100,imeHeight=0,imeReserved=-1;
 
     @Override public void onCreate(Bundle saved) {
@@ -62,6 +63,7 @@ public final class MainActivity extends Activity {
         });
     }
     void status(String s) { ui.post(() -> progress.setText(s)); }
+    String interfaceLanguage(){try{String value=new JSONObject(getSharedPreferences("forge",0).getString("settings","{}")).optString("language",Locale.getDefault().getLanguage());return value.equals("ru")?"ru":"en";}catch(JSONException e){return "ru";}}
     void installRuntime() throws Exception {
         String abi = Build.SUPPORTED_ABIS[0];
         String expected;
@@ -146,6 +148,9 @@ public final class MainActivity extends Activity {
             try(InputStream in=getAssets().open("ui/"+path)) {
                 OutputStream out=s.getOutputStream();
                 out.write(("HTTP/1.1 200 OK\r\nContent-Type: "+type+"; charset=utf-8\r\nCache-Control: no-cache\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
+                if(path.equals("index.html")){
+                    String html=IdeEngine.slurp(in,1024*1024).replace("<head>","<head><script>window.STUDIO_BOOT_LANGUAGE="+JSONObject.quote(interfaceLanguage())+";</script>");out.write(html.getBytes(StandardCharsets.UTF_8));return;
+                }
                 byte[] b=new byte[32768]; int n; while((n=in.read(b))>0) out.write(b,0,n);
             } catch(IOException e) { /* client disconnected or missing asset */ }
         } catch(Exception e) { android.util.Log.d("Forge","Asset request",e); }
@@ -178,6 +183,7 @@ public final class MainActivity extends Activity {
         });
         editorRoot=new FrameLayout(this);
         editorRoot.addView(web,new FrameLayout.LayoutParams(-1,-1));
+        nativeEditors=new NativeEditorHost(this);
         getWindow().getDecorView().setOnApplyWindowInsetsListener((view,insets) -> {
             if(Build.VERSION.SDK_INT>=30) {
                 int bottom=insets.isVisible(WindowInsets.Type.ime())?insets.getInsets(WindowInsets.Type.ime()).bottom-insets.getInsets(WindowInsets.Type.navigationBars()).bottom:0;
@@ -206,11 +212,13 @@ public final class MainActivity extends Activity {
         imeReserved=reserved;
         FrameLayout.LayoutParams layout=(FrameLayout.LayoutParams)web.getLayoutParams();
         layout.bottomMargin=reserved;web.setLayoutParams(layout);
+        if(nativeEditors!=null)nativeEditors.geometry();
         float scale=web.getScale();if(scale<=0)scale=getResources().getDisplayMetrics().density;
         try{event("keyboardGeometry",new JSONObject().put("visible",height>0).put("height",height/scale).put("reserved",reserved/scale).put("overlap",(height-reserved)/scale).put("percent",keyboardOverlap));}catch(JSONException ignored){}
     }
     void showKeyboard() {
         ui.post(() -> {
+            if(nativeEditors!=null&&nativeEditors.active!=null){nativeEditors.showKeyboard();return;}
             if(web==null)return;
             web.requestFocus();
             web.postDelayed(() -> ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(web,android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT),80);
@@ -218,6 +226,13 @@ public final class MainActivity extends Activity {
     }
     final class Bridge {
         @JavascriptInterface public void request(String json) {
+            try {
+                JSONObject r=new JSONObject(json);
+                if(r.optString("op").startsWith("editor")){
+                    ui.post(()->{try{respond(r.optString("id"),nativeEditors.handle(r.optString("op"),r.optJSONObject("data")),null);}catch(Throwable e){android.util.Log.e("Studio","Native editor",e);respond(r.optString("id"),null,e.toString());}});
+                    return;
+                }
+            }catch(JSONException ignored){}
             workers.execute(() -> {
                 String id="";
                 try {
@@ -238,6 +253,16 @@ public final class MainActivity extends Activity {
     }
     void emitScript(String js) { ui.post(() -> { if(web!=null&&!closed)web.evaluateJavascript(js,null); }); }
     void importProject() { ui.post(() -> { Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE); i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); startActivityForResult(i,12); }); }
+    void requestStorageAccess() {
+        ui.post(() -> {
+            if(Build.VERSION.SDK_INT>=30){
+                try{startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,Uri.parse("package:"+getPackageName())));}
+                catch(ActivityNotFoundException e){startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));}
+            }else requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE,android.Manifest.permission.WRITE_EXTERNAL_STORAGE},92);
+        });
+    }
+    @Override protected void onResume(){super.onResume();if(engine!=null)try{event("storageAccess",new JSONObject().put("permission",engine.workspace.permission()));}catch(Exception ignored){}}
+    @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==92)try{event("storageAccess",new JSONObject().put("permission",engine.workspace.permission()));}catch(Exception ignored){}}
     void exportProject(String name) { ui.post(() -> { pendingExport=name; Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT); i.setType("application/zip"); i.addCategory(Intent.CATEGORY_OPENABLE); i.putExtra(Intent.EXTRA_TITLE,name+".zip"); startActivityForResult(i,13); }); }
     void importFile() { ui.post(() -> { Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT); i.setType("*/*"); i.addCategory(Intent.CATEGORY_OPENABLE); i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); startActivityForResult(i,14); }); }
     @Override protected void onActivityResult(int request,int result,Intent data) {
@@ -287,6 +312,17 @@ public final class MainActivity extends Activity {
         try(OutputStream o=out) {byte[] b=new byte[32768];int n;long total=0;while((n=in.read(b))>0){total+=n;if(total>max)throw new IOException("Файл слишком большой");o.write(b,0,n);}return total;}
     }
     @Override public void onBackPressed() {emitScript("window.forgeBack && window.forgeBack()");}
+    @Override protected void onPause(){if(nativeEditors!=null)nativeEditors.pause();super.onPause();}
+    @Override public boolean dispatchKeyEvent(KeyEvent event){
+        if(nativeEditors!=null&&nativeEditors.active!=null&&nativeEditors.active.editor.hasFocus()&&event.getAction()==KeyEvent.ACTION_DOWN){
+            int key=event.getKeyCode();boolean ctrl=event.isCtrlPressed();
+            boolean appKey=ctrl&&(key==KeyEvent.KEYCODE_F||key==KeyEvent.KEYCODE_H||key==KeyEvent.KEYCODE_S||key==KeyEvent.KEYCODE_P||key==KeyEvent.KEYCODE_N||key==KeyEvent.KEYCODE_COMMA||key==KeyEvent.KEYCODE_J||key==KeyEvent.KEYCODE_B||key==KeyEvent.KEYCODE_Q||key==KeyEvent.KEYCODE_G||key==KeyEvent.KEYCODE_W||key==KeyEvent.KEYCODE_TAB||key==KeyEvent.KEYCODE_EQUALS||key==KeyEvent.KEYCODE_MINUS||key==KeyEvent.KEYCODE_0||key==KeyEvent.KEYCODE_BACKSLASH||key==KeyEvent.KEYCODE_1||key==KeyEvent.KEYCODE_2||key==KeyEvent.KEYCODE_D||key==KeyEvent.KEYCODE_Y||key==KeyEvent.KEYCODE_L||key==KeyEvent.KEYCODE_O||key==KeyEvent.KEYCODE_SPACE);
+            appKey|=key==KeyEvent.KEYCODE_F5||key==KeyEvent.KEYCODE_F9||key==KeyEvent.KEYCODE_F12||key==KeyEvent.KEYCODE_F2||(event.isShiftPressed()&&key==KeyEvent.KEYCODE_F6)||(event.isAltPressed()&&(key==KeyEvent.KEYCODE_ENTER||key==KeyEvent.KEYCODE_F12))||(event.isShiftPressed()&&event.isAltPressed()&&key==KeyEvent.KEYCODE_F);
+            if(appKey){String name=KeyEvent.keyCodeToString(key).replace("KEYCODE_","");if(key==KeyEvent.KEYCODE_SPACE)name=" ";else if(key==KeyEvent.KEYCODE_ENTER)name="Enter";else if(key==KeyEvent.KEYCODE_TAB)name="Tab";else if(key==KeyEvent.KEYCODE_EQUALS)name="=";else if(key==KeyEvent.KEYCODE_MINUS)name="-";else if(key==KeyEvent.KEYCODE_COMMA)name=",";else if(key==KeyEvent.KEYCODE_BACKSLASH)name="\\";
+                String js="window.forge&&forge.keydown({key:"+JSONObject.quote(name)+",ctrlKey:"+ctrl+",altKey:"+event.isAltPressed()+",shiftKey:"+event.isShiftPressed()+",metaKey:false,preventDefault(){},stopImmediatePropagation(){}})";emitScript(js);return true;}
+        }
+        return super.dispatchKeyEvent(event);
+    }
     @Override public boolean onKeyDown(int key,KeyEvent event) {
         if(key==KeyEvent.KEYCODE_F5) {emitScript(event.isShiftPressed()?"window.forge && forge.stop()":"window.forgeRun && window.forgeRun()");return true;}
         if(key==KeyEvent.KEYCODE_F9) {
@@ -297,6 +333,7 @@ public final class MainActivity extends Activity {
     }
     @Override protected void onDestroy() {
         closed=true;
+        if(nativeEditors!=null)nativeEditors.close();
         if(engine!=null)engine.close();
         try{if(assets!=null)assets.close();}catch(IOException ignored){}
         if(web!=null)web.destroy();

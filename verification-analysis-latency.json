@@ -1,0 +1,77 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "scope": "Warm small vector fixture; time from model edit to raw clangd notification and native diagnostic submission, not frame presentation. Completion timings are direct LSP round trips.",
+  "before": {
+    "samples": [
+      {
+        "rawDiagnosticsMs": 561,
+        "nativeDisplayRequestMs": 1043
+      },
+      {
+        "rawDiagnosticsMs": 598,
+        "nativeDisplayRequestMs": 1073
+      },
+      {
+        "rawDiagnosticsMs": 617,
+        "nativeDisplayRequestMs": 1090
+      }
+    ],
+    "completion": [
+      {
+        "ms": 221,
+        "count": 2
+      },
+      {
+        "ms": 260,
+        "count": 2
+      },
+      {
+        "ms": 215,
+        "count": 2
+      }
+    ],
+    "bytes": 73,
+    "incremental": {
+      "change": 2,
+      "openClose": true,
+      "save": true
+    }
+  },
+  "after": {
+    "samples": [
+      {
+        "rawDiagnosticsMs": 337,
+        "nativeDisplayRequestMs": 348
+      },
+      {
+        "rawDiagnosticsMs": 361,
+        "nativeDisplayRequestMs": 368
+      },
+      {
+        "rawDiagnosticsMs": 327,
+        "nativeDisplayRequestMs": 331
+      }
+    ],
+    "completion": [
+      {
+        "ms": 219,
+        "count": 2
+      },
+      {
+        "ms": 211,
+        "count": 2
+      },
+      {
+        "ms": 191,
+        "count": 2
+      }
+    ],
+    "bytes": 73,
+    "incremental": {
+      "change": 2,
+      "openClose": true,
+      "save": true
+    }
+  }
+}

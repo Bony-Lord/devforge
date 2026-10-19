@@ -1,0 +1,113 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "results": [
+    {
+      "test": "Incremental LSP changes preserve multiline UTF-16 edits",
+      "passed": true,
+      "evidence": {
+        "changes": [
+          {
+            "range": {
+              "start": {
+                "line": 3,
+                "character": 11
+              },
+              "end": {
+                "line": 3,
+                "character": 16
+              }
+            },
+            "text": "missing_incremental_probe()"
+          },
+          {
+            "range": {
+              "start": {
+                "line": 0,
+                "character": 12
+              },
+              "end": {
+                "line": 0,
+                "character": 12
+              }
+            },
+            "text": " Привет"
+          }
+        ],
+        "diagnostics": [
+          {
+            "code": "undeclared_var_use",
+            "message": "Use of undeclared identifier 'missing_incremental_probe'",
+            "range": {
+              "end": {
+                "character": 36,
+                "line": 3
+              },
+              "start": {
+                "character": 11,
+                "line": 3
+              }
+            },
+            "relatedInformation": [],
+            "severity": 1,
+            "source": "clang"
+          }
+        ],
+        "native": true
+      }
+    },
+    {
+      "test": "clangd rename updates the actual native buffer",
+      "passed": true,
+      "evidence": {
+        "text": "int main() { int renamed = 2; return renamed; }\n",
+        "native": "int main() { int renamed = 2; return renamed; }\n"
+      }
+    },
+    {
+      "test": "Formatter respects requested reference, pointer and range-for spacing",
+      "passed": true,
+      "evidence": {
+        "text": "#include <vector>\nint main() {\n    std::vector<int> v{1, 2};\n    for (auto& el : v) {\n        auto *ptr = &el;\n        *ptr += 1;\n    }\n}\n",
+        "native": "#include <vector>\nint main() {\n    std::vector<int> v{1, 2};\n    for (auto& el : v) {\n        auto *ptr = &el;\n        *ptr += 1;\n    }\n}\n"
+      }
+    },
+    {
+      "test": "Native undo restores formatting changes without losing text",
+      "passed": true,
+      "evidence": "#include <vector>\nint main(){std::vector<int> v{1,2};for(auto & el:v){auto*ptr=&el;*ptr+=1;}}\n"
+    },
+    {
+      "test": "Formatter builder saves a real validated profile and preserves YAML comments",
+      "passed": true,
+      "evidence": {
+        "preview": true,
+        "after": "#include <iostream>\n#include <vector>\n\nclass Example {\n  public:\n      void run(std::vector<int>& v) {\n            for (auto& el : v) {\n                  auto *ptr = &el;\n                  *ptr += 2;\n                  std::cout << el << \" \";\n            }\n      }\n};\n\nint main() {\n      std::vector<int> values{1, 2, 3};\n      Example object;\n      object.run(values);\n      return 0;\n}\n",
+        "saved": "BasedOnStyle: LLVM\nIndentWidth: 6\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n\n# preserved-fixture-comment\n",
+        "closed": true
+      }
+    },
+    {
+      "test": "CMake completion and documentation use installed CMake",
+      "passed": true,
+      "evidence": {
+        "completion": true,
+        "help": "cmake_minimum_required\n----------------------\n\nRequire a minimum version of cmake.\n\n cmake_minimum_required(VERSION <min>[...<policy_max>] [FATAL_ERROR])\n\n.. versionadded:: 3.12\n  The optional ``<policy_max>`` version behavior; ignored in older CMake"
+      }
+    },
+    {
+      "test": "CMake, warnings, errors and file controls use distinct vector artwork",
+      "passed": true,
+      "evidence": {
+        "cmake": "<span class=\"file-kind file-kind-cmake\" aria-label=\"CMake\"><svg\n  xmlns=\"http://www.w3.org/2000/svg\"\n  width=\"24\" aria-hidden=\"true\"\n  height=\"24\"\n  viewBox=\"0 0 24 24\"\n  fill=\"none\"\n  stroke=\"currentColor\"\n  stroke-width=\"1.7\"\n  stroke-linecap=\"round\"\n  stroke-linejoin=\"round\"\n>\n  <path d=\"M15 8a1 1 0 0 1-1-1V2a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8z\" />\n  <path d=\"M20 8v12a2 2 0 0 1-2 2h-4.182\" />\n  <path d=\"m3.305 19.53.923-.382\" />\n  <path d=\"M4 10.592V4a2 2 0 0 1 2-2h8\" />\n  <path d=\"m4.228 16.852-.924-.383\" />\n  <path d=\"m5.852 15.228-.383-.923\" />\n  <path d=\"m5.852 20.772-.383.924\" />\n  <path d=\"m8.148 15.228.383-.923\" />\n  <path d=\"m8.53 21.696-.382-.924\" />\n  <path d=\"m9.773 16.852.922-.383\" />\n  <path d=\"m9.773 19.148.922.383\" />\n  <circle cx=\"7\" cy=\"18\" r=\"3\" />\n</svg>\n</span>",
+        "warning": "<svg\n  xmlns=\"http://www.w3.org/2000/svg\"\n  width=\"24\" aria-hidden=\"true\"\n  height=\"24\"\n  viewBox=\"0 0 24 24\"\n  fill=\"none\"\n  stroke=\"currentColor\"\n  stroke-width=\"1.7\"\n  stroke-linecap=\"round\"\n  stroke-linejoin=\"round\"\n>\n  <path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" />\n  <path d=\"M12 9v4\" />\n  <path d=\"M12 17h.01\" />\n</svg>\n",
+        "error": "<svg\n  xmlns=\"http://www.w3.org/2000/svg\"\n  width=\"24\" aria-hidden=\"true\"\n  height=\"24\"\n  viewBox=\"0 0 24 24\"\n  fill=\"none\"\n  stroke=\"currentColor\"\n  stroke-width=\"1.7\"\n  stroke-linecap=\"round\"\n  stroke-linejoin=\"round\"\n>\n  <circle cx=\"12\" cy=\"12\" r=\"10\" />\n  <path d=\"m15 9-6 6\" />\n  <path d=\"m9 9 6 6\" />\n</svg>\n",
+        "hydrated": true,
+        "tabCloses": true,
+        "treeFiles": true
+      }
+    }
+  ],
+  "passed": 7,
+  "total": 7
+}

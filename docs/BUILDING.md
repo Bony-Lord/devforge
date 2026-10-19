@@ -4,6 +4,8 @@
 
 ```sh
 python tools/prepare_runtime.py --locked
+python tools/prepare_frontend.py
+python tools/prepare_icons.py
 python tools/package_notices.py
 ./gradlew :app:assembleDebug
 ```
@@ -18,9 +20,9 @@ gcc-15 -O2 native/forge-pty.c -o native/forge-pty-aarch64
 
 Эта команда предназначена для окружения, где GCC уже запускается на Android. На настольной машине используйте соответствующий кросс-компилятор NDK. Для других ABI также потребуются соответствующий relay и нативный runtime; опубликованная и физически проверенная сборка — ARM64.
 
-## Сборка без Gradle на Windows
+## Сборка на Windows
 
-`build.ps1` использует `javac`, D8, AAPT, zipalign и apksigner. Параметр `ToolsRoot` указывает каталог с Android SDK и JDK; структуру путей можно настроить в начале скрипта. Это путь, которым собран и проверен APK первого релиза.
+`build.ps1` запускает Gradle, который обрабатывает ресурсы нативного Sora Editor и его зависимости. Параметр `ToolsRoot` указывает каталог с Android SDK и JDK; структуру путей можно настроить в начале скрипта. Начиная с 0.2.0 сборка одним `javac`/AAPT не поддерживается.
 
 ```powershell
 python tools/prepare_runtime.py --locked
@@ -32,6 +34,25 @@ python tools/package_notices.py
 Первый запуск создаёт локальный ключ в `work/build/` с параметрами для разработки из скрипта. Сам файл ключа не попадает в Git. Для обновления уже установленной сборки нужен тот же ключ; собственная сборка использует другой ключ.
 
 В release-сборке отключены `debuggable` и отладочный доступ к WebView. Для автоматизированных проверок устройства нужна debug-сборка.
+
+## Замена нативного редактора
+
+Sora Editor 0.24.4 подключён как Maven AAR `io.github.rosemoe:editor:0.24.4`. Точный исходный commit и контрольная сумма архива указаны в `editor-component.lock.json`; исходники с Gradle wrapper и build-системой распространяются как `sora-editor-0.24.4-sources.zip` рядом с APK.
+
+Для собственной версии библиотеки распакуйте архив, измените исходники и соберите модуль `:editor` его Gradle wrapper. Для подключения полученного AAR замените зависимость Sora в `app/build.gradle` на `implementation files('libs/editor-custom.aar')`, скопируйте AAR в `app/libs/` и добавьте явные зависимости из его Maven POM: Kotlin stdlib 2.2.21, AndroidX Collection 1.5.0 и Annotation 1.9.1. После этого пересоберите APK и подпишите своим ключом. Код хоста и ресурсы доступны полностью; ограничений на такую пересборку нет.
+
+## Проверка реальных жестов
+
+Тестовый модуль `gesture-tests` использует targetSdk 35 и не запускает компиляторы. Выберите отдельный приватный проект с именем `input-check-*`: модуль специально отказывается менять пользовательские проекты. Соберите debug-приложение и тестовый APK одним ключом, затем выполните:
+
+```sh
+./gradlew :gesture-tests:assembleDebug
+adb install -t -r gesture-tests/build/outputs/apk/debug/gesture-tests-debug.apk
+adb shell am instrument -w com.forgex.gesturetests/dev.forge.ide.NativeInputInstrumentation
+adb uninstall com.forgex.gesturetests
+```
+
+Проверяются реальные серые spans неиспользуемого кода, диагностика clangd в нативном представлении, прокрутка 6000 строк, масштабирование настоящими двухпальцевыми событиями и нативный ввод при занятом JavaScript-потоке WebView. Это дополняет проверки экранной клавиатуры, а не заменяет их. Для этих проверок нужен распакованный runtime приложения и готовый clangd.
 
 ## Исходники нативных компонентов
 

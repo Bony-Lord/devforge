@@ -1,0 +1,71 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "results": [
+    {
+      "test": "Actual native spans gray unused function and variable",
+      "passed": true,
+      "evidence": {
+        "unused_function": "#6F737A",
+        "unused_variable": "#6F737A"
+      }
+    },
+    {
+      "test": "Real clangd error reaches native diagnostic regions",
+      "passed": true,
+      "evidence": {
+        "nativeDiagnosticMs": 274
+      }
+    },
+    {
+      "test": "One-finger swipe scrolls a 6000-line document",
+      "passed": true,
+      "evidence": {
+        "before": 0,
+        "after": 648
+      }
+    },
+    {
+      "test": "Two-finger pinch increases native code font",
+      "passed": true,
+      "evidence": {
+        "beforePx": 42,
+        "afterPx": 67.19999694824219,
+        "scalable": true,
+        "rect": "[0,560][1080,1743]",
+        "events": [
+          "0:1",
+          "5:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "2:2",
+          "6:2",
+          "1:1"
+        ]
+      }
+    },
+    {
+      "test": "Native input accepts a key while WebView JavaScript is blocked",
+      "passed": true,
+      "evidence": {
+        "nativeInputMs": 49,
+        "webViewBlockMs": 2200
+      }
+    }
+  ],
+  "passed": 5,
+  "total": 5
+}

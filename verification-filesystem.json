@@ -1,0 +1,112 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "folder": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627",
+  "results": [
+    {
+      "test": "Open a PC-style project directly, with spaces in its path",
+      "passed": true,
+      "evidence": {
+        "root": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627",
+        "external": true,
+        "cache": "/data/user/0/com.forgex/files/workspaces/5c5c6305-807c-455f-80f7-9e9dd9ef2d02"
+      }
+    },
+    {
+      "test": "CMake compiles sources and headers without changing the project layout",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "id": "fs-build",
+        "executable": "/data/user/0/com.forgex/files/workspaces/5c5c6305-807c-455f-80f7-9e9dd9ef2d02/cmake-gcc-cpp20/app",
+        "exists": true
+      }
+    },
+    {
+      "test": "Executable reads relative files using the project root as cwd",
+      "passed": true,
+      "evidence": {
+        "output": "data=shared-folder-data\nanswer=42\ncwd=/storage/emulated/0/Documents/GCC Studio PC Test 1792433627\n",
+        "exit": {
+          "id": "fs-run",
+          "code": 0
+        }
+      }
+    },
+    {
+      "test": "External file writes are saved in the original folder",
+      "passed": true,
+      "evidence": "updated-from-IDE\n"
+    },
+    {
+      "test": "CMake detects an unlisted translation unit",
+      "passed": true,
+      "evidence": {
+        "status": {
+          "source": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/src/extra.cpp",
+          "targets": [
+            {
+              "name": "app",
+              "file": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/CMakeLists.txt"
+            }
+          ],
+          "included": false,
+          "dynamic": false,
+          "configured": true
+        },
+        "markers": [
+          {
+            "resource": {
+              "scheme": "file",
+              "authority": "",
+              "path": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/src/extra.cpp",
+              "query": "",
+              "fragment": "",
+              "_formatted": "file:///storage/emulated/0/Documents/GCC%20Studio%20PC%20Test%201792433627/src/extra.cpp",
+              "_fsPath": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/src/extra.cpp"
+            },
+            "owner": "cmake-project",
+            "code": "cmake-unlisted-source",
+            "severity": 2,
+            "message": "This file is not included in a CMake target. Use a quick fix to add it.",
+            "source": "CMake",
+            "startLineNumber": 1,
+            "startColumn": 1,
+            "endLineNumber": 1,
+            "endColumn": 24
+          }
+        ]
+      }
+    },
+    {
+      "test": "CMake quick fix adds target_sources and reconfigures real CMake",
+      "passed": true,
+      "evidence": {
+        "status": {
+          "source": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/src/extra.cpp",
+          "targets": [
+            {
+              "name": "app",
+              "file": "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/CMakeLists.txt"
+            }
+          ],
+          "included": true,
+          "dynamic": false,
+          "configured": true
+        },
+        "cmake": "cmake_minimum_required(VERSION 3.16)\nproject(pc_project LANGUAGES CXX)\nadd_executable(app src/main.cpp src/math.cpp)\ntarget_include_directories(app PRIVATE include)\n\n# Added by GCC C++ Studio\ntarget_sources(app PRIVATE\n    \"src/extra.cpp\"\n)\n",
+        "db": {
+          "configured": true,
+          "files": [
+            "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/src/main.cpp",
+            "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/src/math.cpp",
+            "/storage/emulated/0/Documents/GCC Studio PC Test 1792433627/src/extra.cpp"
+          ],
+          "time": 1792433643408
+        }
+      }
+    }
+  ],
+  "passed": 6,
+  "total": 6
+}

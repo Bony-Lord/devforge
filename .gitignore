@@ -1,6 +1,7 @@
 # Generated toolchains and upstream source archives are GitHub release assets.
 app/src/main/assets/runtime.zip
 app/build/
+gesture-tests/build/
 build/
 .gradle/
 local.properties
@@ -20,3 +21,4 @@ native-sources/**/*.patch
 .DS_Store
 
 app/src/main/assets/ui/licenses/
+CONTINUE-NATIVE.md

@@ -12,6 +12,8 @@ import java.util.zip.*;
 final class IdeEngine {
     final MainActivity app;
     final ToolsEngine tools;
+    final WorkspaceFiles workspace;
+    final LanguageTools languages;
     final File projects,usr,tmp;
     final ExecutorService pool=Executors.newCachedThreadPool();
     final android.content.SharedPreferences prefs;
@@ -28,15 +30,16 @@ final class IdeEngine {
     IdeEngine(MainActivity a)throws Exception {
         app=a;projects=new File(a.getFilesDir(),"projects");usr=new File(a.getFilesDir(),"usr");tmp=new File(a.getFilesDir(),"tmp");
         projects.mkdirs();tmp.mkdirs();
-        prefs=a.getSharedPreferences("forge",0);
+        prefs=a.getSharedPreferences("forge",0);workspace=new WorkspaceFiles(this);languages=new LanguageTools(this);
         if(!new File(projects,"hello-cpp").exists()) createProject("hello-cpp","cpp");
         currentProject=prefs.getString("project","hello-cpp");
-        if(!new File(projects,currentProject).isDirectory())currentProject="hello-cpp";
+        if(!project(currentProject).isDirectory())currentProject="hello-cpp";
         tools=new ToolsEngine(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
         JSONObject d=data==null?new JSONObject():data;
         if(op.startsWith("gdb")||op.equals("git"))return tools.handle(op,d);
+        if(op.startsWith("formatter")||op.equals("formatDocument")||op.equals("cmakeSources")||op.equals("cmakeCommands")||op.equals("cmakeHelp"))return languages.handle(op,d);
         switch(op) {
             case "state":return state();
             case "settings":prefs.edit().putString("settings",d.toString()).apply();app.configureKeyboard(d);return d;
@@ -48,19 +51,23 @@ final class IdeEngine {
             }
             case "newProject":createProject(d.getString("name"),d.optString("language","cpp"));return state();
             case "tree":return tree(project(currentProject),0);
+            case "browseFilesystem":return workspace.browse(d);
+            case "openFolder":return workspace.open(d);
+            case "storagePermission":app.requestStorageAccess();return true;
+            case "newFolder": {File folder=writablePath(d.getString("path"));if(folder.exists()||!folder.mkdirs())throw new IOException("Cannot create folder");return true;}
             case "read": {
                 File f=readable(d.getString("path"));
                 if(f.length()>4*1024*1024)throw new IOException("Редактор открывает файлы до 4 МБ");
-                return new JSONObject().put("text",read(f)).put("path",f.getAbsolutePath()).put("readonly",!inside(f,projects));
+                return new JSONObject().put("text",read(f)).put("path",f.getAbsolutePath()).put("readonly",!inside(f,project(currentProject)));
             }
-            case "write":return save(d.getString("path"),d.getString("text"));
+            case "write":return d.has("revision")?saveVersioned(d.getString("path"),d.getString("text"),d.getLong("revision")):save(d.getString("path"),d.getString("text"));
             case "newFile": {
                 File f=writable(d.getString("path"));
                 if(f.exists())throw new IOException("Файл уже существует");
                 f.getParentFile().mkdirs();Files.write(f.toPath(),d.optString("text","").getBytes(StandardCharsets.UTF_8));return f.getAbsolutePath();
             }
             case "renameFile": {
-                File from=writable(d.getString("path")),to=writable(d.getString("to"));
+                File from=writablePath(d.getString("path")),to=writablePath(d.getString("to"));
                 if(!inside(to,project(currentProject)))throw new IOException("Выберите путь внутри проекта");
                 if(to.exists())throw new IOException("Этот путь уже существует");
                 to.getParentFile().mkdirs();Files.move(from.toPath(),to.toPath());return true;
@@ -77,6 +84,7 @@ final class IdeEngine {
             case "lspSend":sendLsp(d.getJSONObject("message"));return true;
             case "lspStop":stopLsp();return true;
             case "build":return build(d);
+            case "cmakeConfigure":d.put("mode","cmake").put("configureOnly",true);return build(d);
             case "run":return run(d);
             case "stdin": {
                 if(tools.debuggerRunning()){tools.debugInput(d.getString("text"));return true;}
@@ -96,11 +104,13 @@ final class IdeEngine {
     }
     JSONObject state()throws Exception {
         JSONArray list=new JSONArray();File[] dirs=projects.listFiles();if(dirs!=null){Arrays.sort(dirs,Comparator.comparing(File::getName));for(File p:dirs)if(p.isDirectory())list.put(p.getName());}
-        return new JSONObject().put("project",currentProject).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
+        JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
+        return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",workspace.isExternal()).put("cache",workspace.data().getAbsolutePath()).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
             .put("usr",usr.getAbsolutePath()).put("tree",tree(project(currentProject),0)).put("settings",new JSONObject(prefs.getString("settings","{}")))
             .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version","0.1.0");
     }
     File project(String name)throws IOException {
+        File external=workspace.external(name);if(external!=null)return external;
         if(!name.matches("[a-zA-Z0-9_ .()-]{1,80}")||name.equals(".")||name.equals(".."))throw new IOException("Имя проекта: латиница, цифры, пробел, дефис");
         return new File(projects,name).getCanonicalFile();
     }
@@ -113,17 +123,17 @@ final class IdeEngine {
         String cmake="cmake_minimum_required(VERSION 3.16)\nproject(forge_project LANGUAGES "+(c?"C":"CXX")+")\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable(app "+(c?"main.c":"main.cpp")+")\n";
         Files.write(new File(p,"CMakeLists.txt").toPath(),cmake.getBytes(StandardCharsets.UTF_8));
         Files.write(new File(p,".gitignore").toPath(),".forge/\nbuild/\n".getBytes(StandardCharsets.UTF_8));
-        Files.write(new File(p,".clang-format").toPath(),"BasedOnStyle: LLVM\nIndentWidth: 4\nColumnLimit: 100\n".getBytes(StandardCharsets.UTF_8));
+        Files.write(new File(p,".clang-format").toPath(),LanguageTools.DEFAULT_STYLE.getBytes(StandardCharsets.UTF_8));
     }
     boolean inside(File f,File root)throws IOException {String x=f.getCanonicalPath(),r=root.getCanonicalPath();return x.equals(r)||x.startsWith(r+"/");}
-    File writable(String path)throws IOException {
-        File f=new File(path).getCanonicalFile();
-        if(!inside(f,projects)||f.equals(projects)||f.isDirectory())throw new IOException("Путь вне файлов проекта");
-        return f;
+    File writablePath(String path)throws IOException {
+        File f=new File(path).getCanonicalFile(),root=project(currentProject);
+        if(!inside(f,root)||f.equals(root))throw new IOException("Путь вне файлов проекта");return f;
     }
+    File writable(String path)throws IOException {File f=writablePath(path);if(f.isDirectory())throw new IOException("Choose a file");return f;}
     File readable(String path)throws IOException {
         File f=new File(path).getCanonicalFile();
-        if((!inside(f,projects)&&!inside(f,usr))||!f.isFile())throw new IOException("Файл недоступен: "+f.getName());return f;
+        if((!inside(f,project(currentProject))&&!inside(f,usr))||!f.isFile())throw new IOException("Файл недоступен: "+f.getName());return f;
     }
     static String read(File f)throws IOException {return new String(Files.readAllBytes(f.toPath()),StandardCharsets.UTF_8);}
     JSONArray tree(File dir,int depth)throws Exception {
@@ -140,6 +150,10 @@ final class IdeEngine {
         }
         return out;
     }
+    synchronized boolean saveVersioned(String path,String text,long revision)throws Exception {
+        if(app.nativeEditors!=null&&!app.nativeEditors.currentRevision(path,revision))return false;
+        return save(path,text);
+    }
     synchronized boolean save(String path,String text)throws Exception {
         File f=writable(path);f.getParentFile().mkdirs();
         if(f.exists()) {
@@ -154,7 +168,7 @@ final class IdeEngine {
     }
     File historyDir(File f)throws Exception {
         String key=android.util.Base64.encodeToString(f.getAbsolutePath().getBytes(StandardCharsets.UTF_8),android.util.Base64.URL_SAFE|android.util.Base64.NO_WRAP|android.util.Base64.NO_PADDING);
-        return new File(project(currentProject),".forge/history/"+key);
+        return new File(workspace.data(),"history/"+key);
     }
     JSONArray history(String path)throws Exception {
         File f=writable(path);File[] versions=historyDir(f).listFiles();JSONArray out=new JSONArray();
@@ -224,10 +238,10 @@ final class IdeEngine {
     }
     synchronized JSONObject startLsp(JSONObject options)throws Exception {
         stopLsp();
-        File root=project(currentProject),config=new File(root,".forge");config.mkdirs();
+        File root=project(currentProject),config=workspace.data();config.mkdirs();
         JSONArray db=new JSONArray();List<File> sources=new ArrayList<>();collectSources(root,sources);
         for(File f:sources){JSONArray args=new JSONArray();args.put(compiler(options,isC(f)));for(String flag:flags(options,isC(f),true))args.put(flag);args.put("-c");args.put(f.getAbsolutePath());db.put(new JSONObject().put("directory",root.getAbsolutePath()).put("file",f.getAbsolutePath()).put("arguments",args));}
-        File cmakeDb=new File(root,".forge/cmake-"+options.optString("compiler","gcc")+"-"+standard(options,false).replace('+','p')+"/compile_commands.json");
+        File cmakeDb=new File(workspace.data(),"cmake-"+options.optString("compiler","gcc")+"-"+standard(options,false).replace('+','p')+"/compile_commands.json");
         if(options.optString("buildMode").equals("cmake")&&cmakeDb.isFile())Files.copy(cmakeDb.toPath(),new File(config,"compile_commands.json").toPath(),StandardCopyOption.REPLACE_EXISTING);
         else Files.write(new File(config,"compile_commands.json").toPath(),db.toString(2).getBytes(StandardCharsets.UTF_8));
         final Process process=spawn(Arrays.asList(bin("clangd"),"--background-index","--clang-tidy","--completion-style=detailed","--header-insertion=iwyu","--pch-storage=memory","--log=error","--compile-commands-dir="+config.getAbsolutePath(),"--query-driver="+bin("*")+","+new File(usr,"libexec/gcc/*/*/*").getAbsolutePath()),root,false);
@@ -259,15 +273,15 @@ final class IdeEngine {
     JSONObject build(JSONObject d)throws Exception {
         synchronized(buildLock) {
             buildCancelled=false;JSONObject options=d.has("options")?d.getJSONObject("options"):settings();
-            File root=project(currentProject),outDir=new File(root,".forge/bin");outDir.mkdirs();
+            File root=project(currentProject),outDir=new File(workspace.data(),"bin");outDir.mkdirs();
             String mode=d.optString("mode","file"),id=d.optString("id",UUID.randomUUID().toString());
             File output=new File(outDir,"program");
             List<String> cmd=new ArrayList<>();
             if(mode.equals("cmake")) {
-                File cmakeDir=new File(root,".forge/cmake-"+options.optString("compiler","gcc")+"-"+standard(options,false).replace('+','p'));
+                File cmakeDir=new File(workspace.data(),"cmake-"+options.optString("compiler","gcc")+"-"+standard(options,false).replace('+','p'));
                 cmd.addAll(Arrays.asList(bin("cmake"),"-S",root.getAbsolutePath(),"-B",cmakeDir.getAbsolutePath(),"-G","Ninja","-DCMAKE_MAKE_PROGRAM="+bin("ninja"),"-DCMAKE_C_COMPILER="+compiler(options,true),"-DCMAKE_CXX_COMPILER="+compiler(options,false),"-DCMAKE_BUILD_TYPE="+(options.optString("optimization","debug").equals("release")?"Release":"Debug"),"-DCMAKE_EXPORT_COMPILE_COMMANDS=ON","-DCMAKE_C_STANDARD="+cmakeStandard(options,true),"-DCMAKE_CXX_STANDARD="+cmakeStandard(options,false),"-DCMAKE_C_EXTENSIONS="+(standard(options,true).startsWith("gnu")?"ON":"OFF"),"-DCMAKE_CXX_EXTENSIONS="+(standard(options,false).startsWith("gnu")?"ON":"OFF"),"-DCMAKE_C_FLAGS="+cmakeFlags(options,true),"-DCMAKE_CXX_FLAGS="+cmakeFlags(options,false)));
                 int rc=buildCommand(cmd,root,id);
-                if(rc!=0)return new JSONObject().put("code",rc).put("id",id);
+                if(rc!=0||d.optBoolean("configureOnly"))return new JSONObject().put("code",rc).put("id",id).put("configured",rc==0);
                 rc=buildCommand(Arrays.asList(bin("cmake"),"--build",cmakeDir.getAbsolutePath(),"-j2"),root,id);
                 File target=new File(cmakeDir,options.optString("target","app"));
                 if(!inside(target,cmakeDir))throw new IOException("Путь исполняемого файла вне каталога сборки");
@@ -297,7 +311,7 @@ final class IdeEngine {
     JSONObject run(JSONObject d)throws Exception {
         if(execution!=null&&execution.isAlive())throw new IOException("Сначала остановите запущенную программу");
         File executable=new File(d.getString("executable")).getCanonicalFile();
-        if(!inside(executable,project(currentProject))||!executable.isFile())throw new IOException("Исполняемый файл не найден");
+        if(!workspace.canExecute(executable)||!executable.isFile())throw new IOException("Исполняемый файл не найден");
         executable.setExecutable(true,true);
         List<String> cmd=new ArrayList<>();cmd.add(executable.getAbsolutePath());
         JSONArray args=d.optJSONArray("args");if(args!=null)for(int i=0;i<args.length();i++)cmd.add(args.getString(i));

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explicit English fallbacks for the app's overrides of Sora UI strings. -->
+    <string name="sora_editor_last">Previous</string>
+    <string name="sora_editor_next">Next</string>
+    <string name="sora_editor_replace">Replace</string>
+    <string name="sora_editor_replaceAll">Replace all</string>
+    <string name="sora_editor_replacement">Replacement</string>
+    <string name="sora_editor_text_to_search">Find text</string>
+    <string name="sora_editor_editor_search_replacing">Replacing text…</string>
+    <string name="sora_editor_editor_search_busy">Preparing editor…</string>
+    <string name="sora_editor_editor_formatting">Formatting code…</string>
+    <string name="sora_editor_more">More</string>
+    <string name="sora_editor_diagnostics_more_actions">More actions…</string>
+    <string name="sora_editor_clip_text_length_too_large">Text is too large to copy</string>
+    <string name="sora_editor_long_select">Extend selection</string>
+</resources>

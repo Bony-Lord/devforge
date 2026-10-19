@@ -1,16 +1,17 @@
 'use strict';
 class ClangdClient {
-  constructor(ide){this.ide=ide;this.seq=0;this.pending=new Map();this.opened=new Map();this.chain=Promise.resolve();this.ready=false;this.capabilities={};this.disposables=[];this.epoch=0;onNative('lsp',m=>this.receive(m));onNative('lspExit',e=>{this.ready=false;ide.lspStatus('clangd остановлен','error');for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd завершился'));}this.pending.clear();});onNative('lspLog',s=>console.warn('clangd:',s));}
+  constructor(ide){this.ide=ide;this.seq=0;this.pending=new Map();this.opened=new Map();this.changes=new Map();this.chain=Promise.resolve();this.ready=false;this.capabilities={};this.disposables=[];this.epoch=0;onNative('lsp',m=>this.receive(m));onNative('lspExit',e=>{this.ready=false;ide.lspStatus('clangd остановлен','error');for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd завершился'));}this.pending.clear();});onNative('lspLog',s=>console.warn('clangd:',s));}
   send(m){this.chain=this.chain.catch(()=>{}).then(()=>native('lspSend',{message:m}));return this.chain;}
   notify(method,params){return this.send({jsonrpc:'2.0',method,params}).catch(e=>console.warn('LSP',method,e.message));}
   request(method,params,token){
     if(!this.ready&&method!=='initialize')return Promise.resolve(null);
+    if(token?.isCancellationRequested)return Promise.resolve(null);
     const id=++this.seq;
     return new Promise((resolve,reject)=>{
-      const timer=setTimeout(()=>{this.pending.delete(id);reject(new Error('clangd: '+method+' timeout'));},30000);
-      const cancel=token?.onCancellationRequested(()=>this.notify('$/cancelRequest',{id}));
+      const timer=setTimeout(()=>{const p=this.pending.get(id);this.pending.delete(id);p?.reject(new Error('clangd: '+method+' timeout'));},30000);
+      const cancel=token?.onCancellationRequested(()=>{const p=this.pending.get(id);if(!p)return;this.pending.delete(id);clearTimeout(timer);this.notify('$/cancelRequest',{id});p.resolve(null);});
       this.pending.set(id,{resolve:r=>{cancel?.dispose();resolve(r);},reject:e=>{cancel?.dispose();reject(e);},timer});
-      this.send({jsonrpc:'2.0',id,method,params}).catch(e=>{clearTimeout(timer);this.pending.delete(id);reject(e);});
+      this.send({jsonrpc:'2.0',id,method,params}).catch(e=>{const p=this.pending.get(id);clearTimeout(timer);this.pending.delete(id);p?.reject(e);});
     });
   }
   receive(m){
@@ -26,7 +27,7 @@ class ClangdClient {
   async start(){
     const epoch=++this.epoch;
     this.ready=false;this.ide.lspStatus('Запуск clangd…','pending');
-    for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd перезапускается'));}this.pending.clear();this.opened.clear();
+    for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd перезапускается'));}this.pending.clear();this.opened.clear();this.changes.clear();
     for(const d of this.disposables)d.dispose();this.disposables=[];
     try{
       await this.chain.catch(()=>{});
@@ -36,17 +37,26 @@ class ClangdClient {
       const init=await this.request('initialize',{processId:null,rootUri:monaco.Uri.file(s.root).toString(),workspaceFolders:[{uri:monaco.Uri.file(s.root).toString(),name:this.ide.state.project}],clientInfo:{name:'Forge IDE',version:'0.1.0'},capabilities:{workspace:{applyEdit:true,workspaceEdit:{documentChanges:true},configuration:true,symbol:{symbolKind:{valueSet:Array.from({length:26},(_,i)=>i+1)}}},textDocument:{synchronization:{dynamicRegistration:false,didSave:true},completion:{contextSupport:true,completionItem:{snippetSupport:true,documentationFormat:['markdown','plaintext'],deprecatedSupport:true,preselectSupport:true,tagSupport:{valueSet:[1]},insertReplaceSupport:true,resolveSupport:{properties:['documentation','detail','additionalTextEdits']}}},hover:{contentFormat:['markdown','plaintext']},signatureHelp:{signatureInformation:{documentationFormat:['markdown','plaintext'],parameterInformation:{labelOffsetSupport:true}}},definition:{linkSupport:true},documentSymbol:{hierarchicalDocumentSymbolSupport:true},codeAction:{codeActionLiteralSupport:{codeActionKind:{valueSet:['quickfix','refactor','source','source.organizeImports']}},resolveSupport:{properties:['edit']}},publishDiagnostics:{relatedInformation:true,versionSupport:true,tagSupport:{valueSet:[1,2]},dataSupport:true,codeDescriptionSupport:true},semanticTokens:{requests:{full:true},tokenTypes,tokenModifiers,formats:['relative'],overlappingTokenSupport:false,multilineTokenSupport:false},inlayHint:{resolveSupport:{properties:['tooltip','textEdits','label.tooltip']}}},general:{positionEncodings:['utf-16']}},initializationOptions:{clangdFileStatus:true,fallbackFlags:['-std='+this.ide.settings.cppStandard]}});
       if(epoch!==this.epoch)return;
       this.capabilities=init?.capabilities||{};this.ready=true;await this.notify('initialized',{});this.registerProviders();
-      for(const doc of this.ide.docs.values())this.sync(doc.model);
+      for(const doc of this.ide.docs.values()){this.sync(doc.model);NativeEditing.scheduleAnalysis(doc.model);}
       this.ide.lspStatus('clangd готов','ready');this.ide.updateOutline();
     }catch(e){if(epoch===this.epoch){this.ready=false;this.ide.lspStatus('Ошибка clangd','error');this.ide.toast(e.message);console.error(e);}}
+  }
+  changed(model,event){
+    const uri=model.uri.toString();if(!this.opened.has(uri))return;
+    let batch=this.changes.get(uri);const expected=batch?.version??this.opened.get(uri);
+    if(!batch)batch={changes:[],version:expected,full:false};
+    if(event.isFlush||event.versionId!==expected+1||batch.changes.length>128)batch.full=true;
+    if(!batch.full)for(const c of [...event.changes].sort((a,b)=>b.rangeOffset-a.rangeOffset))batch.changes.push({range:this.fromRange(c.range),text:c.text});
+    batch.version=event.versionId;this.changes.set(uri,batch);
   }
   sync(model){
     if(!this.ready||!['c','cpp'].includes(model.getLanguageId()))return;
     const uri=model.uri.toString(),version=model.getVersionId();
     if(!this.opened.has(uri)){this.opened.set(uri,version);this.notify('textDocument/didOpen',{textDocument:{uri,languageId:model.getLanguageId(),version,text:model.getValue()}});}
-    else if(this.opened.get(uri)!==version){this.opened.set(uri,version);this.notify('textDocument/didChange',{textDocument:{uri,version},contentChanges:[{text:model.getValue()}]});}
+    else if(this.opened.get(uri)!==version){const batch=this.changes.get(uri);this.opened.set(uri,version);const incremental=this.capabilities.textDocumentSync?.change===2&&batch&&!batch.full&&batch.version===version&&batch.changes.length;this.notify('textDocument/didChange',{textDocument:{uri,version},contentChanges:incremental?batch.changes:[{text:model.getValue()}]});}
+    this.changes.delete(uri);
   }
-  close(model){const uri=model.uri.toString();if(this.ready&&this.opened.has(uri))this.notify('textDocument/didClose',{textDocument:{uri}});this.opened.delete(uri);}
+  close(model){const uri=model.uri.toString();if(this.ready&&this.opened.has(uri))this.notify('textDocument/didClose',{textDocument:{uri}});this.opened.delete(uri);this.changes.delete(uri);}
   doc(model){this.sync(model);return{uri:model.uri.toString()};}
   at(model,pos){return{textDocument:this.doc(model),position:{line:pos.lineNumber-1,character:pos.column-1}};}
   range(r){return{startLineNumber:r.start.line+1,startColumn:r.start.character+1,endLineNumber:r.end.line+1,endColumn:r.end.character+1};}
