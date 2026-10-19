@@ -7,7 +7,7 @@ import argparse, concurrent.futures, gzip, hashlib, io, json, lzma, os, re, tarf
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CACHE = ROOT.parents[1] / 'work' / 'packages'
+CACHE = Path(os.environ.get('GCC_STUDIO_CACHE', ROOT / 'work' / 'packages'))
 MAIN = 'https://packages.termux.dev/apt/termux-main/'
 TUR = 'https://tur.kcubeterm.com/'
 OLD = b'/data/data/com.termux'

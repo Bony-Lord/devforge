@@ -15,6 +15,9 @@ jobs:
         with:
           node-version: '22'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-35'
+          log-accepted-android-sdk-licenses: false
       - name: JavaScript syntax and protocol parser
         run: |
           for f in app/src/main/assets/ui/*.js; do node --check "$f"; done
@@ -23,6 +26,5 @@ jobs:
         run: python -m compileall -q tools tests
       - name: Compile Android Java host
         run: |
-          sdkmanager 'platforms;android-35'
           mkdir -p work/classes
           javac -source 8 -target 8 -encoding UTF-8 -cp "$ANDROID_HOME/platforms/android-35/android.jar" -d work/classes $(find app/src/main/java -name '*.java')

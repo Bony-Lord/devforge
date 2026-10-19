@@ -9,7 +9,7 @@ def main():
     args = parser.parse_args()
     lock = json.loads((ROOT / 'native-sources/sources.lock.json').read_text(encoding='utf-8'))
     for entry in lock['archives'] + lock['recipes']:
-        path = ROOT / entry['file']
+        path = ROOT / entry['file'].replace('\\', '/')
         if hashlib.sha256(path.read_bytes()).hexdigest() != entry['sha256']:
             raise RuntimeError('Source checksum failed: ' + str(path))
     paths = list((ROOT / 'native-sources').rglob('*')) + list((ROOT / 'licenses').rglob('*'))

@@ -38,7 +38,7 @@ def source(item):
                 dest.parent.mkdir(parents=True,exist_ok=True)
                 if not dest.exists():dest.write_bytes(archive.extractfile(m).read())
     print('Source verified:',package,path.stat().st_size,flush=True)
-    return {'package':package,'url':url,'sha256':sha,'file':str(path.relative_to(ROOT))}
+    return {'package':package,'url':url,'sha256':sha,'file':path.relative_to(ROOT).as_posix()}
 
 def snapshot(repo):
     name=repo.replace('/','-')
@@ -82,7 +82,7 @@ if __name__=='__main__':
         data=path.read_bytes() if path.exists() else fetch(url)
         assert hashlib.sha256(data).hexdigest()==sha
         path.write_bytes(data)
-        sources.append({'package':'readline-patch-'+number,'url':url,'sha256':sha,'file':str(path.relative_to(ROOT))})
+        sources.append({'package':'readline-patch-'+number,'url':url,'sha256':sha,'file':path.relative_to(ROOT).as_posix()})
     (OUT/'sources.lock.json').write_text(json.dumps({'archives':sources,'recipes':recipes},indent=2),encoding='utf-8')
     (OUT/'README.md').write_text('''# Corresponding native sources
 
