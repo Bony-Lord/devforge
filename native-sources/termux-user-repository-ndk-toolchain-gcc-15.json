@@ -1,0 +1,7 @@
+{
+  "repo": "termux-user-repository/ndk-toolchain-gcc-15",
+  "commit": "4661647d2a7c1a18968c61cd9b0b79564fecf403",
+  "url": "https://codeload.github.com/termux-user-repository/ndk-toolchain-gcc-15/tar.gz/4661647d2a7c1a18968c61cd9b0b79564fecf403",
+  "file": "native-sources/termux-user-repository-ndk-toolchain-gcc-15-4661647d2a7c.tar.gz",
+  "sha256": "5d03b9dc1891cc83bd073bab33fc55db5b296962a8e434f298efca72d0765cee"
+}

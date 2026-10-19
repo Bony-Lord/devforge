@@ -1,0 +1,9 @@
+* text=auto
+gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+app/src/main/assets/ui/vs/** -text -whitespace linguist-vendored
+licenses/** -text -whitespace
+gradle/wrapper/** linguist-generated
+native-packages.lock.json linguist-generated
+verification*.json linguist-generated

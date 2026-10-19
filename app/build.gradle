@@ -1,0 +1,9 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.forgex'
+    compileSdk 35
+    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 28; versionCode 1; versionName '0.1.0' }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+    androidResources { noCompress += ['zip'] }
+    buildTypes { release { minifyEnabled false } }
+}

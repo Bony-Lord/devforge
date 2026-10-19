@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>GCC C++ Studio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="clion.css"><link rel="stylesheet" href="tools.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="brand" id="brand" title="GCC C++ Studio · команды"><span class="brand-mark">C<span>++</span></span><strong>GCC C++ <b>Studio</b></strong></button>
+    <nav class="menubar"><button data-menu="file">Файл</button><button data-menu="edit">Правка</button><button data-menu="code">Код</button><button data-menu="view">Вид</button></nav>
+    <div class="top-spacer"></div>
+    <span class="offline"><i></i> LOCAL</span>
+    <button class="icon-button" id="paletteButton" title="Все команды · Ctrl+Shift+P" aria-label="Палитра команд"></button>
+    <button class="icon-button" id="settingsButton" title="Настройки" aria-label="Настройки"></button>
+  </header>
+  <div class="toolbar">
+    <button class="icon-button mobile" id="treeToggle" title="Проект" aria-label="Показать проект"></button>
+    <div class="project-switch"><span id="projectIcon"></span><select id="projectSelect" aria-label="Текущий проект"></select></div>
+    <div class="tool-divider"></div>
+    <select id="compilerSelect" title="Компилятор" aria-label="Компилятор"><option value="gcc">GCC 15</option><option value="clang">Clang 21</option></select>
+    <select id="standardSelect" title="Стандарт языка" aria-label="Стандарт языка"></select>
+    <div class="top-spacer"></div>
+    <button class="tool-button" id="buildButton" title="Собрать · F9"><span></span><label>Собрать</label></button>
+    <button class="run-button" id="runButton" title="Собрать и запустить · F5"><span></span><label>Запустить</label></button>
+    <button class="icon-button stop" id="stopButton" title="Остановить программу или сборку · Shift+F5" aria-label="Остановить" disabled></button>
+  </div>
+  <div class="work-area">
+    <aside class="activitybar">
+      <button class="activity active" data-side="project" title="Проект · Alt+1" aria-label="Проект"></button>
+      <button class="activity" data-side="search" title="Поиск файлов · Ctrl+P" aria-label="Поиск файлов"></button>
+      <button class="activity" data-side="outline" title="Структура файла · Ctrl+F12" aria-label="Структура файла"></button>
+      <div class="top-spacer"></div>
+      <button class="activity" id="helpButton" title="Справка и клавиши" aria-label="Справка"></button>
+    </aside>
+    <aside id="sidebar" class="sidebar">
+      <div class="side-heading"><span id="sideTitle">ПРОЕКТ</span><div class="side-actions"><button class="icon-button small" id="newFileButton" title="Новый файл" aria-label="Новый файл"></button><button class="icon-button small" id="refreshButton" title="Обновить дерево" aria-label="Обновить"></button></div></div>
+      <div class="project-name"><span class="project-dot"></span><span id="projectName">hello-cpp</span></div>
+      <div id="tree" class="tree"></div>
+      <div id="sideSearch" class="side-section hidden"><input id="fileSearch" type="search" placeholder="Имя файла…" aria-label="Поиск файлов"><div id="fileResults"></div></div>
+      <div id="outline" class="side-section hidden"><div class="empty-note">Откройте файл C/C++</div></div>
+      <div class="side-footer"><span class="local-chip">НА УСТРОЙСТВЕ</span><span>Код остаётся у вас</span></div>
+    </aside>
+    <div id="sidebarResizer" class="vertical-resizer"></div>
+    <main class="main">
+      <div id="tabs" class="tabs" role="tablist"></div>
+      <div class="breadcrumbs"><span id="breadcrumb">Выберите файл</span><span id="readonlyBadge" class="hidden">только чтение</span><button class="icon-button small" id="keyboardButton" title="Показать экранную клавиатуру" aria-label="Показать экранную клавиатуру">⌨</button><button class="icon-button small" id="formatButton" title="Форматировать · Ctrl+Alt+L" aria-label="Форматировать"></button></div>
+      <div id="editorArea" class="editor-area"><div id="editor"></div><div id="editorSplitResizer" class="hidden"></div><div id="secondaryEditor" class="hidden"></div><div id="welcome" class="welcome hidden"><div class="welcome-logo">F<span>◆</span></div><h1>Место для вашего кода.</h1><p>C и C++ · локальная сборка · умный редактор</p><button id="welcomeNew" class="primary">Создать проект</button><button id="welcomeOpen">Импортировать папку</button><div class="welcome-keys"><span>Команды <kbd>Ctrl Shift P</kbd></span><span>Открыть файл <kbd>Ctrl P</kbd></span><span>Запустить <kbd>F5</kbd></span></div></div></div>
+      <div id="panelResizer" class="horizontal-resizer"></div>
+      <section id="panel" class="panel">
+        <div class="panel-heading"><div class="panel-tabs"><button class="selected" data-panel="problems">Проблемы <span id="problemCount" class="badge">0</span></button><button data-panel="console">Консоль</button><button data-panel="build">Сборка</button><button data-panel="terminal">Терминал</button></div><div class="panel-actions"><button class="icon-button small" id="clearOutput" title="Очистить вывод" aria-label="Очистить вывод"></button><button class="icon-button small" id="hidePanel" title="Скрыть панель · Ctrl+J" aria-label="Скрыть панель"></button></div></div>
+        <div id="problems" class="panel-content"><div class="problems-empty"><span class="check-circle">✓</span><div><strong>Анализ кода запускается</strong><p>Ошибки и предупреждения появятся здесь во время ввода.</p></div></div></div>
+        <div id="console" class="panel-content hidden"><div class="output" id="consoleOutput" role="log"></div><div class="input-bar"><textarea id="stdin" rows="1" placeholder="Ввод для программы · Enter — отправить" aria-label="Стандартный ввод"></textarea><button id="sendInput" title="Отправить ввод">↵</button><button id="eofInput" title="Закрыть стандартный ввод">EOF</button></div></div>
+        <div id="build" class="panel-content hidden"><div class="output" id="buildOutput" role="log"><div class="output-hint">F9 — собрать · F5 — собрать и запустить</div></div></div>
+        <div id="terminal" class="panel-content hidden"><div class="output" id="terminalOutput" role="log"><div class="output-hint">Локальная оболочка Android. GCC, Clang, CMake, Ninja и Make доступны в PATH.<br>Команды работают внутри файлов приложения. Для интерактивных программ используйте консоль.</div></div><form id="terminalForm" class="input-bar"><span class="prompt">❯</span><input id="terminalCommand" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="g++-15 --version" aria-label="Команда терминала"><button type="submit">↵</button></form></div>
+      </section>
+    </main>
+  </div>
+  <footer class="statusbar"><button id="lspStatus" title="Нажмите, чтобы перезапустить анализ"><i class="status-dot pending"></i><span>Запуск clangd…</span></button><button id="problemStatus">△ 0</button><div class="top-spacer"></div><span id="saveStatus">Сохранено</span><span id="cursorStatus">Стр 1, стлб 1</span><button id="languageStatus">C++</button><button id="fontStatus" title="Размер шрифта">14 px</button><span class="status-brand">FORGE</span></footer>
+</div>
+<div id="toast" class="toast hidden" role="status"></div>
+<div id="menu" class="popup-menu hidden"></div>
+<dialog id="quickDialog" class="quick-dialog"><input id="quickInput" placeholder="Введите команду…" autocomplete="off" spellcheck="false" aria-label="Команда или имя файла"><div id="quickResults"></div><div class="quick-footer">↑↓ выбрать <span>↵ выполнить</span> <span>Esc закрыть</span></div></dialog>
+<dialog id="inputDialog" class="input-dialog"><form method="dialog" id="inputForm"><h2 id="inputTitle"></h2><p id="inputDescription"></p><input id="inputValue" autocomplete="off" spellcheck="false"><select id="inputLanguage" class="hidden"><option value="cpp">C++</option><option value="c">C</option></select><div class="dialog-buttons"><button value="cancel">Отмена</button><button value="ok" class="primary">Создать</button></div></form></dialog>
+<dialog id="settingsDialog" class="settings-dialog"><div class="dialog-heading"><div><span class="eyebrow">GCC C++ STUDIO</span><h2>Настройте рабочее место</h2></div><button data-close="settingsDialog" class="close-button" aria-label="Закрыть">×</button></div><form id="settingsForm">
+  <section><h3>Сборка</h3><div class="settings-grid">
+    <label>Компилятор<select name="compiler"><option value="gcc">GNU GCC 15.2</option><option value="clang">LLVM Clang 21.1</option></select></label>
+    <label>Конфигурация<select name="optimization"><option value="debug">Debug · -O0 -g</option><option value="release">Release · -O2 -g</option></select></label>
+    <label>Стандарт C++<select name="cppStandard"></select></label><label>Стандарт C<select name="cStandard"></select></label>
+    <label>Что собирать<select name="buildMode"><option value="file">Текущий файл</option><option value="project">Все исходники проекта</option><option value="cmake">Проект CMake</option></select></label>
+    <label>Программа CMake<input name="target" placeholder="app"></label>
+    <label class="full">Дополнительные флаги <span class="muted">каждый с новой строки</span><textarea name="flags" rows="2" placeholder="-Wconversion&#10;-DMY_DEFINE=1" spellcheck="false"></textarea></label>
+    <label class="full">Аргументы программы <span class="muted">каждый с новой строки</span><textarea name="args" rows="2" spellcheck="false" placeholder="input.txt"></textarea></label>
+  </div></section>
+  <section><h3>Масштаб и окна</h3><div class="settings-grid"><label>Масштаб интерфейса<div class="scale-range"><input name="uiScale" type="range" min="65" max="180" step="5" oninput="this.nextElementSibling.value=this.value+'%'"><output>100%</output></div></label><label>Масштаб кода<div class="scale-range"><input name="codeScale" type="range" min="50" max="250" step="5" oninput="this.nextElementSibling.value=this.value+'%'"><output>100%</output></div></label></div><p>Границы дерева проекта, нижней панели и двух редакторов можно перетаскивать. Расположение сохраняется автоматически.</p><button type="button" id="resetLayout">Сбросить расположение окон</button></section><section><h3>Экранная клавиатура</h3><label>Перекрытие интерфейса<div class="scale-range"><input name="keyboardOverlap" type="range" min="0" max="100" step="5" oninput="this.nextElementSibling.value=this.value+'%'"><output>100%</output></div></label><p>100% — клавиатура полностью поверх интерфейса, 0% — окно сжимается на её высоту. Промежуточные значения задают частичное перекрытие. Курсор прокручивается в видимую область; высота самой клавиатуры задаётся в её приложении.</p></section><section><h3>Редактор</h3><div class="settings-grid"><label>Шрифт, px<input name="fontSize" type="number" min="10" max="32"></label><label>Тема<select name="theme"><option value="forge-dark">Dark · стиль CLion</option><option value="forge-light">Light</option></select></label><label class="check"><input type="checkbox" name="autosave"> Автосохранение</label><label class="check"><input type="checkbox" name="minimap"> Миникарта</label><label class="check"><input type="checkbox" name="wordWrap"> Перенос строк</label><label class="check"><input type="checkbox" name="inlayHints"> Подсказки типов и параметров</label><label class="check"><input type="checkbox" name="keepAwake"> Не гасить экран в IDE</label><label class="check"><input type="checkbox" name="semanticHighlighting"> Семантическая подсветка</label></div></section>
+  <div class="settings-note">GCC собирает программу. clangd анализирует код и использует выбранный стандарт языка. Их диагностика может различаться.</div>
+  <div class="dialog-buttons"><button type="button" data-close="settingsDialog">Отмена</button><button type="submit" class="primary">Применить</button></div>
+</form></dialog>
+<dialog id="helpDialog" class="help-dialog"><div class="dialog-heading"><div><span class="eyebrow">C / C++ НА ANDROID</span><h2>GCC C++ Studio <small>0.1</small></h2></div><button data-close="helpDialog" class="close-button" aria-label="Закрыть">×</button></div><p>Автономная среда для планшета с клавиатурой. Компиляторы и анализ кода работают на устройстве. Интернет для работы не нужен.</p><div id="versions" class="versions">Проверка инструментов…</div><h3>Клавиатура</h3><div id="shortcuts" class="shortcuts"></div><h3>Проекты и файлы</h3><p>Проекты сохраняются в приватной папке приложения. «Файл → Импортировать папку» копирует исходники в IDE. «Экспортировать ZIP» сохраняет архив через системный выбор файла. Перед удалением приложения экспортируйте проекты. Изменения файлов также хранятся в локальной истории.</p><h3>Об этой сборке</h3><p>ARM64 · Android 9 и новее. Редактор Monaco (MIT), LLVM/clangd (Apache 2.0 с исключениями LLVM), GNU GCC и Binutils (GPL), CMake и Ninja. Исходники и сведения о лицензиях поставляются рядом с APK. Закрытый код и фирменные материалы CLion не используются. Шрифт JetBrains Mono распространяется по OFL-1.1.</p><p class="muted">Основные функции GDB и Git доступны в приложении. Плагины IntelliJ, полный набор рефакторингов и все инструменты настольного CLion не переносятся. Обычная вкладка терминала не является полноэкранным PTY; отладчик использует отдельный PTY для программы.</p><button id="licensesButton" class="primary">Лицензии компонентов</button></dialog>
+<script src="bridge.js"></script><script src="themes.js"></script><script src="lsp.js"></script><script src="vs/loader.js"></script><script src="workspace.js"></script><script src="debugger.js"></script><script src="tools.js"></script><script src="app.js"></script>
+</body></html>

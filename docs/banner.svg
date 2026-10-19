@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="280" viewBox="0 0 1280 280">
+ <rect width="1280" height="280" rx="18" fill="#1e1f22"/>
+ <path d="M0 234H1280M1025 0V280" stroke="#393b40"/>
+ <rect x="52" y="61" width="99" height="99" rx="18" fill="#2b2d30" stroke="#43454a"/>
+ <path d="M113 88H91L79 100v25l12 12h22v-12H96l-5-5v-15l5-5h17z" fill="#bcbec4"/>
+ <path d="M119 116h20m-10-10v20" stroke="#548af7" stroke-width="4"/>
+ <text x="182" y="108" fill="#dfe1e5" font-family="Inter,Segoe UI,sans-serif" font-size="44" font-weight="650">GCC C++ Studio</text>
+ <text x="183" y="151" fill="#868a91" font-family="Inter,Segoe UI,sans-serif" font-size="20">Your C/C++ workspace. On Android. Offline.</text>
+ <text x="53" y="211" fill="#6aab73" font-family="monospace" font-size="16">GCC · clangd · CMake · GDB · Git</text>
+ <text x="1060" y="87" fill="#cf8e6d" font-family="monospace" font-size="20">int</text>
+ <text x="1108" y="87" fill="#56a8f5" font-family="monospace" font-size="20">main</text>
+ <text x="1158" y="87" fill="#bcbec4" font-family="monospace" font-size="20">() {</text>
+ <text x="1084" y="127" fill="#cf8e6d" font-family="monospace" font-size="20">return</text>
+ <text x="1170" y="127" fill="#2aacb8" font-family="monospace" font-size="20">0;</text>
+ <text x="1060" y="166" fill="#bcbec4" font-family="monospace" font-size="20">}</text>
+ <text x="53" y="263" fill="#868a91" font-family="Inter,Segoe UI,sans-serif" font-size="13">ARM64  /  Keyboard &amp; tablet workspace  /  Open source</text>
+</svg>

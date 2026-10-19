@@ -1,0 +1,68 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "testProject": "keyboard-verify-1792419750",
+  "results": [
+    {
+      "test": "Full IME overlay preserves WebView height",
+      "passed": true,
+      "evidence": {
+        "height": 747,
+        "geometry": {
+          "visible": true,
+          "height": 246.3333282470703,
+          "reserved": 0,
+          "overlap": 246.3333282470703,
+          "percent": 100
+        }
+      }
+    },
+    {
+      "test": "50 percent overlay reserves half the IME height",
+      "passed": true,
+      "evidence": {
+        "height": 624,
+        "geometry": {
+          "visible": true,
+          "height": 246.3333282470703,
+          "reserved": 123.33333587646484,
+          "overlap": 123,
+          "percent": 50
+        }
+      }
+    },
+    {
+      "test": "Zero overlay shrinks by the full IME height",
+      "passed": true,
+      "evidence": {
+        "height": 501,
+        "geometry": {
+          "visible": true,
+          "height": 246.3333282470703,
+          "reserved": 246.3333282470703,
+          "overlap": 0,
+          "percent": 0
+        }
+      }
+    },
+    {
+      "test": "Real screen keys commit text into the Monaco model",
+      "passed": true,
+      "evidence": {
+        "focus": true,
+        "text": "// IME: q \nint main() { return 0; }\n"
+      }
+    },
+    {
+      "test": "Caret near the end of a long file remains above the IME",
+      "passed": true,
+      "evidence": {
+        "caretBottom": 484,
+        "keyboardTop": 500.6666717529297,
+        "editorTop": 150
+      }
+    }
+  ],
+  "passed": 5,
+  "total": 5
+}

@@ -1,0 +1,22 @@
+# Generated toolchains and upstream source archives are GitHub release assets.
+app/src/main/assets/runtime.zip
+app/build/
+build/
+.gradle/
+local.properties
+work/
+CONTINUE.md
+*.jks
+*.keystore
+*.apk
+*.apk.idsig
+*.pyc
+__pycache__/
+native-sources/**/*.tar.*
+native-sources/**/*.zip
+native-sources/**/patches/
+native-sources/**/*.patch
+.idea/
+.DS_Store
+
+app/src/main/assets/ui/licenses/

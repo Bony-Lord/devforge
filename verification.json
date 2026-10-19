@@ -1,0 +1,383 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "abi": "arm64-v8a",
+  "testProject": "verify-1792419183",
+  "results": [
+    {
+      "test": "native tools identify themselves",
+      "passed": true,
+      "seconds": 1.42,
+      "evidence": {
+        "g++-15": "g++-15 (GCC) 15.2.0",
+        "gcc-15": "gcc-15 (GCC) 15.2.0",
+        "clang++": "clang version 21.1.8",
+        "clangd": "clangd version 21.1.8",
+        "cmake": "cmake version 4.4.4",
+        "ninja": "1.13.2",
+        "gdb": "GNU gdb (GDB) 18.1",
+        "git": "git version 2.56.0"
+      }
+    },
+    {
+      "test": "isolated project with live clangd",
+      "passed": true,
+      "seconds": 0.36,
+      "evidence": {
+        "name": "verify-1792419183",
+        "root": "/data/user/0/com.forgex/files/projects/verify-1792419183"
+      }
+    },
+    {
+      "test": "GCC C++20 compilation",
+      "passed": true,
+      "seconds": 8.47,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/verify-1792419183/.forge/bin/program",
+        "exists": true,
+        "id": "test-build-1792419186163"
+      }
+    },
+    {
+      "test": "native C++ execution",
+      "passed": true,
+      "seconds": 0.16,
+      "evidence": {
+        "output": "Hello from GCC C++ Studio!\nSum = 15\n",
+        "exit": {
+          "id": "accept-cpp",
+          "code": 0
+        }
+      }
+    },
+    {
+      "test": "Clang C++20 compilation",
+      "passed": true,
+      "seconds": 5.16,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/verify-1792419183/.forge/bin/program",
+        "exists": true,
+        "id": "test-build-1792419194788"
+      }
+    },
+    {
+      "test": "C17 compilation with GCC",
+      "passed": true,
+      "seconds": 0.39,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/verify-1792419183/.forge/bin/program",
+        "exists": true,
+        "id": "test-build-1792419200015"
+      }
+    },
+    {
+      "test": "stdin, arguments, stderr and exit code",
+      "passed": true,
+      "seconds": 0.27,
+      "evidence": {
+        "output": [
+          {
+            "id": "accept-stdin",
+            "stream": "stdout",
+            "text": "ready\n"
+          },
+          {
+            "id": "accept-stdin",
+            "stream": "stderr",
+            "text": "stderr\n"
+          },
+          {
+            "id": "accept-stdin",
+            "stream": "stdout",
+            "text": "42 argument\n"
+          }
+        ],
+        "exit": {
+          "id": "accept-stdin",
+          "code": 7
+        }
+      }
+    },
+    {
+      "test": "C17 compilation with Clang",
+      "passed": true,
+      "seconds": 0.53,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/verify-1792419183/.forge/bin/program",
+        "exists": true,
+        "id": "test-build-1792419200609"
+      }
+    },
+    {
+      "test": "C++20 standard accepted",
+      "passed": true,
+      "seconds": 0.44,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/verify-1792419183/.forge/bin/program",
+        "exists": true,
+        "id": "test-build-1792419201245"
+      }
+    },
+    {
+      "test": "same source rejected under C++17",
+      "passed": true,
+      "seconds": 0.23,
+      "evidence": {
+        "code": 1,
+        "executable": "/data/user/0/com.forgex/files/projects/verify-1792419183/.forge/bin/program",
+        "exists": true,
+        "id": "test-build-1792419201583"
+      }
+    },
+    {
+      "test": "live unknown method diagnostic",
+      "passed": true,
+      "seconds": 3.59,
+      "evidence": {
+        "diagnostics": [
+          {
+            "code": "no_member",
+            "message": "No member named 'unknown_method' in 'std::vector<int>'",
+            "range": {
+              "end": {
+                "character": 22,
+                "line": 4
+              },
+              "start": {
+                "character": 8,
+                "line": 4
+              }
+            },
+            "relatedInformation": [],
+            "severity": 1,
+            "source": "clang"
+          }
+        ],
+        "uri": "file:///data/user/0/com.forgex/files/projects/verify-1792419183/diagnostics.cpp",
+        "version": 1
+      }
+    },
+    {
+      "test": "diagnostics rendered as editor markers",
+      "passed": true,
+      "seconds": 0.0,
+      "evidence": [
+        {
+          "message": "No member named 'unknown_method' in 'std::vector<int>'",
+          "severity": 8
+        }
+      ]
+    },
+    {
+      "test": "completion discovers real vector methods",
+      "passed": true,
+      "seconds": 0.22,
+      "evidence": [
+        "assign",
+        "assign",
+        "assign",
+        "assign",
+        "at",
+        "back",
+        "begin",
+        "capacity",
+        "cbegin",
+        "cend",
+        "clear",
+        "crbegin",
+        "crend",
+        "data",
+        "emplace",
+        "emplace_back",
+        "empty",
+        "end",
+        "erase",
+        "erase",
+        "front",
+        "get_allocator",
+        "insert",
+        "insert",
+        "insert",
+        "insert",
+        "insert",
+        "insert",
+        "max_size",
+        "pop_back",
+        "push_back",
+        "push_back",
+        "rbegin",
+        "rend",
+        "reserve",
+        "resize",
+        "resize",
+        "shrink_to_fit",
+        "size",
+        "swap"
+      ]
+    },
+    {
+      "test": "unused local warning and unnecessary tag",
+      "passed": true,
+      "seconds": 0.39,
+      "evidence": {
+        "diagnostics": [
+          {
+            "code": "-Wunused-variable",
+            "message": "Unused variable 'unused_local'",
+            "range": {
+              "end": {
+                "character": 29,
+                "line": 0
+              },
+              "start": {
+                "character": 17,
+                "line": 0
+              }
+            },
+            "relatedInformation": [],
+            "severity": 2,
+            "source": "clang",
+            "tags": [
+              1
+            ]
+          }
+        ],
+        "uri": "file:///data/user/0/com.forgex/files/projects/verify-1792419183/diagnostics.cpp",
+        "version": 2
+      }
+    },
+    {
+      "test": "fixed source clears live diagnostics",
+      "passed": true,
+      "seconds": 4.84,
+      "evidence": {
+        "diagnostics": [],
+        "uri": "file:///data/user/0/com.forgex/files/projects/verify-1792419183/diagnostics.cpp",
+        "version": 3
+      }
+    },
+    {
+      "test": "hover and semantic tokens",
+      "passed": true,
+      "seconds": 0.17,
+      "evidence": {
+        "hover": {
+          "contents": {
+            "kind": "markdown",
+            "value": "### variable `values`  \n\n---\nType: `std::vector<int>`  \n\n---\n```cpp\n// In main\nstd::vector<int> values\n```"
+          },
+          "range": {
+            "end": {
+              "character": 7,
+              "line": 3
+            },
+            "start": {
+              "character": 1,
+              "line": 3
+            }
+          }
+        },
+        "tokens": 65
+      }
+    },
+    {
+      "test": "rename, definition and references",
+      "passed": true,
+      "seconds": 0.86,
+      "evidence": {
+        "definition": [
+          {
+            "range": {
+              "end": {
+                "character": 9,
+                "line": 0
+              },
+              "start": {
+                "character": 4,
+                "line": 0
+              }
+            },
+            "uri": "file:///data/user/0/com.forgex/files/projects/verify-1792419183/rename.cpp"
+          }
+        ],
+        "references": 2,
+        "text": "int double_value(int value) { return value * 2; }\nint main() { return double_value(4) == 8 ? 0 : 1; }\n"
+      }
+    },
+    {
+      "test": "formatting from clang-format engine",
+      "passed": true,
+      "seconds": 0.06,
+      "evidence": "int main() {\n    int n = 1;\n    return n;\n}\n"
+    },
+    {
+      "test": "atomic save and local history",
+      "passed": true,
+      "seconds": 0.06,
+      "evidence": {
+        "saved": "int main() {\n    int n = 1;\n    return n;\n}\n// history checkpoint\n",
+        "history": [
+          "int main() {\n    int n = 1;\n    return n;\n}\n",
+          "int double_value(int value) { return value * 2; }\nint main() { return double_value(4) == 8 ? 0 : 1; }\n",
+          "int twice(int value) { return value * 2; }\nint main() { return twice(4) == 8 ? 0 : 1; }\n"
+        ]
+      }
+    },
+    {
+      "test": "private files cannot escape project boundary",
+      "passed": true,
+      "seconds": 0.02,
+      "evidence": "Путь вне файлов проекта"
+    },
+    {
+      "test": "CMake multiple translation units",
+      "passed": true,
+      "seconds": 8.73,
+      "evidence": {
+        "code": 0,
+        "id": "test-build-1792419212265",
+        "executable": "/data/user/0/com.forgex/files/projects/verify-1792419183/.forge/cmake-gcc-cpp20/app",
+        "exists": true,
+        "output": "/data/user/0/com.forgex/files/projects/verify-1792419183/standard.cpp:2:35: error: expected ')' before 'int'\n    2 | int main() { static_assert(Number<int>); return 0; }\n      |                           ~       ^~~\n      |                                   )\n-- The CXX compiler identification is GNU 15.2.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /data/user/0/com.forgex/files/usr/bin/g++-15 - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (1.6s)\n-- Generating done (0.1s)\nCMake Warning (unused-cli):\n  Manually-specified variables were not used by the project:\n\n    CMAKE_C_COMPILER\n    CMAKE_C_FLAGS\n\n\n-- Build files have been written to: /data/user/0/com.forgex/files/projects/verify-1792419183/.forge/cmake-gcc-cpp20\n[1/3] Building CXX object CMakeFiles/app.dir/math.cpp.o\n[2/3] Building CXX object CMakeFiles/app.dir/cmake_main.cpp.o\n[3/3] Linking CXX executable app\n"
+      }
+    },
+    {
+      "test": "CMake executable runs",
+      "passed": true,
+      "seconds": 0.16,
+      "evidence": {
+        "output": "42\n",
+        "exit": {
+          "id": "accept-cmake",
+          "code": 0
+        }
+      }
+    },
+    {
+      "test": "stop kills a running program",
+      "passed": true,
+      "seconds": 0.59,
+      "evidence": {
+        "id": "accept-stop",
+        "code": 143
+      }
+    },
+    {
+      "test": "terminal uses real local GCC",
+      "passed": true,
+      "seconds": 0.17,
+      "evidence": "g++-15 (GCC) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+    }
+  ],
+  "passed": 24,
+  "total": 24,
+  "limitations": [
+    "Physical tablet and external keyboard not available; responsive layout and keyboard event checks are separate.",
+    "Ordinary shell has no full-screen PTY; debugger PTY is covered by device_tools_acceptance.py."
+  ]
+}

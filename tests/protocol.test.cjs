@@ -1,0 +1,11 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('app/src/main/assets/ui/debugger.js','utf8');
+const context=vm.createContext({});vm.runInContext(source+';globalThis.parse=parseMI;',context);
+const parse=s=>JSON.parse(JSON.stringify(context.parse(s)));
+assert.deepEqual(parse('value="7"'),{value:'7'});
+assert.deepEqual(parse('frame={level="0",func="main",line="4"}'),{frame:{level:'0',func:'main',line:'4'}});
+assert.deepEqual(parse('stack=[frame={level="0"},frame={level="1"}]'),{stack:[{frame:{level:'0'}},{frame:{level:'1'}}]});
+assert.deepEqual(parse('variables=[{name="x",value="{1, 2}"},{name="s",value="a\\n\\t\\\"b"}]'),{variables:[{name:'x',value:'{1, 2}'},{name:'s',value:'a\n\t"b'}]});
+assert.deepEqual(parse('text="\\033[0m"'),{text:'\x1b[0m'});
+assert.deepEqual(parse('items=[],nested={list=["a","b"]}'),{items:[],nested:{list:['a','b']}});
+console.log('6 GDB/MI protocol checks passed');

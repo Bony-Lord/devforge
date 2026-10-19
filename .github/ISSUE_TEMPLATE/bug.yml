@@ -1,0 +1,19 @@
+name: Ошибка
+description: Ошибка редактора, компиляции, анализа или отладки
+body:
+  - type: input
+    id: version
+    attributes: { label: Версия приложения, placeholder: '0.1.0' }
+    validations: { required: true }
+  - type: input
+    id: device
+    attributes: { label: Устройство и Android, placeholder: 'Планшет ARM64, Android 15' }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Как воспроизвести, description: 'Шаги, выбранный компилятор, стандарт языка, минимальный пример кода.' }
+    validations: { required: true }
+  - type: textarea
+    id: output
+    attributes: { label: Ожидание и результат, description: 'Текст ошибки, вывод сборки или скриншот. Удалите личные данные и токены.' }
+    validations: { required: true }

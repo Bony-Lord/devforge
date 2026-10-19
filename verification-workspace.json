@@ -1,0 +1,309 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "testProject": "workspace-verify-1792419219",
+  "results": [
+    {
+      "test": "Isolated workspace project",
+      "passed": true,
+      "evidence": "workspace-verify-1792419219"
+    },
+    {
+      "test": "Every offered C and C++ standard accepted by both compilers",
+      "passed": true,
+      "evidence": [
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "c89",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "c99",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "c11",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "c17",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "c23",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "gnu11",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "gnu17",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "c",
+          "standard": "gnu23",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++98",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++03",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++11",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++14",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++17",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++20",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++23",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "c++26",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "gnu++17",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "gnu++20",
+          "code": 0
+        },
+        {
+          "compiler": "gcc",
+          "lang": "cpp",
+          "standard": "gnu++23",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "c89",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "c99",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "c11",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "c17",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "c23",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "gnu11",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "gnu17",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "c",
+          "standard": "gnu23",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++98",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++03",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++11",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++14",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++17",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++20",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++23",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "c++26",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "gnu++17",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "gnu++20",
+          "code": 0
+        },
+        {
+          "compiler": "clang",
+          "lang": "cpp",
+          "standard": "gnu++23",
+          "code": 0
+        }
+      ]
+    },
+    {
+      "test": "Tablet viewport fits application shell",
+      "passed": true,
+      "evidence": {
+        "width": 1280,
+        "overflow": false,
+        "editor": 1007
+      }
+    },
+    {
+      "test": "Ctrl plus changes only code zoom",
+      "passed": true,
+      "evidence": {
+        "ui": 100,
+        "code": 110
+      }
+    },
+    {
+      "test": "Ctrl Alt plus changes only UI zoom",
+      "passed": true,
+      "evidence": {
+        "ui": 105,
+        "code": 110
+      }
+    },
+    {
+      "test": "Ctrl S saves active source",
+      "passed": true,
+      "evidence": {
+        "saved": true
+      }
+    },
+    {
+      "test": "Ctrl Space opens clangd completion popup",
+      "passed": true,
+      "evidence": {
+        "visible": true,
+        "text": " assign(ForwardIterator first, ForwardIterator last)\nvoid\n assign(InputIterator first, InputIterator last)\n assign(initializer_list<value_type> il)\n assign(size_type n, const_reference u)\n at(size_type n)\n back()\n begin()\n capacity() const\n cbegin() const\n cend() const\n clear()\n crbegin() const\n crend() const"
+      }
+    },
+    {
+      "test": "Restart restores zoom, pane sizes and split with a source model",
+      "passed": true,
+      "evidence": {
+        "ui": 115,
+        "code": 130,
+        "font": 18.2,
+        "layout": {
+          "split": "side",
+          "splitRatio": 0.37,
+          "sidebarWidth": 245,
+          "panelHeight": 175
+        },
+        "secondary": "file:///data/user/0/com.forgex/files/projects/workspace-verify-1792419219/main.cpp",
+        "sidebar": 281.75
+      }
+    }
+  ],
+  "passed": 8,
+  "total": 8,
+  "limitations": [
+    "Keyboard events injected through CDP; no physical keyboard tested.",
+    "Tablet viewport emulated in the phone WebView."
+  ]
+}

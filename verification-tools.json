@@ -1,0 +1,327 @@
+{
+  "device": "realme RMX3951",
+  "android": "16",
+  "testProject": "tools-verify-1792418793",
+  "results": [
+    {
+      "test": "GDB and Git versions",
+      "passed": true,
+      "seconds": 1.39,
+      "evidence": {
+        "g++-15": "g++-15 (GCC) 15.2.0",
+        "gcc-15": "gcc-15 (GCC) 15.2.0",
+        "clang++": "clang version 21.1.8",
+        "clangd": "clangd version 21.1.8",
+        "cmake": "cmake version 4.4.4",
+        "ninja": "1.13.2",
+        "gdb": "GNU gdb (GDB) 18.1",
+        "git": "git version 2.56.0"
+      }
+    },
+    {
+      "test": "Isolated tools project",
+      "passed": true,
+      "seconds": 0.25,
+      "evidence": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793"
+    },
+    {
+      "test": "Debug build with source symbols",
+      "passed": true,
+      "seconds": 0.36,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/.forge/bin/program",
+        "exists": true,
+        "id": "tools-debug-build"
+      }
+    },
+    {
+      "test": "GDB starts and stops at main",
+      "passed": true,
+      "seconds": 0.86,
+      "evidence": {
+        "frames": [
+          {
+            "level": "0",
+            "addr": "0x00000062c08e06d8",
+            "func": "main",
+            "file": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/main.c",
+            "fullname": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/main.c",
+            "line": "3",
+            "arch": "aarch64"
+          }
+        ],
+        "status": "Точка останова"
+      }
+    },
+    {
+      "test": "Breakpoint and value inspection",
+      "passed": true,
+      "seconds": 0.11,
+      "evidence": {
+        "value": "5",
+        "frames": [
+          {
+            "level": "0",
+            "addr": "0x00000062c08e06e0",
+            "func": "main",
+            "file": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/main.c",
+            "fullname": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/main.c",
+            "line": "4",
+            "arch": "aarch64"
+          }
+        ]
+      }
+    },
+    {
+      "test": "Step over changes a local variable",
+      "passed": true,
+      "seconds": 0.09,
+      "evidence": {
+        "value": "7",
+        "ui": "value7",
+        "frame": {
+          "level": "0",
+          "addr": "0x00000062c08e06ec",
+          "func": "main",
+          "file": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/main.c",
+          "fullname": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/main.c",
+          "line": "5",
+          "arch": "aarch64"
+        }
+      }
+    },
+    {
+      "test": "Watch expressions use real inferior state",
+      "passed": true,
+      "seconds": 0.01,
+      "evidence": "value * 321×"
+    },
+    {
+      "test": "Debugger resumes and captures PTY output",
+      "passed": true,
+      "seconds": 0.09,
+      "evidence": "7\n"
+    },
+    {
+      "test": "Git init and commit",
+      "passed": true,
+      "seconds": 0.56,
+      "evidence": {
+        "init": {
+          "code": 0,
+          "text": "Initialized empty Git repository in /data/user/0/com.forgex/files/projects/tools-verify-1792418793/.git/\n"
+        },
+        "commit": {
+          "code": 0,
+          "text": "[main (root-commit) e34ca58] Initial test project\n 4 files changed, 16 insertions(+)\n create mode 100644 .clang-format\n create mode 100644 .gitignore\n create mode 100644 CMakeLists.txt\n create mode 100644 main.c\n"
+        },
+        "status": {
+          "code": 0,
+          "text": "",
+          "branch": "main"
+        }
+      }
+    },
+    {
+      "test": "Git diff compares HEAD and working copy",
+      "passed": true,
+      "seconds": 0.5,
+      "evidence": {
+        "diff": {
+          "original": "#include <stdio.h>\nint main(void) {\n    int value = 5;\n    value += 2;\n    printf(\"%d\\n\", value);\n    return 0;\n}\n",
+          "modified": "#include <stdio.h>\nint main(void) {\n    int value = 5;\n    value += 2;\n    printf(\"%d\\n\", value);\n    return 0;\n}\n// changed in working copy\n",
+          "path": "/data/user/0/com.forgex/files/projects/tools-verify-1792418793/main.c"
+        },
+        "status": {
+          "code": 0,
+          "text": " M main.c\u0000",
+          "branch": "main"
+        },
+        "log": {
+          "code": 0,
+          "text": "e34ca58\tIDE Acceptance\t2026-10-19T21:06:38+07:00\tInitial test project\n"
+        }
+      }
+    },
+    {
+      "test": "Git branch creation and UI",
+      "passed": true,
+      "seconds": 0.38,
+      "evidence": {
+        "branch": {
+          "code": 0,
+          "text": "Switched to a new branch 'test-branch'\n"
+        },
+        "ui": "test-branch\nКоммит…\nОбновить\nЖурнал\nM\nmain.c\n＋"
+      }
+    },
+    {
+      "test": "Independent code and UI scales",
+      "passed": true,
+      "seconds": 0.27,
+      "evidence": {
+        "ui": 125,
+        "code": 150,
+        "font": 21,
+        "topbar": "56.25px"
+      }
+    },
+    {
+      "test": "Two resizable editor panes",
+      "passed": true,
+      "seconds": 0.19,
+      "evidence": {
+        "first": 131.34896850585938,
+        "second": 223.6510467529297,
+        "sameModel": true,
+        "stacked": true
+      }
+    },
+    {
+      "test": "Reset layout and zoom",
+      "passed": true,
+      "seconds": 0.01,
+      "evidence": {
+        "split": false,
+        "scale": 100,
+        "code": 100
+      }
+    },
+    {
+      "test": "Unused functions, parameters, fields and variables have gray decorations",
+      "passed": true,
+      "seconds": 1.38,
+      "evidence": {
+        "diagnostics": [
+          {
+            "code": "-Wunused-parameter",
+            "message": "Unused parameter 'unused_parameter'",
+            "range": {
+              "end": {
+                "character": 47,
+                "line": 0
+              },
+              "start": {
+                "character": 31,
+                "line": 0
+              }
+            },
+            "relatedInformation": [],
+            "severity": 2,
+            "source": "clang",
+            "tags": [
+              1
+            ]
+          },
+          {
+            "code": "-Wunused-variable",
+            "message": "Unused variable 'unused_variable'",
+            "range": {
+              "end": {
+                "character": 32,
+                "line": 2
+              },
+              "start": {
+                "character": 17,
+                "line": 2
+              }
+            },
+            "relatedInformation": [],
+            "severity": 2,
+            "source": "clang",
+            "tags": [
+              1
+            ]
+          },
+          {
+            "code": "-Wunused-function",
+            "message": "Unused function 'unused_function'",
+            "range": {
+              "end": {
+                "character": 26,
+                "line": 0
+              },
+              "start": {
+                "character": 11,
+                "line": 0
+              }
+            },
+            "relatedInformation": [],
+            "severity": 2,
+            "source": "clang",
+            "tags": [
+              1
+            ]
+          },
+          {
+            "code": "-Wunused-private-field",
+            "message": "Private field 'unused_field' is not used",
+            "range": {
+              "end": {
+                "character": 32,
+                "line": 1
+              },
+              "start": {
+                "character": 20,
+                "line": 1
+              }
+            },
+            "relatedInformation": [],
+            "severity": 2,
+            "source": "clang",
+            "tags": [
+              1
+            ]
+          }
+        ],
+        "decorations": [
+          {
+            "range": {
+              "startLineNumber": 1,
+              "startColumn": 12,
+              "endLineNumber": 1,
+              "endColumn": 27
+            },
+            "text": "unused_function"
+          },
+          {
+            "range": {
+              "startLineNumber": 1,
+              "startColumn": 32,
+              "endLineNumber": 1,
+              "endColumn": 48
+            },
+            "text": "unused_parameter"
+          },
+          {
+            "range": {
+              "startLineNumber": 2,
+              "startColumn": 21,
+              "endLineNumber": 2,
+              "endColumn": 33
+            },
+            "text": "unused_field"
+          },
+          {
+            "range": {
+              "startLineNumber": 3,
+              "startColumn": 18,
+              "endLineNumber": 3,
+              "endColumn": 33
+            },
+            "text": "unused_variable"
+          }
+        ],
+        "colors": [
+          "rgb(111, 115, 122)",
+          "rgb(111, 115, 122)",
+          "rgb(111, 115, 122)",
+          "rgb(111, 115, 122)"
+        ]
+      }
+    }
+  ],
+  "passed": 15,
+  "total": 15
+}
