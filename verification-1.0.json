@@ -1,0 +1,155 @@
+{
+  "date": "2026-10-20",
+  "android": {
+    "platform": "Android 16 API 36 x86_64 emulator",
+    "physicalDeviceTested": false,
+    "checks": [
+      {
+        "name": "gcc file build/run in Unicode project, project-root cwd",
+        "evidence": {
+          "code": 0,
+          "output": "Project data: 42\n\nПроцесс завершён · код 0\n"
+        }
+      },
+      {
+        "name": "clang file build/run in Unicode project, project-root cwd",
+        "evidence": {
+          "code": 0,
+          "output": "Project data: 42\n\nПроцесс завершён · код 0\n"
+        }
+      },
+      {
+        "name": "gcc cmake build/run in Unicode project, project-root cwd",
+        "evidence": {
+          "code": 0,
+          "output": "Project data: 42\n\nПроцесс завершён · код 0\n"
+        }
+      },
+      {
+        "name": "GDB stops on SIGSEGV, selects project source and expands Node.value",
+        "evidence": {
+          "fault": {
+            "kind": "signal",
+            "title": "SIGSEGV",
+            "detail": "Segmentation fault"
+          },
+          "frames": [
+            {
+              "level": "0",
+              "addr": "0x0000719e7402b0c6",
+              "func": "main",
+              "file": "$PROJECT/main.cpp",
+              "fullname": "$PROJECT/main.cpp",
+              "line": "5",
+              "arch": "i386:x86-64"
+            }
+          ],
+          "line": 5,
+          "tree": "\n  \n\nitemNode{...}\n  \n\nptrvolatile int *0x0"
+        }
+      },
+      {
+        "name": "ASan detects use-after-free and resolves allocation/free/read lines",
+        "evidence": {
+          "exit": {
+            "id": "accept-run-1792500016371",
+            "code": 134
+          },
+          "fault": {
+            "kind": "sanitizer",
+            "title": "AddressSanitizer: heap-use-after-free",
+            "signal": "SIGABRT"
+          },
+          "frames": [
+            {
+              "path": "$PROJECT/main.cpp",
+              "line": 5,
+              "func": "main",
+              "level": 0
+            },
+            {
+              "path": "$PROJECT/main.cpp",
+              "line": 4,
+              "func": "main",
+              "level": 1
+            },
+            {
+              "path": "$PROJECT/main.cpp",
+              "line": 3,
+              "func": "main",
+              "level": 1
+            }
+          ]
+        }
+      },
+      {
+        "name": "return 139 remains an exit code, without a fabricated signal",
+        "evidence": {
+          "id": "accept-run-1792500017665",
+          "code": 139
+        }
+      },
+      {
+        "name": "Debug stdlib hardening catches out-of-range vector access",
+        "evidence": {
+          "exit": {
+            "id": "accept-run-1792500021119",
+            "code": 134
+          },
+          "fault": {
+            "kind": "assertion",
+            "title": "/data/data/com.forgex/files/usr/include/c++/v1/__vector/vector.h:401: assertion __n < size() failed: vector[] index out of bounds",
+            "signal": "SIGABRT"
+          }
+        }
+      }
+    ]
+  },
+  "windowsRenderer": {
+    "electron": "44.9.1",
+    "checks": [
+      "sandboxed Monaco renderer opens the project",
+      "editor typing, undo, selection and breakpoint decorations",
+      "menus preserve editor and split panes resize",
+      "GCC build and console output through renderer controls",
+      "inline new-project form opens the newly created Unicode folder",
+      "real debugger UI stops on invalid memory, shows locals and opens the project line",
+      "runtime fault panel displays text and source links",
+      "settings preserve Apply controls and hide Android-only keyboard settings",
+      "first-run wizard uses available system tools without Android downloads",
+      "IPC denies unexpected operations"
+    ],
+    "errors": [],
+    "physicalInputTested": false
+  },
+  "arm64": {
+    "nativeImages": 222,
+    "deduplicatedImages": 222,
+    "nativeBytes": 488360280,
+    "dataBytes": 43099871,
+    "pageAlignment16k": true,
+    "verificationOnly": false,
+    "provenance": {
+      "recipeCommit": "16250ee5b8b874dcf73b331321de1fe109103423",
+      "sourceFiles": {
+        "LICENSE": "511ce23b36ca7dd3858570d8ee3054ceed18e12d284f96661d030a82590a5954",
+        "posix_spawn.cpp": "5267405b1b14fcbe885bd815d9bd5dde94144dc90b319d6f4be17e47f43bcad3",
+        "posix_spawn.h": "5cc27528237cf17727709eaab624f20878b71013b2eb265e3a6e6dae1e4294a0"
+      }
+    }
+  },
+  "artifactNotes": {
+    "targetApi": 36,
+    "minApi": 28,
+    "version": "1.0.0-rc.1",
+    "debuggable": false,
+    "signerCertificateSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c",
+    "bundletoolValidation": "passed"
+  },
+  "limits": [
+    "No new physical ARM64 device test",
+    "No Play approval",
+    "No Windows publisher signing or Apple notarization",
+    "Native Android tools bundled; disabling does not reclaim APK space"
+  ]
+}

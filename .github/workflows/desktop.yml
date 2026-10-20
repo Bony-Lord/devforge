@@ -49,6 +49,10 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           node -p 'require("electron")'
+      - uses: actions/cache@v4
+        with:
+          path: work/desktop-sources
+          key: desktop-native-sources-${{ hashFiles('desktop-sources.lock.json') }}
       - name: Prepare offline notices
         run: python tools/package_notices.py
       - name: Filesystem, encoding, compiler, CMake, GDB and LLDB checks

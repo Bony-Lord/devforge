@@ -1,5 +1,5 @@
 """Accompany unmodified Electron FFmpeg binaries with pinned library sources/patches."""
-import argparse,base64,hashlib,json,pathlib,re,tarfile,urllib.request,zipfile
+import argparse,base64,hashlib,json,pathlib,re,tarfile,time,urllib.request,urllib.error,zipfile
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def digest(data):return hashlib.sha256(data).hexdigest()
 def tree_digest(file):
@@ -14,12 +14,21 @@ def tree_digest(file):
     value=hashlib.sha256()
     for entry in sorted(entries): value.update((json.dumps(entry,separators=(',',':'))+'\n').encode())
     return value.hexdigest()
+def fetch(url):
+    for attempt in range(5):
+        try:
+            request=urllib.request.Request(url,headers={'User-Agent':'Cpp-Studio-source-provisioner/1.0'})
+            with urllib.request.urlopen(request,timeout=60) as response:return response.read()
+        except (urllib.error.URLError,TimeoutError):
+            if attempt==4:raise
+            time.sleep(2**attempt)
 def main():
     p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,required=True);args=p.parse_args()
     lock=json.loads((ROOT/'desktop-sources.lock.json').read_text(encoding='utf-8'));assert json.loads((ROOT/'desktop/package.json').read_text())['devDependencies']['electron']==lock['electron'];cache=ROOT/'work/desktop-sources';cache.mkdir(parents=True,exist_ok=True)
     for item in lock['archives']:
         file=cache/item['name']
-        if not file.exists():urllib.request.urlretrieve(item['url'],file)
+        if not file.exists():
+            body=fetch(item['url']);temp=file.with_suffix(file.suffix+'.part');temp.write_bytes(body);temp.replace(file)
         if item.get('treeSha256'):
             if tree_digest(file)!=item['treeSha256']:raise RuntimeError('Desktop source tree checksum mismatch: '+item['name'])
         elif digest(file.read_bytes())!=item['sha256']:raise RuntimeError('Desktop source checksum mismatch: '+item['name'])
@@ -30,7 +39,8 @@ def main():
         patchfiles=[m.name for m in tar.getmembers()if '/patches/ffmpeg/'in m.name and m.isfile()]
         assert patchfiles,'Electron FFmpeg patches were not included'
     file=cache/'Chromium-DEPS'
-    if not file.exists():file.write_bytes(base64.b64decode(urllib.request.urlopen(lock['chromiumDeps']['url'],timeout=30).read()))
+    if not file.exists():
+        body=fetch(lock['chromiumDeps']['url']);file.write_bytes(base64.b64decode(body)if lock['chromiumDeps'].get('encoding')=='base64'else body)
     deps=file.read_bytes();assert digest(deps)==lock['chromiumDeps']['sha256'],'Chromium DEPS checksum mismatch'
     assert re.search(rb"'ffmpeg_revision':\s*'"+lock['ffmpegRevision'].encode()+rb"'",deps)
     readme=f'''C++ Studio desktop native sources for Electron {lock['electron']}

@@ -18,7 +18,7 @@ async function main(){
     await fs.cp(dist,output,{recursive:true});await fs.rename(path.join(output,process.platform==='win32'?'electron.exe':'electron'),path.join(output,process.platform==='win32'?'CppStudio.exe':'cpp-studio'));appFolder=path.join(output,'resources','app');
   }
   await fs.mkdir(appFolder,{recursive:true});
-  for(const file of ['main.cjs','preload.cjs','host.cjs','workspace.cjs','tooling.cjs','debug-adapter.cjs','archive.cjs'])await fs.copyFile(path.join(__dirname,file),path.join(appFolder,file));
+  for(const file of ['icon.png','main.cjs','preload.cjs','host.cjs','workspace.cjs','tooling.cjs','debug-adapter.cjs','archive.cjs'])await fs.copyFile(path.join(__dirname,file),path.join(appFolder,file));
   const pkg=JSON.parse(await fs.readFile(path.join(__dirname,'package.json'),'utf8'));delete pkg.devDependencies;delete pkg.scripts;await fs.writeFile(path.join(appFolder,'package.json'),JSON.stringify(pkg,null,2));
   for(const name of ['iconv-lite','safer-buffer'])await fs.cp(path.join(__dirname,'node_modules',name),path.join(appFolder,'node_modules',name),{recursive:true});
   await fs.cp(path.join(root,'app/src/main/assets/ui'),path.join(appFolder,'ui'),{recursive:true});await fs.copyFile(path.join(root,'LICENSE'),path.join(appFolder,'LICENSE'));

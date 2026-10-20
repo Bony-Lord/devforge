@@ -16,7 +16,9 @@
     }
   ],
   "chromiumDeps": {
-    "url": "https://chromium.googlesource.com/chromium/src/+/152.0.7977.167/DEPS?format=TEXT",
-    "sha256": "c3cd8ae90218c260d5fadbe5d9095164693fe420812218a18dfcf65c3f1743b9"
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/DEPS",
+    "sha256": "c3cd8ae90218c260d5fadbe5d9095164693fe420812218a18dfcf65c3f1743b9",
+    "upstreamUrl": "https://chromium.googlesource.com/chromium/src/+/152.0.7977.167/DEPS?format=TEXT",
+    "encoding": "utf8"
   }
 }

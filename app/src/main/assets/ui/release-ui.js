@@ -2,10 +2,10 @@
 const releaseMethods={
   initReleaseUI(){
     const form=$('#settingsForm'),sections=[...form.querySelectorAll(':scope > section')];
-    const motion=document.createElement('label');motion.innerHTML='Анимации<select name="motion"><option value="system">Как в системе</option><option value="reduced">Минимальные</option></select>';sections.find(s=>s.textContent.includes('Масштаб'))?.append(motion);
+    const motion=document.createElement('label');motion.innerHTML='Анимации<select name="motion"><option value="system">Как в системе</option><option value="reduced">Минимальные</option></select>';form.querySelector('[name=uiScale]')?.closest('section').append(motion);
     if(window.StudioDesktop){
       $('#keyboardButton').classList.add('hidden');const legal=document.createElement('div');legal.className='desktop-legal-note';legal.innerHTML='<p>Настольная версия использует Electron, Chromium и FFmpeg под LGPL 2.1 или новее. Исходники библиотек распространяются рядом со сборками.</p><button type="button" id="desktopNotices">Лицензии Electron / Chromium</button><button type="button" id="desktopSources">Исходники библиотек</button>';$('#helpDialog').append(legal);legal.querySelector('#desktopNotices').onclick=()=>native('desktopNotices').catch(safeError);legal.querySelector('#desktopSources').onclick=()=>native('desktopSources').catch(safeError);
-      for(const section of sections)if(section.textContent.includes('Перекрытие интерфейса'))section.hidden=true;
+      const keyboardSection=form.querySelector('[name=keyboardOverlap]')?.closest('section');if(keyboardSection)keyboardSection.hidden=true;
       const tools=document.createElement('section');tools.id='desktopToolsSection';tools.innerHTML='<h3>Инструменты системы</h3><p>Укажите путь к установленному инструменту или оставьте поле пустым для автоматического поиска.</p><div class="desktop-tool-fields"></div>';
       const fields=tools.querySelector('.desktop-tool-fields');
       for(const [key,label]of Object.entries({gcc:'GCC · C',gxx:'GCC · C++',clang:'Clang · C',clangxx:'Clang · C++',clangd:'clangd',format:'clang-format',cmake:'CMake',ninja:'Ninja',gdb:'GDB',gdbserver:'gdbserver',lldbdap:'LLDB DAP',git:'Git',symbolizer:'llvm-symbolizer'})){
