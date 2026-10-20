@@ -16,7 +16,7 @@ jobs:
           node-version: '22'
       - uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-35'
+          packages: 'platforms;android-36'
           log-accepted-android-sdk-licenses: false
       - name: JavaScript syntax and protocol parser
         run: |
@@ -24,8 +24,11 @@ jobs:
           node tests/protocol.test.cjs
           node tests/native-editor-state.test.cjs
           node tests/interaction.test.cjs
+          node --test tests/runtime-errors.test.cjs tests/dap-ui.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
+      - name: Real native program host
+        run: python tests/native_runner_test.py
       - name: License inventory and notices
         run: python tools/check_licenses.py
       - name: Real host clang-format behavior
@@ -43,4 +46,4 @@ jobs:
       - name: Compile Android Java host
         run: |
           chmod +x gradlew
-          ./gradlew :app:compileDebugJavaWithJavac :app:testDebugUnitTest --console=plain
+          ./gradlew :app:compileModernDebugJavaWithJavac :app:testModernDebugUnitTest :app:compileCompatDebugJavaWithJavac :app:testCompatDebugUnitTest --console=plain

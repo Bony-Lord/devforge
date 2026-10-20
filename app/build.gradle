@@ -1,8 +1,21 @@
 plugins { id 'com.android.application' }
+def studioRuntimeDir = providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern')
 android {
     namespace 'com.forgex'
-    compileSdk 35
-    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 28; versionCode 4; versionName '0.3.1'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    compileSdk 36
+    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 5; versionName '1.0.0-rc.1'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    buildFeatures { buildConfig true }
+    flavorDimensions += 'runtime'
+    productFlavors {
+        modern { dimension 'runtime'; buildConfigField 'boolean', 'PACKAGED_RUNTIME', 'true' }
+        compat { dimension 'runtime'; targetSdk 28; versionNameSuffix '-compat'; buildConfigField 'boolean', 'PACKAGED_RUNTIME', 'false' }
+    }
+    sourceSets {
+        main { assets.srcDirs = [layout.buildDirectory.dir('generated/sharedAssets')] }
+        modern { assets.srcDirs = ["${studioRuntimeDir}/assets"]; jniLibs.srcDirs = ["${studioRuntimeDir}/jniLibs"] }
+        compat { assets.srcDirs = ['src/main/assets'] }
+    }
+    packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += ['**/*.so'] } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     testOptions { unitTests.returnDefaultValues = true }
     signingConfigs {
@@ -16,17 +29,37 @@ android {
         }
     }
     bundle { language { enableSplit = false } }
+    if (providers.gradleProperty('studioBundle').isPresent()) {
+        assetPacks = [':runtime-data']
+        sourceSets.modern.assets.srcDirs = [layout.buildDirectory.dir('generated/modernBundleAssets')]
+    }
     androidResources { noCompress += ['zip'] }
-    // Directly installed compiler host: target 28 is required for executing generated
-    // binaries from app-private storage. This project is not published through Play.
-    // Keep all other release lint checks enabled; see docs/BUILDING.md.
+    // The compatibility flavor is retained for regression testing, not the store.
     lint { disable 'ExpiredTargetSdkVersion' }
     buildTypes {
         debug { if (System.getenv('GCC_STUDIO_KEYSTORE')) signingConfig signingConfigs.local }
         release { minifyEnabled false; if (System.getenv('GCC_STUDIO_KEYSTORE')) signingConfig signingConfigs.local }
     }
 }
+tasks.register('prepareSharedAssets', Sync) {
+    from('src/main/assets') { exclude 'runtime.zip', 'runtime-info.json', 'tool-packs.json' }
+    into layout.buildDirectory.dir('generated/sharedAssets')
+}
+tasks.register('prepareModernBundleAssets', Sync) {
+    from("${studioRuntimeDir}/assets") { exclude 'runtime-modern-data.zip' }
+    into layout.buildDirectory.dir('generated/modernBundleAssets')
+}
+tasks.configureEach { if (name.startsWith('merge') && name.endsWith('Assets')) dependsOn 'prepareSharedAssets'; if (providers.gradleProperty('studioBundle').isPresent() && name.startsWith('mergeModern') && name.endsWith('Assets')) dependsOn 'prepareModernBundleAssets' }
+tasks.register('checkModernRuntime') {
+    doLast {
+        if (!file("${studioRuntimeDir}/assets/modern-runtime.json").isFile() || !file("${studioRuntimeDir}/jniLibs").isDirectory())
+            throw new GradleException('Run tools/prepare_modern_runtime.py with the verified runtime and NDK first')
+    }
+}
+tasks.configureEach { if (name == 'packageModernDebug' || name == 'packageModernRelease') dependsOn 'checkModernRuntime' }
 dependencies {
     implementation 'io.github.rosemoe:editor:0.24.4'
     testImplementation 'junit:junit:4.13.2'
 }
+
+tasks.configureEach { if (name.contains('Lint') || name.startsWith('lint')) { dependsOn 'prepareSharedAssets'; if (providers.gradleProperty('studioBundle').isPresent()) dependsOn 'prepareModernBundleAssets' } }

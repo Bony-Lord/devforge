@@ -22,3 +22,8 @@ native-sources/**/*.patch
 
 app/src/main/assets/ui/licenses/
 CONTINUE-NATIVE.md
+app/src/modern/assets/
+app/src/modern/jniLibs/
+desktop/node_modules/
+desktop/dist/
+runtime-data/src/main/assets/

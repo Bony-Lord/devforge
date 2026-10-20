@@ -13,3 +13,5 @@ window.__nativeResult=r=>{const p=nativePending.get(r.id);if(!p)return;nativePen
 window.__nativeEvent=(type,data)=>{for(const fn of nativeListeners.get(type)||[])try{fn(data);}catch(e){console.error(type,e);}};
 function onNative(type,fn){if(!nativeListeners.has(type))nativeListeners.set(type,new Set());nativeListeners.get(type).add(fn);return()=>nativeListeners.get(type).delete(fn);}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+if(window.StudioDesktop){StudioDesktop.onResult(window.__nativeResult);StudioDesktop.onEvent(window.__nativeEvent);}

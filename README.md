@@ -8,6 +8,8 @@
   <a href="LICENSE"><img alt="App license: MIT" src="https://img.shields.io/badge/App-MIT-868A91"></a>
 </p>
 
+> Ветка 1.0 готовится к релизу: современный Android runtime (API 36), настольный хост Windows/Linux/macOS и проверки ошибок выполнения. [Архитектура Android](docs/MODERN-ANDROID.md) · [Настольная версия](docs/DESKTOP.md) · [Runtime-проверки](docs/RUNTIME-CHECKS.md). Статус кандидата и ограничения проверки указаны в [журнале работы](docs/RELEASE-1.0-WORK.md).
+
 **Автономная IDE для C/C++ на Android, рассчитанная на планшет с клавиатурой.** GCC, Clang, clangd, CMake, GDB и Git работают прямо на устройстве. Для редактирования, анализа, компиляции и запуска интернет не требуется.
 
 Интерфейс и привычные действия вдохновлены CLion Dark. Это самостоятельное приложение с открытым кодом; оно не связано с JetBrains и не использует закрытый код CLion.

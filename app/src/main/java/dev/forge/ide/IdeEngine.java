@@ -15,6 +15,7 @@ final class IdeEngine {
     final ToolPacks toolPacks;
     final WorkspaceFiles workspace;
     final LanguageTools languages;
+    final RuntimeChecks runtimeChecks;
     final File projects,usr,tmp;
     final String version;
     final ExecutorService pool=Executors.newCachedThreadPool();
@@ -36,7 +37,7 @@ final class IdeEngine {
         if(!new File(projects,"hello-cpp").exists()) createProject("hello-cpp","cpp");
         currentProject=prefs.getString("project","hello-cpp");
         if(!project(currentProject).isDirectory())currentProject="hello-cpp";
-        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);
+        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);runtimeChecks=new RuntimeChecks(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
         JSONObject d=data==null?new JSONObject():data;
@@ -123,6 +124,7 @@ final class IdeEngine {
             case "toolPackRemove":return toolPacks.remove(d.getString("id"));
             case "showInFiles":{File root=project(currentProject),selected=new File(d.optString("path",root.getAbsolutePath())).getCanonicalFile();if(!inside(selected,root)||!selected.exists())throw new IOException("Project path unavailable");File directory=selected.isDirectory()?selected:selected.getParentFile();android.net.Uri uri=ProjectDocumentsProvider.directoryUri(currentProject,root,directory);app.ui.post(()->{try{android.content.Intent intent=new android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri,android.provider.DocumentsContract.Document.MIME_TYPE_DIR).addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);app.startActivity(intent);}catch(android.content.ActivityNotFoundException e){app.event("toast",JSONObject.quote("File manager unavailable"));}});return true;}
             case "probe":return probes();
+            case "runtimeSymbolize":return runtimeChecks.symbolize(d.getJSONArray("addresses"));
             case "lspStart":return startLsp(d);
             case "lspSend":sendLsp(d.getJSONObject("message"));return true;
             case "lspStop":stopLsp();return true;
@@ -150,7 +152,8 @@ final class IdeEngine {
         JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
         return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",workspace.isExternal()).put("cache",workspace.data().getAbsolutePath()).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
             .put("usr",usr.getAbsolutePath()).put("tree",tree(project(currentProject),0)).put("settings",new JSONObject(prefs.getString("settings","{}")))
-            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version);
+            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version)
+            .put("capabilities",new JSONObject().put("protocol",1).put("platform","android").put("editor","sora").put("targetSdk",app.getApplicationInfo().targetSdkVersion).put("localExecution",app.installedRuntime!=null?"shared-program":"native-process").put("toolDelivery",app.installedRuntime!=null?"bundled":"download").put("systemAnimations",android.animation.ValueAnimator.areAnimatorsEnabled()));
     }
     File project(String name)throws IOException {
         File external=workspace.external(name);if(external!=null)return external;
@@ -230,12 +233,22 @@ final class IdeEngine {
         for(File f:fs){if(f.getName().equals(".forge")||Files.isSymbolicLink(f.toPath()))continue;String path=prefix+f.getName();if(f.isDirectory())zipFolder(z,f,path+"/");else{z.putNextEntry(new ZipEntry(path));Files.copy(f.toPath(),z);z.closeEntry();}}
     }
     Process spawn(List<String> command,File cwd,boolean merge)throws IOException {
-        ProcessBuilder pb=new ProcessBuilder(command);pb.directory(cwd);pb.redirectErrorStream(merge);
+        return spawn(command,cwd,merge,Collections.emptyMap());
+    }
+    Process spawn(List<String> command,File cwd,boolean merge,Map<String,String> extraEnvironment)throws IOException {
+        List<String> actual=new ArrayList<>();if(app.installedRuntime!=null&&!command.get(0).equals(app.installedRuntime.runner().getAbsolutePath()))actual.addAll(Arrays.asList(app.installedRuntime.runner().getAbsolutePath(),"--command"));actual.addAll(command);
+        ProcessBuilder pb=new ProcessBuilder(actual);pb.directory(cwd);pb.redirectErrorStream(merge);
         Map<String,String> env=pb.environment();
         env.put("HOME",app.getFilesDir().getAbsolutePath());env.put("PREFIX",usr.getAbsolutePath());env.put("TMPDIR",tmp.getAbsolutePath());
         env.put("PATH",new File(usr,"bin").getAbsolutePath()+":/system/bin:/system/xbin");env.put("LD_LIBRARY_PATH",new File(usr,"lib").getAbsolutePath());
+        // GCC sees the package manager's physical executable name after relocation.
+        // Explicit prefixes retain its subprocess/spec/sysroot discovery through
+        // our read-only native-library links.
+        env.put("GCC_EXEC_PREFIX",new File(usr,"lib/gcc").getAbsolutePath()+"/");
+        env.put("COMPILER_PATH",new File(usr,"libexec/gcc/"+triple+"/15.2.0").getAbsolutePath()+":"+new File(usr,"bin").getAbsolutePath());
         env.put("PYTHONHOME",usr.getAbsolutePath());env.put("GUILE_AUTO_COMPILE","0");env.put("GIT_TERMINAL_PROMPT","0");env.put("GIT_CONFIG_NOSYSTEM","1");env.put("GIT_PAGER","cat");env.put("LANG","C.UTF-8");env.put("LC_ALL","C.UTF-8");env.put("TERM","dumb");env.put("CMAKE_ROOT",new File(usr,"share/cmake-4.4").getAbsolutePath());
         // Compiler subprocesses inherit our library path and TMPDIR. No global device changes.
+        env.putAll(extraEnvironment);
         return pb.start();
     }
     String bin(String name){return new File(usr,"bin/"+name).getAbsolutePath();}
@@ -270,10 +283,12 @@ final class IdeEngine {
     }
     List<String> flags(JSONObject options,boolean c,boolean analysis)throws Exception {
         List<String> out=new ArrayList<>();
+        out.addAll(RuntimeChecks.flags(options,c));
         out.add("-std="+standard(options,c));out.addAll(Arrays.asList("-Wall","-Wextra","-Wpedantic","-Wshadow","-Wunused","-I"+project(currentProject).getAbsolutePath(),"-I"+new File(usr,"include/forge").getAbsolutePath()));
         if(!c){out.add("-nostdinc++");out.add("-isystem");out.add(new File(usr,"include/c++/v1").getAbsolutePath());}
+        if(!analysis&&options.optString("compiler","gcc").equals("clang"))out.addAll(Arrays.asList("-resource-dir="+new File(usr,"lib/clang/21").getAbsolutePath(),"-isystem",new File(usr,"include").getAbsolutePath(),"-isystem",new File(usr,"include/"+triple).getAbsolutePath(),"-B"+new File(usr,"bin").getAbsolutePath(),"-L"+new File(usr,"lib").getAbsolutePath()));
         if(analysis){out.add("-isystem");out.add(new File(usr,"include").getAbsolutePath());out.add("-isystem");out.add(new File(usr,"include/"+triple).getAbsolutePath());out.add("-resource-dir="+new File(usr,"lib/clang/21").getAbsolutePath());out.add("-Wunused-function");out.add("-Wunused-private-field");out.add("-Wunused-parameter");out.add("-Wunreachable-code");}
-        else {out.add(options.optString("optimization","debug").equals("release")?"-O2":"-O0");out.add("-g");out.add("-fdiagnostics-color=never");out.add("-Wl,-rpath,"+new File(usr,"lib").getAbsolutePath());}
+        else {out.add(options.optString("optimization","debug").equals("release")?"-O2":"-O0");out.add("-g");out.add("-fdiagnostics-color=never");out.add("-Wl,-rpath,"+new File(usr,"lib").getAbsolutePath());if(app.installedRuntime!=null)out.addAll(Arrays.asList("-fPIC","-shared","-Wl,-z,max-page-size=16384"));}
         JSONArray extra=options.optJSONArray("flags");if(extra!=null)for(int i=0;i<Math.min(extra.length(),100);i++){String f=extra.getString(i);if(!f.isEmpty())out.add(f);}
         return out;
     }
@@ -318,6 +333,7 @@ final class IdeEngine {
     JSONObject build(JSONObject d)throws Exception {
         synchronized(buildLock) {
             buildCancelled=false;JSONObject options=d.has("options")?d.getJSONObject("options"):settings();
+            runtimeChecks.verify(options);
             File root=project(currentProject),outDir=new File(workspace.data(),"bin");outDir.mkdirs();
             String mode=d.optString("mode","file"),id=d.optString("id",UUID.randomUUID().toString());
             File output=new File(outDir,"program");
@@ -325,11 +341,13 @@ final class IdeEngine {
             if(mode.equals("cmake")) {
                 File cmakeDir=new File(workspace.data(),"cmake-"+options.optString("compiler","gcc")+"-"+standard(options,false).replace('+','p'));
                 cmd.addAll(Arrays.asList(bin("cmake"),"-S",root.getAbsolutePath(),"-B",cmakeDir.getAbsolutePath(),"-G","Ninja","-DCMAKE_MAKE_PROGRAM="+bin("ninja"),"-DCMAKE_C_COMPILER="+compiler(options,true),"-DCMAKE_CXX_COMPILER="+compiler(options,false),"-DCMAKE_BUILD_TYPE="+(options.optString("optimization","debug").equals("release")?"Release":"Debug"),"-DCMAKE_EXPORT_COMPILE_COMMANDS=ON","-DCMAKE_C_STANDARD="+cmakeStandard(options,true),"-DCMAKE_CXX_STANDARD="+cmakeStandard(options,false),"-DCMAKE_C_EXTENSIONS="+(standard(options,true).startsWith("gnu")?"ON":"OFF"),"-DCMAKE_CXX_EXTENSIONS="+(standard(options,false).startsWith("gnu")?"ON":"OFF"),"-DCMAKE_C_FLAGS="+cmakeFlags(options,true),"-DCMAKE_CXX_FLAGS="+cmakeFlags(options,false)));
+                if(app.installedRuntime!=null){File hostConfig=new File(workspace.data(),"studio-runtime.cmake");String config="set(CMAKE_C_COMPILE_OPTIONS_PIE -fPIC)\nset(CMAKE_CXX_COMPILE_OPTIONS_PIE -fPIC)\nset(CMAKE_C_LINK_EXECUTABLE \"<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -shared -o <TARGET> <LINK_LIBRARIES>\")\nset(CMAKE_CXX_LINK_EXECUTABLE \"<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -shared -o <TARGET> <LINK_LIBRARIES>\")\n";Files.write(hostConfig.toPath(),config.getBytes(StandardCharsets.UTF_8));cmd.add("-DCMAKE_PROJECT_INCLUDE="+hostConfig.getAbsolutePath());}
                 int rc=buildCommand(cmd,root,id);
                 if(rc!=0||d.optBoolean("configureOnly"))return new JSONObject().put("code",rc).put("id",id).put("configured",rc==0);
                 rc=buildCommand(Arrays.asList(bin("cmake"),"--build",cmakeDir.getAbsolutePath(),"-j2"),root,id);
                 File target=new File(cmakeDir,options.optString("target","app"));
                 if(!inside(target,cmakeDir))throw new IOException("Путь исполняемого файла вне каталога сборки");
+                if(rc==0&&target.isFile())runtimeChecks.save(target,options);
                 return new JSONObject().put("code",rc).put("id",id).put("executable",target.getAbsolutePath()).put("exists",target.isFile());
             }
             File file=readable(d.getString("path"));if(!inside(file,root))throw new IOException("Выберите исходный файл проекта");
@@ -337,7 +355,7 @@ final class IdeEngine {
             if(mode.equals("project")){List<File> sources=new ArrayList<>();collectSources(root,sources);for(File s:sources)cmd.add(s.getAbsolutePath());}
             else cmd.add(file.getAbsolutePath());
             cmd.add("-o");cmd.add(output.getAbsolutePath());
-            int rc=buildCommand(cmd,root,id);if(rc==0)output.setExecutable(true,true);
+            int rc=buildCommand(cmd,root,id);if(rc==0){output.setExecutable(true,true);runtimeChecks.save(output,options);}
             return new JSONObject().put("code",rc).put("executable",output.getAbsolutePath()).put("exists",output.isFile()).put("id",id);
         }
     }
@@ -358,10 +376,10 @@ final class IdeEngine {
         File executable=new File(d.getString("executable")).getCanonicalFile();
         if(!workspace.canExecute(executable)||!executable.isFile())throw new IOException("Исполняемый файл не найден");
         executable.setExecutable(true,true);
-        List<String> cmd=new ArrayList<>();cmd.add(executable.getAbsolutePath());
+        List<String> cmd=new ArrayList<>();if(app.installedRuntime!=null)cmd.add(app.installedRuntime.runner().getAbsolutePath());cmd.add(executable.getAbsolutePath());
         JSONArray args=d.optJSONArray("args");if(args!=null)for(int i=0;i<args.length();i++)cmd.add(args.getString(i));
         String id=d.optString("id",UUID.randomUUID().toString());
-        Process p=spawn(cmd,project(currentProject),false);attachExecution(p,id);
+        Process p=spawn(cmd,project(currentProject),false,runtimeChecks.environment(executable));attachExecution(p,id);
         return new JSONObject().put("id",id);
     }
     JSONObject shell(JSONObject d)throws Exception {
@@ -382,6 +400,6 @@ final class IdeEngine {
             while((n=r.read(b))>0){total+=n;if(total<=2*1024*1024)app.event("output",new JSONObject().put("id",id).put("stream",stream).put("text",new String(b,0,n)));else if(total-n<=2*1024*1024)app.event("output",new JSONObject().put("id",id).put("stream",stream).put("text","\n[Вывод ограничен 2 МБ; программа продолжает работать]\n"));}
         }catch(Exception e){android.util.Log.d("Forge","Output stream closed",e);}
     }
-    void stopExecution(){if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null)a.destroyForcibly();if(b!=null)b.destroyForcibly();}
+    void stopExecution(){if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null){a.destroy();try{if(!a.waitFor(700,TimeUnit.MILLISECONDS))a.destroyForcibly();}catch(InterruptedException e){a.destroyForcibly();Thread.currentThread().interrupt();}}if(b!=null)b.destroyForcibly();}
     void close(){closed=true;stopLsp();stopExecution();pool.shutdownNow();}
 }

@@ -46,9 +46,9 @@ Object.assign(GdbClient.prototype,{
   },
   renderBreakpoints(){
     const root=$('#debugBreakpoints');if(!root)return;root.replaceChildren();
-    for(const[path,lines]of [...this.breakpoints].filter(([path])=>path.startsWith(this.ide.state.root+'/')))for(const[line,number]of lines){const row=document.createElement('div');row.className='debug-breakpoint-row';const open=document.createElement('button');open.textContent=relative(path,this.ide.state.root)+':'+line;open.title=path;open.onclick=()=>this.ide.openFile(path,{lineNumber:line,column:1});
+    for(const[path,lines]of [...this.breakpoints].filter(([path])=>pathWithin(path,this.ide.state.root)))for(const[line,number]of lines){const row=document.createElement('div');row.className='debug-breakpoint-row';const open=document.createElement('button');open.textContent=relative(path,this.ide.state.root)+':'+line;open.title=path;open.onclick=()=>this.ide.openFile(path,{lineNumber:line,column:1});
       const remove=document.createElement('button');remove.title=tr('Удалить точку останова');remove.innerHTML=svg('x');remove.onclick=async()=>{const model=await this.ide.ensureModel(path);await this.toggleBreakpoint(model,line);};row.append(open,remove);root.append(row);}
   },
   async breakpointAtCaret(){const model=this.ide.editor.getModel(),position=this.ide.editor.getPosition();if(model&&position)await this.toggleBreakpoint(model,position.lineNumber);},
-  async runToCursor(){const model=this.ide.editor.getModel(),position=this.ide.editor.getPosition();if(!model||!position||!this.paused)return;await this.command('-break-insert -t '+JSON.stringify(model.uri.fsPath+':'+position.lineNumber));await this.command('-exec-continue');}
+  async runToCursor(){const model=this.ide.editor.getModel(),position=this.ide.editor.getPosition();if(!model||!position||!this.paused)return;await this.command('-break-insert -f -t '+JSON.stringify(model.uri.fsPath+':'+position.lineNumber));await this.command('-exec-continue');}
 });

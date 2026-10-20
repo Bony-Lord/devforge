@@ -26,11 +26,11 @@ const fileOptionsMethods={
     const selected=await this.chooseEncoding(doc.path,doc.encoding);if(!selected||doc.model.isDisposed())return;
     if(selected.mode==='reopen'){
       if(doc.model.getValue()!==doc.saved){this.toast('Сначала сохраните изменения файла');return;}
-      const file=await native('read',{path:doc.path,encoding:selected.encoding});doc.encoding=file.encoding;doc.saved=file.text;doc.model.setValue(file.text);await NativeEditing.sync(doc.model.uri.toString());
+      const file=await native('read',{path:doc.path,encoding:selected.encoding});doc.encoding=file.encoding;doc.saved=file.text;doc.model.setValue(file.text);doc.savedVersion=doc.model.getAlternativeVersionId();await NativeEditing.sync(doc.model.uri.toString());
     }else{
-      const text=doc.model.getValue(),saved=await native('convertEncoding',{path:doc.path,text,revision:NativeEditing.revisions.get(doc.model.uri.toString()),encoding:selected.encoding});
+      const text=doc.model.getValue(),savedVersion=doc.model.getAlternativeVersionId(),saved=await native('convertEncoding',{path:doc.path,text,revision:NativeEditing.revisions.get(doc.model.uri.toString()),encoding:selected.encoding});
       if(!saved){this.toast('Файл изменился во время сохранения. Повторите действие.');return;}
-      doc.encoding=selected.encoding;doc.saved=text;
+      doc.encoding=selected.encoding;doc.saved=text;doc.savedVersion=savedVersion;
     }
     this.updateDirty();this.updateFileOptions();await this.lsp.start();
   }

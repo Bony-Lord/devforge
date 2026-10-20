@@ -15,7 +15,7 @@ def main():
     paths = list((ROOT / 'native-sources').rglob('*')) + list((ROOT / 'licenses').rglob('*'))
     paths += [ROOT / p for p in ['LICENSE', 'THIRD_PARTY.md', 'native-packages.lock.json',
               'docs/BUILDING.md', 'tools/prepare_runtime.py', 'tools/prepare_sources.py',
-              'tools/package_sources.py', 'tools/split_runtime.py', 'tools/extract_package_notices.py', 'tools/check_licenses.py', 'docs/LICENSE-AUDIT.md', 'docs/PRIVACY.md', 'native/forge-pty.c']]
+              'tools/package_sources.py', 'tools/split_runtime.py', 'tools/extract_package_notices.py', 'tools/check_licenses.py', 'docs/LICENSE-AUDIT.md', 'docs/PRIVACY.md', 'native/forge-pty.c', 'native/studio-runner.c', 'tools/prepare_modern_runtime.py', 'docs/MODERN-ANDROID.md', 'runtime-data/build.gradle']]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(args.output, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
         for path in sorted(set(p for p in paths if p.is_file())):
