@@ -7,11 +7,11 @@ Object.assign(GdbClient.prototype,{
   },
   async renderVariableTree(){
     const serial=this.stopSerial,root=$('#debugVariables');root.replaceChildren();await this.clearVariableObjects();
-    const values=await Promise.all((this.variables||[]).filter(v=>this.ide.settings.showCompilerVariables||!/^__for_/.test(v.name)).map(variable=>this.variableObject(variable.name,serial)));
-    if(serial!==this.stopSerial||!this.paused)return;
-    root.replaceChildren();for(const value of values)if(value)this.appendVariable(root,value,0,serial);
-    this.variablesSerial=serial;
-    await this.refreshWatches();
+    const variables=(this.variables||[]).filter(v=>this.ide.settings.showCompilerVariables||!/^__for_/.test(v.name));let loaded=0;
+    const load=async()=>{if(serial!==this.stopSerial||!this.paused)return;root.querySelector('.debug-root-more')?.remove();const batch=variables.slice(loaded,loaded+80),values=await Promise.all(batch.map(v=>this.variableObject(v.name,serial)));if(serial!==this.stopSerial||!this.paused)return;
+      for(const value of values)if(value)this.appendVariable(root,value,0,serial);loaded+=batch.length;
+      if(loaded<variables.length){const more=document.createElement('button');more.className='debug-load-more debug-root-more';more.textContent=tr('Ещё 80 переменных');more.onclick=()=>load().catch(safeError);root.append(more);}this.variablesSerial=serial;
+    };await load();if(serial===this.stopSerial)await this.refreshWatches();
   },
   appendVariable(parent,value,depth,serial){
     const container=document.createElement('div');container.className='debug-value-node';container.dataset.expression=value.expression||value.exp||value.name||'';container.setAttribute('role','treeitem');container.setAttribute('aria-level',String(depth+1));

@@ -4,6 +4,8 @@ const {zipDirectory}=require('./archive.cjs');
 const {capture}=require('./tooling.cjs');
 const root=path.resolve(__dirname,'..');
 async function main(){
+  const sources=path.join(__dirname,'dist','Cpp-Studio-desktop-native-sources-44.9.1.zip');
+  await fs.access(sources).catch(()=>{throw Error('Prepare corresponding FFmpeg sources first: python tools/prepare_desktop_sources.py --output desktop/dist/Cpp-Studio-desktop-native-sources-44.9.1.zip');});
   const electronExe=require('electron'),dist=path.resolve(electronExe,process.platform==='darwin'?'../../..':'..');
   const output=path.join(__dirname,'dist','Cpp-Studio-'+process.platform+'-'+process.arch+'-1.0.0-rc.1');
   // A new unique destination avoids deleting an earlier release or user data.
@@ -21,6 +23,8 @@ async function main(){
   for(const name of ['iconv-lite','safer-buffer'])await fs.cp(path.join(__dirname,'node_modules',name),path.join(appFolder,'node_modules',name),{recursive:true});
   await fs.cp(path.join(root,'app/src/main/assets/ui'),path.join(appFolder,'ui'),{recursive:true});await fs.copyFile(path.join(root,'LICENSE'),path.join(appFolder,'LICENSE'));
   await fs.mkdir(path.join(output,'licenses'),{recursive:true});
+  if(process.platform==='darwin')for(const name of ['LICENSE','LICENSES.chromium.html'])await fs.copyFile(path.join(path.dirname(dist),name),path.join(output,name));
+  await fs.copyFile(path.join(__dirname,'THIRD_PARTY.md'),path.join(output,'THIRD_PARTY.md'));
   for(const name of ['monaco-LICENSE','monaco-ThirdPartyNotices.txt','lucide-LICENSE','yaml-LICENSE'])await fs.copyFile(path.join(root,'licenses',name),path.join(output,'licenses',name));
   for(const name of ['iconv-lite','safer-buffer'])await fs.copyFile(path.join(__dirname,'node_modules',name,'LICENSE'),path.join(output,'licenses',name+'-LICENSE'));
   const instructions='C++ Studio 1.0.0-rc.1\n\nInstall GCC or Clang, CMake, clangd and clang-format using your system package manager.\nFor debugging: GDB + gdbserver, or LLDB DAP (macOS/Linux). Select executable paths in Settings > Tools.\nProject files stay in ordinary folders. Native compilers are not included in this desktop archive.\n\nWindows: MSYS2 UCRT64/MINGW64 GCC and GDB, LLVM clangd/clang-format, CMake + Ninja.\nLinux: GCC/Clang + cmake + ninja-build + clangd + clang-format + gdb + gdbserver.\nmacOS: Xcode Command Line Tools + Homebrew LLVM (clangd/clang-format) + LLDB (lldb-dap) + CMake/Ninja.\n\nThis candidate is not signed/notarized for Windows/macOS distribution.\nhttps://github.com/Bony-Lord/gcc-cpp-studio\n';

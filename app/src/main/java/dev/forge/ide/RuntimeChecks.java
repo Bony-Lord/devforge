@@ -20,7 +20,7 @@ final class RuntimeChecks {
         if(!debug(options))return result;
         result.add("-fno-omit-frame-pointer");
         if(!options.optString("runtimeChecks","assertions").equals("none")&&!c)
-            result.add("-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE");
+            result.add("-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG");
         if(sanitizers(options)) {
             result.addAll(Arrays.asList("-fsanitize=address,undefined","-fno-sanitize-recover=all"));
             if(options.optString("compiler","gcc").equals("clang"))result.add("-shared-libasan");

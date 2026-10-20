@@ -1,45 +1,39 @@
-# Сборка
+# Сборка C++ Studio 1.0
 
-Нужны Python 3.10+, JDK 17 и Android SDK с Platform 35 и Build Tools 35.0.0. Нативное окружение отдельно собирается из точных версий `native-packages.lock.json`; загрузки проверяются по SHA256. На этапе подготовки нужен интернет, затем сам APK работает автономно.
+Нужны Python 3.10+, JDK 17, Android SDK Platform 36, Build Tools 35.0.0 и NDK **28.2.13676358 (r28c)**. Gradle/AGP фиксируются в репозитории. Подготовка требует сети; готовый Android APK работает автономно.
 
 ```sh
 python tools/prepare_runtime.py --locked
-python tools/split_runtime.py --input app/src/main/assets/runtime.zip --output work/tool-packs
+# Сохраните полный runtime ДО его разделения для compat.
 cp app/src/main/assets/runtime.zip work/runtime-full.zip
-cp work/tool-packs/runtime-base.zip app/src/main/assets/runtime.zip
+python tools/prepare_modern_runtime.py --input work/runtime-full.zip --ndk /path/to/ndk/28.2.13676358
 python tools/prepare_frontend.py
 python tools/prepare_icons.py
 python tools/package_notices.py
-./gradlew :app:assembleDebug
+./gradlew :app:assembleModernDebug
 ```
 
-На Windows используйте `gradlew.bat`. Для Android Studio сначала выполните подготовку runtime, затем откройте корневую папку проекта.
-
-В репозитории находится небольшой ARM64 PTY-relay вместе с исходником `native/forge-pty.c`. Его можно пересобрать Android NDK Clang для `aarch64-linux-android28` либо GCC внутри приложения:
+Для AAB данные выделяются в install-time asset pack:
 
 ```sh
-gcc-15 -O2 native/forge-pty.c -o native/forge-pty-aarch64
+./gradlew :app:bundleModernRelease -PstudioBundle=true
 ```
 
-Эта команда предназначена для окружения, где GCC уже запускается на Android. На настольной машине используйте соответствующий кросс-компилятор NDK. Для других ABI также потребуются соответствующий relay и нативный runtime; опубликованная и физически проверенная сборка — ARM64.
-
-## Сборка на Windows
-
-`build.ps1` запускает Gradle, который обрабатывает ресурсы нативного Sora Editor и его зависимости. Параметр `ToolsRoot` указывает каталог с Android SDK и JDK; структуру путей можно настроить в начале скрипта. Начиная с 0.2.0 сборка одним `javac`/AAPT не поддерживается.
+Release требует переменные `GCC_STUDIO_KEYSTORE` и `GCC_STUDIO_KEY_PASSWORD` (alias `forge`). Храните ключ вне Git. `build.ps1 -Release` и `build.ps1 -Release -Bundle` на Windows подписывают артефакты и сохраняют их SHA256 в отдельной папке версии. Для обновления существующей установки нужен тот же ключ. Для своего распространения создайте собственный ключ; локальные параметры разработки не предназначены для публичного сервиса подписи.
 
 ```powershell
 python tools/prepare_runtime.py --locked
-python tools/split_runtime.py --input app/src/main/assets/runtime.zip --output work/tool-packs
 Copy-Item app/src/main/assets/runtime.zip work/runtime-full.zip
-Copy-Item work/tool-packs/runtime-base.zip app/src/main/assets/runtime.zip -Force
-python tools/package_notices.py
-./build.ps1 -ToolsRoot 'C:\AndroidBuildTools' -Install
-./build.ps1 -ToolsRoot 'C:\AndroidBuildTools' -Release
+python tools/prepare_modern_runtime.py --input work/runtime-full.zip --ndk 'C:/Android/sdk/ndk/28.2.13676358'
+./build.ps1 -ToolsRoot 'C:/AndroidBuildTools' -Release
+./build.ps1 -ToolsRoot 'C:/AndroidBuildTools' -Release -Bundle
 ```
 
-Первый запуск создаёт локальный ключ в `work/build/` с параметрами для разработки из скрипта. Сам файл ключа не попадает в Git. Для обновления уже установленной сборки нужен тот же ключ; собственная сборка использует другой ключ.
+В release отключены `debuggable`, доступ к WebView и тестовый захват окна. `captureApp` в debug захватывает реальное окно, включая нативный редактор, без системных панелей. Подробности архитектуры и 16 KB: [MODERN-ANDROID.md](MODERN-ANDROID.md).
 
-В release-сборке отключены `debuggable` и отладочный доступ к WebView. Для автоматизированных проверок устройства нужна debug-сборка.
+Вариант `compat` сохраняет старый механизм и target 28 для регрессии. Для него сначала выполните `split_runtime.py` и поместите runtime-base.zip в assets/runtime.zip. Не используйте уменьшенный compat runtime как вход для modern.
+
+Настольная версия: [DESKTOP.md](DESKTOP.md). Перед упаковкой необходимо подготовить соответствующие исходники FFmpeg, как описано там.
 
 ## Замена нативного редактора
 
@@ -70,7 +64,7 @@ python tools/prepare_sources.py
 
 Для пересборки самих GCC, GDB и библиотек следуйте включённым рецептам Termux/TUR на поддерживаемом Linux-хосте. Скрипт `prepare_runtime.py` выполняет документированное изменение префикса, корректировку порядка заголовков GCC и упаковку runtime.
 
-Приложение намеренно использует `targetSdk 28`: Android ограничивает непосредственный запуск сгенерированных программ из приватной папки при target SDK 29+. См. [Android: removed execute permission](https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission). Это APK для установки напрямую, а не готовая конфигурация публикации Google Play.
+Основная сборка использует API 36 и установленный нативный хост; `compat` target 28 не является store-вариантом. Принятие Google Play проверяется отдельно.
 
 
 ## Локальные проверки редактора

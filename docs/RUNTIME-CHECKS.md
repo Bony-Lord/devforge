@@ -1,6 +1,6 @@
 # Runtime checks / Проверки выполнения
 
-**Debug enables standard-library checks by default.** Android uses libc++ extensive hardening; desktop GCC uses libstdc++ assertions. The IDE keeps frame pointers and debug symbols. Settings → Build also offers Clang ASan + UBSan, or disabling the additional checks. Release builds omit these IDE-added checks.
+**Debug enables standard-library checks by default.** Android uses libc++ debug hardening (with an explanatory assertion message); desktop GCC uses libstdc++ assertions. The IDE keeps frame pointers and debug symbols. Settings → Build also offers Clang ASan + UBSan, or disabling the additional checks. Release builds omit these IDE-added checks.
 
 **В Debug проверки стандартной библиотеки включены по умолчанию.** В настройках сборки можно дополнительно выбрать ASan + UBSan. На Android этот режим требует Clang. Поддержка проверяется настоящей пробной сборкой: IDE сообщает о недоступном режиме и не отключает проверки незаметно.
 

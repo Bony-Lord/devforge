@@ -5,7 +5,7 @@ const {Tooling,capture}=require('./tooling.cjs');
 const STYLE='BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n';
 const CLION_STYLE=STYLE.replace('ReferenceAlignment: Left','ReferenceAlignment: Right').replace('SpaceBeforeRangeBasedForLoopColon: true','SpaceBeforeRangeBasedForLoopColon: false');
 class DesktopHost {
-  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.operations=new Map();this.settingsQueue=Promise.resolve();}
+  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.operations=new Map();this.settingsQueue=Promise.resolve();}
   async init(){await this.ws.init();await this.tools.discover();if(!this.ws.prefs.settings.compiler&&!this.tools.tools.gxx&&this.tools.tools.clangxx){this.ws.prefs.settings.compiler='clang';await this.ws.persist();}if(!await exists(path.join(this.ws.root,'.clang-format')))await this.ws.write(path.join(this.ws.root,'.clang-format'),STYLE);return this;}
   async state(){return{project:this.ws.prefs.current,projectLabels:Object.fromEntries(Object.entries(this.ws.prefs.projects).map(([id,p])=>[id,p.label])),projects:Object.keys(this.ws.prefs.projects),root:this.ws.root,external:true,cache:portable(this.ws.cache),usr:portable(path.dirname(this.tools.tools.gxx||this.tools.tools.clangxx||process.execPath)),tree:await this.ws.tree(),settings:{keepAwake:false,...this.ws.prefs.settings},session:this.ws.prefs.session,abi:os.arch(),version:'1.0.0-rc.1',capabilities:{protocol:1,platform:process.platform,editor:'monaco',toolDelivery:'system',localExecution:'native-process',debugger:(!!this.tools.tools.gdb&&!!this.tools.tools.gdbserver)||!!this.tools.tools.lldbdap,debugProtocol:this.tools.tools.gdb&&this.tools.tools.gdbserver?'mi':'dap',systemAnimations:!this.system.reducedMotion?.()}};}
   async handle(op,d={}){
@@ -16,7 +16,7 @@ class DesktopHost {
       case 'settings':this.ws.prefs.settings=structuredClone(d);await this.ws.persist();await this.tools.discover();return d;
       case 'session':this.ws.prefs.session=structuredClone(d);await this.ws.persist();return true;
       case 'project':if(!this.ws.prefs.projects[d.name]||!await exists(this.ws.prefs.projects[d.name].path))throw Error('Project unavailable');this.tools.stopLsp();this.ws.prefs.current=d.name;await this.ws.persist();return this.state();
-      case 'newProject':await this.ws.newProject(d.name,d.language);await this.ws.write(path.join(this.ws.root,'.clang-format'),STYLE);return this.state();
+      case 'newProject':await this.ws.newProject(d.name,d.language);await this.ws.write(path.join(this.ws.root,'.clang-format'),STYLE);return{...await this.state(),createdProject:this.ws.prefs.current};
       case 'tree':return this.ws.tree();
       case 'read':return this.ws.read(d.path,d.encoding);
       case 'write':case 'convertEncoding':return this.serializeWrite(d.path,()=>this.ws.write(d.path,d.text,d.encoding));
@@ -38,6 +38,9 @@ class DesktopHost {
       case 'reportBug':{const url=new URL('https://github.com/Bony-Lord/gcc-cpp-studio/issues/new');url.searchParams.set('template','bug_report.yml');url.searchParams.set('version','1.0.0-rc.1');url.searchParams.set('device',process.platform+' '+os.arch());await this.system.openExternal?.(url.href);return url.href;}
       case 'chooseToolExecutable':return this.system.chooseFile?.()||null;
       case 'screen':case 'keyboard':return true;
+      case 'desktopNotices':return this.system.showNotices?.();
+      case 'desktopSources':return this.system.openExternal?.('https://github.com/Bony-Lord/gcc-cpp-studio/releases');
+      case 'clipboardWrite':if(typeof d.text!=='string'||d.text.length>256*1024)throw Error('Invalid clipboard text');this.system.writeClipboard?.(d.text);return true;
       case 'performanceEvent':return true;
       case 'performanceReport':return {platform:process.platform,events:[]};
       case 'toolPacks':return this.toolPacks();
@@ -85,11 +88,11 @@ class DesktopHost {
   }
   async serializeWrite(key,fn){const previous=this.operations.get(key)||Promise.resolve();const next=previous.catch(()=>{}).then(fn);this.operations.set(key,next);try{return await next;}finally{if(this.operations.get(key)===next)this.operations.delete(key);}}
   toolPacks(){const t=this.tools.tools,disabled=this.ws.prefs.settings.disabledTools||{};return{delivery:'system',base:{},packs:[
-    {id:'gcc',name:'GCC',description:'System GCC compiler',available:!!t.gcc&&!!t.gxx,path:t.gxx},
-    {id:'clang',name:'Clang',description:'System Clang compiler',available:!!t.clang&&!!t.clangxx,path:t.clangxx},
-    {id:'analysis',name:'clangd + clang-format',description:'Code analysis and formatting',available:!!t.clangd&&!!t.format,path:t.clangd},
-    {id:'debugger',name:t.gdb&&t.gdbserver?'GDB + gdbserver':'LLDB',description:'Local debugger with structured values',available:(!!t.gdb&&!!t.gdbserver)||!!t.lldbdap,path:t.gdb&&t.gdbserver?t.gdb:t.lldbdap},
-    {id:'git',name:'Git',description:'Local source control',available:!!t.git,path:t.git}
+    {id:'gcc',name:'GCC',description:'Системный компилятор GCC',available:!!t.gcc&&!!t.gxx,path:t.gxx},
+    {id:'clang',name:'Clang',description:'Системный компилятор Clang',available:!!t.clang&&!!t.clangxx,path:t.clangxx},
+    {id:'analysis',name:'clangd + clang-format',description:'Анализ кода и форматирование',available:!!t.clangd&&!!t.format,path:t.clangd},
+    {id:'debugger',name:t.gdb&&t.gdbserver?'GDB + gdbserver':'LLDB',description:'Локальный отладчик с просмотром структур',available:(!!t.gdb&&!!t.gdbserver)||!!t.lldbdap,path:t.gdb&&t.gdbserver?t.gdb:t.lldbdap},
+    {id:'git',name:'Git',description:'Локальный контроль версий',available:!!t.git,path:t.git}
   ].map(p=>({...p,system:true,installed:p.available&&!disabled[p.id],local:true,bytes:0,installedBytes:0}))};}
   async formatConfig(){let file=path.join(this.ws.root,'.clang-format');if(!await exists(file)&&await exists(path.join(this.ws.root,'_clang-format')))file=path.join(this.ws.root,'_clang-format');if(!await exists(file))await this.ws.write(file,STYLE);return{path:portable(file),text:await fs.readFile(file,'utf8'),defaults:STYLE};}
   formatStyle(){const settings=this.ws.prefs.settings;if(!settings.indentMode||settings.indentMode==='formatter')return'--style=file';return'--style={BasedOnStyle: InheritParentConfig, IndentWidth: '+Math.max(1,Math.min(16,settings.indentWidth||4))+', TabWidth: '+Math.max(1,Math.min(16,settings.tabWidth||4))+', UseTab: '+(settings.indentMode==='tabs'?'Always':'Never')+'}';}
@@ -110,7 +113,7 @@ class DesktopHost {
       case 'newBranch':if(d.branch.startsWith('-'))throw Error('Invalid branch');return command(['switch','-c',d.branch]);
       case 'diff':{const file=await this.ws.writable(d.path),r=await command(['show','HEAD:'+portable(path.relative(this.ws.root,file))]);return{original:r.code?'':r.text,modified:(await this.ws.read(file)).text,path:file};}
       case 'clone':{
-        if(!/^https:\/\//.test(d.url)||/[\r\n]/.test(d.url)||!d.name||/[<>:"/\\|?*\x00-\x1f]/.test(d.name)||['.','..'].includes(d.name))throw Error('Use an HTTPS repository and valid folder name');const destination=path.join(this.ws.data,'projects',d.name);if(await exists(destination))throw Error('Project exists');await fs.mkdir(path.dirname(destination),{recursive:true});
+        if(!/^https:\/\//.test(d.url)||/[\r\n]/.test(d.url)||!d.name||/[<>:"/\\|?*\x00-\x1f]/.test(d.name)||['.','..'].includes(d.name))throw Error('Use an HTTPS repository and valid folder name');const destination=path.join(this.ws.projectsDirectory,d.name);if(await exists(destination))throw Error('Project exists');await fs.mkdir(path.dirname(destination),{recursive:true});
         const r=await command(['clone','--',d.url,destination]);if(!r.code){const project=await this.ws.open(destination);r.project=project.project;}return r;
       }
       default:throw Error('Unknown Git action');

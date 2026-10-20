@@ -311,6 +311,22 @@ public final class MainActivity extends Activity {
         if(key==KeyEvent.KEYCODE_F8||key==KeyEvent.KEYCODE_F7){emitScript("window.forge && forge.debugger.active && forge.debugger.action("+JSONObject.quote(key==KeyEvent.KEYCODE_F7?"step":event.isShiftPressed()?"finish":"next")+")");return true;}
         return super.onKeyDown(key,event);
     }
+    /** Debug-only app-window capture: includes the native editor, excludes OS bars. */
+    JSONObject captureApp()throws Exception {
+        if(!BuildConfig.DEBUG)throw new IOException("Capture is available only in debug builds");
+        CompletableFuture<String> result=new CompletableFuture<>();
+        ui.post(()->{try{
+            int[] at=new int[2];editorRoot.getLocationInWindow(at);int width=editorRoot.getWidth(),height=editorRoot.getHeight();
+            if(width<=0||height<=0||(long)width*height>12000000)throw new IOException("Invalid app capture size");
+            android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Rect source=new android.graphics.Rect(at[0],at[1],at[0]+width,at[1]+height);
+            PixelCopy.request(getWindow(),source,bitmap,status->{
+                if(status!=PixelCopy.SUCCESS){bitmap.recycle();result.completeExceptionally(new IOException("App capture failed: "+status));return;}
+                workers.execute(()->{try{File file=new File(getCacheDir(),"app-capture.png");try(OutputStream out=new FileOutputStream(file)){if(!bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out))throw new IOException("PNG capture failed");}result.complete(file.getAbsolutePath());}catch(Exception error){result.completeExceptionally(error);}finally{bitmap.recycle();}});
+            },ui);
+        }catch(Exception error){result.completeExceptionally(error);}});
+        return new JSONObject().put("path",result.get(15,TimeUnit.SECONDS));
+    }
     @Override protected void onDestroy() {
         closed=true;responsiveness.close();
         if(nativeEditors!=null)nativeEditors.close();

@@ -21,6 +21,11 @@ async function runSmoke({window,host,base}){
     await check('GCC build and console output through renderer controls',async()=>{
       await evaluate("forge.settings.compiler=forge.toolPackState.packs.find(p=>p.id==='gcc')?.installed?'gcc':'clang';forge.settings.buildMode='file';forge.build(true)");await wait('!forge.running&&!forge.busy');const text=await evaluate('document.querySelector("#consoleOutput").textContent');assert.match(text,/Hello from C\+\+ Studio/);
     });
+    await check('inline new-project form opens the newly created Unicode folder',async()=>{
+      await evaluate(`(()=>{forge.newProject();const form=document.querySelector('.studio-mini-form');form.elements.projectName.value='ui-project Кириллица';form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));})()`);
+      await wait("forge.state.root.includes('ui-project Кириллица')&&!!forge.active&&!document.querySelector('.studio-mini-form')");
+      assert.match(await evaluate('forge.active.path'),/ui-project Кириллица\/main.cpp$/);
+    });
     if(host.tools.tools.lldbdap||host.tools.tools.gdb&&host.tools.tools.gdbserver)await check('real debugger UI stops on invalid memory, shows locals and opens the project line',async()=>{
       const useDap=!!host.tools.tools.lldbdap;
       await evaluate(`(async()=>{forge.active.model.setValue('struct Node { int value; };\\nint main(){\\n Node item{42};\\n volatile int* ptr=nullptr;\\n *ptr=item.value;\\n return 0;\\n}\\n');await forge.saveAll();forge.debugger=${useDap?'new DapClient(forge)':'new GdbClient(forge)'};forge.debugger.breakpoints.clear();await forge.debugger.toggleBreakpoint(forge.active.model,5);const r=await native('build',{path:forge.active.path,mode:'file',options:{...forge.settings,optimization:'debug'},id:'smoke-debug-build'});if(r.code)throw Error('Debug compilation failed');await forge.debugger.start(r.executable);})()`);
@@ -34,12 +39,15 @@ async function runSmoke({window,host,base}){
     await check('runtime fault panel displays text and source links',async()=>{
       const r=await evaluate(`(()=>{const d=forge.runtimeDiagnostics;d.begin('smoke-fault');d.feed({id:'smoke-fault',stream:'stderr',text:'main.cpp:7:3: runtime error: division by zero\\n'});d.end({id:'smoke-fault'});forge.showPanel('console');return{visible:!d.banner.classList.contains('hidden'),title:d.banner.querySelector('strong').textContent,links:d.banner.querySelectorAll('.runtime-frame').length};})()`);assert.ok(r.visible);assert.match(r.title,/division by zero/);assert.equal(r.links,1);
     });
+    await check('first-run wizard uses available system tools without Android downloads',async()=>{
+      const r=await evaluate(`(async()=>{await forge.openSetup();forge.setupDraft.mode='full';forge.setupDraft.packs=forge.toolPackState.packs.filter(p=>p.available).map(p=>p.id);forge.setupStep=1;forge.renderSetup();const missing=[...document.querySelectorAll('#setupPackList input:disabled')].every(e=>!e.checked);forge.setupStep=4;forge.renderSetup();const text=document.querySelector('#setupBody').textContent;document.querySelector('#setupDialog').close();return{missing,downloads:/MB|GCC 15\\.2/.test(text)};})()`);assert.equal(r.missing,true);assert.equal(r.downloads,false);
+    });
     await check('IPC denies unexpected operations',async()=>{const r=await evaluate("native('read',{path:'C:/Windows/win.ini'}).then(()=>false,()=>true)");assert.equal(r,true);});
     await evaluate('document.fonts.ready.then(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))');
     window.webContents.invalidate();await window.webContents.capturePage(undefined,{stayHidden:true});await new Promise(resolve=>setTimeout(resolve,300));
     await fs.writeFile(path.join(output,'desktop-editor.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
     await fs.writeFile(path.join(output,'desktop-smoke.json'),JSON.stringify({platform:process.platform,electron:process.versions.electron,checks,errors,physicalInputTested:false,dom:await evaluate('({panel:forge.currentPanel,console:document.querySelector("#console").getBoundingClientRect().toJSON(),banner:forge.runtimeDiagnostics.banner.getBoundingClientRect().toJSON(),bannerText:forge.runtimeDiagnostics.banner.innerText,style:getComputedStyle(forge.runtimeDiagnostics.banner).display})')},null,2));
     console.log(JSON.stringify({checks:checks.length,output}));
-  }catch(error){await fs.writeFile(path.join(output,'desktop-failure.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());await fs.writeFile(path.join(output,'desktop-failure.json'),JSON.stringify({checks,error:error.stack,errors},null,2));throw error;}
+  }catch(error){await fs.writeFile(path.join(output,'desktop-failure.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());await fs.writeFile(path.join(output,'desktop-failure.json'),JSON.stringify({checks,error:error.stack,errors,debug:await evaluate('({active:forge?.debugger?.active,paused:forge?.debugger?.paused,frames:forge?.debugger?.frames,execution:forge?.debugger?.nativeExecution,stopSerial:forge?.debugger?.stopSerial,variablesSerial:forge?.debugger?.variablesSerial,breakpoints:[...forge.debugger.breakpoints],root:forge.state.root,log:document.querySelector("#debugLogOutput").textContent.slice(-12000)})')},null,2));throw error;}
 }
 module.exports={runSmoke};

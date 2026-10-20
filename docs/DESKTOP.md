@@ -5,7 +5,7 @@ Windows, Linux and macOS share the Android application's project UI and language
 | Platform | Compiler and project tools | Analysis / formatting | Debugger |
 |---|---|---|---|
 | Windows x64 | MSYS2 MINGW64/UCRT64 GCC or LLVM Clang, CMake, Ninja | clangd, clang-format | GDB + gdbserver |
-| Linux x64 | GCC or Clang, CMake, Ninja / Make | clangd, clang-format | GDB + gdbserver, or LLDB DAP |
+| Linux x64 | GCC or Clang, CMake, Ninja | clangd, clang-format | GDB + gdbserver, or LLDB DAP |
 | macOS | Xcode Command Line Tools or Homebrew Clang/GCC, CMake, Ninja | Homebrew LLVM clangd / clang-format | Homebrew LLDB DAP |
 
 Paths are discovered from PATH and common installation folders. Settings → Tools lets you select exact executables. Apple `/usr/bin/gcc` aliases are identified as Clang. Missing capabilities are shown explicitly rather than silently simulated. GDB runs through a loopback-only server with separate program stdin/stdout; LLDB uses DAP and a private piped terminal. System tool removal belongs to the system package manager; the IDE can disable tools.
@@ -21,6 +21,9 @@ cd desktop
 npm ci
 npm test
 npm start
+cd ..
+python tools/prepare_desktop_sources.py --output desktop/dist/Cpp-Studio-desktop-native-sources-44.9.1.zip
+cd desktop
 npm run package
 ```
 
@@ -29,3 +32,5 @@ Portable archives retain Electron/Chromium notices and JavaScript dependency lic
 An application-level renderer smoke test is available with `--smoke --data-dir=PATH`. It uses a fresh project/data folder, remains hidden, and records checks and app-only screenshots. It does not replace physical keyboard, touchpad, accessibility or Android IME testing.
 
 Homebrew distributes LLDB separately from LLVM: install `llvm` for analysis/formatting and [`lldb`](https://formulae.brew.sh/formula/lldb) for `lldb-dap`.
+
+FFmpeg remains a separate LGPL library. Distribute the exact source archive generated above beside every binary archive. The lock verifies Electron/Chromium revisions, FFmpeg sources and Electron patches. See [desktop/THIRD_PARTY.md](../desktop/THIRD_PARTY.md).

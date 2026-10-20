@@ -4,7 +4,7 @@ const releaseMethods={
     const form=$('#settingsForm'),sections=[...form.querySelectorAll(':scope > section')];
     const motion=document.createElement('label');motion.innerHTML='Анимации<select name="motion"><option value="system">Как в системе</option><option value="reduced">Минимальные</option></select>';sections.find(s=>s.textContent.includes('Масштаб'))?.append(motion);
     if(window.StudioDesktop){
-      $('#keyboardButton').classList.add('hidden');
+      $('#keyboardButton').classList.add('hidden');const legal=document.createElement('div');legal.className='desktop-legal-note';legal.innerHTML='<p>Настольная версия использует Electron, Chromium и FFmpeg под LGPL 2.1 или новее. Исходники библиотек распространяются рядом со сборками.</p><button type="button" id="desktopNotices">Лицензии Electron / Chromium</button><button type="button" id="desktopSources">Исходники библиотек</button>';$('#helpDialog').append(legal);legal.querySelector('#desktopNotices').onclick=()=>native('desktopNotices').catch(safeError);legal.querySelector('#desktopSources').onclick=()=>native('desktopSources').catch(safeError);
       for(const section of sections)if(section.textContent.includes('Перекрытие интерфейса'))section.hidden=true;
       const tools=document.createElement('section');tools.id='desktopToolsSection';tools.innerHTML='<h3>Инструменты системы</h3><p>Укажите путь к установленному инструменту или оставьте поле пустым для автоматического поиска.</p><div class="desktop-tool-fields"></div>';
       const fields=tools.querySelector('.desktop-tool-fields');
@@ -18,7 +18,7 @@ const releaseMethods={
     for(const [index,section]of this.settingsSections.entries()){
       section.dataset.settingsCategory=String(index);const button=document.createElement('button');button.type='button';button.textContent=tr(section.querySelector('h3')?.textContent||'Настройки');button.onclick=()=>this.selectSettingsCategory(index);tabs.append(button);
     }
-    this.selectSettingsCategory(0);this.applyMotion();
+    const footer=form.querySelector('.dialog-buttons');if(footer){footer.querySelector('[type=submit]')?.setAttribute('form','settingsForm');form.after(footer);}this.selectSettingsCategory(0);this.applyMotion();
   },
   selectSettingsCategory(index){this.settingsCategory=index;this.settingsSections?.forEach((section,i)=>section.hidden=i!==index);$$('.settings-categories button').forEach((button,i)=>button.setAttribute('aria-pressed',String(i===index)));},
   applyMotion(){const reduced=this.settings.motion==='reduced'||this.state.capabilities?.systemAnimations===false||matchMedia('(prefers-reduced-motion:reduce)').matches;document.documentElement.dataset.motion=reduced?'reduced':'system';},
@@ -27,7 +27,7 @@ const releaseMethods={
   renderTabs(){
     const signature=this.tabs.map(d=>d.path+'\0'+(d===this.active)+'\0'+this.documentDirty(d)).join('\n');if(this.tabRenderSignature===signature)return;this.tabRenderSignature=signature;
     const el=$('#tabs'),nodes=new Map([...el.children].map(node=>[node.dataset.path,node]));
-    for(const d of this.tabs){let button=nodes.get(d.path);if(!button){button=document.createElement('button');button.className='tab';button.dataset.path=d.path;button.setAttribute('role','tab');button.innerHTML='<span class="file-symbol">'+fileSymbol(d.path)+'</span><span class="tab-label"></span><i class="dirty-dot hidden"></i><span class="tab-close" aria-label="'+tr('Закрыть')+'">'+svg('x')+'</span>';button.onclick=e=>{if(e.target.closest('.tab-close'))this.closeTab(d);else if(this.active!==d)this.openFile(d.path);};}
+    for(const d of this.tabs){let button=nodes.get(d.path);if(!button){button=document.createElement('button');button.className='tab';button.dataset.path=d.path;button.setAttribute('role','tab');button.innerHTML='<span class="file-symbol">'+fileSymbol(d.path)+'</span><span class="tab-label"></span><i class="dirty-dot hidden"></i><span class="tab-close" aria-label="'+tr('Закрыть')+'">'+svg('x')+'</span>';button.onclick=e=>{if(e.target.closest('.tab-close'))this.closeTab(d);else if(this.active!==d)this.openFile(d.path);else this.editor.focus();};}
       button.classList.toggle('active',d===this.active);button.setAttribute('aria-selected',String(d===this.active));button.title=relative(d.path,this.state.root);button.querySelector('.tab-label').textContent=basename(d.path);button.querySelector('.dirty-dot').classList.toggle('hidden',!this.documentDirty(d));el.append(button);nodes.delete(d.path);
     }for(const node of nodes.values())node.remove();
   },

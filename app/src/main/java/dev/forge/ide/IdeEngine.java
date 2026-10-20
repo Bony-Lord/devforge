@@ -45,6 +45,8 @@ final class IdeEngine {
         if(op.startsWith("formatter")||op.equals("formatDocument")||op.equals("cmakeSources")||op.equals("cmakeCommands")||op.equals("cmakeHelp"))return languages.handle(op,d);
         switch(op) {
             case "performanceReport":return app.responsiveness.report();
+            case "captureApp":return app.captureApp();
+            case "clipboardWrite":{String text=d.getString("text");if(text.length()>256*1024)throw new IOException("Clipboard text too large");app.ui.post(()->((android.content.ClipboardManager)app.getSystemService(android.content.Context.CLIPBOARD_SERVICE)).setPrimaryClip(android.content.ClipData.newPlainText("C++ Studio",text)));return true;}
             case "performanceEvent":app.responsiveness.record("Web UI",Math.min(60000,d.optLong("delayMs")),"");return true;
             case "state":return state();
             case "settings":prefs.edit().putString("settings",d.toString()).apply();app.configureKeyboard(d);return d;
@@ -54,7 +56,7 @@ final class IdeEngine {
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
                 stopLsp();currentProject=name;prefs.edit().putString("project",name).apply();return state();
             }
-            case "newProject":createProject(d.getString("name"),d.optString("language","cpp"));return state();
+            case "newProject":createProject(d.getString("name"),d.optString("language","cpp"));return state().put("createdProject",d.getString("name"));
             case "tree":return tree(project(currentProject),0);
             case "browseFilesystem":return workspace.browse(d);
             case "openFolder":return workspace.open(d);
@@ -157,7 +159,7 @@ final class IdeEngine {
     }
     File project(String name)throws IOException {
         File external=workspace.external(name);if(external!=null)return external;
-        if(!name.matches("[a-zA-Z0-9_ .()-]{1,80}")||name.equals(".")||name.equals(".."))throw new IOException("Имя проекта: латиница, цифры, пробел, дефис");
+        if(!name.matches("[\\p{L}\\p{N}_ .()-]{1,80}")||name.equals(".")||name.equals(".."))throw new IOException("Имя проекта: буквы, цифры, пробел, дефис");
         return new File(projects,name).getCanonicalFile();
     }
     File newProjectDir(String name)throws Exception {File p=project(name);if(p.exists())throw new IOException("Проект уже существует");p.mkdirs();return p;}
@@ -279,7 +281,7 @@ final class IdeEngine {
     }
     static String quoteShellArgument(String value){return value.matches("[A-Za-z0-9_./:+,=@%-]+")?value:"'"+value.replace("'","'\\''")+"'";}
     String cmakeFlags(JSONObject options,boolean c)throws Exception {
-        StringBuilder out=new StringBuilder();for(String flag:flags(options,c,false)){if(out.length()>0)out.append(' ');out.append(quoteShellArgument(flag));}return out.toString();
+        StringBuilder out=new StringBuilder();for(String flag:flags(options,c,false)){if(out.length()>0)out.append(' ');out.append(quoteShellArgument(flag).replace("$","$$"));}return out.toString();
     }
     List<String> flags(JSONObject options,boolean c,boolean analysis)throws Exception {
         List<String> out=new ArrayList<>();

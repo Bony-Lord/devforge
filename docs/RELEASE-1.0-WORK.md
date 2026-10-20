@@ -1,25 +1,26 @@
-# Release 1.0 work
+# C++ Studio 1.0.0-rc.1
 
-Work in progress, not a stable-release claim. Branch: `codex/release-1.0`.
+This is a release candidate, not a claim of complete CLion parity or store approval.
 
-Accepted scope: a polished, usable Android release, modern target SDK, Windows/Linux/macOS support, responsive and uncluttered UI, system integration, and runtime-error diagnostics (at least Debug).
+## Implemented and verified
 
-The user currently has no Android device connected and explicitly chose to continue without one. Do not imply new physical-device validation. Keep 0.3.1 published artifacts unchanged.
+- Modern Android target API 36, PackageManager-installed native tools and a separately launched host for generated programs. Ordinary source/CMake trees and project-root working directory.
+- All 222 packaged ARM64 native images checked for 16 KB alignment. One rebuilt dependency and the host use NDK r28c. No writable-directory exec workaround.
+- Android 16 x86_64 emulator: genuine GCC and Clang builds/runs, CMake/Ninja, Unicode project folders and project-root data access; GDB SIGSEGV stop, source selection and Node.value expansion; ASan use-after-free with allocation/free/read source lines; Debug vector bounds assertion with explanatory text; return 139 distinguished from a signal.
+- Fresh installation from an AAB with install-time runtime-data asset pack extracted its data and compiled/ran the sample successfully.
+- Windows: real GCC/GDB, CMake/Ninja in Unicode paths, stdin, code/encoding/BOM/history/file containment, sandboxed Monaco/Electron renderer, inline project creation, real debugger controls and runtime panel. Linux/macOS equivalents run in the desktop CI matrix.
+- Settings categories, system/reduced motion, bounded frame-batched output, incremental tab updates, paged variable trees, desktop tool discovery/configuration, modern/desktop first-run setup, RU/EN additions.
+- Native/copyleft notices and source bundles; Electron/Chromium full notices and a checksum-pinned corresponding FFmpeg/Electron-patch source archive for desktop.
 
-## Architecture being implemented
+Reproducible acceptance entry points: `tests/modern_emulator_acceptance.py` (owned emulator only), `desktop/smoke.cjs`, `desktop/tests`, and the source/desktop GitHub Actions workflows. Screenshots are real app-window captures; no OS bars, personal projects or fabricated output.
 
-- Android modern flavor: API 36, tools in PackageManager's read-only native-library directory, data separately extracted. Generated user code is a shared object loaded by a separate packaged native host, never execve'd from writable storage. This needs device/emulator proof; raising the target alone is not acceptance.
-- Compat flavor: API 28, only for regression/rollback. App ID/signing key remain compatible.
-- NDK r28c and SDK 36 installed in the existing local SDK. The pinned runtime has 222 ARM64 native images; one 4 KB library (`libandroid-spawn`) is rebuilt from the exact Termux recipe snapshot. Others already support 16 KB.
-- Desktop: Electron with sandbox/context isolation and an explicit IPC host, real Monaco renderer, local system GCC/Clang/CMake/GDB, ordinary project roots. Windows can be tested locally with MSYS2 GCC 14.2/GDB; Linux/macOS need CI and appropriate debugger capabilities.
-- Runtime diagnostics: library assertions in Debug, ASan/UBSan where genuinely supported, structured signal reports, clickable stack/locations, GDB stop on crashes; do not silently claim unsupported GCC sanitizer features.
+## Remaining limits
 
-## Remaining acceptance
+- No physical ARM64 device is currently connected. The modern ARM64 execution chain, physical IME/Bluetooth/touchpad behavior and OEM installer behavior need new physical-device acceptance. Prior 0.3.1 physical checks do not substitute for this.
+- Google Play submission/review and the MANAGE_EXTERNAL_STORAGE declaration have not been completed. API 36 and 16 KB alignment alone do not establish acceptance.
+- Modern APK bundles all native tools. Disable/enable does not reclaim APK space; optional native Play feature delivery is not implemented. Desktop uses system tools.
+- Windows publisher signing and Apple notarization are not supplied. macOS uses an ad-hoc integrity signature.
+- Sanitizers have overhead and supported-toolchain limits; Android leak detection is disabled. This is not proof that arbitrary user code is bug-free.
+- Desktop CI is automated coverage, not manual testing of every desktop/keyboard/window manager. Check the exact candidate commit result before distribution.
 
-1. Finish modern host run/debug/packaging, validate ELF entry/dynamic exports and native page alignment; test a real compiler/program chain. Add install-time data asset pack for Play AAB size if required.
-2. Finish desktop host/editor adapter, run compile/CMake/stdio/GDB/LSP/filesystem/encoding tests and package Windows. Build/test Linux/macOS in CI.
-3. Finish runtime fault UI, sanitizer settings and real fault scenarios.
-4. Polish settings/navigation/animation without reintroducing native viewport jumps. Respect reduced motion.
-5. Update licenses, build/release documentation and reproducible packaging; verify sources/assets/signatures and exact-commit CI before publishing candidates. Store approval/signing/notarization remain separately verified states.
-
-Private signing key stays in workspace `work/build/forge-development.jks`, never Git. Do not change memory files. Prior devices and original-project preferences were restored at the end of 0.3.1.
+Keep the published 0.3.1 artifacts unchanged. Private keys and generated tools/test fixtures stay outside Git.

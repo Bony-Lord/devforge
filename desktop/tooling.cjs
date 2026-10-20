@@ -33,7 +33,7 @@ async function findTool(name,overrides={}){
 }
 class Tooling {
   constructor(workspace,event){this.ws=workspace;this.event=event;this.tools={};this.profiles=new Map();this.sanitizerProbes=new Map();this.children=new Set();this.lsp=null;this.execution=null;this.building=null;this.gdb=null;this.server=null;this.cancelled=false;}
-  async discover(){for(const name of ['gcc','gxx','clang','clangxx','clangd','format','cmake','ninja','gdb','gdbserver','git','symbolizer','lldbdap','addr2line'])this.tools[name]=await findTool(name,this.ws.prefs.settings.toolPaths);if(isWindows)this.tools.lldbdap=null;if(process.platform==='darwin'&&!this.tools.lldbdap){const found=await capture('/usr/bin/xcrun',['--find','lldb-dap'],{timeout:5000});if(!found.code&&await exists(found.text.trim()))this.tools.lldbdap=portable(found.text.trim());}if(process.platform==='darwin'&&this.tools.gcc&&!this.ws.prefs.settings.toolPaths?.gcc){const version=await capture(this.tools.gcc,['--version'],{timeout:5000});if(/clang/i.test(version.text)){this.tools.gcc=null;this.tools.gxx=null;}}const roots=new Set();for(const tool of Object.values(this.tools))if(tool)roots.add(portable(path.resolve(path.dirname(tool),'..')));if(!isWindows)for(const dir of ['/usr/include','/usr/local/include','/Library/Developer/CommandLineTools/SDKs','/Applications/Xcode.app'])if(await exists(dir))roots.add(dir);this.ws.readRoots=[...roots];return this.tools;}
+  async discover(){for(const name of ['gcc','gxx','clang','clangxx','clangd','format','cmake','ninja','gdb','gdbserver','git','symbolizer','lldbdap','addr2line'])this.tools[name]=await findTool(name,this.ws.prefs.settings.toolPaths);if(isWindows)this.tools.lldbdap=null;if(process.platform==='darwin'&&!this.tools.lldbdap){const found=await capture('/usr/bin/xcrun',['--find','lldb-dap'],{timeout:5000});if(!found.code&&await exists(found.text.trim()))this.tools.lldbdap=portable(found.text.trim());}if(process.platform==='darwin'&&this.tools.gcc&&!this.ws.prefs.settings.toolPaths?.gcc){const version=await capture(this.tools.gcc,['--version'],{timeout:5000});if(/clang/i.test(version.text)){this.tools.gcc=null;this.tools.gxx=null;}}const roots=new Set();for(const tool of Object.values(this.tools))if(tool)for(const subdir of ['include','lib','lib64','libexec']){const dir=portable(path.resolve(path.dirname(tool),'..',subdir));if(await exists(dir))roots.add(dir);}if(!isWindows)for(const dir of ['/usr/include','/usr/local/include','/Library/Developer/CommandLineTools/SDKs','/Applications/Xcode.app'])if(await exists(dir))roots.add(dir);this.ws.readRoots=[...roots];return this.tools;}
   env(){const folders=[...new Set(Object.values(this.tools).filter(Boolean).map(p=>path.dirname(p)))];return {...process.env,PATH:[...folders,process.env.PATH||''].join(path.delimiter),LANG:'C.UTF-8',LC_ALL:'C.UTF-8',TERM:'dumb',GIT_TERMINAL_PROMPT:'0',GIT_PAGER:'cat'};}
   tool(name){const tool=this.tools[name];if(!tool)throw Error('Install '+({gxx:'GCC C++',format:'clang-format',clangxx:'Clang C++'}[name]||name)+' or select its path in Settings → Tools.');return tool;}
   compiler(options,c=false){return this.tool(options.compiler==='clang'?(c?'clang':'clangxx'):(c?'gcc':'gxx'));}
@@ -41,7 +41,7 @@ class Tooling {
   flags(options,c=false,analysis=false){
     const debug=options.optimization!=='release',checks=options.runtimeChecks||'assertions',args=['-std='+this.standard(options,c),'-Wall','-Wextra','-Wpedantic','-Wshadow','-Wunused','-I'+this.ws.root];
     if(!analysis)args.push(debug?'-O0':'-O2','-g','-fdiagnostics-color=never');
-    if(debug){args.push('-fno-omit-frame-pointer');if(checks!=='none'&&!c)args.push('-D_GLIBCXX_ASSERTIONS=1','-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE');if(checks==='sanitizers')args.push('-fsanitize=address,undefined','-fno-sanitize-recover=all');}
+    if(debug){args.push('-fno-omit-frame-pointer');if(checks!=='none'&&!c)args.push('-D_GLIBCXX_ASSERTIONS=1','-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG');if(checks==='sanitizers')args.push('-fsanitize=address,undefined','-fno-sanitize-recover=all');}
     if(!Array.isArray(options.flags||[]))throw Error('Compiler flags must be an array');for(const flag of (options.flags||[]).slice(0,100)){if(typeof flag!=='string'||flag.includes('\0'))throw Error('Invalid compiler flag');if(flag)args.push(flag);}return args;
   }
   async verifySanitizers(options){
@@ -70,11 +70,12 @@ class Tooling {
     if(this.building||this.execution||this.gdb||this.dap)throw Error('Stop the current process first');this.cancelled=false;const options={...this.ws.prefs.settings,...d.options};await this.verifySanitizers(options);await fs.mkdir(this.ws.cache,{recursive:true});
     let output,code;
     if(d.mode==='cmake'){
+      this.tool('ninja');
       const folder=this.cmakeDir(options),standard=c=>this.standard(options,c).replace('03','98').replace('89','90').replace('2x','23').replace(/\D/g,'');
-      const args=['-S',this.ws.root,'-B',folder,...this.tools.ninja?['-G','Ninja','-DCMAKE_MAKE_PROGRAM='+this.tool('ninja')]:['-G',isWindows?'MinGW Makefiles':'Unix Makefiles'],
+      const args=['-S',this.ws.root,'-B',folder,'-G','Ninja','-DCMAKE_MAKE_PROGRAM='+this.tool('ninja'),
         '-DCMAKE_C_COMPILER='+this.compiler(options,true),'-DCMAKE_CXX_COMPILER='+this.compiler(options),'-DCMAKE_BUILD_TYPE='+(options.optimization==='release'?'Release':'Debug'),'-DCMAKE_EXPORT_COMPILE_COMMANDS=ON','-DCMAKE_C_STANDARD='+standard(true),'-DCMAKE_CXX_STANDARD='+standard(false),
         '-DCMAKE_C_EXTENSIONS='+(this.standard(options,true).startsWith('gnu')?'ON':'OFF'),'-DCMAKE_CXX_EXTENSIONS='+(this.standard(options,false).startsWith('gnu')?'ON':'OFF'),
-        '-DCMAKE_C_FLAGS='+this.flags(options,true).map(quoteFlag).join(' '),'-DCMAKE_CXX_FLAGS='+this.flags(options).map(quoteFlag).join(' ')];
+        '-DCMAKE_C_FLAGS='+this.flags(options,true).map(flag=>quoteFlag(flag).replaceAll('$',()=> '$$')).join(' '),'-DCMAKE_CXX_FLAGS='+this.flags(options).map(flag=>quoteFlag(flag).replaceAll('$',()=> '$$')).join(' ')];
       code=await this.buildCommand(this.tool('cmake'),args,d.id);if(code||d.configureOnly)return{code,id:d.id,configured:code===0};
       code=await this.buildCommand(this.tool('cmake'),['--build',folder,'--parallel','2'],d.id);const target=options.target||'app';output=await canonical(path.join(folder,target+(isWindows&&!target.endsWith('.exe')?'.exe':'')));if(!inside(output,await canonical(folder)))throw Error('Executable outside build directory');
     }else{
@@ -133,5 +134,8 @@ class Tooling {
   async stopDebug(){const gdb=this.gdb,server=this.server;this.gdb=null;this.server=null;if(gdb){try{gdb.stdin.write('-gdb-set confirm off\n-interpreter-exec console "kill"\n-gdb-exit\n');}catch{}const timer=setTimeout(()=>this.terminate(gdb),500);timer.unref();}if(server)this.terminate(server);}
   async close(){this.stopLsp();await this.stop();for(const child of this.children)this.terminate(child);}
 }
-function quoteFlag(flag){return /[\s"\\]/.test(flag)?'"'+flag.replaceAll('\\','/').replaceAll('"','\\"')+'"':flag;}
+function quoteFlag(flag){
+  if(isWindows)return /[\s"]/.test(flag)?'"'+flag.replace(/(\\*)"/g,'$1$1\\"').replace(/\\+$/g,'$&$&')+'"':flag;
+  return /^[A-Za-z0-9_./:+,=@%-]+$/.test(flag)?flag:"'"+flag.replaceAll("'","'\\''")+"'";
+}
 module.exports={Tooling,LspFrames,findTool,capture,launch};

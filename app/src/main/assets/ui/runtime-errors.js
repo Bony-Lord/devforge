@@ -2,14 +2,14 @@
 /* Bounded, streaming parser. User output is always text, never markup or code. */
 class RuntimeFaultParser {
   constructor(){this.reset();}
-  reset(){this.tail='';this.lines=[];this.fault=null;this.frames=[];this.addresses=[];}
-  feed(text){
-    this.tail+=String(text).replace(/\x1b\[[0-9;]*m/g,'');
+  reset(){this.tail='';this.tails={};this.lines=[];this.fault=null;this.frames=[];this.addresses=[];}
+  feed(text,stream='stderr'){
+    stream=stream==='stdout'?'stdout':'stderr';this.tail=this.tails[stream]||'';this.tail+=String(text).replace(/\x1b\[[0-9;]*m/g,'');
     let end;while((end=this.tail.indexOf('\n'))>=0){this.line(this.tail.slice(0,end).replace(/\r$/,''));this.tail=this.tail.slice(end+1);}
     if(this.tail.length>16384){this.line(this.tail.slice(0,16384));this.tail=this.tail.slice(-8192);}
-    return this.fault;
+    this.tails[stream]=this.tail;return this.fault;
   }
-  flush(){if(this.tail){this.line(this.tail);this.tail='';}return this.fault;}
+  flush(){for(const tail of Object.values(this.tails))if(tail)this.line(tail);this.tails={};this.tail='';return this.fault;}
   line(line){
     this.lines.push(line);if(this.lines.length>200)this.lines.shift();
     const record=/^\x1eCPPSTUDIO_FAULT:(\{.*\})$/.exec(line);
@@ -17,7 +17,7 @@ class RuntimeFaultParser {
     const asan=/(?:ERROR|SUMMARY): (AddressSanitizer|LeakSanitizer|UndefinedBehaviorSanitizer):\s*(.+)/.exec(line);
     const ubsan=/^(.+?):(\d+):(\d+): runtime error:\s*(.+)/.exec(line);
     const assertion=/(?:Assertion .*failed|assertion .*failed|assertion .*failure|_LIBCPP_ASSERT|libc\+\+ Hardening assertion)/i.test(line);
-    if(asan&&(!this.fault||this.fault.kind==='signal'))this.fault={kind:'sanitizer',title:asan[1]+': '+asan[2].slice(0,240)};
+    if(asan&&(!this.fault||this.fault.kind==='signal'))this.fault={kind:'sanitizer',title:asan[1]+': '+asan[2].replace(/\s+on address\b[\s\S]*$/,'').slice(0,240)};
     if(ubsan){if(!this.fault||this.fault.kind==='signal')this.fault={kind:'undefined',title:'UBSan: '+ubsan[4].slice(0,240)};this.addFrame({path:ubsan[1],line:Number(ubsan[2]),column:Number(ubsan[3])});}
     if(assertion&&(!this.fault||this.fault.kind==='signal'))this.fault={kind:'assertion',title:line.trim().slice(0,300)};
     if(/(?:terminate called after throwing|terminating (?:due to|with) uncaught exception)/.test(line)&&(!this.fault||this.fault.kind==='signal'))this.fault={kind:'exception',title:line.trim().slice(0,300)};
@@ -61,7 +61,7 @@ if(typeof window!=='undefined'){
       $('#console').prepend(this.banner);
     }
     begin(id,debug=false){clearTimeout(this.timer);this.id=id;this.debug=debug;this.parser.reset();this.banner.classList.add('hidden');this.banner.querySelector('details').open=false;this.banner.querySelector('.runtime-frames').replaceChildren();}
-    feed(event){if(event.id!==this.id||!['stderr','stdout'].includes(event.stream))return;this.parser.feed(event.text);if(this.parser.fault)this.schedule();}
+    feed(event){if(event.id!==this.id||!['stderr','stdout'].includes(event.stream))return;this.parser.feed(event.text,event.stream);if(this.parser.fault)this.schedule();}
     schedule(){if(!this.timer)this.timer=setTimeout(()=>{this.timer=null;this.render();},60);}
     stopped(data,frames){
       this.parser.stopped(data,frames);
@@ -90,6 +90,7 @@ if(typeof window!=='undefined'){
     }
     async copy(){
       const text=this.parser.fault.title+'\n'+(this.parser.fault.detail||'')+'\n'+this.parser.frames.map(f=>(f.func||'')+' '+f.path+':'+f.line).join('\n')+'\n\n'+this.parser.report();
+      try{await native('clipboardWrite',{text});this.ide.toast('Подробности скопированы');return;}catch{}
       if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);
       else {const input=document.createElement('textarea');input.value=text;document.body.append(input);input.select();const ok=document.execCommand('copy');input.remove();if(!ok)throw new Error(tr('Не удалось скопировать текст'));}
       this.ide.toast('Подробности скопированы');

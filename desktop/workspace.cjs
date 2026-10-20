@@ -50,10 +50,10 @@ function templates(kind,input,namespace=''){
   return {[name]:text};
 }
 class Workspace {
-  constructor(data){this.data=data;this.file=path.join(data,'settings.json');this.prefs={settings:{},session:{},projects:{},current:'',encodings:{}};this.versions=new Map();this.readState=new Map();this.saveQueue=Promise.resolve();}
+  constructor(data,projectsDirectory){this.data=data;this.projectsDirectory=projectsDirectory||path.join(data,'projects');this.file=path.join(data,'settings.json');this.prefs={settings:{},session:{},projects:{},current:'',encodings:{}};this.versions=new Map();this.readState=new Map();this.saveQueue=Promise.resolve();}
   async init(){await fs.mkdir(this.data,{recursive:true});if(await exists(this.file))this.prefs={...this.prefs,...JSON.parse(await fs.readFile(this.file,'utf8'))};
     if(!this.prefs.current||!await exists(this.prefs.projects[this.prefs.current]?.path||'')){
-      const project=Object.entries(this.prefs.projects).find(([,p])=>p.path);if(project)this.prefs.current=project[0];else await this.newProject('hello-cpp');
+      let project=null;for(const entry of Object.entries(this.prefs.projects)){if(entry[1].path&&await exists(entry[1].path)&&(await fs.stat(entry[1].path)).isDirectory()){project=entry;break;}}if(project)this.prefs.current=project[0];else if(await exists(path.join(this.projectsDirectory,'hello-cpp'))){const opened=await this.open(path.join(this.projectsDirectory,'hello-cpp'));this.prefs.current=opened.project;await this.persist();}else await this.newProject('hello-cpp');
     }return this;
   }
   persist(){const data=JSON.stringify(this.prefs,null,2);return this.saveQueue=this.saveQueue.catch(()=>{}).then(()=>atomic(this.file,data));}
@@ -65,7 +65,7 @@ class Workspace {
   }
   async newProject(name,language='cpp'){
     if(!name||name==='.'||name==='..'||/[<>:"/\\|?*\x00-\x1f]/.test(name)||name.length>80)throw Error('Invalid project name');
-    const folder=path.join(this.data,'projects',name);await fs.mkdir(path.dirname(folder),{recursive:true});await fs.mkdir(folder);
+    const folder=path.join(this.projectsDirectory,name);await fs.mkdir(path.dirname(folder),{recursive:true});await fs.mkdir(folder);
     const c=language==='c',file=c?'main.c':'main.cpp';
     await fs.writeFile(path.join(folder,file),c?'#include <stdio.h>\n\nint main(void) {\n    puts("Hello from C++ Studio!");\n    return 0;\n}\n':'#include <iostream>\n\nint main() {\n    std::cout << "Hello from C++ Studio!\\n";\n    return 0;\n}\n');
     await fs.writeFile(path.join(folder,'CMakeLists.txt'),'cmake_minimum_required(VERSION 3.16)\nproject(studio_app LANGUAGES '+(c?'C':'CXX')+')\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable(app '+file+')\n');

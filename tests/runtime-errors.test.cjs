@@ -31,3 +31,7 @@ test('malformed/native records remain data and logs are bounded',()=>{
   for(let i=0;i<2000;i++)p.feed('A'.repeat(1000)+'\n');assert.equal(p.lines.length,200);assert.ok(p.report().length<=96000);
   p.feed('z'.repeat(60000));assert.ok(p.tail.length<=8192);p.flush();assert.ok(p.tail.length===0);
 });
+
+test('interleaved stdout does not split a stderr diagnostic',()=>{
+  const p=new RuntimeFaultParser();p.feed('main.cpp:7:9: runtime err','stderr');p.feed('ordinary program output\n','stdout');p.feed('or: division by zero\n','stderr');p.flush();assert.equal(p.fault.kind,'undefined');assert.equal(p.frames[0].line,7);
+});

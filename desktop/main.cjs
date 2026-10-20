@@ -30,10 +30,13 @@ async function serve(){
 async function start(){
   const page=await serve();
   host=await new DesktopHost(app.getPath('userData'),(type,data)=>{if(window&&!window.isDestroyed())window.webContents.send('studio:event',type,data);},{
+    projectsDirectory:smoke?undefined:path.join(app.getPath('documents'),'C++ Studio'),
     reducedMotion:()=>nativeTheme.prefersReducedMotion,
     chooseFolder:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openDirectory']});return r.canceled?null:r.filePaths[0];},
     chooseFile:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openFile']});return r.canceled?null:r.filePaths[0];},
     showInFiles:file=>shell.showItemInFolder(file),
+    showNotices:()=>shell.openPath(app.isPackaged?path.join(process.platform==='darwin'?path.resolve(process.resourcesPath,'../../..'):path.resolve(process.resourcesPath,'..'),'LICENSES.chromium.html'):path.join(__dirname,'node_modules/electron/dist/LICENSES.chromium.html')),
+    writeClipboard:text=>require('electron').clipboard.writeText(text),
     openExternal:url=>{const value=new URL(url);if(value.protocol!=='https:'||value.hostname!=='github.com')throw Error('External link denied');return shell.openExternal(value.href);},
     exportProject:async root=>{
       const result=await dialog.showSaveDialog(window,{defaultPath:path.join(app.getPath('downloads'),path.basename(root)+'.zip'),filters:[{name:'ZIP',extensions:['zip']}],properties:['showOverwriteConfirmation']});if(result.canceled)return false;
@@ -41,7 +44,7 @@ async function start(){
       const temp=destination+'.studio-'+crypto.randomUUID();try{const info=await require('./archive.cjs').zipDirectory(root,temp,{exclude:new Set(['.forge','.git','build','.cache','node_modules'])});await fs.rename(temp,destination);host.event('toast','Project exported: '+destination);return info;}finally{await fs.rm(temp,{force:true});}
     }
   }).init();
-  if(smoke){host.ws.prefs.settings.setupDismissed=true;host.ws.prefs.settings.language='ru';host.ws.prefs.settings.toolPaths={...host.ws.prefs.settings.toolPaths,...process.env.CPP_STUDIO_FORMAT?{format:process.env.CPP_STUDIO_FORMAT}:{},...process.env.CPP_STUDIO_CLANGD?{clangd:process.env.CPP_STUDIO_CLANGD}:{}};await host.ws.persist();await host.tools.discover();}
+  if(smoke){host.ws.prefs.settings.setupDismissed=true;host.ws.prefs.settings.language='ru';host.ws.prefs.settings.toolPaths={...host.ws.prefs.settings.toolPaths,...process.env.CPP_STUDIO_FORMAT?{format:process.env.CPP_STUDIO_FORMAT}:{},...process.env.CPP_STUDIO_CLANGD?{clangd:process.env.CPP_STUDIO_CLANGD}:{},...process.env.CPP_STUDIO_NINJA?{ninja:process.env.CPP_STUDIO_NINJA}:{}};await host.ws.persist();await host.tools.discover();}
   const bounds=host.ws.prefs.window||{};
   window=new BrowserWindow({width:Math.max(800,Math.min(2400,bounds.width||1360)),height:Math.max(560,Math.min(1800,bounds.height||880)),minWidth:720,minHeight:480,show:false,backgroundColor:'#191b23',title:'C++ Studio',autoHideMenuBar:true,
     webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,spellcheck:false,backgroundThrottling:!smoke,offscreen:smoke,devTools:!app.isPackaged}});

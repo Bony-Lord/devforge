@@ -1,11 +1,13 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('app/src/main/assets/ui/debugger.js','utf8');
-const context=vm.createContext({});vm.runInContext(source+';globalThis.parse=parseMI;',context);
+const context=vm.createContext({pathWithin:(p,r)=>p.replaceAll('\\','/').toLowerCase().startsWith(r.replaceAll('\\','/').toLowerCase()+'/')});vm.runInContext(source+';globalThis.parse=parseMI;globalThis.sourceFrame=gdbSourceFrame;',context);
 const parse=s=>JSON.parse(JSON.stringify(context.parse(s)));
 assert.deepEqual(parse('value="7"'),{value:'7'});
 assert.deepEqual(parse('frame={level="0",func="main",line="4"}'),{frame:{level:'0',func:'main',line:'4'}});
 assert.deepEqual(parse('stack=[frame={level="0"},frame={level="1"}]'),{stack:[{frame:{level:'0'}},{frame:{level:'1'}}]});
 assert.deepEqual(parse('variables=[{name="x",value="{1, 2}"},{name="s",value="a\\n\\t\\\"b"}]'),{variables:[{name:'x',value:'{1, 2}'},{name:'s',value:'a\n\t"b'}]});
 assert.deepEqual(parse('text="\\033[0m"'),{text:'\x1b[0m'});
+assert.deepEqual(parse('fullname="/project/\\320\\237\\321\\200\\320\\270\\320\\274\\320\\265\\321\\200.cpp"'),{fullname:'/project/Пример.cpp'});
 assert.deepEqual(parse('items=[],nested={list=["a","b"]}'),{items:[],nested:{list:['a','b']}});
-console.log('6 GDB/MI protocol checks passed');
+assert.equal(context.sourceFrame({file:'c:/project/Кириллица/main.cpp',fullname:'c:\\project\\Êèðèëëèöà\\main.cpp'},'C:/project/Кириллица').fullname,'c:/project/Кириллица/main.cpp');
+console.log('8 GDB/MI protocol and source path checks passed');

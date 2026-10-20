@@ -3,10 +3,18 @@
 // frame= entries. No debugger output is evaluated as JavaScript.
 function parseMI(text){
   let i=0;
-  function string(){i++;let out='';while(i<text.length){let c=text[i++];if(c==='"')return out;if(c==='\\'){c=text[i++];const simple={n:'\n',r:'\r',t:'\t',b:'\b',f:'\f',v:'\v',a:'\x07',e:'\x1b'};if(c in simple)out+=simple[c];else if(/[0-7]/.test(c)){let oct=c;while(oct.length<3&&/[0-7]/.test(text[i]||'x'))oct+=text[i++];out+=String.fromCharCode(parseInt(oct,8));}else out+=c||'';}else out+=c;}return out;}
+  function string(){i++;let out='';while(i<text.length){let c=text[i++];if(c==='"')return out;if(c==='\\'){c=text[i++];const simple={n:'\n',r:'\r',t:'\t',b:'\b',f:'\f',v:'\v',a:'\x07',e:'\x1b'};if(c in simple)out+=simple[c];else if(/[0-7]/.test(c)){let oct=c;while(oct.length<3&&/[0-7]/.test(text[i]||'x'))oct+=text[i++];let bytes=[parseInt(oct,8)];while(bytes[0]>=128&&text[i]==='\\'&&/[0-7]/.test(text[i+1]||'x')){let at=i+1,part='';while(part.length<3&&/[0-7]/.test(text[at]||'x'))part+=text[at++];const byte=parseInt(part,8);if(byte<128)break;bytes.push(byte);i=at;}try{out+=bytes[0]>=128?decodeURIComponent(bytes.map(b=>'%'+b.toString(16).padStart(2,'0')).join('')):String.fromCharCode(bytes[0]);}catch{out+=String.fromCharCode(...bytes);}}else out+=c||'';}else out+=c;}return out;}
   function value(){if(text[i]==='"')return string();if(text[i]==='{'){i++;const o=results('}');i++;return o;}if(text[i]==='['){i++;const a=[];while(i<text.length&&text[i]!==']'){if(text[i]===','){i++;continue;}const start=i;while(/[\w-]/.test(text[i]||'!'))i++;if(text[i]==='='){const key=text.slice(start,i++);a.push({[key]:value()});}else{i=start;a.push(value());}}i++;return a;}const start=i;while(i<text.length&&!['}',']',','].includes(text[i]))i++;return text.slice(start,i);}
   function results(end){const o={};while(i<text.length&&text[i]!==end){if(text[i]===','){i++;continue;}const start=i;while(i<text.length&&text[i]!=='='&&text[i]!==end&&text[i]!==',')i++;const key=text.slice(start,i);if(text[i]!=='=')break;i++;const v=value();if(key in o)o[key]=Array.isArray(o[key])?[...o[key],v]:[o[key],v];else o[key]=v;}return o;}
   return results('\0');
+}
+// MinGW GDB can return an ANSI-expanded fullname alongside a correct UTF-8
+// absolute file from DWARF. Prefer that project path before opening the source.
+function gdbSourceFrame(frame,root){
+  if(!frame)return frame;
+  const file=String(frame.file||'').replaceAll('\\','/');
+  if(/^(?:[A-Za-z]:\/|\/)/.test(file)&&pathWithin(file,root))return {...frame,fullname:file};
+  return frame;
 }
 class GdbClient{
   constructor(ide){this.ide=ide;this.pending=new Map();this.seq=0;this.active=false;this.paused=false;this.breakpoints=new Map();this.chain=Promise.resolve();this.watches=[];this.stopSerial=0;
@@ -27,7 +35,7 @@ class GdbClient{
     $('#consoleOutput').textContent='';$('#debugLogOutput').textContent='';
     try{
       const info=await native('gdbStart',{executable,args,id:this.session});
-      for(const cmd of ['-gdb-set mi-async on','-gdb-set pagination off','-gdb-set confirm off','-gdb-set disable-randomization off','-enable-pretty-printing','-gdb-set print elements 80','-gdb-set print max-depth 4'])try{await this.command(cmd);}catch(e){this.ide.appendOutput('debugLog',e.message+'\n','meta');}
+      for(const cmd of ['-gdb-set mi-async on','-gdb-set pagination off','-gdb-set host-charset UTF-8','-gdb-set target-charset UTF-8','-gdb-set confirm off','-gdb-set disable-randomization off','-enable-pretty-printing','-gdb-set print elements 80','-gdb-set print max-depth 4'])try{await this.command(cmd);}catch(e){this.ide.appendOutput('debugLog',e.message+'\n','meta');}
       for(const [name,value] of Object.entries(info.environment||{}))await this.command('-gdb-set environment '+JSON.stringify(name+'='+value));
       for(const signal of ['SIGSEGV','SIGABRT','SIGFPE','SIGBUS','SIGILL'])try{await this.command('-interpreter-exec console '+JSON.stringify('handle '+signal+' stop print pass'));}catch{}
       for(const fn of ['abort','std::terminate()'])try{const r=await this.command('-break-insert -f '+JSON.stringify(fn));if(r.bkpt?.number)this.runtimeBreakpoints.add(r.bkpt.number);}catch{}
@@ -43,7 +51,7 @@ class GdbClient{
   async refresh(frame,fault=null){
     const serial=++this.stopSerial;
     const stack=await this.command('-stack-list-frames 0 40');if(serial!==this.stopSerial||!this.paused)return;
-    this.frames=(stack.stack||[]).map(x=>x.frame||x);this.renderStack();
+    this.frames=(stack.stack||[]).map(x=>gdbSourceFrame(x.frame||x,this.ide.state.root));frame=gdbSourceFrame(frame,this.ide.state.root);this.renderStack();
     if(fault){this.ide.runtimeDiagnostics.stopped(fault,this.frames);const root=this.ide.state.root.replaceAll('\\','/').replace(/\/$/,'');const projectFrame=this.frames.find(f=>f.fullname&&pathWithin(f.fullname,root)&&f.line);if(projectFrame){frame=projectFrame;await this.command('-stack-select-frame '+Number(frame.level));}}
     if(!frame)frame=this.frames[0];if(frame?.fullname&&frame.line){try{await this.ide.openFile(frame.fullname,{lineNumber:Number(frame.line),column:1});this.markExecutionLine(frame.fullname,Number(frame.line));}catch(error){this.ide.appendOutput('debugLog',error.message+'\n','meta');}}
     const vars=await this.command('-stack-list-variables --no-values');if(serial!==this.stopSerial)return;this.variables=vars.variables||[];await this.renderVariableTree();this.renderBreakpoints();
