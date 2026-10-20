@@ -1,0 +1,50 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "input": "Actual ADB taps, drags and holds with Yandex IME visible",
+  "checks": [
+    {
+      "test": "Scrolling across accessory keys never inserts bracket pairs",
+      "passed": true,
+      "evidence": {
+        "before": "abcdefghijklmnopqrstuvwxyz0123456789",
+        "after": "abcdefghijklmnopqrstuvwxyz0123456789"
+      }
+    },
+    {
+      "test": "Arrow tap moves exactly one column",
+      "passed": true,
+      "evidence": 20
+    },
+    {
+      "test": "Stationary arrow hold repeats without an extra release tap",
+      "passed": true,
+      "evidence": {
+        "before": 20,
+        "after": 15
+      }
+    },
+    {
+      "test": "Native copy/paste works after scaling and accessory gestures",
+      "passed": true,
+      "evidence": {
+        "text": "abcdefghijklmnopqrstuvwxyz0123456789abc",
+        "copyBar": {
+          "visible": true,
+          "left": 0,
+          "top": 750,
+          "width": 2880,
+          "height": 89
+        },
+        "pasteBar": {
+          "visible": true,
+          "left": 0,
+          "top": 656,
+          "width": 2880,
+          "height": 89
+        }
+      }
+    }
+  ],
+  "passed": 4,
+  "total": 4
+}

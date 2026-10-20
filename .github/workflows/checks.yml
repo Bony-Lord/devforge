@@ -26,6 +26,8 @@ jobs:
           node tests/interaction.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
+      - name: License inventory and notices
+        run: python tools/check_licenses.py
       - name: Real host clang-format behavior
         run: |
           python -m pip install --target build/test-tools clang-format==21.1.8 --no-deps

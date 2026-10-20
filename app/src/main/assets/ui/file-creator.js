@@ -1,5 +1,35 @@
 'use strict';
 const fileCreatorMethods={
+  newFile(directory){
+    directory??=this.treeDirectory();this.showSide('project');const popover=document.createElement('div');popover.className='studio-create-menu';
+    const title=document.createElement('small');title.textContent=tr('Создать в:')+' '+(directory||tr('Корень проекта'));popover.append(title);
+    for(const[kind,label,icon]of [['folder','Папка','folder-plus'],['cpp','Исходный файл C++ (.cpp)','file-code'],['c','Исходный файл C (.c)','file-code'],['hpp','Заголовок C++ (.hpp)','file-code'],['h','Заголовок C (.h)','file-code'],['cmakelists','CMakeLists.txt','file-cog'],['cmake','Модуль CMake (.cmake)','file-cog'],['empty','Пустой файл','file-text'],['custom','Своё расширение','file-text'],['class','Класс C++ (.hpp + .cpp)','files']]){
+      const button=document.createElement('button');button.type='button';button.dataset.createKind=kind;button.innerHTML=svg(icon)+'<span>'+escapeHtml(tr(label))+'</span>';button.onclick=()=>{StudioPopover.close();if(kind==='class')this.newFileWizard(directory).catch(safeError);else if(kind==='custom')this.customFileExtension(directory);else this.createTreeItem(kind,directory).catch(safeError);};popover.append(button);
+    }
+    StudioPopover.open(popover,$('#newFileButton'));
+  },
+  customFileExtension(directory){const form=document.createElement('form');form.className='studio-mini-form';form.innerHTML='<label>'+tr('Расширение файла')+'<input name="extension" placeholder="txt" maxlength="24" required autocomplete="off" spellcheck="false"></label><p class="inline-error" role="alert"></p><button class="primary">'+tr('Создать')+'</button>';form.onsubmit=async e=>{e.preventDefault();const extension=form.elements.extension.value;try{await this.createTreeItem('empty',directory,extension);StudioPopover.close();}catch(error){form.querySelector('.inline-error').textContent=tr(error.message);}};StudioPopover.open(form,$('#newFileButton'));form.elements.extension.focus();},
+  async newFolder(directory){return this.createTreeItem('folder',directory??this.treeDirectory());},
+  async createTreeItem(kind,directory,extension=''){
+    if(this.treeRename)await this.treeRename.commit();if(this.treeRename)return;
+    const item=await native('createTreeItem',{kind,directory,extension});let parent=item.path.slice(0,item.path.lastIndexOf('/'));while(parent.startsWith(this.state.root+'/')){this.collapsed.delete(parent);parent=parent.slice(0,parent.lastIndexOf('/'));}
+    await this.refreshTree();this.selectTreeItem(item);if(!item.dir)await this.openFile(item.path);this.renameTreeItem(item);return item;
+  },
+  renameTreeItem(item){
+    if(this.treeMoving)return;if(this.treeRename){this.treeRename.input.focus();return;}this.selectTreeItem(item);const row=[...$('#tree').querySelectorAll('.tree-row')].find(r=>r.dataset.path===item.path);if(!row)return;
+    const label=row.querySelector('.tree-label'),input=document.createElement('input');input.className='tree-rename';input.value=basename(item.path);input.spellcheck=false;input.autocomplete='off';input.setAttribute('aria-label',tr('Имя файла'));input.dataset.noI18n='';label.replaceChildren(input);row.draggable=false;row.classList.add('tree-renaming');
+    let saving=false;const finish=()=>{this.treeRename=null;this.renderTree();};
+    const commit=async()=>{if(saving||!this.treeRename)return;const name=input.value.trim();if(!name||/[\\/\x00-\x1f\x7f]/.test(name)||name==='.'||name==='..'){input.setAttribute('aria-invalid','true');input.title=tr('Введите имя без разделителей пути');input.focus();return;}if(name===basename(item.path)){finish();return;}saving=true;input.disabled=true;
+      try{await this.relocateTreeItem(item.path,item.path.slice(0,item.path.lastIndexOf('/')+1)+name,false);finish();this.selectTreeItem({path:item.path.slice(0,item.path.lastIndexOf('/')+1)+name,dir:item.dir});}
+      catch(error){input.setAttribute('aria-invalid','true');input.title=tr(error.message);this.toast(error.message);input.disabled=false;input.focus();}finally{saving=false;}
+    };
+    this.treeRename={input,commit};input.onpointerdown=e=>e.stopPropagation();input.onclick=e=>e.stopPropagation();input.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();commit();}else if(e.key==='Escape'){e.preventDefault();finish();}};input.onblur=()=>{if(!saving)commit();};input.focus();const dot=item.dir?-1:input.value.lastIndexOf('.');input.setSelectionRange(0,dot>0?dot:input.value.length);row.scrollIntoView({block:'nearest'});
+  },
+  newProject(anchor){
+    const form=document.createElement('form');form.className='studio-mini-form';form.innerHTML='<strong>'+tr('Новый проект')+'</strong><label>'+tr('Имя проекта')+'<input name="projectName" value="my-project" required spellcheck="false" autocomplete="off"></label><label>'+tr('Язык')+'<select name="language"><option value="cpp">C++</option><option value="c">C</option></select></label><p class="inline-error" role="alert"></p><button class="primary">'+tr('Создать')+'</button>';
+    form.onsubmit=async e=>{e.preventDefault();if(this.running||this.busy||this.debugger?.active){form.querySelector('.inline-error').textContent=tr('Сначала остановите запущенную программу');return;}const button=form.querySelector('button[type=submit],button.primary');button.disabled=true;try{const name=form.elements.projectName.value.trim();await this.saveAll();const state=await native('newProject',{name,language:form.elements.language.value});this.state.projects=state.projects;await this.switchProject(name);StudioPopover.close();}catch(error){form.querySelector('.inline-error').textContent=tr(error.message);}finally{button.disabled=false;}};
+    StudioPopover.open(form,anchor||StudioChoices.buttons.get($('#projectSelect')));StudioChoices.enhance(form);form.elements.projectName.focus();form.elements.projectName.select();
+  },
   async offerCreatedSource(source){
     const path=this.state.root+'/CMakeLists.txt';
     if(!this.flatFiles().some(f=>f.path===path)){
@@ -10,7 +40,7 @@ const fileCreatorMethods={
     }
     await this.offerCMakeSource();
   },
-  async newFile(directory){
+  async newFileWizard(directory){
     directory??=this.treeDirectory();
     if(!document.querySelector('#createFileDialog')){
       const d=document.createElement('dialog');d.id='createFileDialog';d.className='create-file-dialog';d.innerHTML=`<form id="createFileForm"><div class="dialog-heading"><h2>Создать файл или класс</h2><button type="button" class="close-button" data-icon="x"></button></div><label>Тип<select id="createFileKind" aria-label="Тип файла"><option value="cpp">Исходный файл C++ (.cpp)</option><option value="c">Исходный файл C (.c)</option><option value="hpp">Заголовок C++ (.hpp)</option><option value="h">Заголовок C (.h)</option><option value="class">Класс C++ (.hpp + .cpp)</option><option value="cmakelists">CMakeLists.txt</option><option value="cmake">Модуль CMake (.cmake)</option><option value="empty">Пустой файл</option></select></label><label>Путь относительно проекта<input id="createFilePath" required spellcheck="false" autocomplete="off" placeholder="src/MyClass"></label><label id="createClassNamespaceLabel" hidden>Пространство имён<input id="createClassNamespace" spellcheck="false" placeholder="app::model"></label><label class="check"><input type="checkbox" id="createFileCMake" checked> Предложить добавить исходник в CMake</label><pre id="createFilePreview" class="output"></pre><p>C++ modules: автоматическая сборка модулей пока не поддерживается. CMake Module — обычный скрипт .cmake.</p><div class="dialog-buttons"><button type="button" id="cancelCreateFile">Отмена</button><button type="submit" class="primary">Создать</button></div></form>`;

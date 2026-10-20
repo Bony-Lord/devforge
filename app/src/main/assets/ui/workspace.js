@@ -59,7 +59,7 @@ const workspaceMethods={
     if(box.top+caret.top+caret.height>bottom)editor.setScrollTop(editor.getScrollTop()+box.top+caret.top+caret.height-bottom);
   },
   setUIScale(value,persist=true){this.settings.uiScale=Math.max(65,Math.min(180,Math.round(value)));this.applyUIScale();if(persist)this.saveWorkspaceSettings();},
-  setCodeScale(value,persist=true){this.settings.codeScale=Math.max(50,Math.min(250,Math.round(value)));const size=this.settings.fontSize*this.settings.codeScale/100;for(const editor of [this.primaryEditor,this.secondaryEditor])editor?.updateOptions({fontSize:size,lineHeight:Math.round(size*1.6)});$('#fontStatus').textContent=this.settings.codeScale+'%';$('#fontStatus').title=`Код: ${this.settings.codeScale}% · ${size.toFixed(1)} px`;if(persist)this.saveWorkspaceSettings();},
+  setCodeScale(value,persist=true){this.settings.codeScale=Math.max(50,Math.min(250,Number.isFinite(Number(value))?Number(value):100));const size=this.settings.fontSize*this.settings.codeScale/100;for(const editor of [this.primaryEditor,this.secondaryEditor])editor?.updateOptions({fontSize:size,lineHeight:Math.round(size*1.6)});$('#fontStatus').textContent=Math.round(this.settings.codeScale)+'%';$('#fontStatus').title=`Код: ${Math.round(this.settings.codeScale)}% · ${size.toFixed(1)} px`;if(persist)this.saveWorkspaceSettings();},
   saveWorkspaceSettings(){clearTimeout(this.workspaceSaveTimer);this.workspaceSaveTimer=setTimeout(()=>native('settings',this.settings).catch(safeError),220);},
   splitEditor(direction,persist=true){
     const model=this.editor.getModel();

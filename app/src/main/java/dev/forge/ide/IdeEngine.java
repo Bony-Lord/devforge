@@ -43,6 +43,8 @@ final class IdeEngine {
         if(op.startsWith("gdb")||op.equals("git"))return tools.handle(op,d);
         if(op.startsWith("formatter")||op.equals("formatDocument")||op.equals("cmakeSources")||op.equals("cmakeCommands")||op.equals("cmakeHelp"))return languages.handle(op,d);
         switch(op) {
+            case "performanceReport":return app.responsiveness.report();
+            case "performanceEvent":app.responsiveness.record("Web UI",Math.min(60000,d.optLong("delayMs")),"");return true;
             case "state":return state();
             case "settings":prefs.edit().putString("settings",d.toString()).apply();app.configureKeyboard(d);return d;
             case "session":prefs.edit().putString("session",d.toString()).apply();return true;
@@ -57,6 +59,23 @@ final class IdeEngine {
             case "openFolder":return workspace.open(d);
             case "storagePermission":app.requestStorageAccess();return true;
             case "newFolder": {File folder=writablePath(d.getString("path"));if(folder.exists()||!folder.mkdirs())throw new IOException("Cannot create folder");return true;}
+            case "createTreeItem": {synchronized(this){
+                String kind=d.getString("kind"),extension=d.optString("extension");
+                if(!extension.matches("[A-Za-z0-9_+.-]{0,24}"))throw new IOException("Invalid file extension");
+                File directory=writablePath(new File(new File(project(currentProject),d.optString("directory")),".studio-create-check").getAbsolutePath()).getParentFile();
+                if(!directory.isDirectory())throw new IOException("Folder is unavailable");
+                String encoding=settings().optString("defaultEncoding","UTF-8");
+                for(int number=1;number<=10000;number++){
+                    String suffix=number==1?"":String.valueOf(number),base=kind.equals("folder")?"new_folder":kind.equals("cmakelists")?"CMakeLists":"new_file";
+                    String ext=kind.equals("folder")?"":kind.equals("cmakelists")?".txt":kind.equals("empty")?(extension.isEmpty()?"":extension.startsWith(".")?extension:"."+extension):"."+kind;
+                    File file=writablePath(new File(directory,base+suffix+ext).getAbsolutePath());
+                    String text=kind.equals("folder")?"":FileTemplates.create(kind,kind.equals("cmakelists")?"CMakeLists.txt":file.getName(),"").values().iterator().next();
+                    try{if(kind.equals("folder"))Files.createDirectory(file.toPath());else Files.write(file.toPath(),FileCodec.encode(text,encoding),StandardOpenOption.CREATE_NEW);}
+                    catch(FileAlreadyExistsException collision){continue;}
+                    if(!kind.equals("folder"))prefs.edit().putString("fileEncoding:"+file.getAbsolutePath(),encoding).apply();
+                    return new JSONObject().put("path",file.getAbsolutePath()).put("dir",kind.equals("folder"));
+                }throw new IOException("Too many files with this name");
+            }}
             case "read": {
                 File f=readable(d.getString("path"));
                 if(f.length()>4*1024*1024)throw new IOException("Редактор открывает файлы до 4 МБ");

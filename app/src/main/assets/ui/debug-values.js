@@ -14,14 +14,14 @@ Object.assign(GdbClient.prototype,{
     await this.refreshWatches();
   },
   appendVariable(parent,value,depth,serial){
-    const container=document.createElement('div');container.className='debug-value-node';container.dataset.expression=value.expression||value.exp||value.name||'';
-    const row=document.createElement('div');row.className='debug-variable debug-value-row';row.style.paddingLeft=(depth*14)+'px';
+    const container=document.createElement('div');container.className='debug-value-node';container.dataset.expression=value.expression||value.exp||value.name||'';container.setAttribute('role','treeitem');container.setAttribute('aria-level',String(depth+1));
+    const row=document.createElement('div');row.className='debug-variable debug-value-row';
     const toggle=document.createElement('button');toggle.className='debug-value-toggle';toggle.type='button';toggle.innerHTML=svg('chevron-right');toggle.setAttribute('aria-label',tr('Раскрыть значение'));
     const expandable=Number(value.numchild)>0||value.has_more==='1'||value.dynamic==='1'&&value.displayhint!=='string';toggle.disabled=!expandable;toggle.style.visibility=expandable?'visible':'hidden';toggle.setAttribute('aria-expanded','false');row.append(toggle);
     const label=document.createElement('span');label.className='debug-value-name';label.textContent=value.label||value.exp||value.name;row.append(label);
     const type=document.createElement('small');type.textContent=value.type||'';type.title=value.type||'';row.append(type);
-    const code=document.createElement('code');code.textContent=value.value??(expandable?'{…}':tr('<оптимизировано>'));code.classList.toggle('debug-value-error',!!value.error);row.append(code);
-    const children=document.createElement('div');children.className='debug-value-children';children.hidden=true;container.append(row,children);parent.append(container);
+    const code=document.createElement('code');code.textContent=value.value??(expandable?'{…}':tr('<оптимизировано>'));code.title=code.textContent;code.classList.toggle('debug-value-error',!!value.error);code.onclick=()=>row.classList.toggle('debug-value-wrap');row.append(code);
+    const children=document.createElement('div');children.className='debug-value-children';children.setAttribute('role','group');children.hidden=true;container.append(row,children);parent.append(container);
     let loaded=0,busy=false;
     const load=async()=>{if(busy||serial!==this.stopSerial||!this.paused)return;busy=true;toggle.disabled=true;try{
       const result=await this.command('-var-list-children --all-values '+JSON.stringify(value.name)+' '+loaded+' '+(loaded+50));

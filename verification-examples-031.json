@@ -1,0 +1,104 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "createdProjects": [
+    "demo-console-files-1792484416",
+    "demo-formatting-1792484416",
+    "demo-debug-containers-1792484416"
+  ],
+  "checks": [
+    {
+      "test": "console-files builds and runs from its project root",
+      "passed": true,
+      "evidence": {
+        "build": "/data/user/0/com.forgex/files/usr/bin/cmake -S /data/user/0/com.forgex/files/projects/demo-console-files-1792484416 -B /data/user/0/com.forgex/files/projects/demo-console-files-1792484416/.forge/cmake-gcc-cpp20 -G Ninja -DCMAKE_MAKE_PROGRAM=/data/user/0/com.forgex/files/usr/bin/ninja -DCMAKE_C_COMPILER=/data/user/0/com.forgex/files/usr/bin/gcc-15 -DCMAKE_CXX_COMPILER=/data/user/0/com.forgex/files/usr/bin/g++-15 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=20 -DCMAKE_C_EXTENSIONS=OFF -DCMAKE_CXX_EXTENSIONS=OFF \"-DCMAKE_C_FLAGS=-std=c17 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/demo-console-files-1792484416 -I/data/user/0/com.forgex/files/usr/include/forge -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib\" \"-DCMAKE_CXX_FLAGS=-std=c++20 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/demo-console-files-1792484416 -I/data/user/0/com.forgex/files/usr/include/forge -nostdinc++ -isystem /data/user/0/com.forgex/files/usr/include/c++/v1 -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib\"\n-- The CXX compiler identification is GNU 15.2.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /data/user/0/com.forgex/files/usr/bin/g++-15 - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.4s)\n-- Generating done (0.0s)\nCMake Warning (unused-cli):\n  Manually-specified variables were not used by the project:\n\n    CMAKE_C_COMPILER\n    CMAKE_C_FLAGS\n\n\n-- Build files have been written to: /data/user/0/com.forgex/files/projects/demo-console-files-1792484416/.forge/cmake-gcc-cpp20\n/data/user/0/com.forgex/files/usr/bin/cmake --build /data/user/0/com.forgex/files/projects/demo-console-files-1792484416/.forge/cmake-gcc-cpp20 -j2\n[1/3] Building CXX object CMakeFiles/app.dir/src/summary.cpp.o\n[2/3] Building CXX object CMakeFiles/app.dir/main.cpp.o\n[3/3] Linking CXX executable app\n\nСборка завершена · 4.02 с · код 0\n",
+        "console": "C++ Studio: 42\n\nПроцесс завершён · код 0\n"
+      }
+    },
+    {
+      "test": "formatting builds and runs from its project root",
+      "passed": true,
+      "evidence": {
+        "build": "/data/user/0/com.forgex/files/usr/bin/cmake -S /data/user/0/com.forgex/files/projects/demo-formatting-1792484416 -B /data/user/0/com.forgex/files/projects/demo-formatting-1792484416/.forge/cmake-gcc-cpp20 -G Ninja -DCMAKE_MAKE_PROGRAM=/data/user/0/com.forgex/files/usr/bin/ninja -DCMAKE_C_COMPILER=/data/user/0/com.forgex/files/usr/bin/gcc-15 -DCMAKE_CXX_COMPILER=/data/user/0/com.forgex/files/usr/bin/g++-15 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=20 -DCMAKE_C_EXTENSIONS=OFF -DCMAKE_CXX_EXTENSIONS=OFF \"-DCMAKE_C_FLAGS=-std=c17 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/demo-formatting-1792484416 -I/data/user/0/com.forgex/files/usr/include/forge -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib\" \"-DCMAKE_CXX_FLAGS=-std=c++20 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/demo-formatting-1792484416 -I/data/user/0/com.forgex/files/usr/include/forge -nostdinc++ -isystem /data/user/0/com.forgex/files/usr/include/c++/v1 -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib\"\n-- The CXX compiler identification is GNU 15.2.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /data/user/0/com.forgex/files/usr/bin/g++-15 - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.7s)\n-- Generating done (0.0s)\nCMake Warning (unused-cli):\n  Manually-specified variables were not used by the project:\n\n    CMAKE_C_COMPILER\n    CMAKE_C_FLAGS\n\n\n-- Build files have been written to: /data/user/0/com.forgex/files/projects/demo-formatting-1792484416/.forge/cmake-gcc-cpp20\n/data/user/0/com.forgex/files/usr/bin/cmake --build /data/user/0/com.forgex/files/projects/demo-formatting-1792484416/.forge/cmake-gcc-cpp20 -j2\n[1/2] Building CXX object CMakeFiles/app.dir/main.cpp.o\n[2/2] Linking CXX executable app\n\nСборка завершена · 4.63 с · код 0\n",
+        "console": "Sum: 16\n\nПроцесс завершён · код 0\n"
+      }
+    },
+    {
+      "test": "debug-containers builds and runs from its project root",
+      "passed": true,
+      "evidence": {
+        "build": "/data/user/0/com.forgex/files/usr/bin/cmake -S /data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416 -B /data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416/.forge/cmake-gcc-cpp20 -G Ninja -DCMAKE_MAKE_PROGRAM=/data/user/0/com.forgex/files/usr/bin/ninja -DCMAKE_C_COMPILER=/data/user/0/com.forgex/files/usr/bin/gcc-15 -DCMAKE_CXX_COMPILER=/data/user/0/com.forgex/files/usr/bin/g++-15 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=20 -DCMAKE_C_EXTENSIONS=OFF -DCMAKE_CXX_EXTENSIONS=OFF \"-DCMAKE_C_FLAGS=-std=c17 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416 -I/data/user/0/com.forgex/files/usr/include/forge -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib\" \"-DCMAKE_CXX_FLAGS=-std=c++20 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416 -I/data/user/0/com.forgex/files/usr/include/forge -nostdinc++ -isystem /data/user/0/com.forgex/files/usr/include/c++/v1 -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib\"\n-- The CXX compiler identification is GNU 15.2.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /data/user/0/com.forgex/files/usr/bin/g++-15 - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.9s)\n-- Generating done (0.0s)\nCMake Warning (unused-cli):\n  Manually-specified variables were not used by the project:\n\n    CMAKE_C_COMPILER\n    CMAKE_C_FLAGS\n\n\n-- Build files have been written to: /data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416/.forge/cmake-gcc-cpp20\n/data/user/0/com.forgex/files/usr/bin/cmake --build /data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416/.forge/cmake-gcc-cpp20 -j2\n[1/2] Building CXX object CMakeFiles/app.dir/main.cpp.o\n/data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416/main.cpp: In function 'int main()':\n/data/user/0/com.forgex/files/projects/demo-debug-containers-1792484416/main.cpp:21:26: warning: variable 'maybe' set but not used [-Wunused-but-set-variable]\n   21 |     std::optional<Point> maybe = point;\n      |                          ^~~~~\n[2/2] Linking CXX executable app\n\nСборка завершена · 7.15 с · код 0\n",
+        "console": "Total: 30\n\nПроцесс завершён · код 0\n"
+      }
+    },
+    {
+      "test": "Debugger rows are compact and nested",
+      "passed": true,
+      "evidence": [
+        {
+          "height": 24,
+          "level": "1",
+          "left": 815.6470336914062
+        },
+        {
+          "height": 24,
+          "level": "2",
+          "left": 834.5882568359375
+        },
+        {
+          "height": 24,
+          "level": "2",
+          "left": 834.5882568359375
+        },
+        {
+          "height": 24,
+          "level": "1",
+          "left": 815.6470336914062
+        },
+        {
+          "height": 24,
+          "level": "2",
+          "left": 834.5882568359375
+        },
+        {
+          "height": 24,
+          "level": "2",
+          "left": 834.5882568359375
+        },
+        {
+          "height": 24,
+          "level": "2",
+          "left": 834.5882568359375
+        },
+        {
+          "height": 24,
+          "level": "1",
+          "left": 815.6470336914062
+        },
+        {
+          "height": 24,
+          "level": "1",
+          "left": 815.6470336914062
+        },
+        {
+          "height": 24,
+          "level": "1",
+          "left": 815.6470336914062
+        },
+        {
+          "height": 24,
+          "level": "1",
+          "left": 815.6470336914062
+        }
+      ]
+    },
+    {
+      "test": "Local responsiveness ring is bounded and does not contain source",
+      "passed": true,
+      "evidence": {
+        "entries": 0
+      }
+    }
+  ],
+  "passed": 5,
+  "total": 5
+}

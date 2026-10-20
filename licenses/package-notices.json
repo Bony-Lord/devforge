@@ -1,0 +1,462 @@
+[
+  {
+    "package": "clang",
+    "version": "21.1.8-3",
+    "sha256": "9fb565013b96ce10abd8f8f217aaebb48f72873f53acbf8886329bcea841a21c",
+    "notices": []
+  },
+  {
+    "package": "libcompiler-rt",
+    "version": "21.1.8-3",
+    "sha256": "89de02f642e34fa6494ad16105bd08510bd1dbdbe4fdb2b297aaa4f4e8e534b6",
+    "notices": []
+  },
+  {
+    "package": "libc++",
+    "version": "30",
+    "sha256": "53d0b84a7ba7459024257cb94d5b136fe13ef858567f65a8064b35950799f2ca",
+    "notices": [
+      "licenses/native/libc++/package/share/doc/libc++/copyright"
+    ]
+  },
+  {
+    "package": "lld",
+    "version": "21.1.8-3",
+    "sha256": "6299c8fdff59dcff972f6b444805bcdb211c2bd797a64d2ddb3875e699f30630",
+    "notices": []
+  },
+  {
+    "package": "libllvm",
+    "version": "21.1.8-3",
+    "sha256": "5056a73f2645fc9c0759e6f94a1bd6edcf36305acaef58dc685211ced9cc2a02",
+    "notices": [
+      "licenses/native/libllvm/package/include/llvm/Support/LICENSE.TXT",
+      "licenses/native/libllvm/package/share/doc/libllvm/LICENSE.TXT"
+    ]
+  },
+  {
+    "package": "libffi",
+    "version": "3.8.0",
+    "sha256": "4f255badf74cd31f6a2801c17fa1444199c84c834b517b7c843e2fe9ebe91d77",
+    "notices": [
+      "licenses/native/libffi/package/share/doc/libffi/copyright"
+    ]
+  },
+  {
+    "package": "libxml2",
+    "version": "2.15.4-1",
+    "sha256": "d315861bbcf716cfb088f53cddab9fb6a96430cc66769f79774cc69c2f53bcff",
+    "notices": [
+      "licenses/native/libxml2/package/share/doc/libxml2/copyright"
+    ]
+  },
+  {
+    "package": "libandroid-glob",
+    "version": "0.6-3",
+    "sha256": "2276ae8adedf0db76c2f4ffc94cc4cceb2f4f5d78e021b54e2e046d1233e7826",
+    "notices": [
+      "licenses/native/libandroid-glob/package/share/doc/libandroid-glob/copyright"
+    ]
+  },
+  {
+    "package": "libiconv",
+    "version": "1.19",
+    "sha256": "fe9481b1dc101c6c3552943f25435109fd522aecc615ae49594f9fbee863bb37",
+    "notices": [
+      "licenses/native/libiconv/package/share/doc/libiconv/copyright",
+      "licenses/native/libiconv/package/share/doc/libiconv/copyright.1"
+    ]
+  },
+  {
+    "package": "zlib",
+    "version": "1.3.2",
+    "sha256": "75e7d0af17fcc3b40004309fdc00a1ddb9ae08346dce5e269902c34ac3966ac9",
+    "notices": [
+      "licenses/native/zlib/package/share/doc/zlib/copyright"
+    ]
+  },
+  {
+    "package": "ncurses",
+    "version": "6.6.20260307+really6.5.20250830",
+    "sha256": "f44bbfdc3d42ec0217bffa978309390e59cea5a48a9a83226d4a496c42ad0b99",
+    "notices": [
+      "licenses/native/ncurses/package/share/doc/ncurses/copyright"
+    ]
+  },
+  {
+    "package": "zstd",
+    "version": "1.5.7-1",
+    "sha256": "e1b4a5113648da8de189620ba1fce74c48b2d0833d9043391b9a1c91fb606fd3",
+    "notices": [
+      "licenses/native/zstd/package/share/doc/zstd/copyright"
+    ]
+  },
+  {
+    "package": "liblzma",
+    "version": "5.8.4",
+    "sha256": "44e95e6e60dddb3705e60a344a4f009a1085a210797342b721eaff41b44033c0",
+    "notices": [
+      "licenses/native/liblzma/package/share/doc/liblzma/COPYING",
+      "licenses/native/liblzma/package/share/doc/liblzma/COPYING.GPLv2",
+      "licenses/native/liblzma/package/share/doc/liblzma/COPYING.GPLv3",
+      "licenses/native/liblzma/package/share/doc/liblzma/COPYING.LGPLv2.1",
+      "licenses/native/liblzma/package/share/doc/xz/AUTHORS",
+      "licenses/native/liblzma/package/share/doc/xz/COPYING",
+      "licenses/native/liblzma/package/share/doc/xz/COPYING.0BSD",
+      "licenses/native/liblzma/package/share/doc/xz/COPYING.GPLv2"
+    ]
+  },
+  {
+    "package": "llvm",
+    "version": "21.1.8-3",
+    "sha256": "2d17e4dde485cae71e6872d19ce1d44555789208708b4e0fd15ebf6818a146d3",
+    "notices": []
+  },
+  {
+    "package": "ndk-sysroot",
+    "version": "30",
+    "sha256": "73502f9b04fce210c430c83bf9ae2b8e332ba5c319f3eb94a61ba5cef090f787",
+    "notices": [
+      "licenses/native/ndk-sysroot/package/share/doc/ndk-sysroot/copyright"
+    ]
+  },
+  {
+    "package": "gcc-15",
+    "version": "15.2.0-1",
+    "sha256": "319035abe4258aab572e04467ec3f66e83ea1ddb25bede603d53d01cb077c60d",
+    "notices": [
+      "licenses/native/gcc-15/package/share/doc/gcc-15/copyright"
+    ]
+  },
+  {
+    "package": "binutils",
+    "version": "2.47",
+    "sha256": "332175eb2621c591f4ef80e335ddd42af8fef0d34cccd28123fc19ace8be8f74",
+    "notices": [
+      "licenses/native/binutils/package/share/doc/binutils/copyright"
+    ]
+  },
+  {
+    "package": "libgmp",
+    "version": "6.3.0-2",
+    "sha256": "5a3c1325638946ca212ddcb89bffb2c4459b4c90757d6e69f820e176534037fa",
+    "notices": [
+      "licenses/native/libgmp/package/share/doc/libgmp/copyright"
+    ]
+  },
+  {
+    "package": "libmpfr",
+    "version": "4.2.2",
+    "sha256": "bd2a18f433321d7be49a4e86248696c0551a8df273b2a7c34ce729abe48ce15d",
+    "notices": [
+      "licenses/native/libmpfr/package/share/doc/libmpfr/copyright",
+      "licenses/native/libmpfr/package/share/doc/mpfr/AUTHORS",
+      "licenses/native/libmpfr/package/share/doc/mpfr/COPYING",
+      "licenses/native/libmpfr/package/share/doc/mpfr/COPYING.LESSER"
+    ]
+  },
+  {
+    "package": "libmpc",
+    "version": "1.4.1",
+    "sha256": "edf79facaceb2ee614e604793e375c9dbcac5f8e7640c64a7686be9e7eacbf9f",
+    "notices": [
+      "licenses/native/libmpc/package/share/doc/libmpc/copyright"
+    ]
+  },
+  {
+    "package": "libisl",
+    "version": "0.26-2",
+    "sha256": "08d6b3e61bb37102318b4e6d0fcd5f48ecac06e5564ccbfa0bd7a5f50a531f22",
+    "notices": [
+      "licenses/native/libisl/package/share/doc/libisl/copyright"
+    ]
+  },
+  {
+    "package": "ndk-sysroot-gcc-compact",
+    "version": "30",
+    "sha256": "eb4220e65571292a7cc247ca758a989eee5c42ec3f0c6ef2536351c80e868463",
+    "notices": [
+      "licenses/native/ndk-sysroot-gcc-compact/package/share/doc/ndk-sysroot-gcc-compact/copyright"
+    ]
+  },
+  {
+    "package": "make",
+    "version": "4.4.1-1",
+    "sha256": "beb7ac00ee4f9958ec8e584ac1b2e1612c549425674ab2aa197d343594bcc5a3",
+    "notices": [
+      "licenses/native/make/package/share/doc/make/copyright"
+    ]
+  },
+  {
+    "package": "cmake",
+    "version": "4.4.4",
+    "sha256": "52c746531acdd73a0158a59f24e506cc551d7037b2c2880cb8128b5038e926db",
+    "notices": [
+      "licenses/native/cmake/package/share/doc/cmake/LICENSE.rst",
+      "licenses/native/cmake/package/share/doc/cmake/cmsys/Copyright.txt",
+      "licenses/native/cmake/package/share/doc/cmake/copyright"
+    ]
+  },
+  {
+    "package": "libarchive",
+    "version": "3.8.10",
+    "sha256": "514a1b8523e9b99964dd5136455012130d59ba10aaf1fd65cfceaa4ea05d67c6",
+    "notices": [
+      "licenses/native/libarchive/package/share/doc/libarchive/copyright"
+    ]
+  },
+  {
+    "package": "libbz2",
+    "version": "1.0.8-8",
+    "sha256": "4335d7f060650b0aabef545d1334c2f9f280223d5962e13c24a00ec934b794ba",
+    "notices": [
+      "licenses/native/libbz2/package/share/doc/libbz2/copyright"
+    ]
+  },
+  {
+    "package": "openssl",
+    "version": "1:3.6.5",
+    "sha256": "a2fb7856875e63ef6b90442752e05974813372c3ca86d2513a78ea43c67a0f8b",
+    "notices": [
+      "licenses/native/openssl/package/share/doc/openssl/copyright"
+    ]
+  },
+  {
+    "package": "ca-certificates",
+    "version": "1:2026.09.25",
+    "sha256": "57fab24bf4561bfdd35afe71bc1929914e51c35458cfd1fca2b15e54bc8df7af",
+    "notices": [
+      "licenses/native/ca-certificates/package/share/doc/ca-certificates/copyright"
+    ]
+  },
+  {
+    "package": "libcurl",
+    "version": "8.23.0",
+    "sha256": "2011bb9709261bb3d5ecaa6672faa333be14cf48ad4af37031e3e365309557ac",
+    "notices": [
+      "licenses/native/libcurl/package/share/doc/libcurl/copyright"
+    ]
+  },
+  {
+    "package": "libnghttp2",
+    "version": "1.70.0",
+    "sha256": "ab2e0a3408fe4934ffdf774bd5049a265db2e6db62dcb651baecbecfb81e3f0b",
+    "notices": [
+      "licenses/native/libnghttp2/package/share/doc/libnghttp2/copyright"
+    ]
+  },
+  {
+    "package": "libnghttp3",
+    "version": "1.18.0",
+    "sha256": "0be2ee96def3608afaf24eb0b4b55f3484a37c95ea21bb1d6d85c7d543467603",
+    "notices": [
+      "licenses/native/libnghttp3/package/share/doc/libnghttp3/copyright"
+    ]
+  },
+  {
+    "package": "libngtcp2",
+    "version": "1.25.0",
+    "sha256": "f471bad7f4329b6b0b4aedf124e0a23a35f6ac99bfbae73304136f8bfd570fc3",
+    "notices": [
+      "licenses/native/libngtcp2/package/share/doc/libngtcp2/copyright"
+    ]
+  },
+  {
+    "package": "libssh2",
+    "version": "1.11.1-2",
+    "sha256": "1add4e0a926b848814e7e2f1817ea28b123c54cabd5bbc4e5cfd65291cbad84e",
+    "notices": [
+      "licenses/native/libssh2/package/share/doc/libssh2/copyright"
+    ]
+  },
+  {
+    "package": "libexpat",
+    "version": "2.9.0",
+    "sha256": "f8a104e8227c9c181f6818658a3ee2fa4c107fac94219b068144fc6591086cdb",
+    "notices": [
+      "licenses/native/libexpat/package/share/doc/expat/AUTHORS",
+      "licenses/native/libexpat/package/share/doc/libexpat/copyright"
+    ]
+  },
+  {
+    "package": "jsoncpp",
+    "version": "1.9.8",
+    "sha256": "872523b31f0cb92e7c7c88db946c1765ef322b7878571887a08f973a215a5d3e",
+    "notices": [
+      "licenses/native/jsoncpp/package/share/doc/jsoncpp/copyright"
+    ]
+  },
+  {
+    "package": "libuv",
+    "version": "1.53.0",
+    "sha256": "781b74829af29e16f054de5b469ef1816b66d82d11baeb8beb98749d2f1de2dd",
+    "notices": [
+      "licenses/native/libuv/package/share/doc/libuv/LICENSE"
+    ]
+  },
+  {
+    "package": "libandroid-spawn",
+    "version": "0.3",
+    "sha256": "7988fa788ef48ab5da9660443905a2e4099ac36221739d72f5c39acc644b4d1c",
+    "notices": [
+      "licenses/native/libandroid-spawn/package/share/doc/libandroid-spawn/LICENSE"
+    ]
+  },
+  {
+    "package": "rhash",
+    "version": "1.4.6-1",
+    "sha256": "e646c4c5c73a1654d503c30971213b5e2912f39b5c61b614e42702cffe8aa221",
+    "notices": [
+      "licenses/native/rhash/package/share/doc/rhash/copyright"
+    ]
+  },
+  {
+    "package": "ninja",
+    "version": "1.13.2",
+    "sha256": "1a5667d0725fe7b66d4c3a287e5dacd996b28fa84c893de21a3e6ab47c361934",
+    "notices": [
+      "licenses/native/ninja/package/share/doc/ninja/copyright"
+    ]
+  },
+  {
+    "package": "libandroid-support",
+    "version": "29-1",
+    "sha256": "f2f145d6135ad4843ac9670153be3e3944dc1e6f1736d46d2306c28f2b86f517",
+    "notices": [
+      "licenses/native/libandroid-support/package/share/doc/libandroid-support/LICENSE.txt",
+      "licenses/native/libandroid-support/package/share/doc/libandroid-support/LICENSE.txt.1"
+    ]
+  },
+  {
+    "package": "patchelf",
+    "version": "0.19.2",
+    "sha256": "deec5bbdcd47d8f6751e76fa9faf49348783256c3c488c3638de240f1e61452a",
+    "notices": [
+      "licenses/native/patchelf/package/share/doc/patchelf/copyright"
+    ]
+  },
+  {
+    "package": "gdb",
+    "version": "18.1-1",
+    "sha256": "f4e8c1583b8dfc1f028b89f5f4009028657ec965a3d196ace319cdbd242b0328",
+    "notices": [
+      "licenses/native/gdb/package/share/doc/gdb/copyright"
+    ]
+  },
+  {
+    "package": "guile",
+    "version": "3.0.11-1",
+    "sha256": "c28b736842b1ac878fd4c585546fa084dd8cb5269b9d71d27a359fba077f23b9",
+    "notices": [
+      "licenses/native/guile/package/share/doc/guile/copyright"
+    ]
+  },
+  {
+    "package": "libgc",
+    "version": "8.2.12",
+    "sha256": "fcc33cf721160551eacc82b9305d0bcb7c85a6023cdcee2a54fddce9a0ad54cb",
+    "notices": [
+      "licenses/native/libgc/package/share/doc/gc/AUTHORS"
+    ]
+  },
+  {
+    "package": "libunistring",
+    "version": "1.4.2",
+    "sha256": "5ff75cdf3ddd4ddf5dc9705050f270c3422820295a4b26f93496d3e8e9060122",
+    "notices": [
+      "licenses/native/libunistring/package/share/doc/libunistring/copyright",
+      "licenses/native/libunistring/package/share/doc/libunistring/copyright.1"
+    ]
+  },
+  {
+    "package": "readline",
+    "version": "8.3.6",
+    "sha256": "616cc73009bc0223f61caed8dd09455714455aa5ea5e180126e2f69c4c775136",
+    "notices": [
+      "licenses/native/readline/package/share/doc/readline/copyright"
+    ]
+  },
+  {
+    "package": "libthread-db",
+    "version": "22-2",
+    "sha256": "a172b8fc4a2bd7b7e5aae274e5bcd59215292639db7fb987fcc97a9f60f7f9cb",
+    "notices": [
+      "licenses/native/libthread-db/package/share/doc/libthread-db/copyright"
+    ]
+  },
+  {
+    "package": "python",
+    "version": "3.14.8",
+    "sha256": "55fcd7c23a603ba0caeca3ef9e670ec88ff71c1a480101de4983629792563b5e",
+    "notices": [
+      "licenses/native/python/package/lib/python3.14/LICENSE.txt",
+      "licenses/native/python/package/share/doc/python/LICENSE"
+    ]
+  },
+  {
+    "package": "gdbm",
+    "version": "1.26-1",
+    "sha256": "c378de833aae3cf41f3028491ea11836479d9833ab653edc27d0c0e0e691d5c5",
+    "notices": [
+      "licenses/native/gdbm/package/share/doc/gdbm/copyright"
+    ]
+  },
+  {
+    "package": "libandroid-posix-semaphore",
+    "version": "0.1-4",
+    "sha256": "0efa8677a0166315ba4e685863712eba0ca0a1732827492f38226e2723730c7a",
+    "notices": [
+      "licenses/native/libandroid-posix-semaphore/package/share/doc/libandroid-posix-semaphore/copyright"
+    ]
+  },
+  {
+    "package": "libcrypt",
+    "version": "0.2-6",
+    "sha256": "6c283eed576b98cc3568f99638156f8588f77d979579d03bef8683d6eb8601e1",
+    "notices": [
+      "licenses/native/libcrypt/package/share/doc/libcrypt/copyright"
+    ]
+  },
+  {
+    "package": "libsqlite",
+    "version": "3.54.1",
+    "sha256": "0856cac8cc87f6e112f2eef4fcac6ad5cb08209ecb7cc260f997874fc186a3c0",
+    "notices": [
+      "licenses/native/libsqlite/package/share/doc/libsqlite/copyright"
+    ]
+  },
+  {
+    "package": "ncurses-ui-libs",
+    "version": "6.6.20260307+really6.5.20250830",
+    "sha256": "7393f369009be189b3d4ec1f9b16ebd57621d6a1b22949ae07685573950d1f37",
+    "notices": []
+  },
+  {
+    "package": "git",
+    "version": "2.56.0",
+    "sha256": "dcdd22c5fdf7bdb5b825a03a17441d43858ed8515fea57fbb37eb42e733ca82f",
+    "notices": [
+      "licenses/native/git/package/share/doc/git/copyright"
+    ]
+  },
+  {
+    "package": "less",
+    "version": "710",
+    "sha256": "bff261b48553bcde3a93e0d7c2a51dbb1b7e5025767a1ee9a1cb4459a3789499",
+    "notices": [
+      "licenses/native/less/package/share/doc/less/COPYING",
+      "licenses/native/less/package/share/doc/less/LICENSE"
+    ]
+  },
+  {
+    "package": "pcre2",
+    "version": "10.49",
+    "sha256": "c27995e5f52b8ecc9b8b3e662eb08e49f82a18bfd3f34343936acc7b23964724",
+    "notices": [
+      "licenses/native/pcre2/package/share/doc/pcre2/AUTHORS.md",
+      "licenses/native/pcre2/package/share/doc/pcre2/COPYING",
+      "licenses/native/pcre2/package/share/doc/pcre2/copyright",
+      "licenses/native/pcre2/package/share/doc/pcre2/copyright.1"
+    ]
+  }
+]

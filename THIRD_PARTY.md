@@ -34,3 +34,5 @@
 ### Поведение Smart Keys
 
 `SmartTyping.java` написан для этого приложения. Поведение сверялось с публичной [документацией Smart Keys CLion](https://www.jetbrains.com/help/clion/settings-smart-keys.html) и открытыми обработчиками `TypedHandler` / `TypedParenImpl` в [IntelliJ Community](https://github.com/JetBrains/intellij-community/tree/master/platform/lang-impl/src/com/intellij/codeInsight/editorActions), распространяемыми под Apache-2.0. Код этих обработчиков в приложение не переносился; закрытый код CLion не используется.
+
+Полная проверка происхождения и условий распространения: [LICENSE-AUDIT.md](docs/LICENSE-AUDIT.md). Инвентарь уведомлений 56 пакетов: [package-notices.json](licenses/package-notices.json). Символические ссылки copyright разрешены в соответствующие тексты из точного снимка Termux; пять дочерних пакетов ссылаются на уведомления LLVM/ncurses. JetBrains и CLion — товарные знаки JetBrains s.r.o.

@@ -63,8 +63,8 @@ const NativeEditing={
   queueLayout(){if(this.layoutQueued)return;this.layoutQueued=true;requestAnimationFrame(()=>{this.layoutQueued=false;this.layout();});},
   layout(){
     const panes=[...this.panes.values()].filter(p=>!p.container.classList.contains('hidden')).map(p=>{const box=p.container.getBoundingClientRect();return{id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};});
-    const visible=!document.querySelector('dialog[open]')&&document.querySelector('#menu')?.classList.contains('hidden')&&!document.body.classList.contains('sidebar-mobile-open');
-    const occlusions=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit')].map(e=>{const b=e.getBoundingClientRect();return{x:b.x,y:b.y,width:b.width,height:b.height,paint:e.classList.contains('studio-choice-popover')};});
+    const visible=!document.querySelector('dialog[open]')&&!document.body.classList.contains('sidebar-mobile-open');
+    const occlusions=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit,#menu:not(.hidden),.studio-inline-popover,.studio-hover-tip')].filter(e=>e.getClientRects().length).map(e=>{const b=e.getBoundingClientRect();return{x:b.x,y:b.y,width:b.width,height:b.height,paint:!e.classList.contains('studio-resize-hit'),touch:!e.classList.contains('studio-hover-tip')};});
     return native('editorLayout',{panes,visible,occlusions,settings:window.forge?.settings||{language:StudioI18n.locale}}).catch(console.warn);
   },
   selection(e){
@@ -214,5 +214,5 @@ onNative('editorCompletionCancel',e=>{NativeEditing.completionTasks.get(e.reques
 onNative('editorFormatOnType',e=>NativeEditing.queueFormat(e));
 onNative('editorViewport',e=>{NativeEditing.viewports.set(e.id,e);const model=monaco.editor.getModel(monaco.Uri.parse(e.uri));if(!model)return;clearTimeout(model.__viewportTimer);model.__viewportCancel?.cancel();model.__viewportTimer=setTimeout(()=>{model.__viewportCancel=NativeEditing.cancellation();NativeEditing.inlayHints(model,model.__viewportCancel);},150);});
 window.addEventListener('resize',()=>NativeEditing.queueLayout());
-onNative('editorScale',e=>{const ide=window.forge;if(!ide)return;ide.settings.codeScale=Math.max(50,Math.min(250,e.percent));document.querySelector('#fontStatus').textContent=ide.settings.codeScale+'%';ide.saveWorkspaceSettings();});
+onNative('editorScale',e=>{const ide=window.forge;if(!ide)return;ide.settings.codeScale=Math.max(50,Math.min(250,e.percent));document.querySelector('#fontStatus').textContent=Math.round(ide.settings.codeScale)+'%';ide.saveWorkspaceSettings();});
 new MutationObserver(records=>{if(records.some(r=>r.target instanceof Element&&!r.target.closest('.monaco-editor')&&(r.type==='attributes'||r.target.tagName==='BODY')))NativeEditing.queueLayout();}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['open','class','style']});

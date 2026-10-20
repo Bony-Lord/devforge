@@ -1,0 +1,207 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "checks": [
+    {
+      "test": "File/Code/View menus retain the visible native editor",
+      "passed": true,
+      "evidence": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "test": "Choices enter the browser top layer over other panels",
+      "passed": true,
+      "evidence": {
+        "top": true,
+        "modal": false
+      }
+    },
+    {
+      "test": "Android touch chooses a standard through the native editor cutout",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "One creation button opens anchored file/folder choices",
+      "passed": true,
+      "evidence": {
+        "folder": true,
+        "cpp": true,
+        "top": true,
+        "modal": false,
+        "oldFolderButton": false
+      }
+    },
+    {
+      "test": "Folder exists immediately with inline rename",
+      "passed": true,
+      "evidence": {
+        "value": "new_folder",
+        "modal": false,
+        "found": true
+      }
+    },
+    {
+      "test": "Inline folder rename commits without asking for file type",
+      "passed": true,
+      "evidence": {
+        "selected": {
+          "path": "/data/user/0/com.forgex/files/projects/input-check-031-1792484754475/src",
+          "dir": true
+        },
+        "editing": false
+      }
+    },
+    {
+      "test": "Creation follows the selected directory; only basename is selected",
+      "passed": true,
+      "evidence": {
+        "path": "/data/user/0/com.forgex/files/projects/input-check-031-1792484754475/src/new_file.cpp",
+        "value": "new_file.cpp",
+        "start": 0,
+        "end": 8
+      }
+    },
+    {
+      "test": "Renaming preserves unsaved text, encoding and breakpoints",
+      "passed": true,
+      "evidence": {
+        "active": "/data/user/0/com.forgex/files/projects/input-check-031-1792484754475/src/answer.cpp",
+        "text": "// preserved rename\nint answer = 42;\n",
+        "points": true
+      }
+    },
+    {
+      "test": "Repeated creation chooses a free name without overwriting",
+      "passed": true,
+      "evidence": {
+        "a": "/data/user/0/com.forgex/files/projects/input-check-031-1792484754475/src/new_file.hpp",
+        "b": "/data/user/0/com.forgex/files/projects/input-check-031-1792484754475/src/new_file2.hpp"
+      }
+    },
+    {
+      "test": "Conflict keeps the inline editor and both files",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Project list includes an anchored Add project form",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Bluetooth alternatives take priority over duplicate-line/navigation bindings",
+      "passed": true,
+      "evidence": [
+        "next",
+        "step",
+        "finish",
+        "breakpoint",
+        "continue",
+        "debug",
+        "cursor"
+      ]
+    },
+    {
+      "test": "File tabs use content width instead of a large minimum",
+      "passed": true,
+      "evidence": [
+        {
+          "width": 117.25735473632812,
+          "min": "0px"
+        },
+        {
+          "width": 130.5441131591797,
+          "min": "0px"
+        }
+      ]
+    },
+    {
+      "test": "GCC removal preserves CMake and optional tools; offline restore works",
+      "passed": true,
+      "evidence": {
+        "before": [
+          [
+            "gcc",
+            true
+          ],
+          [
+            "analysis",
+            true
+          ],
+          [
+            "clang",
+            true
+          ],
+          [
+            "debugger",
+            true
+          ],
+          [
+            "git",
+            true
+          ]
+        ],
+        "removed": [
+          [
+            "gcc",
+            false
+          ],
+          [
+            "analysis",
+            true
+          ],
+          [
+            "clang",
+            true
+          ],
+          [
+            "debugger",
+            true
+          ],
+          [
+            "git",
+            true
+          ]
+        ],
+        "restored": [
+          [
+            "gcc",
+            true
+          ],
+          [
+            "analysis",
+            true
+          ],
+          [
+            "clang",
+            true
+          ],
+          [
+            "debugger",
+            true
+          ],
+          [
+            "git",
+            true
+          ]
+        ],
+        "cmake": {
+          "g++-15": "ОШИБКА: Cannot run program \"/data/user/0/com.forgex/files/usr/bin/g++-15\" (in directory \"/data/user/0/com.forgex/files/usr\"): error=2, No such file or directory",
+          "gcc-15": "ОШИБКА: Cannot run program \"/data/user/0/com.forgex/files/usr/bin/gcc-15\" (in directory \"/data/user/0/com.forgex/files/usr\"): error=2, No such file or directory",
+          "clang++": "clang version 21.1.8",
+          "clangd": "clangd version 21.1.8",
+          "cmake": "cmake version 4.4.4",
+          "ninja": "1.13.2",
+          "gdb": "GNU gdb (GDB) 18.1",
+          "git": "git version 2.56.0"
+        },
+        "clangCode": 0
+      }
+    }
+  ],
+  "passed": 14,
+  "total": 14
+}

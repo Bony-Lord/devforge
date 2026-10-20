@@ -1,5 +1,5 @@
-import pathlib,sys,json
-r=pathlib.Path.cwd();sys.path.insert(0,str(r/'tools'));from device_cdp import Device
+import pathlib,sys,json,subprocess
+r=pathlib.Path.cwd();sys.path.insert(0,str(r/'tools'));from device_cdp import Device,ADB
 d=Device();checks=[]
 def check(name,code,ok):
  v=d.evaluate(code);passed=ok(v);checks.append({'test':name,'passed':passed,'evidence':v});print('PASS'if passed else 'FAIL',name,flush=True);assert passed,str(v)[:600]
@@ -10,6 +10,9 @@ try:
  check('Structured tree expands custom members and pretty-printed vector elements',r'''(async()=>{for(const name of ['point','values','scores','maybe']){const n=[...document.querySelectorAll('#debugVariables>.debug-value-node')].find(n=>n.dataset.expression===name);n.querySelector('.debug-value-toggle').click();}await waitDebug(()=>[...document.querySelectorAll('#debugVariables>.debug-value-node')].filter(n=>['point','values'].includes(n.dataset.expression)).every(n=>n.querySelectorAll('.debug-value-children>.debug-value-node').length>=2));return [...document.querySelectorAll('#debugVariables>.debug-value-node')].map(n=>({name:n.dataset.expression,text:n.textContent,children:n.querySelectorAll('.debug-value-children>.debug-value-node').length}));})()''',lambda v:any(n['name']=='point'and '2.5'in n['text'] and n['children']==2 for n in v)and any(n['name']=='values'and n['children']==3 and '8'in n['text']for n in v)and any(n['name']=='name'and 'C++ Studio'in n['text']for n in v))
  check('Step into skips the std implementation and stays in project code',r'''(async()=>{await forge.debugger.action('step');await waitDebug(()=>forge.debugger.paused&&forge.debugger.nativeExecution?.line===14);return{line:forge.debugger.nativeExecution.line,frame:forge.debugger.frames[0]};})()''',lambda v:v['line']==14 and v['frame']['func']=='main')
  check('Step into enters a user function and step out returns its result',r'''(async()=>{await forge.debugger.action('step');await waitDebug(()=>forge.debugger.paused&&forge.debugger.frames[0].func==='helper');const inner=forge.debugger.frames[0];await forge.debugger.action('finish');await waitDebug(()=>forge.debugger.paused&&forge.debugger.frames[0].func==='main');return {inner,outer:forge.debugger.frames[0],result:(await forge.debugger.command('-data-evaluate-expression result')).value};})()''',lambda v:v['inner']['func']=='helper'and v['outer']['func']=='main')
+ before=d.evaluate('forge.debugger.stopSerial')
+ subprocess.run([ADB,'shell','input','keycombination','KEYCODE_CTRL_LEFT','KEYCODE_ALT_LEFT','KEYCODE_DPAD_RIGHT'],check=True)
+ check('Actual Android Ctrl Alt Right performs step over in project code','(async()=>{await waitDebug(()=>forge.debugger.paused&&forge.debugger.stopSerial>'+str(before)+');return forge.debugger.frames[0];})()',lambda v:v['func']=='main')
 finally:
  try:d.evaluate('(async()=>{if(forge.debugger.active)await forge.debugger.stop();})()')
  except:pass

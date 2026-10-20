@@ -1,0 +1,343 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "gestureInjection": "MotionEvent dispatched to own native editor; real ADB console swipe; CDP mouse for HTML control",
+  "checks": [
+    {
+      "test": "Pinch transforms both axes together and renders the complete viewport",
+      "passed": true,
+      "evidence": {
+        "before": 29.75,
+        "scales": [
+          [
+            1,
+            1,
+            2238,
+            2238
+          ],
+          [
+            1.0833334,
+            1.0833334,
+            2066,
+            2238
+          ],
+          [
+            1.1249987,
+            1.1249987,
+            1989,
+            2238
+          ],
+          [
+            1.1666698,
+            1.1666698,
+            1918,
+            2238
+          ],
+          [
+            1.2083312,
+            1.2083312,
+            1852,
+            2238
+          ],
+          [
+            1.2500013,
+            1.2500013,
+            1790,
+            2238
+          ],
+          [
+            1.2916679,
+            1.2916679,
+            1733,
+            2238
+          ],
+          [
+            1.333336,
+            1.333336,
+            1678,
+            2238
+          ],
+          [
+            1.3750027,
+            1.3750027,
+            1628,
+            2238
+          ],
+          [
+            1.4166646,
+            1.4166646,
+            1580,
+            2238
+          ],
+          [
+            1.4583344,
+            1.4583344,
+            1535,
+            2238
+          ],
+          [
+            1.5000005,
+            1.5000005,
+            1492,
+            2238
+          ]
+        ],
+        "after": 44.62502
+      }
+    },
+    {
+      "test": "Lifting fingers preserves both scroll coordinates after zoom in",
+      "passed": true,
+      "evidence": {
+        "during": [
+          582.0002,
+          0
+        ],
+        "after": [
+          582.00024,
+          0
+        ]
+      }
+    },
+    {
+      "test": "Zoom out reflows fully and preserves the final anchor",
+      "passed": true,
+      "evidence": {
+        "before": 44.62502,
+        "after": 29.750042,
+        "during": [
+          0,
+          0
+        ],
+        "settled": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "test": "Breakpoint background reaches the right edge after zooming",
+      "passed": true,
+      "evidence": {
+        "middle": [
+          48,
+          36,
+          40
+        ],
+        "rightEdge": [
+          48,
+          36,
+          40
+        ],
+        "width": 2238
+      }
+    },
+    {
+      "test": "Right-edge text and full-line background survive eight zoom levels",
+      "passed": true,
+      "evidence": [
+        {
+          "percent": 50,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 275,
+          "physicalWidth": 2238,
+          "logicalWidth": 4476,
+          "viewScale": 0.5
+        },
+        {
+          "percent": 75,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 307,
+          "physicalWidth": 2238,
+          "logicalWidth": 2984,
+          "viewScale": 0.75
+        },
+        {
+          "percent": 100,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 312,
+          "physicalWidth": 2238,
+          "logicalWidth": 2238,
+          "viewScale": 1
+        },
+        {
+          "percent": 125,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 526,
+          "physicalWidth": 2238,
+          "logicalWidth": 1790,
+          "viewScale": 1.25
+        },
+        {
+          "percent": 150,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 703,
+          "physicalWidth": 2238,
+          "logicalWidth": 1492,
+          "viewScale": 1.5
+        },
+        {
+          "percent": 175,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 588,
+          "physicalWidth": 2238,
+          "logicalWidth": 1279,
+          "viewScale": 1.75
+        },
+        {
+          "percent": 200,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 915,
+          "physicalWidth": 2238,
+          "logicalWidth": 1119,
+          "viewScale": 2
+        },
+        {
+          "percent": 250,
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 1153,
+          "physicalWidth": 2238,
+          "logicalWidth": 895,
+          "viewScale": 2.5
+        }
+      ]
+    },
+    {
+      "test": "Long code remains horizontally reachable after zoom",
+      "passed": true,
+      "evidence": {
+        "offsetX": 5288,
+        "maxX": 6393,
+        "layoutWidth": 7429,
+        "viewport": 2238
+      }
+    },
+    {
+      "test": "Scrolled code and breakpoint background reach the right edge at fractional scales",
+      "passed": true,
+      "evidence": [
+        {
+          "percent": 50,
+          "offset": [
+            4292,
+            1911
+          ],
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 250
+        },
+        {
+          "percent": 100,
+          "offset": [
+            8584,
+            3822
+          ],
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 406
+        },
+        {
+          "percent": 137.47,
+          "offset": [
+            11800.425,
+            5254.103
+          ],
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 642
+        },
+        {
+          "percent": 175,
+          "offset": [
+            15022,
+            6688.5
+          ],
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 860
+        },
+        {
+          "percent": 250,
+          "offset": [
+            21460,
+            9555
+          ],
+          "rightBackground": [
+            48,
+            36,
+            40
+          ],
+          "textPixelsAtRight": 594
+        }
+      ]
+    },
+    {
+      "test": "Dragging the console boundary leaves the code scroll anchor stable",
+      "passed": true,
+      "evidence": {
+        "before": 15101,
+        "after": 15101,
+        "oldHeight": 685,
+        "newHeight": 584
+      }
+    },
+    {
+      "test": "Mouse hover shows the debugger action and Android shortcut",
+      "passed": true,
+      "evidence": "Шаг с обходом · Ctrl+Alt+→ / F8"
+    },
+    {
+      "test": "Mouse hover opens the native detailed diagnostic without clicking",
+      "passed": true,
+      "evidence": {
+        "clangdDiagnostic": true,
+        "nativeTooltip": true
+      }
+    }
+  ],
+  "passed": 10,
+  "total": 10
+}

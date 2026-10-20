@@ -39,6 +39,7 @@ final class NativeEditorHost {
     JSONObject settings=new JSONObject();
     HorizontalScrollView accessory;
     boolean visible=true,applying=false;
+    int previousImeHeight;
     JSONArray occlusions=new JSONArray();
     final java.util.concurrent.atomic.AtomicLong requestSequence=new java.util.concurrent.atomic.AtomicLong();
     final int UNUSED=512,TYPE=513,STRING=514,NUMBER=515;
@@ -50,8 +51,54 @@ final class NativeEditorHost {
     static final class StudioCodeEditor extends CodeEditor {
         @Override protected io.github.rosemoe.sora.widget.EditorRenderer onCreateRenderer(){return new io.github.rosemoe.sora.widget.EditorRenderer(this){@Override public boolean hasSideHintIcons(){return true;}};}
         List<RectF> occlusions=Collections.emptyList(),touchOcclusions=Collections.emptyList();Runnable dismissPopover;
-        @Override public void draw(Canvas canvas){int save=canvas.save();for(RectF rect:occlusions)canvas.clipOutRect(rect);super.draw(canvas);canvas.restoreToCount(save);}
-        @Override public boolean dispatchTouchEvent(MotionEvent event){if(event.getActionMasked()==MotionEvent.ACTION_DOWN){for(RectF rect:touchOcclusions)if(rect.contains(event.getX(),event.getY()))return false;if(dismissPopover!=null)dismissPopover.run();}return super.dispatchTouchEvent(event);}
+        @Override public void draw(Canvas canvas){
+            // View.draw receives a canvas in scrolled content coordinates. Sora cancels
+            // that scroll inside its renderer; our viewport masks must use it too.
+            // Clipping at (0,0) removes offsetX pixels on the right and offsetY below.
+            int save=canvas.save(),x=getScrollX(),y=getScrollY();
+            canvas.clipRect(x,y,x+getWidth(),y+getHeight());
+            for(RectF rect:occlusions)canvas.clipOutRect(x+rect.left/getScaleX(),y+rect.top/getScaleY(),x+rect.right/getScaleX(),y+rect.bottom/getScaleY());
+            super.draw(canvas);canvas.restoreToCount(save);
+        }
+        long fontGestureUntil;boolean zoomTouch,zoomActive,zoomFramePending;float zoomStartScale=1;float pinchSpan,pinchX,pinchY;
+        float zoomRatio=1,zoomBaseFont,zoomFocusX,zoomFocusY,zoomMin=10,zoomMax=100;int zoomX,zoomY;
+        @Override public void setScaleTextSizes(float min,float max){super.setScaleTextSizes(min,max);zoomMin=min;zoomMax=max;}
+        boolean beginZoom(float x,float y){
+            if(getWidth()<1||getHeight()<1||isFormatting())return false;
+            zoomActive=true;zoomStartScale=getScaleX();zoomBaseFont=getTextSizePx();zoomX=getOffsetX();zoomY=getOffsetY();zoomFocusX=x;zoomFocusY=y;zoomRatio=zoomStartScale;
+            getComponent(EditorAutoCompletion.class).hide();getComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class).dismiss();return true;
+        }
+        void placeTransformedAnchor(){
+            int x=Math.max(0,Math.min(getScrollMaxX(),Math.round(zoomX+zoomFocusX/zoomStartScale-zoomFocusX/zoomRatio)));
+            int y=Math.max(0,Math.min(getScrollMaxY(),Math.round(zoomY+zoomFocusY/zoomStartScale-zoomFocusY/zoomRatio)));
+            getScroller().startScroll(x,y,0,0,0);getScroller().abortAnimation();
+        }
+        @Override protected void onSizeChanged(int w,int h,int oldW,int oldH){super.onSizeChanged(w,h,oldW,oldH);if(zoomActive)placeTransformedAnchor();}
+        void renderZoomFrame(){
+            if(!zoomActive)return;View viewport=(View)getParent();FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)getLayoutParams();lp.width=Math.max(1,Math.round(viewport.getWidth()/zoomRatio));lp.height=Math.max(1,Math.round(viewport.getHeight()/zoomRatio));setPivotX(0);setPivotY(0);setScaleX(zoomRatio);setScaleY(zoomRatio);setLayoutParams(lp);placeTransformedAnchor();postInvalidateOnAnimation();
+        }
+        void finishZoom(){
+            if(!zoomActive)return;renderZoomFrame();zoomActive=false;fontGestureUntil=SystemClock.uptimeMillis()+80;if(fontChanged!=null)fontChanged.accept(zoomBaseFont*zoomRatio);
+        }
+        int popupX(int x){return Math.round((x-getOffsetX())*getScaleX())+getOffsetX();}
+        int popupY(int y){return Math.round((y-getOffsetY())*getScaleY())+getOffsetY();}
+        @Override protected void onDetachedFromWindow(){zoomActive=false;super.onDetachedFromWindow();}
+        @Override public boolean dispatchTouchEvent(MotionEvent event){
+            if(event.getActionMasked()==MotionEvent.ACTION_DOWN){for(RectF rect:touchOcclusions)if(rect.contains(event.getX()*getScaleX(),event.getY()*getScaleY()))return false;if(dismissPopover!=null)dismissPopover.run();}
+            if(event.getPointerCount()>1){
+                fontGestureUntil=SystemClock.uptimeMillis()+500;
+                float span=(float)Math.hypot(event.getX(1)-event.getX(0),event.getY(1)-event.getY(0))*getScaleX();
+                if(!zoomTouch){zoomTouch=true;pinchSpan=Math.max(1,span);pinchX=(event.getX(0)+event.getX(1))*getScaleX()/2;pinchY=(event.getY(0)+event.getY(1))*getScaleY()/2;MotionEvent cancel=MotionEvent.obtain(event);cancel.setAction(MotionEvent.ACTION_CANCEL);super.dispatchTouchEvent(cancel);cancel.recycle();}
+                if(event.getActionMasked()==MotionEvent.ACTION_MOVE&&(zoomActive||Math.abs(span-pinchSpan)>ViewConfiguration.get(getContext()).getScaledTouchSlop())){
+                    if(!zoomActive)beginZoom(pinchX,pinchY);
+                    if(zoomActive){zoomRatio=Math.max(zoomMin/zoomBaseFont,Math.min(zoomMax/zoomBaseFont,zoomStartScale*span/pinchSpan));if(!zoomFramePending){zoomFramePending=true;postOnAnimation(()->{zoomFramePending=false;renderZoomFrame();});}}
+                }
+                if(event.getActionMasked()==MotionEvent.ACTION_POINTER_UP&&zoomActive)finishZoom();
+            }
+            if(zoomTouch){if(event.getActionMasked()==MotionEvent.ACTION_UP||event.getActionMasked()==MotionEvent.ACTION_CANCEL){if(zoomActive)finishZoom();zoomTouch=false;}return true;}
+            return super.dispatchTouchEvent(event);
+        }
+        @Override public boolean dispatchHoverEvent(MotionEvent event){for(RectF rect:touchOcclusions)if(rect.contains(event.getX()*getScaleX(),event.getY()*getScaleY()))return false;return super.dispatchHoverEvent(event);}
         InputConnection currentInput;
         SmartTyping typing;boolean pasting;java.util.function.Consumer<SmartTyping.Edit> blockCompleted;
         java.util.function.Consumer<Float> fontChanged;boolean configuringFont;
@@ -121,16 +168,21 @@ final class NativeEditorHost {
     }
     static final class ViewState {int left,right,x,y;ViewState(CodeEditor e){left=e.getCursor().getLeft();right=e.getCursor().getRight();x=e.getOffsetX();y=e.getOffsetY();}}
     final class Pane {
-        String id;CodeEditor editor;Buffer buffer;StudioLanguage language;boolean muted;
+        String id;CodeEditor editor;FrameLayout viewport;Buffer buffer;StudioLanguage language;boolean muted;
         final Map<String,ViewState> views=new HashMap<>();
-        float x,y,w,h;String configured="";boolean viewportScheduled;
+        float x,y,w,h;String configured="";boolean viewportScheduled,deferredConfig;ViewState resizeAnchor;Buffer resizeBuffer;int resizeGeneration;
         Pane(String id){
             this.id=id;
             Configuration config=new Configuration(app.getResources().getConfiguration());config.setLocale(Locale.forLanguageTag(settings.optString("language","ru")));
             editor=new StudioCodeEditor(app.createConfigurationContext(config));
-            editor.getProps().sideIconSizeFactor=.76f;
+            StudioCodeEditor code=(StudioCodeEditor)editor;
+            editor.replaceComponent(EditorAutoCompletion.class,new EditorAutoCompletion(editor){@Override public void setLocation(int x,int y){super.setLocation(code.popupX(x),code.popupY(y));}@Override public boolean isFeatureEnabled(int feature){return feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
+            editor.replaceComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class,new io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow(editor){@Override public void setLocation(int x,int y){super.setLocation(code.popupX(x),code.popupY(y));}@Override public boolean isFeatureEnabled(int feature){return feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
+            editor.replaceComponent(io.github.rosemoe.sora.widget.component.EditorTextActionWindow.class,new io.github.rosemoe.sora.widget.component.EditorTextActionWindow(editor){@Override public void setLocation(int x,int y){super.setLocation(code.popupX(x),code.popupY(y));}@Override public boolean isFeatureEnabled(int feature){return feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
+            editor.getProps().sideIconSizeFactor=.76f;editor.setDividerMargin(2*editor.getDpUnit(),10*editor.getDpUnit());
+            editor.getProps().adjustToSelectionOnResize=false;
             ((StudioCodeEditor)editor).dismissPopover=()->app.event("editorDismissPopover",new JSONObject());
-            ((StudioCodeEditor)editor).fontChanged=size->{float scale=app.web.getScale();if(scale>0)app.event("editorScale",object("id",id,"percent",Math.round(size/scale/settings.optDouble("fontSize",14)*100)));};
+            ((StudioCodeEditor)editor).fontChanged=size->{float scale=app.web.getScale();if(scale>0){double percent=size/scale/settings.optDouble("fontSize",14)*100;try{settings.put("codeScale",percent);}catch(JSONException ignored){}app.event("editorScale",object("id",id,"percent",percent));}};
             editor.setTag("studio-editor-"+id);editor.setContentDescription("Code editor "+id);
             editor.setTypefaceText(Typeface.createFromAsset(app.getAssets(),"ui/fonts/JetBrainsMono-Regular.ttf"));
             // Some IMEs ignore NO_SUGGESTIONS on an ordinary text field. Visible-password
@@ -148,7 +200,7 @@ final class NativeEditorHost {
             editor.subscribeEvent(SelectionChangeEvent.class,(e,unsubscribe)->{if(!muted){active=this;emitSelection(this);reveal(this);}});
             editor.subscribeEvent(ScrollEvent.class,(e,unsubscribe)->{if(!viewportScheduled){viewportScheduled=true;app.ui.postDelayed(()->{viewportScheduled=false;if(buffer!=null)app.event("editorViewport",object("id",id,"uri",buffer.uri,"first",editor.getFirstVisibleLine(),"last",editor.getLastVisibleLine()));},80);}});
             editor.subscribeEvent(ClickEvent.class,(e,unsubscribe)->{active=this;if(e.getMotionRegion()==EditorMotionEvent.REGION_LINE_NUMBER||e.getMotionRegion()==EditorMotionEvent.REGION_SIDE_ICON)app.event("editorGutter",object("id",id,"uri",buffer==null?"":buffer.uri,"line",e.getLine()+1));});
-            app.editorRoot.addView(editor,new FrameLayout.LayoutParams(1,1));configure(this);
+            viewport=new FrameLayout(app);viewport.setClipChildren(true);viewport.setClipToPadding(true);viewport.addView(editor,new FrameLayout.LayoutParams(-1,-1));app.editorRoot.addView(viewport,new FrameLayout.LayoutParams(1,1));configure(this);
         }
     }
     void changed(Pane pane,ContentChangeEvent event){
@@ -174,26 +226,31 @@ final class NativeEditorHost {
     void emitSelection(Pane p){if(p.buffer==null)return;var c=p.editor.getCursor();app.event("editorSelection",object("id",p.id,"uri",p.buffer.uri,"revision",p.buffer.revision,"line",c.getRightLine()+1,"column",c.getRightColumn()+1,"startLine",c.getLeftLine()+1,"startColumn",c.getLeftColumn()+1,"focused",p.editor.hasFocus()));}
     Object handle(String op,JSONObject d)throws Exception{
         switch(op){
-            case "editorReset":{for(Pane p:panes.values()){p.editor.release();app.editorRoot.removeView(p.editor);}panes.clear();buffers.clear();active=null;return true;}
+            case "editorResizeStart":{for(Pane p:panes.values()){p.resizeGeneration++;p.resizeBuffer=p.buffer;p.resizeAnchor=new ViewState(p.editor);p.editor.getScroller().startScroll(p.resizeAnchor.x,p.resizeAnchor.y,0,0,0);p.editor.getScroller().abortAnimation();}return true;}
+            case "editorResizeEnd":{for(Pane p:panes.values()){int generation=p.resizeGeneration;p.editor.postDelayed(()->{if(p.resizeGeneration==generation){restoreResizeAnchor(p);p.resizeAnchor=null;}},100);}return true;}
+            case "editorTestHover":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0||!app.engine.currentProject.startsWith("input-check-"))return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;float[] point=p.editor.getLayout().getCharLayoutOffset(d.getInt("line"),d.getInt("column"));MotionEvent event=MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis(),d.optInt("action",MotionEvent.ACTION_HOVER_MOVE),point[1]+p.editor.measureTextRegionOffset()-p.editor.getOffsetX()+2,point[0]-p.editor.getOffsetY()-p.editor.getRowHeight()/2f,0);event.setSource(InputDevice.SOURCE_MOUSE);try{p.editor.dispatchGenericMotionEvent(event);}finally{event.recycle();}return p.editor.getComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class).isShowing();}
+            case "editorTestTouch":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0||!app.engine.currentProject.startsWith("input-check-"))return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;JSONArray points=d.getJSONArray("points");MotionEvent.PointerProperties[] props=new MotionEvent.PointerProperties[points.length()];MotionEvent.PointerCoords[] coords=new MotionEvent.PointerCoords[points.length()];for(int i=0;i<points.length();i++){props[i]=new MotionEvent.PointerProperties();props[i].id=i;props[i].toolType=MotionEvent.TOOL_TYPE_FINGER;coords[i]=new MotionEvent.PointerCoords();coords[i].x=(float)points.getJSONObject(i).getDouble("x");coords[i].y=(float)points.getJSONObject(i).getDouble("y");coords[i].pressure=1;coords[i].size=1;}long now=SystemClock.uptimeMillis();MotionEvent event=MotionEvent.obtain(d.optLong("down",now),now,d.getInt("action"),points.length(),props,coords,0,0,1,1,0,0,InputDevice.SOURCE_TOUCHSCREEN,0);try{return p.viewport.dispatchTouchEvent(event);}finally{event.recycle();}}
+            case "editorReadOnly":{JSONArray paths=d.getJSONArray("paths");for(Pane p:panes.values())if(p.buffer!=null)for(int i=0;i<paths.length();i++)if(p.buffer.path.equals(paths.getString(i)))p.editor.setEditable(!d.optBoolean("readonly"));return true;}
+            case "editorReset":{for(Pane p:panes.values()){p.editor.release();app.editorRoot.removeView(p.viewport);}panes.clear();buffers.clear();active=null;return true;}
             case "editorLayout":{
                 occlusions=d.optJSONArray("occlusions");if(occlusions==null)occlusions=new JSONArray();
                 visible=d.optBoolean("visible",true);JSONArray list=d.optJSONArray("panes");Set<String> present=new HashSet<>();
                 settings=d.optJSONObject("settings")==null?settings:d.getJSONObject("settings");
                 if(list!=null)for(int i=0;i<list.length();i++){JSONObject rect=list.getJSONObject(i);String id=rect.getString("id");present.add(id);Pane p=panes.get(id);if(p==null){p=new Pane(id);panes.put(id,p);}p.x=(float)rect.optDouble("x");p.y=(float)rect.optDouble("y");p.w=(float)rect.optDouble("width");p.h=(float)rect.optDouble("height");configure(p);}
-                for(String id:new ArrayList<>(panes.keySet()))if(!present.contains(id)){Pane p=panes.remove(id);if(p.buffer!=null)flush(p.buffer);p.editor.release();app.editorRoot.removeView(p.editor);if(active==p)active=null;}
+                for(String id:new ArrayList<>(panes.keySet()))if(!present.contains(id)){Pane p=panes.remove(id);if(p.buffer!=null)flush(p.buffer);p.editor.release();app.editorRoot.removeView(p.viewport);if(active==p)active=null;}
                 geometry();return true;
             }
             case "editorOpen":{
                 Pane p=panes.get(d.getString("id"));if(p==null)return false;
                 if(p.buffer!=null){if(((StudioCodeEditor)p.editor).currentInput!=null)((StudioCodeEditor)p.editor).currentInput.finishComposingText();flush(p.buffer);p.views.put(p.buffer.uri,new ViewState(p.editor));}
-                String uri=d.optString("uri");if(uri.isEmpty()){p.buffer=null;p.editor.setVisibility(View.GONE);return true;}
+                String uri=d.optString("uri");if(uri.isEmpty()){p.buffer=null;p.viewport.setVisibility(View.GONE);return true;}
                 Buffer b=buffers.get(uri);if(b==null){b=new Buffer(d);buffers.put(uri,b);}
                 if(p.buffer!=b){StudioLanguage next=new StudioLanguage(p,d.optString("language"));p.muted=true;try{((StudioCodeEditor)p.editor).typing=next.typing;p.editor.setEditorLanguage(next);Pane previous=source(b);Content content=b.document.open(previous!=null);p.editor.setText(content);var separator=content.getLine(0).getLineSeparator();p.editor.setLineSeparator(separator.getLength()>0?separator:LineSeparator.LF);p.editor.setDiagnostics(new DiagnosticsContainer());p.language=next;p.buffer=b;if(b.analysisRevision==b.revision)next.analysis(b.analysis);ViewState v=p.views.get(uri);if(v==null&&previous!=null)v=new ViewState(previous.editor);if(v!=null){var a=content.getIndexer().getCharPosition(Math.min(v.left,content.length()));var z=content.getIndexer().getCharPosition(Math.min(v.right,content.length()));p.editor.setSelectionRegion(a.line,a.column,z.line,z.column);p.editor.getScroller().startScroll(v.x,v.y,0,0,0);p.editor.getScroller().abortAnimation();}}finally{p.muted=false;}}
                 ((StudioCodeEditor)p.editor).typingOptions(d.optJSONObject("typing"));
                 p.editor.setEditable(!d.optBoolean("readonly"));geometry();emitSelection(p);return snapshot(b);
             }
             case "editorSnapshot":{JSONArray result=new JSONArray();JSONObject known=d.optJSONObject("known");for(Buffer b:buffers.values())if(!d.has("uri")||d.optString("uri").equals(b.uri)){if(known!=null&&known.optLong(b.uri,-1)==b.revision)flush(b);else result.put(snapshot(b));}return result;}
-            case "editorForget":{Buffer b=buffers.remove(d.optString("uri"));if(b!=null)for(Pane p:panes.values()){p.views.remove(b.uri);if(p.buffer==b){p.buffer=null;p.editor.setVisibility(View.GONE);}}return true;}
+            case "editorForget":{Buffer b=buffers.remove(d.optString("uri"));if(b!=null)for(Pane p:panes.values()){p.views.remove(b.uri);if(p.buffer==b){p.buffer=null;p.viewport.setVisibility(View.GONE);}}return true;}
             case "editorEdits":{
                 Buffer b=buffers.get(d.optString("uri"));if(b==null)return true;
                 if(b.revision!=d.optLong("revision")){app.event("editorResync",snapshot(b));return false;}
@@ -212,18 +269,42 @@ final class NativeEditorHost {
                 handle("editorEdits",d);var pos=p.editor.getText().getIndexer().getCharPosition(Math.max(0,Math.min(p.editor.getText().length(),d.optInt("cursor"))));p.editor.setSelection(pos.line,pos.column);p.editor.notifyIMEExternalCursorChange();app.event("editorResync",snapshot(b));return true;
             }
             case "editorDecorations":{for(Pane p:panes.values())if(p.buffer!=null&&p.buffer.uri.equals(d.optString("uri"))&&p.language!=null){p.language.breakpoints=d.optJSONArray("breakpoints");p.language.execution=d.optInt("execution",0)-1;p.language.lexer.rerun();}return true;}
-            case "editorCapture":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0)return false;int[] point=new int[2];app.editorRoot.getLocationInWindow(point);Bitmap bitmap=Bitmap.createBitmap(app.editorRoot.getWidth(),app.editorRoot.getHeight(),Bitmap.Config.ARGB_8888);android.graphics.Rect rect=new android.graphics.Rect(point[0],point[1],point[0]+bitmap.getWidth(),point[1]+bitmap.getHeight());java.io.File file=new java.io.File(app.getCacheDir(),"studio-window.png");android.view.PixelCopy.request(app.getWindow(),rect,bitmap,result->{try{if(result==android.view.PixelCopy.SUCCESS){try(java.io.OutputStream out=new java.io.FileOutputStream(file)){bitmap.compress(Bitmap.CompressFormat.PNG,100,out);}app.event("editorCaptureReady",object("path",file.getAbsolutePath()));}else app.event("editorCaptureReady",object("error",result));}catch(Exception e){app.event("editorCaptureReady",object("error",e.toString()));}finally{bitmap.recycle();}},app.ui);return file.getAbsolutePath();}
-            case "editorVisualState":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0)return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;Styles styles=p.editor.getStyles();return object("indent",((StudioCodeEditor)p.editor).typing==null?0:((StudioCodeEditor)p.editor).typing.options.indent,"tabWidth",p.editor.getTabWidth(),"sideIcons",p.editor.getRenderer().hasSideHintIcons(),"textOffset",p.editor.measureTextRegionOffset(),"guides",styles==null||styles.blocks==null?0:styles.blocks.size(),"guideColor",p.editor.getColorScheme().getColor(EditorColorScheme.BLOCK_LINE));}
+            case "editorCapture":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0)return false;return captureEditor();}
+            case "editorVisualState":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0)return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;Styles styles=p.editor.getStyles();return object("indent",((StudioCodeEditor)p.editor).typing==null?0:((StudioCodeEditor)p.editor).typing.options.indent,"tabWidth",p.editor.getTabWidth(),"sideIcons",p.editor.getRenderer().hasSideHintIcons(),"textOffset",p.editor.measureTextRegionOffset()*p.editor.getScaleX(),"guides",styles==null||styles.blocks==null?0:styles.blocks.size(),"guideColor",p.editor.getColorScheme().getColor(EditorColorScheme.BLOCK_LINE),"previewRatio",((StudioCodeEditor)p.editor).zoomRatio,"preview",((StudioCodeEditor)p.editor).zoomActive,"accessory",object("visible",accessory.isShown(),"left",accessory.getLeft(),"top",accessory.getTop(),"width",accessory.getWidth(),"height",accessory.getHeight()),"diagnosticPopup",p.editor.getComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class).isShowing(),"offsetX",p.editor.getOffsetX()*p.editor.getScaleX(),"offsetY",p.editor.getOffsetY()*p.editor.getScaleY(),"fontPx",p.editor.getTextSizePx()*p.editor.getScaleX(),"layoutFontPx",p.editor.getTextSizePx(),"rowHeight",p.editor.getRowHeight()*p.editor.getScaleY(),"layoutRowHeight",p.editor.getRowHeight(),"left",p.viewport.getLeft(),"top",p.viewport.getTop(),"viewScaleX",p.editor.getScaleX(),"viewScaleY",p.editor.getScaleY(),"maxX",p.editor.getScrollMaxX()*p.editor.getScaleX(),"layoutWidth",p.editor.getLayout().getLayoutWidth()*p.editor.getScaleX(),"visible",p.editor.isShown(),"width",p.viewport.getWidth(),"height",p.viewport.getHeight(),"innerWidth",p.editor.getWidth(),"innerHeight",p.editor.getHeight(),"occlusions",occlusions);}
             case "editorCompletionResult":{CompletableFuture<JSONArray> future=completions.remove(d.optString("request"));if(future!=null)future.complete(d.optJSONArray("items"));return true;}
         }
         throw new IllegalArgumentException(op);
     }
     static void replace(Content c,int start,int end,String text){var a=c.getIndexer().getCharPosition(start);var z=c.getIndexer().getCharPosition(end);c.replace(a.line,a.column,z.line,z.column,text);}
+    String captureEditor(){
+        int[] point=new int[2];app.editorRoot.getLocationInWindow(point);
+        Bitmap bitmap=Bitmap.createBitmap(app.editorRoot.getWidth(),app.editorRoot.getHeight(),Bitmap.Config.ARGB_8888);
+        Rect rect=new Rect(point[0],point[1],point[0]+bitmap.getWidth(),point[1]+bitmap.getHeight());
+        java.io.File file=new java.io.File(app.getCacheDir(),"studio-window.png");
+        PixelCopy.request(app.getWindow(),rect,bitmap,result->{try{
+            if(result!=PixelCopy.SUCCESS){app.event("editorCaptureReady",object("error",result));return;}
+            // PixelCopy includes the main app window only. Add our own process's
+            // popup windows, without capturing Android's status/navigation bars.
+            if(Build.VERSION.SDK_INT>=29){Canvas canvas=new Canvas(bitmap);int[] origin=new int[2];app.editorRoot.getLocationOnScreen(origin);
+                for(View root:android.view.inspector.WindowInspector.getGlobalWindowViews()){
+                    if(root==app.getWindow().getDecorView()||!root.isShown())continue;
+                    int[] location=new int[2];root.getLocationOnScreen(location);int saved=canvas.save();canvas.translate(location[0]-origin[0],location[1]-origin[1]);root.draw(canvas);canvas.restoreToCount(saved);
+                }
+            }
+            try(java.io.OutputStream out=new java.io.FileOutputStream(file)){bitmap.compress(Bitmap.CompressFormat.PNG,100,out);}
+            app.event("editorCaptureReady",object("path",file.getAbsolutePath()));
+        }catch(Exception e){app.event("editorCaptureReady",object("error",e.toString()));}finally{bitmap.recycle();}},app.ui);
+        return file.getAbsolutePath();
+    }
     void configure(Pane p){
-        String key=settings.toString();if(key.equals(p.configured))return;p.configured=key;
+        String configurationKey=settings.toString();if(configurationKey.equals(p.configured))return;p.configured=configurationKey;
         float scale=app.web.getScale();if(scale<=0)scale=app.getResources().getDisplayMetrics().density;
-        ((StudioCodeEditor)p.editor).configuringFont=true;p.editor.setTextSizePx((float)(settings.optDouble("fontSize",14)*settings.optDouble("codeScale",100)/100*scale));((StudioCodeEditor)p.editor).configuringFont=false;
+        float font=(float)(settings.optDouble("fontSize",14)*scale);
+        if(SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil&&Math.abs(p.editor.getTextSizePx()-font)>.1f){((StudioCodeEditor)p.editor).configuringFont=true;try{p.editor.setTextSizePx(font);}finally{((StudioCodeEditor)p.editor).configuringFont=false;}}
+        if(!((StudioCodeEditor)p.editor).zoomActive&&SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil){float visual=(float)Math.max(.5,Math.min(2.5,settings.optDouble("codeScale",100)/100));p.editor.setPivotX(0);p.editor.setPivotY(0);p.editor.setScaleX(visual);p.editor.setScaleY(visual);}
+        if(SystemClock.uptimeMillis()<=((StudioCodeEditor)p.editor).fontGestureUntil&&!((StudioCodeEditor)p.editor).zoomActive){p.configured="";if(!p.deferredConfig){p.deferredConfig=true;p.editor.postDelayed(()->{p.deferredConfig=false;configure(p);geometry();},100);}}
         p.editor.setScaleTextSizes((float)(settings.optDouble("fontSize",14)*scale*.5),(float)(settings.optDouble("fontSize",14)*scale*2.5));
+        boolean barLight=settings.optString("theme").equals("forge-light");accessory.setBackgroundColor(Color.parseColor(barLight?"#F7F8FA":"#2B2D30"));LinearLayout keys=(LinearLayout)accessory.getChildAt(0);for(int i=0;i<keys.getChildCount();i++){View key=keys.getChildAt(i);int tint=Color.parseColor(barLight?"#1E1F22":"#BCBEC4");if(key instanceof ImageView)((ImageView)key).setImageTintList(android.content.res.ColorStateList.valueOf(tint));else if(key instanceof TextView)((TextView)key).setTextColor(tint);String action=String.valueOf(key.getContentDescription());String[] a={"left","right","up","down","tab","copy","paste","undo","redo"},ru={"Влево","Вправо","Вверх","Вниз","Отступ Tab","Копировать","Вставить","Отменить","Повторить"},en={"Left","Right","Up","Down","Indent Tab","Copy","Paste","Undo","Redo"};String label=action;for(int j=0;j<a.length;j++)if(a[j].equals(action))label=settings.optString("language").equals("en")?en[j]:ru[j];key.setTooltipText(label);}
         p.editor.setWordwrap(settings.optBoolean("wordWrap"));p.editor.setBlockLineEnabled(settings.optBoolean("indentGuides",true));p.editor.setBlockLineWidth(.65f);
         boolean light=settings.optString("theme").equals("forge-light");EditorColorScheme c=p.editor.getColorScheme();
         int fg=Color.parseColor(light?"#1E1F22":"#BCBEC4"),bg=Color.parseColor(light?"#FFFFFF":"#1E1F22");
@@ -244,22 +325,27 @@ final class NativeEditorHost {
     }
     void geometry(){
         float scale=app.web.getScale();if(scale<=0)scale=app.getResources().getDisplayMetrics().density;
-        boolean resized=false;int bar=app.imeHeight>0&&visible&&active!=null&&active.editor.hasFocus()&&settings.optBoolean("keyboardExtraKeys",true)?Math.round(42*app.getResources().getDisplayMetrics().density):0;
+        boolean imeChanged=previousImeHeight!=app.imeHeight;previousImeHeight=app.imeHeight;
+        int bar=app.imeHeight>0&&visible&&active!=null&&active.editor.hasFocus()&&settings.optBoolean("keyboardExtraKeys",true)?Math.round(42*app.getResources().getDisplayMetrics().density):0;
         int bottom=app.editorRoot.getHeight()-app.imeHeight-bar;
         for(Pane p:panes.values()){
             int left=Math.round(p.x*scale),top=Math.round(p.y*scale),width=Math.round(p.w*scale),height=Math.round(p.h*scale);
-            List<RectF> holes=new ArrayList<>(),touchHoles=new ArrayList<>();for(int i=0;i<occlusions.length();i++){JSONObject r=occlusions.optJSONObject(i);if(r!=null){RectF rect=new RectF((float)r.optDouble("x")*scale-left,(float)r.optDouble("y")*scale-top,(float)(r.optDouble("x")+r.optDouble("width"))*scale-left,(float)(r.optDouble("y")+r.optDouble("height"))*scale-top);touchHoles.add(rect);if(r.optBoolean("paint",true))holes.add(rect);}}((StudioCodeEditor)p.editor).occlusions=holes;((StudioCodeEditor)p.editor).touchOcclusions=touchHoles;p.editor.invalidate();
+            List<RectF> holes=new ArrayList<>(),touchHoles=new ArrayList<>();for(int i=0;i<occlusions.length();i++){JSONObject r=occlusions.optJSONObject(i);if(r!=null){RectF rect=new RectF((float)r.optDouble("x")*scale-left,(float)r.optDouble("y")*scale-top,(float)(r.optDouble("x")+r.optDouble("width"))*scale-left,(float)(r.optDouble("y")+r.optDouble("height"))*scale-top);if(r.optBoolean("touch",true))touchHoles.add(rect);if(r.optBoolean("paint",true))holes.add(rect);}}((StudioCodeEditor)p.editor).occlusions=holes;((StudioCodeEditor)p.editor).touchOcclusions=touchHoles;p.editor.invalidate();
             // The shell keeps its selected overlay percentage; only the input viewport avoids the IME.
             height=Math.min(height,Math.max(0,bottom-top));
-            boolean show=visible&&p.buffer!=null&&width>1&&height>1;p.editor.setVisibility(show?View.VISIBLE:View.GONE);
-            FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)p.editor.getLayoutParams();
-            if(lp.leftMargin!=left||lp.topMargin!=top||lp.width!=width||lp.height!=height){resized=true;lp.leftMargin=left;lp.topMargin=top;lp.width=Math.max(1,width);lp.height=Math.max(1,height);p.editor.setLayoutParams(lp);}
+            boolean show=visible&&p.buffer!=null&&width>1&&height>1;p.viewport.setVisibility(show?View.VISIBLE:View.GONE);
+            FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)p.viewport.getLayoutParams();
+            if(lp.leftMargin!=left||lp.topMargin!=top||lp.width!=width||lp.height!=height){lp.leftMargin=left;lp.topMargin=top;lp.width=Math.max(1,width);lp.height=Math.max(1,height);p.viewport.setLayoutParams(lp);}
+            if(!((StudioCodeEditor)p.editor).zoomActive){FrameLayout.LayoutParams child=(FrameLayout.LayoutParams)p.editor.getLayoutParams();int cw=Math.max(1,Math.round(width/p.editor.getScaleX())),ch=Math.max(1,Math.round(height/p.editor.getScaleY()));if(child.width!=cw||child.height!=ch){child.width=cw;child.height=ch;p.editor.setLayoutParams(child);if(p.resizeAnchor!=null)p.editor.postOnAnimation(()->restoreResizeAnchor(p));}}
         }
-        accessory.setVisibility(bar>0?View.VISIBLE:View.GONE);
+        boolean barCovered=false,popupOpen=!visible;for(int i=0;i<occlusions.length();i++){JSONObject r=occlusions.optJSONObject(i);if(r!=null&&r.optBoolean("paint",true)){popupOpen=true;float rt=(float)r.optDouble("y")*scale,rb=(float)(r.optDouble("y")+r.optDouble("height"))*scale;if(rt<bottom+bar&&rb>bottom)barCovered=true;}}
+        if(popupOpen)for(Pane pane:panes.values()){pane.editor.getComponent(EditorAutoCompletion.class).hide();pane.editor.getComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class).dismiss();pane.editor.getComponent(io.github.rosemoe.sora.widget.component.EditorTextActionWindow.class).dismiss();}
+        accessory.setVisibility(bar>0&&!barCovered?View.VISIBLE:View.GONE);
         if(bar>0){FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)accessory.getLayoutParams();lp.height=bar;lp.gravity=Gravity.TOP;lp.topMargin=Math.max(0,bottom);accessory.setLayoutParams(lp);accessory.bringToFront();}
-        if(resized&&active!=null)reveal(active);
+        if(imeChanged&&active!=null)reveal(active);
     }
-    void reveal(Pane p){Buffer expected=p.buffer;if(p.editor.hasFocus()&&app.imeHeight>0)p.editor.post(()->{if(p.buffer==expected&&expected!=null)p.editor.ensureSelectionVisible();});}
+    void restoreResizeAnchor(Pane p){ViewState anchor=p.resizeAnchor;if(anchor==null||p.buffer!=p.resizeBuffer)return;int x=Math.min(anchor.x,p.editor.getScrollMaxX()),y=Math.min(anchor.y,p.editor.getScrollMaxY());p.editor.getScroller().startScroll(x,y,0,0,0);p.editor.getScroller().abortAnimation();p.editor.invalidate();}
+    void reveal(Pane p){Buffer expected=p.buffer;if(p.resizeAnchor==null&&p.editor.hasFocus()&&app.imeHeight>0&&!((StudioCodeEditor)p.editor).zoomActive&&SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil)p.editor.post(()->{if(p.resizeAnchor==null&&p.buffer==expected&&expected!=null&&!((StudioCodeEditor)p.editor).zoomActive&&SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil)p.editor.ensureSelectionVisible();});}
     void showKeyboard(){if(active==null)return;active.editor.requestFocus();((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(active.editor,InputMethodManager.SHOW_IMPLICIT);geometry();}
     void createAccessory(){
         accessory=new HorizontalScrollView(app);accessory.setHorizontalScrollBarEnabled(false);accessory.setFillViewport(false);accessory.setBackgroundColor(Color.rgb(43,45,48));
@@ -267,9 +353,24 @@ final class NativeEditorHost {
         String[][] keys={{"Tab","tab"},{"arrow_left","left"},{"arrow_down","down"},{"arrow_up","up"},{"arrow_right","right"},{"braces","{}"},{"parentheses","()"},{"brackets","[]"},{";",";"},{"\"","\""},{"&","&"},{"*","*"},{"undo_2","undo"},{"redo_2","redo"},{"copy","copy"},{"clipboard_paste","paste"}};
         for(String[] k:keys){View key;int icon=app.getResources().getIdentifier("ic_"+k[0],"drawable",app.getPackageName());
             if(icon!=0){ImageView image=new ImageView(app);image.setImageResource(icon);image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);int pad=Math.round(11*app.getResources().getDisplayMetrics().density);image.setPadding(pad,pad,pad,pad);key=image;}else{TextView text=new TextView(app);text.setText(k[0]);text.setTextColor(Color.rgb(188,190,196));text.setTextSize(16);text.setGravity(Gravity.CENTER);key=text;}
-            key.setContentDescription(k[1]);key.setBackgroundResource(android.R.drawable.list_selector_background);int dp=Math.round(44*app.getResources().getDisplayMetrics().density);row.addView(key,new LinearLayout.LayoutParams(dp,-1));
-            final Runnable repeat=new Runnable(){public void run(){action(k[1]);app.ui.postDelayed(this,65);}};
-            key.setOnTouchListener((v,e)->{switch(e.getActionMasked()){case MotionEvent.ACTION_DOWN: v.setPressed(true);action(k[1]);if(Arrays.asList("left","right","up","down").contains(k[1]))app.ui.postDelayed(repeat,380);return true;case MotionEvent.ACTION_UP:case MotionEvent.ACTION_CANCEL:v.setPressed(false);app.ui.removeCallbacks(repeat);return true;}return true;});
+            key.setContentDescription(k[1]);
+            android.graphics.drawable.GradientDrawable mask=new android.graphics.drawable.GradientDrawable();mask.setColor(Color.WHITE);mask.setCornerRadius(6*app.getResources().getDisplayMetrics().density);
+            key.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(Color.argb(30,135,154,185)),null,mask));
+            key.setClickable(true);key.setOnClickListener(v->action(k[1]));int dp=Math.round(44*app.getResources().getDisplayMetrics().density);row.addView(key,new LinearLayout.LayoutParams(dp,-1));
+            final View button=key;
+            key.setOnTouchListener(new View.OnTouchListener(){
+                float x,y;boolean cancelled,repeated;final int slop=ViewConfiguration.get(app).getScaledTouchSlop();
+                final Runnable press=()->button.setPressed(true);
+                final Runnable repeat=new Runnable(){public void run(){if(cancelled||!button.isAttachedToWindow())return;repeated=true;action(k[1]);app.ui.postDelayed(this,65);}};
+                void clear(){button.setPressed(false);app.ui.removeCallbacks(repeat);app.ui.removeCallbacks(press);}
+                public boolean onTouch(View v,MotionEvent e){switch(e.getActionMasked()){
+                    case MotionEvent.ACTION_DOWN:x=e.getRawX();y=e.getRawY();cancelled=false;repeated=false;app.ui.postDelayed(press,80);if(Arrays.asList("left","right","up","down").contains(k[1]))app.ui.postDelayed(repeat,380);return true;
+                    case MotionEvent.ACTION_MOVE:if(Math.hypot(e.getRawX()-x,e.getRawY()-y)>slop){cancelled=true;clear();}return true;
+                    case MotionEvent.ACTION_UP:clear();if(!cancelled&&!repeated)v.performClick();return true;
+                    case MotionEvent.ACTION_CANCEL:cancelled=true;clear();return true;
+                    default:return true;
+                }}
+            });
         }
     }
     void action(String action){
