@@ -32,7 +32,7 @@ final class ToolPacks {
         JSONObject p=pack(id);if(ide.building!=null&&ide.building.isAlive()||ide.execution!=null&&ide.execution.isAlive()||ide.tools.debuggerRunning())throw new IOException("Stop running tools first");
         JSONArray packs=catalog.getJSONArray("packs");for(int i=0;i<packs.length();i++){JSONObject other=packs.getJSONObject(i);if(installed(other)&&other.getJSONArray("requires").toString().contains("\""+id+"\""))throw new IOException("Component is required by "+other.getString("id"));}
         Files.deleteIfExists(new File(ide.usr,".pack-"+id+"-installed").toPath());if(id.equals("analysis"))ide.stopLsp();Set<String> keep=new HashSet<>();addPaths(keep,catalog.getJSONObject("base"));for(int i=0;i<packs.length();i++){JSONObject other=packs.getJSONObject(i);if(!id.equals(other.getString("id"))&&installed(other))addPaths(keep,other);}
-        
+
         for(String key:new String[]{"files","links"}){JSONArray paths=p.getJSONArray(key);for(int i=0;i<paths.length();i++){String path=paths.getString(i);if(keep.contains(path))continue;File from=child(ide.usr,path);if(!Files.exists(from.toPath(),LinkOption.NOFOLLOW_LINKS))continue;Files.delete(from.toPath());}}
         return state();
     }

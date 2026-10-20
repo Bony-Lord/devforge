@@ -11,3 +11,6 @@ licenses/** -text -whitespace
 gradle/wrapper/** linguist-generated
 native-packages.lock.json linguist-generated
 verification*.json linguist-generated
+
+# Preserve the upstream printer checksum on Windows checkouts.
+app/src/main/assets/debug/libcxx/*.py text eol=lf
