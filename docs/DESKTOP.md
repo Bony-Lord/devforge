@@ -34,3 +34,13 @@ An application-level renderer smoke test is available with `--smoke --data-dir=P
 Homebrew distributes LLDB separately from LLVM: install `llvm` for analysis/formatting and [`lldb`](https://formulae.brew.sh/formula/lldb) for `lldb-dap`.
 
 FFmpeg remains a separate LGPL library. Distribute the exact source archive generated above beside every binary archive. The lock verifies Electron/Chromium revisions, FFmpeg sources and Electron patches. See [desktop/THIRD_PARTY.md](../desktop/THIRD_PARTY.md).
+
+On Linux distributions requiring Chromium's SUID helper, unpack the trusted archive, open a terminal in its application directory and configure **only that helper**:
+
+```sh
+sudo chown root:root ./chrome-sandbox
+sudo chmod 4755 ./chrome-sandbox
+./cpp-studio
+```
+
+Run the IDE as your ordinary user. The renderer keeps its sandbox enabled; the candidate's portable archive does not install the helper system-wide automatically.

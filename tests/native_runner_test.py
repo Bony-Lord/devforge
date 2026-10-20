@@ -30,7 +30,9 @@ int main(int argc,char** argv){
     descendant=int(tree.stdout.readline());tree.terminate();assert tree.wait(timeout=3)!=0
     for _ in range(30):
         proc=pathlib.Path('/proc')/str(descendant)/'stat'
-        if not proc.exists()or proc.read_text().split()[2]=='Z':break
+        try:
+            if proc.read_text().split()[2]=='Z':break
+        except (FileNotFoundError,ProcessLookupError):break
         time.sleep(.02)
     else:raise AssertionError('Stopped program left a running descendant')
     print('6 real native host checks passed')
