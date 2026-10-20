@@ -2,13 +2,27 @@
 import argparse,base64,hashlib,json,pathlib,re,tarfile,urllib.request,zipfile
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def digest(data):return hashlib.sha256(data).hexdigest()
+def tree_digest(file):
+    # Gitiles generates gzip/tar metadata per request. Authenticate all source
+    # paths, modes, link targets and file bytes, independent of that metadata.
+    entries=[]
+    with tarfile.open(file) as tar:
+        for member in tar.getmembers():
+            if member.isfile(): entries.append((member.name,member.mode,digest(tar.extractfile(member).read())))
+            elif member.issym() or member.islnk(): entries.append((member.name,member.mode,'link:'+member.linkname))
+            elif not member.isdir(): raise RuntimeError('Unexpected source archive entry: '+member.name)
+    value=hashlib.sha256()
+    for entry in sorted(entries): value.update((json.dumps(entry,separators=(',',':'))+'\n').encode())
+    return value.hexdigest()
 def main():
     p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,required=True);args=p.parse_args()
     lock=json.loads((ROOT/'desktop-sources.lock.json').read_text(encoding='utf-8'));assert json.loads((ROOT/'desktop/package.json').read_text())['devDependencies']['electron']==lock['electron'];cache=ROOT/'work/desktop-sources';cache.mkdir(parents=True,exist_ok=True)
     for item in lock['archives']:
         file=cache/item['name']
         if not file.exists():urllib.request.urlretrieve(item['url'],file)
-        if digest(file.read_bytes())!=item['sha256']:raise RuntimeError('Desktop source checksum mismatch: '+item['name'])
+        if item.get('treeSha256'):
+            if tree_digest(file)!=item['treeSha256']:raise RuntimeError('Desktop source tree checksum mismatch: '+item['name'])
+        elif digest(file.read_bytes())!=item['sha256']:raise RuntimeError('Desktop source checksum mismatch: '+item['name'])
     electron=cache/lock['archives'][1]['name']
     with tarfile.open(electron)as tar:
         dep=next(m for m in tar if m.name.endswith('/DEPS')and m.name.count('/')==1);text=tar.extractfile(dep).read().decode()
@@ -26,7 +40,12 @@ dynamically loaded FFmpeg library under LGPL-2.1-or-later. This archive contains
 * complete Chromium FFmpeg source at {lock['ffmpegRevision']};
 * Electron {lock['electron']} source, including its FFmpeg patches, build GN args,
   dependency revisions and release/build scripts;
-* the matching Chromium DEPS and the archive checksums.
+* the matching Chromium DEPS and the archive/source-tree checksums.
+
+Gitiles tar/gzip metadata can change between requests for the same commit.
+The FFmpeg lock therefore authenticates every file path, mode, link target and
+file SHA256 through one sorted source-tree digest. download-checksums.json lists
+the exact compressed archive SHA256 included in this particular source bundle.
 
 No C++ Studio modifications are made to FFmpeg. Electron's own changes are in
 electron-{lock['electron']}/patches/ffmpeg inside the Electron source archive.
@@ -49,7 +68,8 @@ page; CI also uploads it beside every portable build.
 '''
     args.output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(args.output,'w')as out:
-        entries={'README.txt':readme.encode(),'desktop-sources.lock.json':json.dumps(lock,indent=2).encode(),'Chromium-DEPS':deps}
+        actual={item['name']:digest((cache/item['name']).read_bytes())for item in lock['archives']}
+        entries={'download-checksums.json':json.dumps(actual,indent=2).encode(),'README.txt':readme.encode(),'desktop-sources.lock.json':json.dumps(lock,indent=2).encode(),'Chromium-DEPS':deps}
         for item in lock['archives']:entries[item['name']]=(cache/item['name']).read_bytes()
         for name,body in sorted(entries.items()):
             info=zipfile.ZipInfo(name,(1980,1,1,0,0,0));info.compress_type=zipfile.ZIP_STORED if name.endswith('.gz')else zipfile.ZIP_DEFLATED;out.writestr(info,body)
