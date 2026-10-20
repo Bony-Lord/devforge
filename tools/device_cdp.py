@@ -11,12 +11,22 @@ ADB=os.environ.get('ADB',r'D:\ADB\adb.exe')
 
 class Device:
     def __init__(self):
-        pid=subprocess.check_output([ADB,'shell','pidof','com.forgex'],text=True).strip()
-        subprocess.run([ADB,'forward','tcp:9222','localabstract:webview_devtools_remote_'+pid],check=True,capture_output=True)
-        pages=json.load(urllib.request.urlopen('http://127.0.0.1:9222/json',timeout=8))
-        if not pages: raise RuntimeError('WebView is not ready')
+        deadline=time.monotonic()+25
+        while True:
+            try:
+                pid=subprocess.check_output([ADB,'shell','pidof','com.forgex'],text=True).strip()
+                subprocess.run([ADB,'forward','tcp:9222','localabstract:webview_devtools_remote_'+pid],check=True,capture_output=True)
+                pages=json.load(urllib.request.urlopen('http://127.0.0.1:9222/json',timeout=3))
+                if pages:break
+            except (OSError,ValueError,subprocess.CalledProcessError):pass
+            if time.monotonic()>deadline:raise RuntimeError('Application WebView did not become ready')
+            time.sleep(.15)
         self.ws=websocket.create_connection(pages[0]['webSocketDebuggerUrl'],timeout=90,suppress_origin=True)
         self.seq=0
+        while not self.evaluate("!!window.forge?.state"):
+            if time.monotonic()>deadline:raise RuntimeError('Application shell did not become ready')
+            time.sleep(.1)
+        self.evaluate('(async()=>{await window.forge.sessionReady;await NativeEditing.sync();})()')
     def call(self,method,params=None):
         self.seq+=1;seq=self.seq
         self.ws.send(json.dumps({'id':seq,'method':method,'params':params or {}}))

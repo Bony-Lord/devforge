@@ -1,0 +1,7 @@
+{
+  "upstream": "https://github.com/llvm/llvm-project",
+  "ref": "llvmorg-21.1.8",
+  "license": "Apache-2.0 WITH LLVM-exception",
+  "url": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-21.1.8/libcxx/utils/gdb/libcxx/printers.py",
+  "sha256": "7afc77611b94454e7535ec763597108c5a09c13876470aad9b56488194be4996"
+}

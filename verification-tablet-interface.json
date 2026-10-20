@@ -1,0 +1,71 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "scope": "Actual Android touch and injected key combinations; DOM checks for chooser and selection policies",
+  "checks": [
+    {
+      "test": "A second tap on the active left tool window hides it and reopening restores it",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Custom searchable chooser changes the underlying standard select",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Only input/output areas allow text selection",
+      "passed": true,
+      "evidence": {
+        "label": "none",
+        "tab": "none",
+        "output": "text",
+        "input": "text"
+      }
+    },
+    {
+      "test": "Actual touch resizes sidebar with a thin 6px divider",
+      "passed": true,
+      "evidence": {
+        "gripCssPx": 6,
+        "before": 230,
+        "after": 277.7867736816406
+      }
+    },
+    {
+      "test": "Scrolling outside a pressed splitter does not arm resizing",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "C++ class wizard writes both real files in a new nested directory",
+      "passed": true,
+      "evidence": {
+        "h": "#pragma once\n\nnamespace demo {\n\nclass TabletPoint {\npublic:\n    TabletPoint();\n};\n\n} // namespace demo\n",
+        "cpp": "#include \"TabletPoint.hpp\"\n\nnamespace demo {\n\nTabletPoint::TabletPoint() = default;\n\n} // namespace demo\n",
+        "active": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/src/model-1792476287390/TabletPoint.cpp"
+      }
+    },
+    {
+      "test": "Template collisions reject without overwriting existing files",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Ctrl+Space is no longer reserved for IDE completion",
+      "passed": true,
+      "evidence": 0
+    },
+    {
+      "test": "Native Ctrl+N opens the file/class creator",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Native Ctrl+F8 toggles a breakpoint at the caret",
+      "passed": true,
+      "evidence": true
+    }
+  ],
+  "passed": 10,
+  "total": 10
+}

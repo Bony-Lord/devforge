@@ -3,19 +3,20 @@ const workspaceMethods={
   initWorkspace(){
     this.primaryEditor=this.editor;this.attachWorkspaceEditor(this.editor);registerForgeThemes(monaco);
     this.settings.uiScale??=100;this.settings.codeScale??=100;this.settings.layout??={};
-    this.scaleCSS=Promise.all(['style.css','clion.css','tools.css','project-tools.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
+    this.scaleCSS=Promise.all(['style.css','clion.css','tools.css','project-tools.css','interaction.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
     this.applyUIScale();
     onNative('keyboardGeometry',geometry=>{this.keyboardGeometry=geometry;requestAnimationFrame(()=>this.updateKeyboardOcclusion());});
     window.addEventListener('resize',()=>this.updateKeyboardOcclusion());
     const layout=this.settings.layout;document.body.classList.toggle('sidebar-hidden',!!layout.sidebarHidden);document.body.classList.toggle('panel-hidden',!!layout.panelHidden);
     if(layout.split)this.splitEditor(layout.split,false);
     const persist=()=>{const scale=this.settings.uiScale/100;this.settings.layout={...this.settings.layout,sidebarWidth:$('#sidebar').getBoundingClientRect().width/scale,panelHeight:$('#panel').getBoundingClientRect().height/scale,sidebarHidden:document.body.classList.contains('sidebar-hidden'),panelHidden:document.body.classList.contains('panel-hidden')};this.saveWorkspaceSettings();};
-    for(const id of ['sidebarResizer','panelResizer'])$('#'+id).addEventListener('pointerup',persist);
+    for(const id of ['sidebarResizer','panelResizer'])$('#'+id).addEventListener('studio-resize-end',persist);
     $('#resetLayout').onclick=()=>this.resetLayout();
     this.resizer($('#editorSplitResizer'),()=>{const direction=this.settings.layout.split,box=$('#editorArea').getBoundingClientRect(),start=this.settings.layout.splitRatio||.5;return(dx,dy)=>{this.settings.layout.splitRatio=Math.max(.15,Math.min(.85,start+(direction==='stacked'?dy/box.height:dx/box.width)));this.layoutEditors();};});
-    $('#editorSplitResizer').addEventListener('pointerup',()=>this.saveWorkspaceSettings());
+    $('#editorSplitResizer').addEventListener('studio-resize-end',()=>this.saveWorkspaceSettings());
     document.fonts.ready.then(()=>{monaco.editor.remeasureFonts();this.layoutEditors();});
   },
+  toggleSide(name){const visible=innerWidth<=620?document.body.classList.contains('sidebar-mobile-open'):!document.body.classList.contains('sidebar-hidden');if(visible&&this.currentSide===name){document.body.classList.add('sidebar-hidden');document.body.classList.remove('sidebar-mobile-open');$$('.activity.active').forEach(b=>b.classList.remove('active'));this.settings.layout.sidebarHidden=true;this.layoutEditors();this.saveWorkspaceSettings();return;}if(name==='git')this.showGit().catch(safeError);else this.showSide(name);this.settings.layout.sidebarHidden=false;this.layoutEditors();this.saveWorkspaceSettings();},
   attachWorkspaceEditor(editor){
     const container=editor===this.primaryEditor?$('#editor'):$('#secondaryEditor');
     editor.onDidFocusEditorWidget(()=>{this.editor=editor;const model=editor.getModel(),doc=model&&this.docs.get(model.uri.toString());if(doc){this.active=doc;this.renderTabs();this.updateStandard();$('#breadcrumb').textContent=relative(doc.path,this.state.root).replaceAll('/','  ›  ');$('#readonlyBadge').classList.toggle('hidden',!doc.readonly);}});

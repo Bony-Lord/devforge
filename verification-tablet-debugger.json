@@ -1,0 +1,110 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "checks": [
+    {
+      "test": "GCC builds structs and libc++ containers using the small base",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/.forge/bin/program",
+        "exists": true,
+        "id": "debug-tree"
+      }
+    },
+    {
+      "test": "GDB stops at a persistent breakpoint after containers are initialized",
+      "passed": true,
+      "evidence": {
+        "line": 13,
+        "log": "Function(s) ^std::.* will be skipped when stepping.\nFunction(s) ^__gnu_cxx::.* will be skipped when stepping.\nFile(s) */include/c++/* will be skipped when stepping.\nLoading libc++ pretty-printers.\nwarning: section .note.android.ident not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .note.gnu.build-id not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .note.gnu.property not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .dynsym not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .gnu.version not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .gnu.version_d not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .gnu.version_r not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .gnu.hash not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .dynstr not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .rela.dyn not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .relr.dyn not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .rela.plt not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .rodata not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .eh_frame_hdr not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .eh_frame not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .plt not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .data.rel.ro not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .fini_array not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .dynamic not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .got not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .got.plt not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .data not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: section .bss not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libm.so\nwarning: Unable to find libthread_db matching inferior's thread library, thread debugging will not be available.\nwarning: section .note.gnu.build-id not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .note.gnu.property not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .dynsym not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .gnu.version not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .gnu.version_d not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .gnu.hash not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .dynstr not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .rela.plt not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .eh_frame_hdr not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .eh_frame not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .plt not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .dynamic not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .got.plt not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .bss not found in .gnu_debugdata for /apex/com.android.runtime/lib64/bionic/libdl.so\nwarning: section .note.android.ident not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .note.gnu.build-id not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .note.gnu.property not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .dynsym not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .gnu.version not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .gnu.version_r not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .gnu.hash not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .dynstr not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .rela.dyn not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .relr.dyn not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .rela.plt not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .rodata not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .eh_frame_hdr not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .eh_frame not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .plt not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .data.rel.ro not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .fini_array not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .dynamic not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .got not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .got.plt not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .data not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .bss not found in .gnu_debugdata for /system/lib64/libnetd_client.so\nwarning: section .note.android.ident not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .note.gnu.build-id not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .note.gnu.property not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .dynsym not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .gnu.version not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .gnu.version_r not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .gnu.hash not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .dynstr not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .rela.dyn not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .relr.dyn not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .rela.plt not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .rodata not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .gcc_except_table not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .eh_frame_hdr not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .eh_frame not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .plt not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .data.rel.ro not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .fini_array not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .init_array not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .dynamic not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .got not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .got.plt not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .data not found in .gnu_debugdata for /system/lib64/libc++.so\nwarning: section .bss not found in .gnu_debugdata for /system/lib64/libc++.so\n\nTemporary breakpoint 2, main () at /data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp:8\n8\t  Point point{7, 2.5};\n\nBreakpoint 1, main () at /data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp:13\n13\t  values.push_back(13);\nPython Exception <class 'gdb.error'>: There is no member or method named first.\nPython Exception <class 'gdb.error'>: There is no member or method named first.\n",
+        "rows": [
+          "\n  \n\npointPoint{...}",
+          "\n  \n\nvaluesstd::__ndk1::vector<int, std::__ndk1::allocator<int> >std::vector of length 3, capacity 3",
+          "\n  \n\nnamestd::__ndk1::string\"C++ Studio\"",
+          "\n  \n\nscoresstd::__ndk1::map<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char> >, int, std::__ndk1::less<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char> > >, std::__ndk1::allocator<std::__ndk1::pair<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char> > const, int> > >std::map with 2 elements",
+          "\n  \n\nmaybestd::__ndk1::optional<Point>{...}",
+          "\n  \n\nresultint88"
+        ]
+      }
+    },
+    {
+      "test": "Structured tree expands custom members and pretty-printed vector elements",
+      "passed": true,
+      "evidence": [
+        {
+          "name": "point",
+          "text": "\n  \n\npointPoint{...}\n  \n\nxint7\n  \n\nydouble2.5",
+          "children": 2
+        },
+        {
+          "name": "values",
+          "text": "\n  \n\nvaluesstd::__ndk1::vector<int, std::__ndk1::allocator<int> >std::vector of length 3, capacity 3\n  \n\n[0]int3\n  \n\n[1]int5\n  \n\n[2]int8",
+          "children": 3
+        },
+        {
+          "name": "name",
+          "text": "\n  \n\nnamestd::__ndk1::string\"C++ Studio\"",
+          "children": 0
+        },
+        {
+          "name": "scores",
+          "text": "\n  \n\nscoresstd::__ndk1::map<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char> >, int, std::__ndk1::less<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char> > >, std::__ndk1::allocator<std::__ndk1::pair<std::__ndk1::basic_string<char, std::__ndk1::char_traits<char>, std::__ndk1::allocator<char> > const, int> > >std::map with 2 elements",
+          "children": 0
+        },
+        {
+          "name": "maybe",
+          "text": "\n  \n\nmaybestd::__ndk1::optional<Point>{...}\n  \n\nstd::__ndk1::__optional_move_assign_base<Point, true>std::__ndk1::__optional_move_assign_base<Point, true>{...}\n  \n\nstd::__ndk1::__sfinae_ctor_base<true, true>std::__ndk1::__sfinae_ctor_base<true, true>{...}\n  \n\nstd::__ndk1::__sfinae_assign_base<true, true>std::__ndk1::__sfinae_assign_base<true, true>{...}",
+          "children": 3
+        },
+        {
+          "name": "result",
+          "text": "\n  \n\nresultint88",
+          "children": 0
+        }
+      ]
+    },
+    {
+      "test": "Step into skips the std implementation and stays in project code",
+      "passed": true,
+      "evidence": {
+        "line": 14,
+        "frame": {
+          "level": "0",
+          "addr": "0x000000588ce72e28",
+          "func": "main",
+          "file": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp",
+          "fullname": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp",
+          "line": "14",
+          "arch": "aarch64"
+        }
+      }
+    },
+    {
+      "test": "Step into enters a user function and step out returns its result",
+      "passed": true,
+      "evidence": {
+        "inner": {
+          "level": "0",
+          "addr": "0x000000588ce6d9e0",
+          "func": "helper",
+          "file": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp",
+          "fullname": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp",
+          "line": "6",
+          "arch": "aarch64"
+        },
+        "outer": {
+          "level": "0",
+          "addr": "0x000000588ce72e30",
+          "func": "main",
+          "file": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp",
+          "fullname": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/main.cpp",
+          "line": "14",
+          "arch": "aarch64"
+        },
+        "result": "88"
+      }
+    }
+  ],
+  "passed": 5,
+  "total": 5
+}

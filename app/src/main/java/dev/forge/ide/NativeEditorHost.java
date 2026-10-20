@@ -39,6 +39,7 @@ final class NativeEditorHost {
     JSONObject settings=new JSONObject();
     HorizontalScrollView accessory;
     boolean visible=true,applying=false;
+    JSONArray occlusions=new JSONArray();
     final java.util.concurrent.atomic.AtomicLong requestSequence=new java.util.concurrent.atomic.AtomicLong();
     final int UNUSED=512,TYPE=513,STRING=514,NUMBER=515;
     NativeEditorHost(MainActivity app){this.app=app;createAccessory();}
@@ -47,6 +48,10 @@ final class NativeEditorHost {
         RevisionStyles(Spans spans,Content owner,long revision,Object language){super(spans);this.owner=owner;this.revision=revision;this.language=language;}
     }
     static final class StudioCodeEditor extends CodeEditor {
+        @Override protected io.github.rosemoe.sora.widget.EditorRenderer onCreateRenderer(){return new io.github.rosemoe.sora.widget.EditorRenderer(this){@Override public boolean hasSideHintIcons(){return true;}};}
+        List<RectF> occlusions=Collections.emptyList(),touchOcclusions=Collections.emptyList();Runnable dismissPopover;
+        @Override public void draw(Canvas canvas){int save=canvas.save();for(RectF rect:occlusions)canvas.clipOutRect(rect);super.draw(canvas);canvas.restoreToCount(save);}
+        @Override public boolean dispatchTouchEvent(MotionEvent event){if(event.getActionMasked()==MotionEvent.ACTION_DOWN){for(RectF rect:touchOcclusions)if(rect.contains(event.getX(),event.getY()))return false;if(dismissPopover!=null)dismissPopover.run();}return super.dispatchTouchEvent(event);}
         InputConnection currentInput;
         SmartTyping typing;boolean pasting;java.util.function.Consumer<SmartTyping.Edit> blockCompleted;
         java.util.function.Consumer<Float> fontChanged;boolean configuringFont;
@@ -55,6 +60,7 @@ final class NativeEditorHost {
             // A selected range can be edited before the first draw; do not consult the renderer then.
             setCursorAnimator(new io.github.rosemoe.sora.widget.style.CursorAnimator(){public void markStartPos(){}public void markEndPos(){}public void start(){}public void cancel(){}public boolean isRunning(){return false;}public float animatedX(){return 0;}public float animatedY(){return 0;}public float animatedLineHeight(){return 0;}public float animatedLineBottom(){return 0;}});
         }
+        @Override public boolean onKeyDown(int key,KeyEvent event){if(key==KeyEvent.KEYCODE_SPACE&&event.isCtrlPressed()&&!event.isShiftPressed()&&!event.isAltPressed())return false;return super.onKeyDown(key,event);}
         @Override public InputConnection onCreateInputConnection(EditorInfo info){InputConnection base=super.onCreateInputConnection(info);currentInput=base==null?null:Build.VERSION.SDK_INT>=33?new StudioInputConnection33(base):new StudioInputConnection(base);info.imeOptions|=EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;return currentInput;}
         class StudioInputConnection extends InputConnectionWrapper {
             StudioInputConnection(InputConnection base){super(base,false);}
@@ -105,7 +111,7 @@ final class NativeEditorHost {
             var a=text.getIndexer().getCharPosition(left);var b=text.getIndexer().getCharPosition(right);if(selected)setSelectionRegion(a.line,a.column,b.line,b.column);else setSelection(a.line,a.column);notifyIMEExternalCursorChange();
         }
         static int mapOffset(int index,int a,int b,int size){return index<a?index:index<=b?a+size:index+size-(b-a);}
-        void typingOptions(JSONObject options){if(typing==null||options==null)return;typing.options.indent=Math.max(1,Math.min(16,options.optInt("indent",4)));typing.options.tab=Math.max(1,Math.min(16,options.optInt("tab",4)));typing.options.continuation=Math.max(1,Math.min(32,options.optInt("continuation",4)));typing.options.tabs=options.optBoolean("tabs");setTabWidth(typing.options.tab);}
+        void typingOptions(JSONObject options){if(typing==null||options==null)return;typing.options.indent=Math.max(1,Math.min(16,options.optInt("indent",4)));typing.options.tab=Math.max(1,Math.min(16,options.optInt("tab",4)));typing.options.continuation=Math.max(1,Math.min(32,options.optInt("continuation",4)));typing.options.tabs=options.optBoolean("tabs");int previousTab=getTabWidth();setTabWidth(typing.options.tab);if(previousTab!=typing.options.tab)getEditorLanguage().getAnalyzeManager().rerun();}
     }
     static JSONObject object(Object... pairs){JSONObject o=new JSONObject();try{for(int i=0;i<pairs.length;i+=2)o.put((String)pairs[i],pairs[i+1]);}catch(JSONException e){throw new IllegalStateException(e);}return o;}
     final class Buffer {
@@ -122,6 +128,8 @@ final class NativeEditorHost {
             this.id=id;
             Configuration config=new Configuration(app.getResources().getConfiguration());config.setLocale(Locale.forLanguageTag(settings.optString("language","ru")));
             editor=new StudioCodeEditor(app.createConfigurationContext(config));
+            editor.getProps().sideIconSizeFactor=.76f;
+            ((StudioCodeEditor)editor).dismissPopover=()->app.event("editorDismissPopover",new JSONObject());
             ((StudioCodeEditor)editor).fontChanged=size->{float scale=app.web.getScale();if(scale>0)app.event("editorScale",object("id",id,"percent",Math.round(size/scale/settings.optDouble("fontSize",14)*100)));};
             editor.setTag("studio-editor-"+id);editor.setContentDescription("Code editor "+id);
             editor.setTypefaceText(Typeface.createFromAsset(app.getAssets(),"ui/fonts/JetBrainsMono-Regular.ttf"));
@@ -168,6 +176,7 @@ final class NativeEditorHost {
         switch(op){
             case "editorReset":{for(Pane p:panes.values()){p.editor.release();app.editorRoot.removeView(p.editor);}panes.clear();buffers.clear();active=null;return true;}
             case "editorLayout":{
+                occlusions=d.optJSONArray("occlusions");if(occlusions==null)occlusions=new JSONArray();
                 visible=d.optBoolean("visible",true);JSONArray list=d.optJSONArray("panes");Set<String> present=new HashSet<>();
                 settings=d.optJSONObject("settings")==null?settings:d.getJSONObject("settings");
                 if(list!=null)for(int i=0;i<list.length();i++){JSONObject rect=list.getJSONObject(i);String id=rect.getString("id");present.add(id);Pane p=panes.get(id);if(p==null){p=new Pane(id);panes.put(id,p);}p.x=(float)rect.optDouble("x");p.y=(float)rect.optDouble("y");p.w=(float)rect.optDouble("width");p.h=(float)rect.optDouble("height");configure(p);}
@@ -203,6 +212,8 @@ final class NativeEditorHost {
                 handle("editorEdits",d);var pos=p.editor.getText().getIndexer().getCharPosition(Math.max(0,Math.min(p.editor.getText().length(),d.optInt("cursor"))));p.editor.setSelection(pos.line,pos.column);p.editor.notifyIMEExternalCursorChange();app.event("editorResync",snapshot(b));return true;
             }
             case "editorDecorations":{for(Pane p:panes.values())if(p.buffer!=null&&p.buffer.uri.equals(d.optString("uri"))&&p.language!=null){p.language.breakpoints=d.optJSONArray("breakpoints");p.language.execution=d.optInt("execution",0)-1;p.language.lexer.rerun();}return true;}
+            case "editorCapture":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0)return false;int[] point=new int[2];app.editorRoot.getLocationInWindow(point);Bitmap bitmap=Bitmap.createBitmap(app.editorRoot.getWidth(),app.editorRoot.getHeight(),Bitmap.Config.ARGB_8888);android.graphics.Rect rect=new android.graphics.Rect(point[0],point[1],point[0]+bitmap.getWidth(),point[1]+bitmap.getHeight());java.io.File file=new java.io.File(app.getCacheDir(),"studio-window.png");android.view.PixelCopy.request(app.getWindow(),rect,bitmap,result->{try{if(result==android.view.PixelCopy.SUCCESS){try(java.io.OutputStream out=new java.io.FileOutputStream(file)){bitmap.compress(Bitmap.CompressFormat.PNG,100,out);}app.event("editorCaptureReady",object("path",file.getAbsolutePath()));}else app.event("editorCaptureReady",object("error",result));}catch(Exception e){app.event("editorCaptureReady",object("error",e.toString()));}finally{bitmap.recycle();}},app.ui);return file.getAbsolutePath();}
+            case "editorVisualState":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0)return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;Styles styles=p.editor.getStyles();return object("indent",((StudioCodeEditor)p.editor).typing==null?0:((StudioCodeEditor)p.editor).typing.options.indent,"tabWidth",p.editor.getTabWidth(),"sideIcons",p.editor.getRenderer().hasSideHintIcons(),"textOffset",p.editor.measureTextRegionOffset(),"guides",styles==null||styles.blocks==null?0:styles.blocks.size(),"guideColor",p.editor.getColorScheme().getColor(EditorColorScheme.BLOCK_LINE));}
             case "editorCompletionResult":{CompletableFuture<JSONArray> future=completions.remove(d.optString("request"));if(future!=null)future.complete(d.optJSONArray("items"));return true;}
         }
         throw new IllegalArgumentException(op);
@@ -213,11 +224,12 @@ final class NativeEditorHost {
         float scale=app.web.getScale();if(scale<=0)scale=app.getResources().getDisplayMetrics().density;
         ((StudioCodeEditor)p.editor).configuringFont=true;p.editor.setTextSizePx((float)(settings.optDouble("fontSize",14)*settings.optDouble("codeScale",100)/100*scale));((StudioCodeEditor)p.editor).configuringFont=false;
         p.editor.setScaleTextSizes((float)(settings.optDouble("fontSize",14)*scale*.5),(float)(settings.optDouble("fontSize",14)*scale*2.5));
-        p.editor.setWordwrap(settings.optBoolean("wordWrap"));
+        p.editor.setWordwrap(settings.optBoolean("wordWrap"));p.editor.setBlockLineEnabled(settings.optBoolean("indentGuides",true));p.editor.setBlockLineWidth(.65f);
         boolean light=settings.optString("theme").equals("forge-light");EditorColorScheme c=p.editor.getColorScheme();
         int fg=Color.parseColor(light?"#1E1F22":"#BCBEC4"),bg=Color.parseColor(light?"#FFFFFF":"#1E1F22");
         c.setColor(EditorColorScheme.WHOLE_BACKGROUND,bg);c.setColor(EditorColorScheme.LINE_NUMBER_BACKGROUND,bg);c.setColor(EditorColorScheme.TEXT_NORMAL,fg);
         c.setColor(EditorColorScheme.LINE_NUMBER,Color.parseColor("#6F737A"));c.setColor(EditorColorScheme.LINE_NUMBER_CURRENT,fg);c.setColor(EditorColorScheme.LINE_DIVIDER,Color.TRANSPARENT);
+        c.setColor(EditorColorScheme.BLOCK_LINE,Color.parseColor(light?"#304E5157":"#354E5157"));c.setColor(EditorColorScheme.BLOCK_LINE_CURRENT,Color.parseColor(light?"#805480A8":"#90758CA8"));
         c.setColor(EditorColorScheme.CURRENT_LINE,Color.parseColor(light?"#F0F2F5":"#26282E"));c.setColor(EditorColorScheme.SELECTED_TEXT_BACKGROUND,Color.parseColor(light?"#B5D5FF":"#214283"));
         c.setColor(EditorColorScheme.SELECTION_INSERT,Color.parseColor("#548AF7"));c.setColor(EditorColorScheme.SELECTION_HANDLE,Color.parseColor("#548AF7"));
         c.setColor(EditorColorScheme.COMMENT,Color.parseColor(light?"#8C8C8C":"#7A7E85"));c.setColor(EditorColorScheme.KEYWORD,Color.parseColor(light?"#0033B3":"#CF8E6D"));
@@ -236,6 +248,7 @@ final class NativeEditorHost {
         int bottom=app.editorRoot.getHeight()-app.imeHeight-bar;
         for(Pane p:panes.values()){
             int left=Math.round(p.x*scale),top=Math.round(p.y*scale),width=Math.round(p.w*scale),height=Math.round(p.h*scale);
+            List<RectF> holes=new ArrayList<>(),touchHoles=new ArrayList<>();for(int i=0;i<occlusions.length();i++){JSONObject r=occlusions.optJSONObject(i);if(r!=null){RectF rect=new RectF((float)r.optDouble("x")*scale-left,(float)r.optDouble("y")*scale-top,(float)(r.optDouble("x")+r.optDouble("width"))*scale-left,(float)(r.optDouble("y")+r.optDouble("height"))*scale-top);touchHoles.add(rect);if(r.optBoolean("paint",true))holes.add(rect);}}((StudioCodeEditor)p.editor).occlusions=holes;((StudioCodeEditor)p.editor).touchOcclusions=touchHoles;p.editor.invalidate();
             // The shell keeps its selected overlay percentage; only the input viewport avoids the IME.
             height=Math.min(height,Math.max(0,bottom-top));
             boolean show=visible&&p.buffer!=null&&width>1&&height>1;p.editor.setVisibility(show?View.VISIBLE:View.GONE);
@@ -316,8 +329,9 @@ final class NativeEditorHost {
                 for(JSONArray ranges:new JSONArray[]{styles,unusedStyles}){if(ranges==null)continue;for(int i=0;i<ranges.length();i++){JSONObject r=ranges.optJSONObject(i);if(r==null)continue;int a=Math.max(0,Math.min(text.length(),r.optInt("start"))),z=Math.max(a,Math.min(text.length(),r.optInt("end")));String type=r.optString("type");int color=type.equals("unused")?UNUSED:type.equals("function")||type.equals("method")?EditorColorScheme.FUNCTION_NAME:type.equals("keyword")?EditorColorScheme.KEYWORD:type.equals("string")?STRING:type.equals("number")?NUMBER:TYPE;Arrays.fill(colors,a,z,color);}}
                 MappedSpans.Builder builder=new MappedSpans.Builder();int line=0,col=0,previous=-1;
                 for(int i=0;i<=text.length();i++){if((i&4095)==0&&delegate.isCancelled())return null;int color=colors[i];if(col==0||color!=previous){builder.addIfNeeded(line,col,color);previous=color;}if(i<text.length()&&(text.charAt(i)=='\n'||text.charAt(i)=='\r')){if(text.charAt(i)=='\r'&&i+1<text.length()&&text.charAt(i+1)=='\n')i++;line++;col=0;previous=-1;}else col++;}
-                builder.determine(line);Styles result=new RevisionStyles(builder.build(),owner,revision,StudioLanguage.this);JSONArray points=breakpoints;
-                if(points!=null)for(int i=0;i<points.length();i++){int row=points.optInt(i)-1;if(row<0||row>line)continue;android.graphics.drawable.GradientDrawable dot=new android.graphics.drawable.GradientDrawable();dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);dot.setColor(Color.rgb(219,88,96));dot.setSize(18,18);result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineSideIcon(row,dot));}
+                builder.determine(line);Styles result=new RevisionStyles(builder.build(),owner,revision,StudioLanguage.this);result.setIndentCountMode(true);
+                for(IndentGuides.Guide guide:IndentGuides.scan(text,typing.options.tab)){CodeBlock block=new CodeBlock();block.startLine=guide.first;block.endLine=guide.last;block.startColumn=block.endColumn=guide.column;block.toBottomOfEndLine=guide.toBottom;result.addCodeBlock(block);}JSONArray points=breakpoints;
+                if(points!=null)for(int i=0;i<points.length();i++){int row=points.optInt(i)-1;if(row<0||row>line)continue;android.graphics.drawable.GradientDrawable dot=new android.graphics.drawable.GradientDrawable();dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);dot.setColor(Color.rgb(219,88,96));dot.setSize(18,18);result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineBackground(row,new io.github.rosemoe.sora.lang.styling.color.ConstColor(Color.argb(24,219,88,96))));result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineSideIcon(row,dot));}
                 if(execution>=0&&execution<=line){result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineBackground(execution,new io.github.rosemoe.sora.lang.styling.color.ConstColor(Color.rgb(38,69,107))));android.graphics.drawable.Drawable arrow=app.getDrawable(com.forgex.R.drawable.ic_arrow_right);arrow.setTint(Color.rgb(84,138,247));result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineSideIcon(execution,arrow));}
                 result.finishBuilding();return result;
             }

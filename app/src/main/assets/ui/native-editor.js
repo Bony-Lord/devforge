@@ -19,7 +19,7 @@ const NativeEditing={
         if(r?.uri){this.snapshot(r);this.decorations(model);this.publishDiagnostics(model);this.scheduleAnalysis(model);}
       });
     };
-    editor.focus=()=>send('editorFocus');
+    editor.focus=async()=>{await this.layout();return send('editorFocus');};
     editor.hasTextFocus=editor.hasWidgetFocus=()=>this.focused===id&&!document.querySelector('dialog[open]');
     editor.onDidFocusEditorWidget=fn=>{api.focusListeners.add(fn);return{dispose:()=>api.focusListeners.delete(fn)};};
     editor.setPosition=position=>{original.setPosition(position);send('editorSelection',{line:position.lineNumber,column:position.column});};
@@ -64,7 +64,8 @@ const NativeEditing={
   layout(){
     const panes=[...this.panes.values()].filter(p=>!p.container.classList.contains('hidden')).map(p=>{const box=p.container.getBoundingClientRect();return{id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};});
     const visible=!document.querySelector('dialog[open]')&&document.querySelector('#menu')?.classList.contains('hidden')&&!document.body.classList.contains('sidebar-mobile-open');
-    return native('editorLayout',{panes,visible,settings:window.forge?.settings||{language:StudioI18n.locale}}).catch(console.warn);
+    const occlusions=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit')].map(e=>{const b=e.getBoundingClientRect();return{x:b.x,y:b.y,width:b.width,height:b.height,paint:e.classList.contains('studio-choice-popover')};});
+    return native('editorLayout',{panes,visible,occlusions,settings:window.forge?.settings||{language:StudioI18n.locale}}).catch(console.warn);
   },
   selection(e){
     const p=this.panes.get(e.id);if(!p||p.editor.getModel()?.uri.toString()!==e.uri)return;
@@ -74,12 +75,12 @@ const NativeEditing={
   invalidate(model){model.__analysisCancel?.cancel();for(const task of this.completionTasks.values())if(task.uri===model.uri.toString())task.cancel.cancel();this.scheduleAnalysis(model);const job=this.formatJobs.get(model.uri.toString());if(job&&!job.applying)this.scheduleFormat(job);},
   async typingOptions(model){
     if(['c','cpp'].includes(model.getLanguageId()))return native('formatterTypingConfig',{path:model.uri.fsPath}).catch(()=>({indent:4,tab:4,continuation:4,tabs:false}));
-    const settings=window.forge?.settings||{},custom=settings.indentMode&&settings.indentMode!=='formatter',indent=custom?settings.indentWidth||4:['cmake','yaml','json'].includes(model.getLanguageId())?2:4;
+    const settings=window.forge?.settings||{},custom=settings.indentMode&&settings.indentMode!=='formatter',indent=custom?settings.indentWidth||4:model.getLanguageId()==='cmake'?settings.indentWidth||4:['yaml','json'].includes(model.getLanguageId())?2:4;
     return{indent,tab:custom?settings.tabWidth||4:indent,continuation:indent,tabs:settings.indentMode==='tabs'};
   },
   async refreshTypingOptions(){for(const p of this.panes.values()){const model=p.editor.getModel();if(!model)continue;const typing=await this.typingOptions(model);if(!model.isDisposed())await native('editorTypingOptions',{uri:model.uri.toString(),typing});}},
   queueFormat(event){
-    const model=monaco.editor.getModel(monaco.Uri.parse(event.uri));if(!model||window.forge?.settings.smartFormatOnClose===false||event.revision!==this.revisions.get(event.uri))return;
+    const model=monaco.editor.getModel(monaco.Uri.parse(event.uri));if(!model||window.forge?.toolPackState?.packs.find(p=>p.id==='analysis')?.installed===false||window.forge?.settings.smartFormatOnClose===false||event.revision!==this.revisions.get(event.uri))return;
     let range=monaco.Range.fromPositions(model.getPositionAt(event.start),model.getPositionAt(event.end)),job=this.formatJobs.get(event.uri);
     if(job){const old=model.getDecorationRange(job.decoration);if(old)range=old.plusRange(range);model.deltaDecorations([job.decoration],[]);}
     else job={uri:event.uri,model,id:event.id,running:false};
@@ -110,7 +111,7 @@ const NativeEditing={
     }catch(error){console.warn('On-type formatting',error);this.discardFormat(job);}
     finally{job.running=false;if(job.again&&this.formatJobs.get(job.uri)===job)this.scheduleFormat(job);}
   },
-  scheduleAnalysis(model){clearTimeout(model.__analysisTimer);model.__analysisTimer=setTimeout(()=>this.analysis(model),120);},
+  scheduleAnalysis(model){clearTimeout(model.__analysisTimer);model.__analysisTimer=setTimeout(()=>this.analysis(model),60);},
   publishDiagnostics(model){
     const ide=window.forge;if(!ide||model.isDisposed())return;const uri=model.uri.toString(),revision=this.revisions.get(uri);if(revision===undefined)return;
     const diagnostics=[],unusedStyles=[];
@@ -194,16 +195,17 @@ const NativeEditing={
   }
 };
 function attachNativeEditor(editor,id){return NativeEditing.attach(editor,id);}
-function nativeBuildCompletions(model,pos){
+async function nativeBuildCompletions(model,pos){
   const ide=window.forge,before=model.getLineContent(pos.lineNumber).slice(0,pos.column-1);
   if(model.getLanguageId()==='cmake'){
     if(/\$\{[^}]*$/.test(before))return [...new Set([...cmakeVariables,...[...model.getValue().matchAll(/\bset\s*\(\s*([A-Za-z_]\w*)/gi)].map(m=>m[1])])].map(label=>({label}));
     return [...(ide.cmakeCommandNames||[]).map(label=>({label,insertText:cmakeSnippets[label]||label+'(${1})',insertTextFormat:2,detail:'CMake'})),...['PRIVATE','PUBLIC','INTERFACE','STATIC','SHARED','REQUIRED','CONFIG','ON','OFF','LANGUAGES','CXX'].map(label=>({label})),...(ide.cmakeSnapshot?.targets||[]).map(t=>({label:t.name})),...ide.flatFiles().map(f=>({label:relative(f.path,ide.state.root)}))];
   }
   if(model.getLanguageId()==='yaml'){
+    if(/clang-format$/.test(model.uri.fsPath)&&ide.toolPackState?.packs.find(p=>p.id==='analysis')?.installed&&!ide.formatterSchemaValues)await(ide.formatterSchemaPromise??=ide.loadFormatterSchema());
     const key=before.match(/^\s*([A-Za-z_]+):/)?.[1],field=FORMATTER_FIELDS.find(f=>f.key===key);
     if(key)return(field?.values||(typeof ide.formatterSchemaValues?.[key]==='boolean'?['true','false']:[])).map(v=>({label:String(v)}));
-    const names=/clang-format$/.test(model.uri.fsPath)?Object.keys(ide.formatterSchemaValues||{}):/clang-tidy$/.test(model.uri.fsPath)?['Checks','WarningsAsErrors','HeaderFilterRegex','CheckOptions','FormatStyle']:['CompileFlags','Diagnostics','InlayHints','Index','Completion','Hover'];return names.map(label=>({label,insertText:label+': '}));
+    const names=/clang-format$/.test(model.uri.fsPath)?ide.formatterSchemaValues?Object.keys(ide.formatterSchemaValues):FORMATTER_FIELDS.map(f=>f.key):/clang-tidy$/.test(model.uri.fsPath)?['Checks','WarningsAsErrors','HeaderFilterRegex','CheckOptions','FormatStyle']:['CompileFlags','Diagnostics','InlayHints','Index','Completion','Hover'];return names.map(label=>({label,insertText:label+': '}));
   }
   return [];
 }

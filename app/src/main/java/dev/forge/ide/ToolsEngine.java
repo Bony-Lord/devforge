@@ -30,6 +30,11 @@ final class ToolsEngine {
         File root=ide.project(ide.currentProject),file=new File(d.getString("executable")).getCanonicalFile();
         if(!ide.workspace.canExecute(file)||!file.isFile())throw new IOException("Программа для отладки не найдена");
         file.setExecutable(true,true);
+        File printers=new File(ide.app.getFilesDir(),"debug/libcxx/printers.py");printers.getParentFile().mkdirs();
+        try(InputStream in=ide.app.getAssets().open("debug/libcxx/printers.py")){Files.copy(in,printers.toPath(),StandardCopyOption.REPLACE_EXISTING);}
+        try(InputStream in=ide.app.getAssets().open("debug/libcxx/__init__.py")){Files.copy(in,new File(printers.getParentFile(),"__init__.py").toPath(),StandardCopyOption.REPLACE_EXISTING);}
+        File loader=new File(ide.app.getFilesDir(),"debug/studio-printers.py");
+        String source="import sys\nsys.path.insert(0, "+JSONObject.quote(printers.getParentFile().getParent()).replace("\\/","/")+")\nfrom libcxx.printers import register_libcxx_printer_loader\nregister_libcxx_printer_loader()\n";Files.write(loader.toPath(),source.getBytes(StandardCharsets.UTF_8));
         String id=d.optString("id",UUID.randomUUID().toString());session=id;
         Process io=ide.spawn(Arrays.asList(ide.bin("forge-pty")),root,false);relay=io;
         String tty=IdeEngine.asciiLine(io.getInputStream());
@@ -46,7 +51,7 @@ final class ToolsEngine {
             finally{if(gdb==debugger){gdb=null;io.destroy();try{ide.app.event("gdbExit",new JSONObject().put("session",id));}catch(Exception ignored){}}}
         });
         ide.pool.execute(()->ide.pump(debugger.getErrorStream(),id,"stderr"));
-        return new JSONObject().put("tty",tty).put("session",id).put("executable",file.getAbsolutePath());
+        return new JSONObject().put("printers",loader.getAbsolutePath()).put("tty",tty).put("session",id).put("executable",file.getAbsolutePath());
     }
     synchronized void sendDebug(String command)throws Exception {
         Process p=gdb;if(p==null||!p.isAlive())throw new IOException("GDB остановлен");

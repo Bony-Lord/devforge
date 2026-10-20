@@ -1,0 +1,109 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "scope": "Own isolated project; real ADB touch drag/cancel, native filesystem and editor; WebView timings describe this fixture only",
+  "checks": [
+    {
+      "test": "Selecting a folder targets both creation dialogs to that folder",
+      "passed": true,
+      "evidence": {
+        "file": "aa-ux-1792476539103/from/new_file",
+        "folder": "aa-ux-1792476539103/from/new_folder",
+        "base": "aa-ux-1792476539103"
+      }
+    },
+    {
+      "test": "Selecting a file targets its containing folder",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Clicking outside the explorer clears its selection without closing the file",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Moving an open unsaved file preserves text, caret, breakpoints and local history",
+      "passed": true,
+      "evidence": {
+        "path": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/aa-ux-1792476539103/to/original.cpp",
+        "text": "// unsaved move probe\nint moved_value = 42;\n",
+        "breakpoint": true,
+        "history": 1,
+        "caret": {
+          "lineNumber": 2,
+          "column": 5
+        }
+      }
+    },
+    {
+      "test": "Conflicting destinations preserve both original files",
+      "passed": true,
+      "evidence": {
+        "rejected": true,
+        "source": "// collision source\n",
+        "target": "// unsaved move probe\nint moved_value = 42;\n"
+      }
+    },
+    {
+      "test": "Backend rejects moving a directory into its descendant",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Moving a folder remaps nested open documents and their encodings",
+      "passed": true,
+      "evidence": {
+        "active": "/data/user/0/com.forgex/files/projects/input-check-tablet-1792471273/aa-ux-1792476539103/to/from/nested/header.hpp",
+        "encoding": "UTF-16LE"
+      }
+    },
+    {
+      "test": "Actual Android touch drag handle moves a file to another folder",
+      "passed": true,
+      "evidence": "// actual touch drag\n"
+    },
+    {
+      "test": "Releasing a drag outside the explorer cancels it safely",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Alternating C++ and CMake tabs leaves native editing ready",
+      "passed": true,
+      "evidence": {
+        "medianMs": 100,
+        "maxMs": 148,
+        "model": "cmake"
+      }
+    },
+    {
+      "test": "Idle UI animation cadence stays responsive during the scenario",
+      "passed": true,
+      "evidence": {
+        "medianMs": 16.7,
+        "p95Ms": 16.7
+      }
+    },
+    {
+      "test": "Report issue opens a prefilled GitHub draft, without posting",
+      "passed": true,
+      "evidence": "https://github.com/Bony-Lord/gcc-cpp-studio/issues/new?template=bug_report.yml&version=0.3.0&device=Xiaomi%2023043RP34I&android=14%20%2F%20API%2034"
+    },
+    {
+      "test": "Actual Android long press opens file actions including Show in Files",
+      "passed": true,
+      "evidence": {
+        "menu": true,
+        "file": true,
+        "showInFiles": true
+      }
+    },
+    {
+      "test": "Actual tap on empty explorer space clears selection",
+      "passed": true,
+      "evidence": true
+    }
+  ],
+  "passed": 14,
+  "total": 14
+}

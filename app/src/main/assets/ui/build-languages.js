@@ -35,7 +35,7 @@ function registerBuildLanguages(ide){
     if(!/\/(?:\.clang-format|_clang-format|\.clangd|\.clang-tidy)$/.test(model.uri.fsPath))return{suggestions:[]};
     const word=model.getWordUntilPosition(pos),range=new m.Range(pos.lineNumber,word.startColumn,pos.lineNumber,word.endColumn),line=model.getLineContent(pos.lineNumber),key=line.match(/^\s*([A-Za-z_]+):/)?.[1],fields=typeof FORMATTER_FIELDS==='undefined'?[]:FORMATTER_FIELDS;
     if(key){const field=fields.find(f=>f.key===key),values=field?.values||(typeof ide.formatterSchemaValues?.[key]==='boolean'?['true','false']:[]);return{suggestions:values.map(v=>({label:String(v),insertText:String(v),range,kind:l.CompletionItemKind.EnumMember}))};}
-    const format=/clang-format$/.test(model.uri.fsPath),names=format?Object.keys(ide.formatterSchemaValues||{}):/clang-tidy$/.test(model.uri.fsPath)?['Checks','WarningsAsErrors','HeaderFilterRegex','CheckOptions','FormatStyle']:['CompileFlags','Diagnostics','InlayHints','Index','Completion','Hover'];
+    const format=/clang-format$/.test(model.uri.fsPath),names=format?(ide.formatterSchemaValues?Object.keys(ide.formatterSchemaValues):fields.map(f=>f.key)):/clang-tidy$/.test(model.uri.fsPath)?['Checks','WarningsAsErrors','HeaderFilterRegex','CheckOptions','FormatStyle']:['CompileFlags','Diagnostics','InlayHints','Index','Completion','Hover'];
     return{suggestions:names.map(name=>({label:name,insertText:name+': ',range,kind:l.CompletionItemKind.Property,documentation:fields.find(f=>f.key===name)?.label||name}))};
   }});
 }

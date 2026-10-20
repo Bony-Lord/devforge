@@ -11,7 +11,7 @@ const fileOptionsMethods={
   updateFileOptions(){
     document.querySelector('#encodingStatus').textContent=this.active?.encoding||'UTF-8';
     const mode=this.settings.indentMode;
-    document.querySelector('#indentStatus').textContent=mode==='formatter'?'.clang-format':tr(mode==='tabs'?'Табы':'Пробелы')+': '+this.settings.indentWidth;
+    const status=document.querySelector('#indentStatus');status.textContent=mode==='formatter'?'.clang-format':tr(mode==='tabs'?'Табы':'Пробелы')+': '+this.settings.indentWidth;if(mode==='formatter'&&this.active){const doc=this.active;NativeEditing.typingOptions(doc.model).then(o=>{if(this.active===doc&&this.settings.indentMode==='formatter'){status.textContent=tr(o.tabs?'Табы':'Пробелы')+': '+(o.tabs?o.tab:o.indent);status.title='.clang-format';}}).catch(console.warn);}
   },
   chooseEncoding(path,current='UTF-8',opening=false){
     const dialog=document.querySelector('#encodingDialog'),choice=document.querySelector('#encodingChoice'),reopen=document.querySelector('#encodingReopen'),convert=document.querySelector('#encodingConvert');

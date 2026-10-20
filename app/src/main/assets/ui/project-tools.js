@@ -19,6 +19,7 @@ const projectToolsMethods={
     this.initFormatter();
     monaco.editor.onDidChangeMarkers(uris=>{for(const uri of uris){const model=monaco.editor.getModel(uri);if(model)NativeEditing.publishDiagnostics(model);}});
   },
+  async showInFiles(path){await this.saveAll();await native('showInFiles',{path});},
   async openDeviceFolder(){await this.saveAll();$('#folderDialog').showModal();await this.browseFolder(this.state.external?this.state.root:undefined);},
   async browseFolder(path){
     const result=await native('browseFilesystem',path?{path}:{});const list=$('#folderEntries');list.replaceChildren();$('#folderPermission').classList.toggle('hidden',result.permission);$('#selectFolder').disabled=!result.permission;
@@ -28,7 +29,7 @@ const projectToolsMethods={
     for(const item of result.entries){const b=document.createElement('button');b.className='folder-entry';b.dataset.noI18n='';b.innerHTML=svg(item.dir?'folder':'file-text')+'<span>'+escapeHtml(item.name)+'</span>';b.disabled=!item.dir;b.onclick=()=>this.browseFolder(item.path);list.append(b);}
   },
   async selectDeviceFolder(){const result=await native('openFolder',{path:this.folderLocation});$('#folderDialog').close();await this.switchProject(result.project);await native('formatterConfig');await this.refreshTree();this.toast('Папка открыта без копирования');},
-  async newFolder(){const answer=await this.prompt('Новая папка','Путь относительно проекта','src');if(!answer)return;await native('newFolder',{path:this.state.root+'/'+answer.value.trim()});await this.refreshTree();},
+  async newFolder(directory){directory??=this.treeDirectory();const answer=await this.prompt('Новая папка','Путь относительно проекта',directory?directory+'/new_folder':'src');if(!answer)return;const path=this.state.root+'/'+answer.value.trim();await native('newFolder',{path});await this.refreshTree();this.selectTreeItem({path,dir:true});},
   async inspectCmake(model=this.active?.model){
     if(!model||this.docs.get(model.uri.toString())?.readonly||!['cpp','c'].includes(model.getLanguageId()))return null;
     const project=this.state.project,root=this.state.root,source=model.uri.fsPath;const files=this.flatFiles().filter(f=>f.name==='CMakeLists.txt'||f.name.endsWith('.cmake')).slice(0,100);
@@ -53,7 +54,7 @@ const projectToolsMethods={
   async offerCMakeSource(path=this.active?.path){const model=await this.ensureModel(path),status=await this.inspectCmake(model);if(!status||status.included){this.toast('Файл уже включён в CMake');return;}if(!status.targets.length){this.toast('В CMake не найдена обычная цель add_executable/add_library');return;}if(status.targets.length===1)return this.addCMakeSource(path,status.targets[0]);this.quickItems=status.targets.map(target=>({label:target.name,detail:relative(target.file,this.state.root),run:()=>this.addCMakeSource(path,target)}));this.openQuick('Выберите цель CMake');},
   async addCMakeSource(path,target){
     const file=target.file,model=await this.ensureModel(file),dir=file.slice(0,file.lastIndexOf('/'));const from=dir.split('/'),to=path.split('/');while(from.length&&to.length&&from[0]===to[0]){from.shift();to.shift();}const name=[...from.map(()=>'..'),...to].join('/');const quoted='"'+name.replace(/\\/g,'/').replace(/\$/g,'\\$').replace(/"/g,'\\"').replace(/;/g,'\\;')+'"';
-    const edit=`\n# Added by GCC C++ Studio\ntarget_sources(${target.name} PRIVATE\n    ${quoted}\n)\n`;model.pushEditOperations([],[{range:new monaco.Range(model.getLineCount(),model.getLineMaxColumn(model.getLineCount()),model.getLineCount(),model.getLineMaxColumn(model.getLineCount())),text:edit}],()=>null);await this.saveAll();await this.refreshCMakeStatus();await this.configureCMake();
+    const edit=`\n# Added by C++ Studio\ntarget_sources(${target.name} PRIVATE\n    ${quoted}\n)\n`;model.pushEditOperations([],[{range:new monaco.Range(model.getLineCount(),model.getLineMaxColumn(model.getLineCount()),model.getLineCount(),model.getLineMaxColumn(model.getLineCount())),text:edit}],()=>null);await this.saveAll();await this.refreshCMakeStatus();await this.configureCMake();
   },
   async configureCMake(){if(this.busy||this.running)return;await this.saveAll();this.busy=true;this.updateRunButtons();this.showPanel('build');this.buildId='cmake-config-'+(++this.sequence);try{const result=await native('cmakeConfigure',{options:this.settings,id:this.buildId});if(result.code!==0)throw new Error(tr('CMake не настроен. Подробности в панели сборки.'));await this.lsp.start();await this.refreshCMakeStatus();this.toast('CMake обновлён');}finally{this.busy=false;this.updateRunButtons();}},
   projectCommands(){return[{label:'Открыть папку устройства',key:'Ctrl+Alt+O',run:()=>this.openDeviceFolder()},{label:'Создать папку',run:()=>this.newFolder()},{label:'Обновить CMake',run:()=>this.configureCMake()},{label:'Добавить файл в CMake',run:()=>this.offerCMakeSource()},{label:'Настроить форматтер',key:'Ctrl+Alt+Shift+L',run:()=>this.openFormatter()},{label:'Открыть .clang-format',run:async()=>{const config=await native('formatterConfig');await this.refreshTree();await this.openFile(config.path);}}];}

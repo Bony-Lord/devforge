@@ -1,0 +1,26 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14 / Xiaomi Smart Pen Keyboard",
+  "scope": "User physically pressed Q, Ctrl+Space, Q in an isolated editor fixture; text read back from the live buffer",
+  "checks": [
+    {
+      "test": "Physical keyboard switches language with Ctrl+Space",
+      "passed": true,
+      "evidence": {
+        "text": "йq",
+        "completionRequests": 0,
+        "userConfirmed": true
+      }
+    },
+    {
+      "test": "Ctrl+Shift+Space requests completion through the native editor",
+      "passed": true,
+      "evidence": {
+        "injectedCombination": "Ctrl+Shift+Space",
+        "nativeCompletionEvents": 1,
+        "scope": "ADB key combination delivered through normal Android dispatch"
+      }
+    }
+  ],
+  "passed": 2,
+  "total": 2
+}

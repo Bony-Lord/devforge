@@ -19,7 +19,7 @@ $taskGradleTask = if ($Release) { ':app:assembleRelease' } else { ':app:assemble
 Push-Location $taskRoot
 try { & .\gradlew.bat $taskGradleTask --console=plain } finally { Pop-Location }
 if ($LASTEXITCODE -ne 0) { throw 'Gradle build failed' }
-$taskApk = Join-Path $taskRoot '..\GCC-CPP-Studio-arm64.apk'
+$taskApk = Join-Path $taskRoot '..\Cpp-Studio-arm64.apk'
 Copy-Item -LiteralPath "$taskRoot\app\build\outputs\apk\$taskVariant\app-$taskVariant.apk" -Destination $taskApk -Force
 & "$taskAndroid\apksigner.bat" verify $taskApk
 if ($LASTEXITCODE -ne 0) { throw 'APK verification failed' }

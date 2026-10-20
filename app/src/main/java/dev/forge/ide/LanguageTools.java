@@ -15,6 +15,7 @@ final class LanguageTools {
     Object handle(String op,JSONObject data)throws Exception {
         switch(op){
             case "formatterConfig":return config();
+            case "formatterPresets":return new JSONObject().put("studio",DEFAULT_STYLE).put("clion",DEFAULT_STYLE.replace("ReferenceAlignment: Left","ReferenceAlignment: Right").replace("SpaceBeforeRangeBasedForLoopColon: true","SpaceBeforeRangeBasedForLoopColon: false"));
             case "formatterPreview":return preview(data);
             case "formatterSchema":return capture(Arrays.asList(ide.bin("clang-format"),"--style=LLVM","--dump-config"),"");
             case "formatterTypingConfig":return typingConfig(data.getString("path"));
@@ -41,6 +42,7 @@ final class LanguageTools {
         }
     }
     JSONObject typingConfig(String path)throws Exception {
+        if(!new File(ide.bin("clang-format")).isFile())return typingOverrides(new JSONObject().put("indent",4).put("tab",4).put("continuation",4).put("tabs",false));
         File file=ide.readable(path);config();StringBuilder key=new StringBuilder(file.getAbsolutePath());
         for(File dir=file.getParentFile();dir!=null;dir=dir.getParentFile())for(String name:new String[]{".clang-format","_clang-format"}){File f=new File(dir,name);key.append('|').append(f.getPath()).append(':').append(f.lastModified()).append(':').append(f.length());}
         String cacheKey=key.toString();JSONObject cached=typingCache.get(cacheKey);if(cached!=null)return typingOverrides(new JSONObject(cached.toString()));
@@ -49,12 +51,13 @@ final class LanguageTools {
     }
     JSONObject typingOverrides(JSONObject options)throws Exception {JSONObject settings=ide.settings();String mode=settings.optString("indentMode","formatter");if(!mode.equals("formatter")){options.put("indent",Math.max(1,Math.min(16,settings.optInt("indentWidth",4)))).put("tab",Math.max(1,Math.min(16,settings.optInt("tabWidth",4)))).put("tabs",mode.equals("tabs"));}return options;}
     String formatStyle()throws Exception {JSONObject settings=ide.settings();String mode=settings.optString("indentMode","formatter");if(mode.equals("formatter"))return "--style=file";return "--style={BasedOnStyle: InheritParentConfig, IndentWidth: "+Math.max(1,Math.min(16,settings.optInt("indentWidth",4)))+", TabWidth: "+Math.max(1,Math.min(16,settings.optInt("tabWidth",4)))+", UseTab: "+(mode.equals("tabs")?"Always":"Never")+"}";}
+    String defaultStyle()throws Exception {String preset=ide.settings().optString("formatterPreset","studio");if(preset.equals("studio"))return DEFAULT_STYLE;if(preset.equals("clion"))return DEFAULT_STYLE.replace("ReferenceAlignment: Left","ReferenceAlignment: Right").replace("SpaceBeforeRangeBasedForLoopColon: true","SpaceBeforeRangeBasedForLoopColon: false");return Arrays.asList("LLVM","Google","Chromium","Mozilla","WebKit","Microsoft","GNU").contains(preset)?"BasedOnStyle: "+preset+"\n":DEFAULT_STYLE;}
     JSONObject config()throws Exception {
         File root=ide.project(ide.currentProject),file=new File(root,".clang-format");
         File alternate=new File(root,"_clang-format");if(!file.isFile()&&alternate.isFile())file=alternate;
         String old="BasedOnStyle: LLVM\nIndentWidth: 4\nColumnLimit: 100\n";
         String migration="formatterStudioStyle:"+root.getAbsolutePath();boolean migrated=ide.prefs.getBoolean(migration,false);
-        if(!file.exists()||!migrated&&file.isFile()&&IdeEngine.read(file).replace("\r\n","\n").equals(old))ide.save(file.getAbsolutePath(),DEFAULT_STYLE);
+        if(!file.exists()||!migrated&&file.isFile()&&IdeEngine.read(file).replace("\r\n","\n").equals(old))ide.save(file.getAbsolutePath(),defaultStyle());
         if(!migrated)ide.prefs.edit().putBoolean(migration,true).apply();
         return new JSONObject().put("path",file.getAbsolutePath()).put("text",IdeEngine.read(file)).put("defaults",DEFAULT_STYLE);
     }

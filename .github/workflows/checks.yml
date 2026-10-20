@@ -23,6 +23,7 @@ jobs:
           for f in app/src/main/assets/ui/*.js; do node --check "$f"; done
           node tests/protocol.test.cjs
           node tests/native-editor-state.test.cjs
+          node tests/interaction.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
       - name: Real host clang-format behavior
@@ -32,9 +33,11 @@ jobs:
       - name: Smart typing and lossless file encoding
         run: |
           mkdir -p build/core-checks
-          javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{SmartTyping,FileCodec}.java tests/java/dev/forge/ide/{SmartTypingTest,FileCodecTest}.java
+          javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{SmartTyping,FileCodec,FileTemplates,IndentGuides}.java tests/java/dev/forge/ide/{SmartTypingTest,FileCodecTest,FileTemplatesTest,IndentGuidesTest}.java
           java -cp build/core-checks dev.forge.ide.SmartTypingTest
           java -cp build/core-checks dev.forge.ide.FileCodecTest
+          java -cp build/core-checks dev.forge.ide.FileTemplatesTest
+          java -cp build/core-checks dev.forge.ide.IndentGuidesTest
       - name: Compile Android Java host
         run: |
           chmod +x gradlew

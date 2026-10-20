@@ -1,0 +1,38 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "scope": "Real Android KEYCODE_TAB, C++ .clang-format and CMake defaults",
+  "checks": [
+    {
+      "language": "cpp",
+      "visual": {
+        "indent": 4,
+        "tabWidth": 4,
+        "sideIcons": true,
+        "textOffset": 93.625,
+        "guides": 0,
+        "guideColor": 894325079
+      },
+      "result": {
+        "line": "    ",
+        "columns": 4
+      }
+    },
+    {
+      "language": "cmake",
+      "visual": {
+        "indent": 4,
+        "tabWidth": 4,
+        "sideIcons": true,
+        "textOffset": 93.625,
+        "guides": 0,
+        "guideColor": 894325079
+      },
+      "result": {
+        "line": "    ",
+        "columns": 4
+      }
+    }
+  ],
+  "passed": 2,
+  "total": 2
+}

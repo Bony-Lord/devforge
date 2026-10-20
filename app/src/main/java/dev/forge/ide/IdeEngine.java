@@ -12,6 +12,7 @@ import java.util.zip.*;
 final class IdeEngine {
     final MainActivity app;
     final ToolsEngine tools;
+    final ToolPacks toolPacks;
     final WorkspaceFiles workspace;
     final LanguageTools languages;
     final File projects,usr,tmp;
@@ -35,7 +36,7 @@ final class IdeEngine {
         if(!new File(projects,"hello-cpp").exists()) createProject("hello-cpp","cpp");
         currentProject=prefs.getString("project","hello-cpp");
         if(!project(currentProject).isDirectory())currentProject="hello-cpp";
-        tools=new ToolsEngine(this);
+        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
         JSONObject d=data==null?new JSONObject():data;
@@ -64,11 +65,27 @@ final class IdeEngine {
             }
             case "convertEncoding":{if(app.nativeEditors!=null&&!app.nativeEditors.currentRevision(d.getString("path"),d.getLong("revision")))return false;return save(d.getString("path"),d.getString("text"),d.getString("encoding"));}
             case "write":return d.has("revision")?saveVersioned(d.getString("path"),d.getString("text"),d.getLong("revision")):save(d.getString("path"),d.getString("text"));
+            case "templatePreview":case "createTemplate": {
+                LinkedHashMap<String,String> templates=FileTemplates.create(d.getString("kind"),d.getString("name"),d.optString("namespace").trim());JSONArray result=new JSONArray();List<File> created=new ArrayList<>();
+                for(String path:templates.keySet()){File file=writablePath(new File(project(currentProject),path).getAbsolutePath());if(file.exists())throw new IOException("File already exists: "+path);}
+                try{for(var entry:templates.entrySet()){File file=writablePath(new File(project(currentProject),entry.getKey()).getAbsolutePath());if(op.equals("createTemplate")){file.getParentFile().mkdirs();Files.write(file.toPath(),FileCodec.encode(entry.getValue(),settings().optString("defaultEncoding","UTF-8")),StandardOpenOption.CREATE_NEW);created.add(file);}result.put(new JSONObject().put("path",op.equals("createTemplate")?file.getAbsolutePath():entry.getKey()).put("text",entry.getValue()));}}catch(Exception error){for(File file:created)Files.deleteIfExists(file.toPath());throw error;}for(File file:created)prefs.edit().putString("fileEncoding:"+file.getAbsolutePath(),settings().optString("defaultEncoding","UTF-8")).apply();return result;
+            }
             case "newFile": {
                 File f=writable(d.getString("path"));
                 if(f.exists())throw new IOException("Файл уже существует");
-                String encoding=settings().optString("defaultEncoding","UTF-8");byte[] bytes=FileCodec.encode(d.optString("text",""),encoding);f.getParentFile().mkdirs();Files.write(f.toPath(),bytes);prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return f.getAbsolutePath();
+                String encoding=settings().optString("defaultEncoding","UTF-8");byte[] bytes=FileCodec.encode(d.optString("text",""),encoding);f.getParentFile().mkdirs();Files.write(f.toPath(),bytes,StandardOpenOption.CREATE_NEW);prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return f.getAbsolutePath();
             }
+            case "moveProjectItem":{
+                File from=writablePath(d.getString("path")),to=writablePath(d.getString("to")),dataDir=workspace.data();
+                if(!from.exists()||!to.getParentFile().isDirectory())throw new IOException("Source or destination folder is unavailable");
+                if(inside(to,from)||inside(from,dataDir)||from.equals(dataDir))throw new IOException("Cannot move a folder inside itself or move IDE metadata");
+                if(to.exists())throw new IOException("Этот путь уже существует");
+                Files.move(from.toPath(),to.toPath());
+                var edit=prefs.edit();String prefix="fileEncoding:"+from.getAbsolutePath();for(var entry:prefs.getAll().entrySet())if(entry.getKey().equals(prefix)||entry.getKey().startsWith(prefix+"/")){edit.remove(entry.getKey());edit.putString("fileEncoding:"+to.getAbsolutePath()+entry.getKey().substring(prefix.length()),String.valueOf(entry.getValue()));}edit.apply();
+                File histories=new File(dataDir,"history");File[] records=histories.listFiles();if(records!=null)for(File record:records)try{String oldPath=new String(android.util.Base64.decode(record.getName(),android.util.Base64.URL_SAFE),StandardCharsets.UTF_8);if(oldPath.equals(from.getAbsolutePath())||oldPath.startsWith(from.getAbsolutePath()+"/")){File target=historyDir(new File(to.getAbsolutePath()+oldPath.substring(from.getAbsolutePath().length())));target.mkdirs();File[] versions=record.listFiles();if(versions!=null)for(File version:versions){File moved=new File(target,version.getName());if(moved.exists())moved=new File(target,version.getName()+"-moved-"+UUID.randomUUID());Files.move(version.toPath(),moved.toPath());}Files.deleteIfExists(record.toPath());}}catch(Exception metadataError){android.util.Log.w("Studio","Retained previous history location",metadataError);}
+                return to.getAbsolutePath();
+            }
+            case "reportBug":{android.net.Uri uri=android.net.Uri.parse("https://github.com/Bony-Lord/gcc-cpp-studio/issues/new").buildUpon().appendQueryParameter("template","bug_report.yml").appendQueryParameter("version",version).appendQueryParameter("device",Build.MANUFACTURER+" "+Build.MODEL).appendQueryParameter("android",Build.VERSION.RELEASE+" / API "+Build.VERSION.SDK_INT).build();app.ui.post(()->{try{app.startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,uri));}catch(android.content.ActivityNotFoundException e){app.event("toast",JSONObject.quote(uri.toString()));}});return uri.toString();}
             case "renameFile": {
                 File from=writablePath(d.getString("path")),to=writablePath(d.getString("to"));
                 if(!inside(to,project(currentProject)))throw new IOException("Выберите путь внутри проекта");
@@ -82,6 +99,10 @@ final class IdeEngine {
                 trash.getParentFile().mkdirs();Files.move(f.toPath(),trash.toPath());return true;
             }
             case "history":return history(d.getString("path"));
+            case "toolPacks":return toolPacks.state();
+            case "toolPackInstall":return toolPacks.install(d.getString("id"));
+            case "toolPackRemove":return toolPacks.remove(d.getString("id"));
+            case "showInFiles":{File root=project(currentProject),selected=new File(d.optString("path",root.getAbsolutePath())).getCanonicalFile();if(!inside(selected,root)||!selected.exists())throw new IOException("Project path unavailable");File directory=selected.isDirectory()?selected:selected.getParentFile();android.net.Uri uri=ProjectDocumentsProvider.directoryUri(currentProject,root,directory);app.ui.post(()->{try{android.content.Intent intent=new android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri,android.provider.DocumentsContract.Document.MIME_TYPE_DIR).addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);app.startActivity(intent);}catch(android.content.ActivityNotFoundException e){app.event("toast",JSONObject.quote("File manager unavailable"));}});return true;}
             case "probe":return probes();
             case "lspStart":return startLsp(d);
             case "lspSend":sendLsp(d.getJSONObject("message"));return true;
@@ -121,12 +142,12 @@ final class IdeEngine {
     void createProject(String name,String lang)throws Exception {
         File p=newProjectDir(name);
         boolean c=lang.equals("c");
-        String source=c?"#include <stdio.h>\n\nint main(void) {\n    printf(\"Hello from GCC C++ Studio!\\n\");\n    return 0;\n}\n":"#include <iostream>\n#include <vector>\n#include <numeric>\n\nint main() {\n    std::vector<int> numbers{1, 2, 3, 4, 5};\n    const auto sum = std::accumulate(numbers.begin(), numbers.end(), 0);\n    std::cout << \"Hello from GCC C++ Studio!\\n\";\n    std::cout << \"Sum = \" << sum << '\\n';\n    return 0;\n}\n";
+        String source=c?"#include <stdio.h>\n\nint main(void) {\n    printf(\"Hello from C++ Studio!\\n\");\n    return 0;\n}\n":"#include <iostream>\n#include <vector>\n#include <numeric>\n\nint main() {\n    std::vector<int> numbers{1, 2, 3, 4, 5};\n    const auto sum = std::accumulate(numbers.begin(), numbers.end(), 0);\n    std::cout << \"Hello from C++ Studio!\\n\";\n    std::cout << \"Sum = \" << sum << '\\n';\n    return 0;\n}\n";
         Files.write(new File(p,c?"main.c":"main.cpp").toPath(),source.getBytes(StandardCharsets.UTF_8));
         String cmake="cmake_minimum_required(VERSION 3.16)\nproject(forge_project LANGUAGES "+(c?"C":"CXX")+")\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable(app "+(c?"main.c":"main.cpp")+")\n";
         Files.write(new File(p,"CMakeLists.txt").toPath(),cmake.getBytes(StandardCharsets.UTF_8));
         Files.write(new File(p,".gitignore").toPath(),".forge/\nbuild/\n".getBytes(StandardCharsets.UTF_8));
-        Files.write(new File(p,".clang-format").toPath(),LanguageTools.DEFAULT_STYLE.getBytes(StandardCharsets.UTF_8));
+        Files.write(new File(p,".clang-format").toPath(),languages.defaultStyle().getBytes(StandardCharsets.UTF_8));
     }
     boolean inside(File f,File root)throws IOException {String x=f.getCanonicalPath(),r=root.getCanonicalPath();return x.equals(r)||x.startsWith(r+"/");}
     File writablePath(String path)throws IOException {
@@ -249,7 +270,7 @@ final class IdeEngine {
         File cmakeDb=new File(workspace.data(),"cmake-"+options.optString("compiler","gcc")+"-"+standard(options,false).replace('+','p')+"/compile_commands.json");
         if(options.optString("buildMode").equals("cmake")&&cmakeDb.isFile())Files.copy(cmakeDb.toPath(),new File(config,"compile_commands.json").toPath(),StandardCopyOption.REPLACE_EXISTING);
         else Files.write(new File(config,"compile_commands.json").toPath(),db.toString(2).getBytes(StandardCharsets.UTF_8));
-        final Process process=spawn(Arrays.asList(bin("clangd"),"--background-index","--clang-tidy","--completion-style=detailed","--header-insertion=iwyu","--pch-storage=memory","--log=error","--compile-commands-dir="+config.getAbsolutePath(),"--query-driver="+bin("*")+","+new File(usr,"libexec/gcc/*/*/*").getAbsolutePath()),root,false);
+        final Process process=spawn(Arrays.asList(bin("clangd"),"--background-index","--background-index-priority=low","-j=2","--clang-tidy="+options.optBoolean("clangTidy",false),"--limit-results=100","--completion-style=detailed","--header-insertion=iwyu","--pch-storage=memory","--log=error","--compile-commands-dir="+config.getAbsolutePath(),"--query-driver="+bin("*")+","+new File(usr,"libexec/gcc/*/*/*").getAbsolutePath()),root,false);
         lsp=process;final long gen=++lspGeneration;
         pool.execute(()->readLsp(process,gen));
         pool.execute(()-> {try{String err=slurp(process.getErrorStream(),16000);if(!err.trim().isEmpty()&&gen==lspGeneration)app.event("lspLog",JSONObject.quote(err));}catch(IOException ignored){} });

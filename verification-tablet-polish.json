@@ -1,0 +1,192 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "scope": "Own project only; actual Android popup tap; on-device compiler/tools and native rendering metrics",
+  "checks": [
+    {
+      "test": "Full first-run setup downloaded and installed canonical packs over HTTPS",
+      "passed": true,
+      "evidence": {
+        "complete": true,
+        "packs": [
+          {
+            "id": "analysis",
+            "installed": true
+          },
+          {
+            "id": "clang",
+            "installed": true
+          },
+          {
+            "id": "debugger",
+            "installed": true
+          },
+          {
+            "id": "git",
+            "installed": true
+          }
+        ]
+      }
+    },
+    {
+      "test": "Locally computed indentation guides and fixed breakpoint gutter",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "indent": 4,
+          "tabWidth": 4,
+          "sideIcons": true,
+          "textOffset": 93.625,
+          "guides": 3,
+          "guideColor": 894325079
+        },
+        "after": {
+          "indent": 4,
+          "tabWidth": 4,
+          "sideIcons": true,
+          "textOffset": 93.625,
+          "guides": 3,
+          "guideColor": 894325079
+        }
+      }
+    },
+    {
+      "test": "File tabs keep a compact 36 CSS pixel height",
+      "passed": true,
+      "evidence": 36
+    },
+    {
+      "test": "Hover preserves the narrow divider width",
+      "passed": true,
+      "evidence": 6
+    },
+    {
+      "test": "Actual Android touch selects an anchored option over the native editor",
+      "passed": true,
+      "evidence": {
+        "selected": "c++23",
+        "closed": true,
+        "modal": false
+      }
+    },
+    {
+      "test": "Separate folder toolbar button creates a real nested folder",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "C++ Studio and CLion remain separate formatter presets",
+      "passed": true,
+      "evidence": {
+        "studio": "BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n",
+        "clion": "BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Right\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: false\n",
+        "text": "void f(auto& v) {\n    for (auto& el : v) {\n        auto *ptr = &el;\n    }\n}",
+        "code": 0
+      }
+    },
+    {
+      "test": "Template files honor the configured UTF-16LE encoding",
+      "passed": true,
+      "evidence": {
+        "encoding": "UTF-16LE",
+        "text": "#pragma once\n\n"
+      }
+    },
+    {
+      "test": "Source creation offers a valid real CMakeLists when none exists",
+      "passed": true,
+      "evidence": {
+        "text": "cmake_minimum_required(VERSION 3.22)\nproject(app LANGUAGES C CXX)\nset(CMAKE_CXX_STANDARD 20)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable(app \"main.cpp\")\n",
+        "code": 0
+      }
+    },
+    {
+      "test": "First-run quick/full/custom modes and skip remain available",
+      "passed": true,
+      "evidence": {
+        "modes": 3,
+        "dependency": true,
+        "closed": true
+      }
+    },
+    {
+      "test": "A file context menu and the project root expose Show in Files",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "File manager rejects paths outside the selected project",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Android Files opens the actual private project directory through DocumentsProvider",
+      "passed": true,
+      "evidence": {
+        "package": "com.google.android.documentsui",
+        "entries": [
+          "src",
+          "main.cpp",
+          "CMakeLists.txt"
+        ]
+      }
+    },
+    {
+      "test": "All five setup steps render in English without untranslated Russian labels",
+      "passed": true,
+      "evidence": {
+        "locale": "en",
+        "steps": [
+          {
+            "step": 0,
+            "cyrillic": []
+          },
+          {
+            "step": 1,
+            "cyrillic": []
+          },
+          {
+            "step": 2,
+            "cyrillic": []
+          },
+          {
+            "step": 3,
+            "cyrillic": []
+          },
+          {
+            "step": 4,
+            "cyrillic": []
+          }
+        ]
+      }
+    },
+    {
+      "test": "Setup back button is hidden on the first step",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Compiler temporaries toggle works and breakpoint view is limited to the current project",
+      "passed": true,
+      "evidence": {
+        "hidden": [
+          "el",
+          "point",
+          "values",
+          "name"
+        ],
+        "shown": [
+          "el",
+          "__for_range",
+          "__for_begin",
+          "__for_end",
+          "point",
+          "values",
+          "name"
+        ],
+        "points": "main.cpp:14\n  \n  \n\n"
+      }
+    }
+  ],
+  "passed": 16,
+  "total": 16
+}

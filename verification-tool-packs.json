@@ -1,0 +1,111 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14 / clean runtime directory",
+  "checks": [
+    {
+      "test": "Fresh minimal runtime starts with all four optional packs absent",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "analysis",
+          "installed": false
+        },
+        {
+          "id": "clang",
+          "installed": false
+        },
+        {
+          "id": "debugger",
+          "installed": false
+        },
+        {
+          "id": "git",
+          "installed": false
+        }
+      ]
+    },
+    {
+      "test": "GCC compiles and runs libc++ vector with only the base installed",
+      "passed": true,
+      "evidence": {
+        "build": 0,
+        "output": "1 2 3 ",
+        "exit": 0
+      }
+    },
+    {
+      "test": "Actual CMake/Ninja configure and build work in the base without LLVM",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "exists": true
+      }
+    },
+    {
+      "test": "Real HTTPS download, SHA-256 verification and installation: analysis",
+      "passed": true,
+      "evidence": {
+        "installed": true,
+        "probe": "clangd version 21.1.8"
+      },
+      "seconds": 16.1
+    },
+    {
+      "test": "Real HTTPS download, SHA-256 verification and installation: clang",
+      "passed": true,
+      "evidence": {
+        "installed": true,
+        "probe": "clang version 21.1.8"
+      },
+      "seconds": 1.7
+    },
+    {
+      "test": "Real HTTPS download, SHA-256 verification and installation: debugger",
+      "passed": true,
+      "evidence": {
+        "installed": true,
+        "probe": "GNU gdb (GDB) 18.1"
+      },
+      "seconds": 7.1
+    },
+    {
+      "test": "Real HTTPS download, SHA-256 verification and installation: git",
+      "passed": true,
+      "evidence": {
+        "installed": true,
+        "probe": "git version 2.56.0"
+      },
+      "seconds": 3.2
+    },
+    {
+      "test": "Dependency protection rejects removing analysis while Clang requires it",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Clang can be removed while preserving GCC, then downloaded again",
+      "passed": true,
+      "evidence": {
+        "absent": true,
+        "gcc": "g++-15 (GCC) 15.2.0",
+        "restored": true
+      }
+    },
+    {
+      "test": "Downloaded analysis and libc++ pretty-printer runtime start normally",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Updated Git pack includes real HTTPS transport and reads a public remote HEAD",
+      "passed": true,
+      "evidence": {
+        "exit": 0,
+        "output": "1985dc7c95f98d4b31dfd273e714d693d94b7e6f\tHEAD\n",
+        "scope": "Actual download/reinstall after adding git-core helper symlinks; git ls-remote over HTTPS"
+      }
+    }
+  ],
+  "passed": 11,
+  "total": 11,
+  "dateUTC": "2026-10-20T05:25:40.465548+00:00"
+}

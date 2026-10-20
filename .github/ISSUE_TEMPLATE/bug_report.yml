@@ -1,0 +1,38 @@
+name: Сообщить об ошибке / Bug report
+description: Помогите воспроизвести проблему в C++ Studio / Help reproduce a C++ Studio issue
+title: "[Bug]: "
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги воспроизведения / Steps to reproduce
+      description: Что нажимали, вводили или открывали? / What did you tap, type or open?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемый результат / Expected behavior
+  - type: textarea
+    id: actual
+    attributes:
+      label: Что произошло / What happened
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия C++ Studio / App version
+  - type: input
+    id: android
+    attributes:
+      label: Android
+  - type: input
+    id: device
+    attributes:
+      label: Устройство / Device
+  - type: textarea
+    id: details
+    attributes:
+      label: Дополнительные сведения / Additional details
+      description: Клавиатура, компилятор, выбранный стандарт, пример кода или снимок, если помогает. / Keyboard, compiler, language standard, sample code or screenshot if useful.

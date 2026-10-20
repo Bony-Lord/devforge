@@ -49,7 +49,7 @@ public final class MainActivity extends Activity {
         progress.setTextSize(18);
         progress.setPadding(32,32,32,32);
         setContentView(progress);
-        status("GCC C++ STUDIO\n\nПодготовка локальных инструментов…\nПервый запуск может занять несколько минут.");
+        status("C++ STUDIO\n\nПодготовка локальных инструментов…\nПервый запуск может занять несколько минут.");
         workers.execute(() -> {
             try {
                 installRuntime();
@@ -58,7 +58,7 @@ public final class MainActivity extends Activity {
                 ui.post(this::showEditor);
             } catch (Throwable e) {
                 android.util.Log.e("Forge", "Startup", e);
-                status("Не удалось запустить GCC C++ Studio\n\n"+e+"\n\nПроверьте свободное место: нужно около 1 ГБ.");
+                status("Не удалось запустить C++ Studio\n\n"+e+"\n\nПроверьте свободное место: нужно около 1 ГБ.");
             }
         });
     }
@@ -71,50 +71,15 @@ public final class MainActivity extends Activity {
         String actual=abi.equals("arm64-v8a")?"aarch64":abi.equals("x86_64")?"x86_64":abi.startsWith("armeabi")?"arm":abi;
         if (!actual.equals(expected)) throw new IOException("Эта сборка: "+expected+". Архитектура устройства: "+abi);
         File usr = new File(getFilesDir(), "usr");
-        File marker = new File(usr,".forge-runtime-v1");
-        if (marker.exists()) {ensureShell(usr);return;}
-        usr.mkdirs();
-        int count = 0;
-        try (ZipInputStream z = new ZipInputStream(getAssets().open("runtime.zip"))) {
-            ZipEntry entry;
-            byte[] buffer = new byte[131072];
-            while ((entry = z.getNextEntry()) != null) {
-                File f = new File(usr,entry.getName());
-                if (!f.getCanonicalPath().startsWith(usr.getCanonicalPath()+"/")) throw new IOException("Invalid runtime path");
-                if (entry.isDirectory()) { f.mkdirs(); continue; }
-                f.getParentFile().mkdirs();
-                try (OutputStream out = new FileOutputStream(f)) {
-                    int n;
-                    while ((n=z.read(buffer))>0) out.write(buffer,0,n);
-                }
-                if (++count % 140 == 0) status("GCC C++ STUDIO\n\nРаспаковка GCC и clangd…\n"+count+" файлов · выполняется один раз");
-            }
-        }
-        JSONObject manifest = new JSONObject(new String(Files.readAllBytes(new File(usr,"forge-runtime.json").toPath()), StandardCharsets.UTF_8));
-        JSONArray files = manifest.getJSONArray("files");
-        for(int i=0;i<files.length();i++) {
-            JSONObject f=files.getJSONObject(i);
-            if(f.optBoolean("exec")) new File(usr,f.getString("path")).setExecutable(true,true);
-            if(f.has("mtime"))new File(usr,f.getString("path")).setLastModified(f.getLong("mtime")*1000L);
-        }
-        JSONArray links = manifest.getJSONArray("links");
-        for(int round=0;round<2;round++) for(int i=0;i<links.length();i++) {
-            JSONObject l=links.getJSONObject(i);
-            File f=new File(usr,l.getString("path"));
-            f.getParentFile().mkdirs();
-            if(Files.exists(f.toPath(), LinkOption.NOFOLLOW_LINKS)) continue;
-            String target=l.getString("target");
-            try {
-                if(l.optBoolean("hard")) {
-                    target=target.replaceFirst("^\\.?/?data/data/com.termux/files/usr/","");
-                    Files.createLink(f.toPath(),new File(usr,target).toPath());
-                } else Files.createSymbolicLink(f.toPath(),Paths.get(target));
-            } catch(IOException e) { if(round==1) android.util.Log.w("Forge","Runtime link "+f+" -> "+target,e); }
-        }
-        new File(getFilesDir(),"tmp").mkdirs();
-        ensureShell(usr);
-        Files.write(marker.toPath(),"1".getBytes(StandardCharsets.UTF_8));
+        File marker = new File(usr,".studio-base-v2");
+        String baseHash;try(InputStream in=getAssets().open("tool-packs.json")){baseHash=new JSONObject(IdeEngine.slurp(in,4*1024*1024)).getJSONObject("base").getString("sha256");}
+        if(marker.exists()&&IdeEngine.read(marker).equals(baseHash)){ensureShell(usr);return;}
+        usr.mkdirs();File archive=new File(getCacheDir(),"runtime-base.zip");
+        try(InputStream in=getAssets().open("runtime.zip")){Files.copy(in,archive.toPath(),StandardCopyOption.REPLACE_EXISTING);}
+        try{ToolPacks.extract(usr,archive,"base");}finally{Files.deleteIfExists(archive.toPath());}
+        new File(getFilesDir(),"tmp").mkdirs();ensureShell(usr);Files.write(marker.toPath(),baseHash.getBytes(StandardCharsets.UTF_8));
     }
+
     void ensureShell(File usr)throws IOException {
         File sh=new File(usr,"bin/sh");
         if(!Files.exists(sh.toPath(),LinkOption.NOFOLLOW_LINKS))Files.createSymbolicLink(sh.toPath(),Paths.get("/system/bin/sh"));
@@ -168,6 +133,8 @@ public final class MainActivity extends Activity {
         WebSettings s=web.getSettings();
         s.setJavaScriptEnabled(true); s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false); s.setAllowContentAccess(false);
+        s.setSafeBrowsingEnabled(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        android.webkit.CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
         s.setMediaPlaybackRequiresUserGesture(true);
         s.setSupportZoom(false); s.setTextZoom(100);
         web.addJavascriptInterface(new Bridge(),"ForgeNative");
@@ -316,14 +283,15 @@ public final class MainActivity extends Activity {
     @Override public boolean dispatchKeyEvent(KeyEvent event){
         if(nativeEditors!=null&&nativeEditors.active!=null&&nativeEditors.active.editor.hasFocus()&&event.getAction()==KeyEvent.ACTION_DOWN){
             int key=event.getKeyCode();boolean ctrl=event.isCtrlPressed();
-            boolean appKey=ctrl&&(key==KeyEvent.KEYCODE_F||key==KeyEvent.KEYCODE_H||key==KeyEvent.KEYCODE_S||key==KeyEvent.KEYCODE_P||key==KeyEvent.KEYCODE_N||key==KeyEvent.KEYCODE_COMMA||key==KeyEvent.KEYCODE_J||key==KeyEvent.KEYCODE_B||key==KeyEvent.KEYCODE_Q||key==KeyEvent.KEYCODE_G||key==KeyEvent.KEYCODE_W||key==KeyEvent.KEYCODE_TAB||key==KeyEvent.KEYCODE_EQUALS||key==KeyEvent.KEYCODE_MINUS||key==KeyEvent.KEYCODE_0||key==KeyEvent.KEYCODE_BACKSLASH||key==KeyEvent.KEYCODE_1||key==KeyEvent.KEYCODE_2||key==KeyEvent.KEYCODE_D||key==KeyEvent.KEYCODE_Y||key==KeyEvent.KEYCODE_L||key==KeyEvent.KEYCODE_O||key==KeyEvent.KEYCODE_SPACE);
-            appKey|=key==KeyEvent.KEYCODE_F5||key==KeyEvent.KEYCODE_F9||key==KeyEvent.KEYCODE_F12||key==KeyEvent.KEYCODE_F2||(event.isShiftPressed()&&key==KeyEvent.KEYCODE_F6)||(event.isAltPressed()&&(key==KeyEvent.KEYCODE_ENTER||key==KeyEvent.KEYCODE_F12))||(event.isShiftPressed()&&event.isAltPressed()&&key==KeyEvent.KEYCODE_F);
+            boolean appKey=ctrl&&(key==KeyEvent.KEYCODE_F||key==KeyEvent.KEYCODE_H||key==KeyEvent.KEYCODE_S||key==KeyEvent.KEYCODE_P||key==KeyEvent.KEYCODE_N||key==KeyEvent.KEYCODE_COMMA||key==KeyEvent.KEYCODE_J||key==KeyEvent.KEYCODE_B||key==KeyEvent.KEYCODE_Q||key==KeyEvent.KEYCODE_G||key==KeyEvent.KEYCODE_W||key==KeyEvent.KEYCODE_TAB||key==KeyEvent.KEYCODE_EQUALS||key==KeyEvent.KEYCODE_MINUS||key==KeyEvent.KEYCODE_0||key==KeyEvent.KEYCODE_BACKSLASH||key==KeyEvent.KEYCODE_1||key==KeyEvent.KEYCODE_2||key==KeyEvent.KEYCODE_D||key==KeyEvent.KEYCODE_Y||key==KeyEvent.KEYCODE_L||key==KeyEvent.KEYCODE_O||key==KeyEvent.KEYCODE_SPACE&&(event.isShiftPressed()||event.isAltPressed()));
+            appKey|=key==KeyEvent.KEYCODE_F7||key==KeyEvent.KEYCODE_F8||key==KeyEvent.KEYCODE_F5||key==KeyEvent.KEYCODE_F9||key==KeyEvent.KEYCODE_F12||key==KeyEvent.KEYCODE_F2||(event.isShiftPressed()&&key==KeyEvent.KEYCODE_F6)||(event.isAltPressed()&&(key==KeyEvent.KEYCODE_ENTER||key==KeyEvent.KEYCODE_F12))||(event.isShiftPressed()&&event.isAltPressed()&&key==KeyEvent.KEYCODE_F);
             if(appKey){String name=KeyEvent.keyCodeToString(key).replace("KEYCODE_","");if(key==KeyEvent.KEYCODE_SPACE)name=" ";else if(key==KeyEvent.KEYCODE_ENTER)name="Enter";else if(key==KeyEvent.KEYCODE_TAB)name="Tab";else if(key==KeyEvent.KEYCODE_EQUALS)name="=";else if(key==KeyEvent.KEYCODE_MINUS)name="-";else if(key==KeyEvent.KEYCODE_COMMA)name=",";else if(key==KeyEvent.KEYCODE_BACKSLASH)name="\\";
                 String js="window.forge&&forge.keydown({key:"+JSONObject.quote(name)+",ctrlKey:"+ctrl+",altKey:"+event.isAltPressed()+",shiftKey:"+event.isShiftPressed()+",metaKey:false,preventDefault(){},stopImmediatePropagation(){}})";emitScript(js);return true;}
         }
         return super.dispatchKeyEvent(event);
     }
     @Override public boolean onKeyDown(int key,KeyEvent event) {
+        if(key==KeyEvent.KEYCODE_F8&&event.isCtrlPressed()){emitScript("window.forge && !document.querySelector('dialog[open]') && forge.debugger.breakpointAtCaret()");return true;}
         if(key==KeyEvent.KEYCODE_F5) {emitScript(event.isShiftPressed()?"window.forge && forge.stop()":"window.forgeRun && window.forgeRun()");return true;}
         if(key==KeyEvent.KEYCODE_F9) {
             emitScript(event.isShiftPressed()?"window.forge && forge.debugBuild()":event.isCtrlPressed()?"window.forgeBuild && window.forgeBuild()":"window.forge && (forge.debugger.active ? forge.debugger.action('continue') : forge.build(false))");return true;

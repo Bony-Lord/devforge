@@ -4,6 +4,9 @@
 
 ```sh
 python tools/prepare_runtime.py --locked
+python tools/split_runtime.py --input app/src/main/assets/runtime.zip --output work/tool-packs
+cp app/src/main/assets/runtime.zip work/runtime-full.zip
+cp work/tool-packs/runtime-base.zip app/src/main/assets/runtime.zip
 python tools/prepare_frontend.py
 python tools/prepare_icons.py
 python tools/package_notices.py
@@ -26,6 +29,9 @@ gcc-15 -O2 native/forge-pty.c -o native/forge-pty-aarch64
 
 ```powershell
 python tools/prepare_runtime.py --locked
+python tools/split_runtime.py --input app/src/main/assets/runtime.zip --output work/tool-packs
+Copy-Item app/src/main/assets/runtime.zip work/runtime-full.zip
+Copy-Item work/tool-packs/runtime-base.zip app/src/main/assets/runtime.zip -Force
 python tools/package_notices.py
 ./build.ps1 -ToolsRoot 'C:\AndroidBuildTools' -Install
 ./build.ps1 -ToolsRoot 'C:\AndroidBuildTools' -Release
@@ -74,6 +80,9 @@ mkdir -p build/core-checks
 javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{SmartTyping,FileCodec}.java tests/java/dev/forge/ide/{SmartTypingTest,FileCodecTest}.java
 java -cp build/core-checks dev.forge.ide.SmartTypingTest
 java -cp build/core-checks dev.forge.ide.FileCodecTest
+javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/FileTemplates.java tests/java/dev/forge/ide/FileTemplatesTest.java
+java -cp build/core-checks dev.forge.ide.FileTemplatesTest
+node tests/interaction.test.cjs
 ./gradlew :app:testDebugUnitTest
 node tests/native-editor-state.test.cjs
 python -m pip install --target build/test-tools clang-format==21.1.8 --no-deps
@@ -93,3 +102,23 @@ adb shell am instrument -w -e tabs true com.forgex.gesturetests/dev.forge.ide.Na
 
 
 Для проверки только оболочки в браузере выполните `python tools/preview_shell.py` и откройте `http://127.0.0.1:8766/?language=ru` либо `?language=en`. Этот предпросмотр использует тестовый проект и синтетический адаптер: нативный редактор, клавиатура, компиляторы и настоящие файлы там не работают. Он предназначен для верстки и локализации.
+
+## Минимальный APK и дополнительные инструменты
+
+`split_runtime.py` принимает полный проверенный runtime от `prepare_runtime.py`. Он строит замыкание ELF DT_NEEDED, сохраняет стартовые объекты и linker scripts, затем создаёт основной архив и четыре дополнительных пакета. Замените `app/src/main/assets/runtime.zip` основным `runtime-base.zip`; сохраните полный архив отдельно для повторной упаковки. `tool-packs.json` генерируется с SHA256 и списками владения файлами. Публикуйте дополнительные ZIP вместе с их контрольными суммами по фиксированному release URL; изменение пакета требует обновить каталог в APK. Нельзя заменять архив произвольной новой версией по прежнему URL, не пересобрав каталог.
+
+После установки дополнительные инструменты работают локально. На устройстве `ToolPacks` проверяет размер и SHA256 архива, хеши файлов, пути, зависимости и состояние завершённой установки. Основной пакет и файлы других установленных пакетов защищены от удаления. Проекты находятся отдельно от runtime. Для проверки новой установки используйте отдельное окружение runtime, а не только обновление старой полной версии.
+
+Веб-интерфейс обслуживается только по loopback. Открытый HTTP разрешён лишь для 127.0.0.1; загрузки инструментов используют HTTPS. Safe Browsing включён, доступ WebView к file/content URL и сторонним cookies отключён. Это не меняет ограничение target SDK для прямого запуска программ. Подробности будущего перехода: [PLATFORMS.md](PLATFORMS.md).
+
+## Выбор инструментов и начальная настройка
+
+Мастер запуска сохраняет язык и настройки через Android SharedPreferences; его можно снова открыть из настроек. Быстрый режим добавляет clangd/clang-format к GCC/CMake, полный — все четыре дополнительных пакета. Установка проверяет опубликованный каталог и SHA-256; версия GCC в базовой сборке — 15.2, альтернативный Clang — 21.1.8. Произвольных загрузок других версий пока нет. Изменение стандартов C/C++ не требует загрузки нового компилятора.
+
+Профиль C++ Studio использует отдельные PointerAlignment: Right, ReferenceAlignment: Left и SpaceBeforeRangeBasedForLoopColon: true. Пункт CLion — собственная приближённая конфигурация, не экспорт закрытого formatter JetBrains. Выбор в мастере задаёт стиль новых проектов; существующий .clang-format изменяется только при явном выборе соответствующего пункта.
+
+Проекты доступны системному приложению Files через DocumentsProvider. Оно получает только зарегистрированные проекты и права просмотра; каноническая проверка путей исключает выход через .. и ссылки в runtime/настройки приложения.
+
+## Снимки и отчёты об ошибках
+
+Публичные снимки захватывают только окно IDE через PixelCopy: системные часы, заряд и панель жестов не входят в изображение. Диагностический editorCapture доступен только debug-сборке. Кнопка сообщения об ошибке открывает GitHub Issue Form с версией, Android и моделью устройства. Код, пути проектов и журнал не отправляются автоматически.
