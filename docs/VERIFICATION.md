@@ -1,6 +1,23 @@
 # Проверки GCC C++ Studio 0.2.0
 
-## Изменения после базовой сборки: локальные проверки
+## Текущие изменения: физический Android
+
+20 октября 2026 года на **realme RMX3951, Android 16, ARM64** выполнены 64 проверки текущего нативного редактора. Тесты работали в отдельном проекте `input-check-*`; исходный пользовательский проект сохранён без изменения.
+
+| Набор | Результат | Отчёт |
+|---|---|---|
+| IME и умный ввод | 23/23: Enter, современный commitText, композиция, устаревшее соединение, скобки, комментарии, CRLF, вставка, выделение, Tab и undo | [verification-smart-typing.json](../verification-smart-typing.json) |
+| Переключение вкладок | 9/9: реальные серые spans, предупреждения и ошибки, семантика/inlay, курсор, прокрутка и undo после C++ → CMake → C++ | [verification-native-tabs.json](../verification-native-tabs.json) |
+| Форматирование и кодировки | 13/13: настоящий clang-format на завершении блока, отложенный результат при свежем вводе, защита курсора, табы/пробелы, Windows-1251 и BOM UTF-8/16 с чтением байтов обратно, отказ без потери данных, rename, смешанные CRLF/LF, быстрые правки и смена вкладок | [verification-native-updates.json](../verification-native-updates.json) |
+| Настоящая экранная клавиатура | 7/7: `std ` без автоисправления, посимвольный ввод, удержание Backspace, выделение длинным нажатием, Ctrl+C/V, совпадение видимого буфера, модели и диска | [verification-native-input.json](../verification-native-input.json) |
+| Нативные жесты и анализ | 5/5: серые функция и переменная, настоящая диагностика clangd, прокрутка 6000 строк, pinch, ввод при занятом JS | [verification-native-gestures.json](../verification-native-gestures.json) |
+| Инструменты и оформление | 7/7: инкрементальный LSP, rename, требуемый стиль форматтера и undo, редактор профиля, CMake help/completion, разные векторные значки | [verification-native-features.json](../verification-native-features.json) |
+
+Эти проверки выявили и помогли исправить потерю IME Enter, обращение аниматора курсора к ещё не отрисованному выделению, применение устаревших spans после изменения числа строк/вкладки и несовпадение смещений при смешанных переводах строк. Instrumentation ждёт окончания восстановления сессии перед изменением тестового файла.
+
+В последнем прогоне ошибка clangd достигла нативных DiagnosticRegion за **263 мс**; клавиша принята за **38 мс**, пока WebView выполнял JS 2200 мс. Это одиночные инструментальные измерения на этом телефоне, а не кадровый бенчмарк или обещание времени на другом проекте.
+
+## Локальные проверки
 
 20 октября 2026 проверены следующие группы. Это проверки на компьютере; они не подменяют реальную экранную клавиатуру, отрисовку или интеграцию фонового форматтера на Android.
 
@@ -17,7 +34,7 @@
 
 Release APK и тестовый APK собираются; release lint vital проходит. CI запускает эти локальные проверки.
 
-**Не выполнено на устройстве после этих изменений:** новый IME SmartTyping, переключение C++ → CMake → C++, повторные жесты/буфер обмена, кодировки на диске через интерфейс, форматирование блока при одновременном вводе, проверка запуска новой сборки. Для вкладок и ввода добавлены Android-сценарии `TabStateChecks` и `SmartTypingChecks`; сборка сценариев подтверждена, выполнение ещё не подтверждено.
+Эти локальные проверки дополняют приведённые выше проверки на Android. Отдельные сценарии файловой системы, GDB и перезапуска RU/EN ниже относятся к базовой сборке; их полный повтор после последних правок не заявляется.
 
 ## Базовая сборка 9037dd3: ранее выполненные проверки на Android
 
@@ -27,9 +44,6 @@ Release APK и тестовый APK собираются; release lint vital п�
 
 | Набор | Проверенный результат | Отчёт |
 |---|---|---|
-| Экранный ввод | 7/7: настоящие клавиши Yandex Keyboard, `std ` сохраняет регистр после трёх пробелов, символы до завершения слова, удержание Backspace, длинное нажатие для выделения, Ctrl+C/V, совпадение нативного текста, модели и диска | [verification-native-input.json](../verification-native-input.json) |
-| Нативный редактор | 5/5: реальные цвета `#6F737A` неиспользуемых функции и переменной в spans Sora; диагностика clangd; прокрутка 6000 строк; настоящий двухпальцевый pinch; ввод при занятом JS WebView | [verification-native-gestures.json](../verification-native-gestures.json) |
-| Инструменты | 7/7: инкрементальный LSP с многострочными правками и UTF-16, переименование нативного буфера, стиль форматтера и undo, сохранение профиля с комментариями YAML, документация CMake, векторные значки | [verification-native-features.json](../verification-native-features.json) |
 | Файловая система | 6/6: исходная PC-папка с пробелами в пути, структура src/include/data, настоящая сборка CMake, относительное чтение из корня проекта, запись оригиналов, добавление исходника в CMake с обновлением базы команд | [verification-filesystem.json](../verification-filesystem.json) |
 | GDB с нативным редактором | 4/4: GCC с отладочной информацией, остановка в main, точка останова, значение 5 → 7 после шага; дополнительно проверено отображение отметок в редакторе | [verification-native-debugger.json](../verification-native-debugger.json) |
 | Локализация | 2/2: RU/EN сохраняются после полного перезапуска процесса; в английском окне настроек нет оставшихся русских надписей | [verification-localization.json](../verification-localization.json) |
@@ -51,10 +65,13 @@ Release APK и тестовый APK собираются; release lint vital п�
 ```sh
 python tests/device_native_input.py
 python tests/device_native_features.py
+python tests/device_native_updates.py
 python tests/device_analysis_latency.py analysis-sample.json
 ./gradlew :gesture-tests:assembleDebug
 adb install -t -r gesture-tests/build/outputs/apk/debug/gesture-tests-debug.apk
 adb shell am instrument -w com.forgex.gesturetests/dev.forge.ide.NativeInputInstrumentation
+adb shell am instrument -w -e smart true com.forgex.gesturetests/dev.forge.ide.NativeInputInstrumentation
+adb shell am instrument -w -e tabs true com.forgex.gesturetests/dev.forge.ide.NativeInputInstrumentation
 adb uninstall com.forgex.gesturetests
 node tests/protocol.test.cjs
 ```

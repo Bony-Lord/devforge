@@ -8,6 +8,7 @@ import android.text.InputType;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputConnectionWrapper;
 import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 import org.json.*;
@@ -41,20 +42,50 @@ final class NativeEditorHost {
     final java.util.concurrent.atomic.AtomicLong requestSequence=new java.util.concurrent.atomic.AtomicLong();
     final int UNUSED=512,TYPE=513,STRING=514,NUMBER=515;
     NativeEditorHost(MainActivity app){this.app=app;createAccessory();}
+    static final class RevisionStyles extends Styles {
+        final Content owner;final long revision;final Object language;
+        RevisionStyles(Spans spans,Content owner,long revision,Object language){super(spans);this.owner=owner;this.revision=revision;this.language=language;}
+    }
     static final class StudioCodeEditor extends CodeEditor {
         InputConnection currentInput;
         SmartTyping typing;boolean pasting;java.util.function.Consumer<SmartTyping.Edit> blockCompleted;
         java.util.function.Consumer<Float> fontChanged;boolean configuringFont;
-        StudioCodeEditor(Context context){super(context);}
-        @Override public InputConnection onCreateInputConnection(EditorInfo info){currentInput=super.onCreateInputConnection(info);info.imeOptions|=EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;return currentInput;}
+        StudioCodeEditor(Context context){super(context);
+            // Sora still asks its animator for geometry before mutations even when animation is off.
+            // A selected range can be edited before the first draw; do not consult the renderer then.
+            setCursorAnimator(new io.github.rosemoe.sora.widget.style.CursorAnimator(){public void markStartPos(){}public void markEndPos(){}public void start(){}public void cancel(){}public boolean isRunning(){return false;}public float animatedX(){return 0;}public float animatedY(){return 0;}public float animatedLineHeight(){return 0;}public float animatedLineBottom(){return 0;}});
+        }
+        @Override public InputConnection onCreateInputConnection(EditorInfo info){InputConnection base=super.onCreateInputConnection(info);currentInput=base==null?null:Build.VERSION.SDK_INT>=33?new StudioInputConnection33(base):new StudioInputConnection(base);info.imeOptions|=EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;return currentInput;}
+        class StudioInputConnection extends InputConnectionWrapper {
+            StudioInputConnection(InputConnection base){super(base,false);}
+            @Override public boolean commitText(CharSequence text,int position){
+                if(text!=null&&(text.toString().equals("\n")||text.toString().equals("\r\n"))){
+                    if(currentInput!=this||!isEditable())return false;
+                    finishComposingText();StudioCodeEditor.this.commitText(getLineSeparator().getContent(),true,true);notifyIMEExternalCursorChange();return true;
+                }
+                return super.commitText(text,position);
+            }
+        }
+        @android.annotation.TargetApi(33) final class StudioInputConnection33 extends StudioInputConnection {
+            StudioInputConnection33(InputConnection base){super(base);}
+            @Override public boolean commitText(CharSequence text,int position,android.view.inputmethod.TextAttribute attributes){return commitText(text,position);}
+        }
+        @Override public void setStyles(Styles styles){
+            // Sora checks the analyzer before posting its result, but a tab or edit may change
+            // before that UI callback runs. Never attach another document's or revision's spans.
+            if(styles instanceof RevisionStyles){RevisionStyles value=(RevisionStyles)styles;if(value.language!=getEditorLanguage())return;if(value.owner!=getText()||value.revision!=getText().getDocumentVersion()||value.spans.getLineCount()!=getText().getLineCount()){getEditorLanguage().getAnalyzeManager().rerun();return;}}
+            super.setStyles(styles);
+        }
         @Override protected void setTextSizePxDirect(float size){super.setTextSizePxDirect(size);if(!configuringFont&&fontChanged!=null)fontChanged.accept(size);}
         @Override public void pasteText(CharSequence text){
             // A keyboard may mark the surrounding word as composing after a cursor jump.
             // Clipboard insertion must replace the selection, not that surrounding word.
             if(currentInput!=null)currentInput.finishComposingText();
-            pasting=true;try{super.pasteText(text);}finally{pasting=false;}
+            pasting=true;try{super.pasteText(normalizeLineBreaks(text));}finally{pasting=false;}
         }
+        CharSequence normalizeLineBreaks(CharSequence text){String value=text.toString();if(value.indexOf('\r')<0&&value.indexOf('\n')<0)return text;return value.replace("\r\n","\n").replace('\r','\n').replace("\n",getLineSeparator().getContent());}
         @Override public void commitText(CharSequence text,boolean autoIndent,boolean pairs){
+            text=normalizeLineBreaks(text);
             if(typing!=null&&isEditable()&&!pasting&&pairs&&autoIndent){var c=getCursor();SmartTyping.Edit edit=typing.typed(getText(),c.getLeft(),c.getRight(),text.toString(),getLineSeparator().getContent());if(edit!=null){smartEdit(edit);return;}}
             super.commitText(text,pasting?false:autoIndent,typing==null&&pairs);
         }
@@ -272,7 +303,7 @@ final class NativeEditorHost {
         final class Lexer extends SimpleAnalyzeManager<Void> {
             final Pattern tokens=Pattern.compile("//[^\\n]*|/\\*[\\s\\S]*?(?:\\*/|$)|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'|\\b(?:0[xX][0-9a-fA-F']+|[0-9][0-9a-zA-Z'.]*)\\b|[a-zA-Z_][a-zA-Z_0-9]*|#[^\\n]*|\\$\\{[^}]*\\}");
             @Override protected Styles analyze(StringBuilder text,Delegate<Void> delegate){
-                int[] colors=new int[text.length()+1];Arrays.fill(colors,EditorColorScheme.TEXT_NORMAL);Matcher m=tokens.matcher(text);
+                Content owner=pane.editor.getText();long revision=owner.getDocumentVersion();int[] colors=new int[text.length()+1];Arrays.fill(colors,EditorColorScheme.TEXT_NORMAL);Matcher m=tokens.matcher(text);
                 while(m.find()){if(delegate.isCancelled())return null;String token=m.group();int color=EditorColorScheme.TEXT_NORMAL;
                     if(token.startsWith("//")||token.startsWith("/*")||(token.startsWith("#")&&!kind.equals("cpp")&&!kind.equals("c")))color=EditorColorScheme.COMMENT;
                     else if(token.startsWith("\"")||token.startsWith("'"))color=STRING;
@@ -284,8 +315,8 @@ final class NativeEditorHost {
                 }
                 for(JSONArray ranges:new JSONArray[]{styles,unusedStyles}){if(ranges==null)continue;for(int i=0;i<ranges.length();i++){JSONObject r=ranges.optJSONObject(i);if(r==null)continue;int a=Math.max(0,Math.min(text.length(),r.optInt("start"))),z=Math.max(a,Math.min(text.length(),r.optInt("end")));String type=r.optString("type");int color=type.equals("unused")?UNUSED:type.equals("function")||type.equals("method")?EditorColorScheme.FUNCTION_NAME:type.equals("keyword")?EditorColorScheme.KEYWORD:type.equals("string")?STRING:type.equals("number")?NUMBER:TYPE;Arrays.fill(colors,a,z,color);}}
                 MappedSpans.Builder builder=new MappedSpans.Builder();int line=0,col=0,previous=-1;
-                for(int i=0;i<=text.length();i++){if((i&4095)==0&&delegate.isCancelled())return null;int color=colors[i];if(col==0||color!=previous){builder.addIfNeeded(line,col,color);previous=color;}if(i<text.length()&&text.charAt(i)=='\n'){line++;col=0;previous=-1;}else col++;}
-                builder.determine(line);Styles result=new Styles(builder.build());JSONArray points=breakpoints;
+                for(int i=0;i<=text.length();i++){if((i&4095)==0&&delegate.isCancelled())return null;int color=colors[i];if(col==0||color!=previous){builder.addIfNeeded(line,col,color);previous=color;}if(i<text.length()&&(text.charAt(i)=='\n'||text.charAt(i)=='\r')){if(text.charAt(i)=='\r'&&i+1<text.length()&&text.charAt(i+1)=='\n')i++;line++;col=0;previous=-1;}else col++;}
+                builder.determine(line);Styles result=new RevisionStyles(builder.build(),owner,revision,StudioLanguage.this);JSONArray points=breakpoints;
                 if(points!=null)for(int i=0;i<points.length();i++){int row=points.optInt(i)-1;if(row<0||row>line)continue;android.graphics.drawable.GradientDrawable dot=new android.graphics.drawable.GradientDrawable();dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);dot.setColor(Color.rgb(219,88,96));dot.setSize(18,18);result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineSideIcon(row,dot));}
                 if(execution>=0&&execution<=line){result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineBackground(execution,new io.github.rosemoe.sora.lang.styling.color.ConstColor(Color.rgb(38,69,107))));android.graphics.drawable.Drawable arrow=app.getDrawable(com.forgex.R.drawable.ic_arrow_right);arrow.setTint(Color.rgb(84,138,247));result.addLineStyle(new io.github.rosemoe.sora.lang.styling.line.LineSideIcon(execution,arrow));}
                 result.finishBuilding();return result;

@@ -1,0 +1,125 @@
+{
+  "device": "realme RMX3951 / Android 16 / ARM64",
+  "dateUTC": "2026-10-20T03:54:58.469115+00:00",
+  "scope": "Actual Android InputConnection, hardware Enter, native clipboard and undo",
+  "results": [
+    {
+      "test": "IME Enter keeps the paired closing brace at its base indent",
+      "passed": true,
+      "evidence": "{\n    |\n}"
+    },
+    {
+      "test": "Nested IME Enter indents the body and restores the closing brace",
+      "passed": true,
+      "evidence": "    if (ok) {\n        |\n    }"
+    },
+    {
+      "test": "Continuous IME typing skips both existing nested closers",
+      "passed": true,
+      "evidence": "call((x))|"
+    },
+    {
+      "test": "A valid closer can be skipped after caret navigation",
+      "passed": true,
+      "evidence": "call(value)|"
+    },
+    {
+      "test": "An orphan closer receives the typed character instead of a skip",
+      "passed": true,
+      "evidence": "bad)|)"
+    },
+    {
+      "test": "A brace in a line comment is inserted literally",
+      "passed": true,
+      "evidence": "// {|"
+    },
+    {
+      "test": "A bracket inside a string is inserted literally",
+      "passed": true,
+      "evidence": "\"hello(|\""
+    },
+    {
+      "test": "C++ digit separators are not paired quotes",
+      "passed": true,
+      "evidence": "1'|000"
+    },
+    {
+      "test": "IME Backspace removes an empty generated pair",
+      "passed": true,
+      "evidence": "|"
+    },
+    {
+      "test": "One native undo removes a generated pair",
+      "passed": true,
+      "evidence": "|"
+    },
+    {
+      "test": "Single-character native paste does not synthesize a mate",
+      "passed": true,
+      "evidence": "{|"
+    },
+    {
+      "test": "Multiline paste preserves its exact whitespace",
+      "passed": true,
+      "evidence": "{\n    raw();\n}|"
+    },
+    {
+      "test": "IME Backspace removes indentation to the previous indent stop",
+      "passed": true,
+      "evidence": "    |value"
+    },
+    {
+      "test": "Selected lines indent by the profile width",
+      "passed": true,
+      "evidence": "  a\n  b\n"
+    },
+    {
+      "test": "Shift-Tab removes the profile indentation",
+      "passed": true,
+      "evidence": "a\nb\n"
+    },
+    {
+      "test": "Custom two-space indentation is respected by IME Enter",
+      "passed": true,
+      "evidence": "  {\n    |\n  }"
+    },
+    {
+      "test": "Hardware Enter uses the same smart newline logic",
+      "passed": true,
+      "evidence": "{\n  |\n}"
+    },
+    {
+      "test": "IME Enter preserves the Windows CRLF separator",
+      "passed": true,
+      "evidence": "{\r\n  |\r\n}"
+    },
+    {
+      "test": "IME Enter continues documentation comments",
+      "passed": true,
+      "evidence": "    /**\n     * |\n     */"
+    },
+    {
+      "test": "Modern IME commitText overload uses smart Enter",
+      "passed": true,
+      "evidence": "{\n  |\n}"
+    },
+    {
+      "test": "Native paste normalizes mixed line breaks to the document format",
+      "passed": true,
+      "evidence": "one\r\ntwo\r\nthree\r\nfour|"
+    },
+    {
+      "test": "Enter commits composing text without moving or duplicating it",
+      "passed": true,
+      "evidence": "int value\n|"
+    },
+    {
+      "test": "A stale IME connection cannot insert into the new session",
+      "passed": true,
+      "evidence": "kept|"
+    }
+  ],
+  "passed": 23,
+  "total": 23,
+  "nativeEditorHostSHA256": "149f744a91904c526f3e92d8528b9018d59da03690385bad94705cf5887937e3"
+}

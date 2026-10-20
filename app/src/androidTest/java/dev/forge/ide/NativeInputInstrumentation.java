@@ -30,10 +30,17 @@ public final class NativeInputInstrumentation extends Instrumentation {
             activity=(MainActivity)startActivitySync(new Intent(Intent.ACTION_MAIN).setClassName("com.forgex","dev.forge.ide.MainActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             for(int i=0;i<150;i++){if(ui(()->activity.nativeEditors!=null&&activity.nativeEditors.active!=null&&activity.nativeEditors.active.buffer!=null))break;SystemClock.sleep(100);}
             if(!ui(()->activity.engine.currentProject.startsWith("input-check-")))throw new IllegalStateException("Select an isolated input-check-* project first; user projects are never changed by this test");
+            // A native pane exists before async session restoration finishes. Wait for the
+            // LSP startup that follows it, then choose the fixture explicitly.
+            java.util.concurrent.atomic.AtomicBoolean ready=new java.util.concurrent.atomic.AtomicBoolean();
+            for(int n=0;n<300&&!ready.get();n++){ui(()->{activity.web.evaluateJavascript("!!window.forge?.lsp.ready",value->ready.set("true".equals(value)));return null;});SystemClock.sleep(100);}
+            if(!ready.get())throw new IllegalStateException("Session restoration did not finish");
+            new TabStateChecks(this).open(ui(()->new java.io.File(activity.engine.project(activity.engine.currentProject),"main.cpp").getAbsolutePath()));
             editor=ui(()->activity.nativeEditors.active.editor);
             if(tabsOnly){new TabStateChecks(this).run();result.putString("checks",checks.toString());result.putString("stream",checks.toString()+"\n");finish(Activity.RESULT_OK,result);return;}
-            if(smartOnly){new SmartTypingChecks(this).run();result.putString("checks",checks.toString());result.putString("stream",checks.toString()+"\n");finish(Activity.RESULT_OK,result);return;}
+            if(smartOnly){Bundle focus=new Bundle();focus.putString("stream",ui(()->"EDITOR shown="+editor.isShown()+" focus="+editor.hasFocus()+" window="+editor.hasWindowFocus()+" size="+editor.getWidth()+"x"+editor.getHeight())+"\n");sendStatus(0,focus);new SmartTypingChecks(this).run();result.putString("checks",checks.toString());result.putString("stream",checks.toString()+"\n");finish(Activity.RESULT_OK,result);return;}
             ui(()->{((InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(editor.getWindowToken(),0);return null;});SystemClock.sleep(500);
+            ui(()->{editor.setLineSeparator(io.github.rosemoe.sora.text.LineSeparator.LF);return null;});
             String unused="static int unused_function(int unused_parameter) { return 10; }\nint main() { int unused_variable = 5; return 0; }\n";
             ui(()->{var t=editor.getText();t.replace(0,0,t.getLineCount()-1,t.getColumnCount(t.getLineCount()-1),unused);editor.setSelection(0,0);editor.notifyIMEExternalCursorChange();return null;});
             for(int i=0;i<100;i++){if(ui(()->activity.nativeEditors.active.language.unusedStyles.length()>=2))break;SystemClock.sleep(100);}
@@ -52,7 +59,7 @@ public final class NativeInputInstrumentation extends Instrumentation {
             ui(()->{editor.setSelection(0,0);editor.notifyIMEExternalCursorChange();activity.web.evaluateJavascript("window.__inputBusyStarted=true;const busyUntil=performance.now()+2200;while(performance.now()<busyUntil){};window.__inputBusyFinished=true;",null);return null;});SystemClock.sleep(250);
             long start=SystemClock.uptimeMillis();sendStringSync("q");boolean immediate=ui(()->editor.getText().charAt(0)=='q');long elapsed=SystemClock.uptimeMillis()-start;check("Native input accepts a key while WebView JavaScript is blocked",immediate&&elapsed<1000,new JSONObject().put("nativeInputMs",elapsed).put("webViewBlockMs",2200));
             SystemClock.sleep(2500);ui(()->{activity.nativeEditors.pause();return null;});
-        }catch(Throwable error){status=Activity.RESULT_CANCELED;result.putString("error",error.toString());}
+        }catch(Throwable error){status=Activity.RESULT_CANCELED;result.putString("error",error.toString());Bundle failure=new Bundle();failure.putString("stream","ERROR "+android.util.Log.getStackTraceString(error)+"\n");sendStatus(0,failure);}
         result.putString("checks",checks.toString());result.putString("stream",checks.toString()+"\n");finish(status,result);
     }
 }

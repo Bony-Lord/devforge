@@ -10,10 +10,10 @@ final class SmartTypingChecks {
     final NativeInputInstrumentation host;final NativeEditorHost.StudioCodeEditor editor;
     SmartTypingChecks(NativeInputInstrumentation host){this.host=host;editor=(NativeEditorHost.StudioCodeEditor)host.editor;}
     void reset(String marked)throws Exception{int at=marked.indexOf('|');String value=marked.replace("|","");host.ui(()->{var t=editor.getText();t.replace(0,0,t.getLineCount()-1,t.getColumnCount(t.getLineCount()-1),value);var p=t.getIndexer().getCharPosition(at);editor.setSelection(p.line,p.column);editor.requestFocus();editor.onCreateInputConnection(new EditorInfo());editor.notifyIMEExternalCursorChange();return null;});}
-    void input(String text)throws Exception{host.ui(()->{editor.currentInput.commitText(text,1);return null;});}
+    void input(String text)throws Exception{String before=marked();host.ui(()->{editor.currentInput.commitText(text,1);return null;});if(text.equals("\n"))for(int n=0;n<100&&marked().equals(before);n++)SystemClock.sleep(10);host.waitForIdleSync();}
     String marked()throws Exception{return host.ui(()->{String s=editor.getText().toString();int at=editor.getCursor().getRight();return s.substring(0,at)+"|"+s.substring(at);});}
     void expect(String name,String value)throws Exception{String actual=marked();host.check(name,actual.equals(value),actual);}
-    void run()throws Exception{
+    void run()throws Exception{host.ui(()->{editor.setLineSeparator(io.github.rosemoe.sora.text.LineSeparator.LF);return null;});
         host.ui(()->{editor.typing.options.indent=4;editor.typing.options.tab=4;editor.typing.options.continuation=4;editor.typing.options.tabs=false;return null;});
         reset("|");input("{");input("\n");expect("IME Enter keeps the paired closing brace at its base indent","{\n    |\n}");
         reset("    if (ok) |");input("{");input("\n");expect("Nested IME Enter indents the body and restores the closing brace","    if (ok) {\n        |\n    }");
@@ -34,6 +34,10 @@ final class SmartTypingChecks {
         reset("{|}");host.sendKeyDownUpSync(KeyEvent.KEYCODE_ENTER);expect("Hardware Enter uses the same smart newline logic","{\n  |\n}");
         reset("{|}");host.ui(()->{editor.setLineSeparator(io.github.rosemoe.sora.text.LineSeparator.CRLF);return null;});input("\n");expect("IME Enter preserves the Windows CRLF separator","{\r\n  |\r\n}");host.ui(()->{editor.setLineSeparator(io.github.rosemoe.sora.text.LineSeparator.LF);return null;});
         reset("    /**| */");input("\n");expect("IME Enter continues documentation comments","    /**\n     * |\n     */");
+        if(Build.VERSION.SDK_INT>=33){reset("{|}");host.ui(()->{editor.currentInput.commitText("\n",1,null);return null;});expect("Modern IME commitText overload uses smart Enter","{\n  |\n}");}
+        reset("|");host.ui(()->{editor.setLineSeparator(io.github.rosemoe.sora.text.LineSeparator.CRLF);editor.pasteText("one\ntwo\rthree\r\nfour");return null;});expect("Native paste normalizes mixed line breaks to the document format","one\r\ntwo\r\nthree\r\nfour|");host.ui(()->{editor.setLineSeparator(io.github.rosemoe.sora.text.LineSeparator.LF);return null;});
+        reset("int |");host.ui(()->{editor.currentInput.setComposingText("value",1);return null;});input("\n");expect("Enter commits composing text without moving or duplicating it","int value\n|");
+        reset("kept|");boolean stale=host.ui(()->{var old=editor.currentInput;editor.onCreateInputConnection(new EditorInfo());return old.commitText("\n",1);});host.check("A stale IME connection cannot insert into the new session",!stale&&marked().equals("kept|"),marked());
         host.ui(()->{editor.typing.options.indent=4;editor.typing.options.tab=4;editor.typing.options.continuation=4;host.activity.nativeEditors.pause();return null;});SystemClock.sleep(800);
     }
 }

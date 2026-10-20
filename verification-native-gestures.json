@@ -1,6 +1,7 @@
 {
-  "device": "realme RMX3951",
-  "android": "16",
+  "device": "realme RMX3951 / Android 16 / ARM64",
+  "dateUTC": "2026-10-20T03:54:58.484408+00:00",
+  "scope": "Actual Android gestures, native renderer colors, clangd diagnostic regions and hardware key dispatch",
   "results": [
     {
       "test": "Actual native spans gray unused function and variable",
@@ -14,7 +15,7 @@
       "test": "Real clangd error reaches native diagnostic regions",
       "passed": true,
       "evidence": {
-        "nativeDiagnosticMs": 274
+        "nativeDiagnosticMs": 263
       }
     },
     {
@@ -29,8 +30,8 @@
       "test": "Two-finger pinch increases native code font",
       "passed": true,
       "evidence": {
-        "beforePx": 42,
-        "afterPx": 67.19999694824219,
+        "beforePx": 51.65999984741211,
+        "afterPx": 82.31999969482422,
         "scalable": true,
         "rect": "[0,560][1080,1743]",
         "events": [
@@ -61,11 +62,12 @@
       "test": "Native input accepts a key while WebView JavaScript is blocked",
       "passed": true,
       "evidence": {
-        "nativeInputMs": 49,
+        "nativeInputMs": 38,
         "webViewBlockMs": 2200
       }
     }
   ],
   "passed": 5,
-  "total": 5
+  "total": 5,
+  "nativeEditorHostSHA256": "149f744a91904c526f3e92d8528b9018d59da03690385bad94705cf5887937e3"
 }

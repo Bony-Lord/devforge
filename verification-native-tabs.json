@@ -1,0 +1,59 @@
+{
+  "device": "realme RMX3951 / Android 16 / ARM64",
+  "dateUTC": "2026-10-20T03:54:58.477205+00:00",
+  "scope": "Real native spans, diagnostics, semantic styles, hints and state across C++/CMake tabs",
+  "results": [
+    {
+      "test": "Unused spans exist before switching tabs",
+      "passed": true,
+      "evidence": "native Sora foreground #6F737A"
+    },
+    {
+      "test": "CMake does not inherit C++ diagnostic regions",
+      "passed": true,
+      "evidence": "separate file analysis"
+    },
+    {
+      "test": "Returning to C++ restores cached unused ranges and warnings",
+      "passed": true,
+      "evidence": "cached diagnostics, not an edit-triggered refresh"
+    },
+    {
+      "test": "Semantic styles and native inlay container survive switching",
+      "passed": true,
+      "evidence": "semantic ranges and native InlayHintsContainer restored"
+    },
+    {
+      "test": "Gray unused spans survive the C++ to CMake round trip",
+      "passed": true,
+      "evidence": "native foreground #6F737A after returning"
+    },
+    {
+      "test": "Caret and scroll survive switching files",
+      "passed": true,
+      "evidence": {
+        "line": 45,
+        "scroll": 2013,
+        "expectedScroll": 2013
+      }
+    },
+    {
+      "test": "Undo history survives switching files",
+      "passed": true,
+      "evidence": "one undo after reopening removes the earlier edit"
+    },
+    {
+      "test": "Error diagnostics survive a separate CMake round trip",
+      "passed": true,
+      "evidence": "native diagnostic regions after reopening"
+    },
+    {
+      "test": "Old unused ranges are cleared after source changes",
+      "passed": true,
+      "evidence": "no stale gray ranges in the error fixture"
+    }
+  ],
+  "passed": 9,
+  "total": 9,
+  "nativeEditorHostSHA256": "149f744a91904c526f3e92d8528b9018d59da03690385bad94705cf5887937e3"
+}

@@ -68,8 +68,8 @@
       "test": "Formatter respects requested reference, pointer and range-for spacing",
       "passed": true,
       "evidence": {
-        "text": "#include <vector>\nint main() {\n    std::vector<int> v{1, 2};\n    for (auto& el : v) {\n        auto *ptr = &el;\n        *ptr += 1;\n    }\n}\n",
-        "native": "#include <vector>\nint main() {\n    std::vector<int> v{1, 2};\n    for (auto& el : v) {\n        auto *ptr = &el;\n        *ptr += 1;\n    }\n}\n"
+        "text": "#include <vector>\nint main() {\n      std::vector<int> v{1, 2};\n      for (auto& el : v) {\n            auto *ptr = &el;\n            *ptr += 1;\n      }\n}\n",
+        "native": "#include <vector>\nint main() {\n      std::vector<int> v{1, 2};\n      for (auto& el : v) {\n            auto *ptr = &el;\n            *ptr += 1;\n      }\n}\n"
       }
     },
     {
@@ -109,5 +109,7 @@
     }
   ],
   "passed": 7,
-  "total": 7
+  "total": 7,
+  "nativeEditorHostSHA256": "149f744a91904c526f3e92d8528b9018d59da03690385bad94705cf5887937e3",
+  "dateUTC": "2026-10-20T03:54:58.501264+00:00"
 }

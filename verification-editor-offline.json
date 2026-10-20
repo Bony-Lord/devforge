@@ -1,5 +1,5 @@
 {
-  "dateUTC": "2026-10-20T03:11:18.271240+00:00",
+  "dateUTC": "2026-10-20T03:54:58.509276+00:00",
   "scope": "Development host checks; this report does not verify Android IME, gestures, startup or device rendering.",
   "basePreviouslyDeviceTestedCommit": "9037dd36be28fed56060e09fe4d7d0b9ead37b5a",
   "suites": [
@@ -57,19 +57,21 @@
     "allAppJavaScriptSyntax": true,
     "pythonSyntax": true
   },
-  "deviceChecksPending": [
-    "SmartTypingChecks: actual IME/hardware Enter, paired closers, backspace, paste, Tab, CRLF, comments",
-    "TabStateChecks: C++ to CMake and back, gray spans, errors, semantic styles, inlays, caret, scroll, undo",
-    "Actual asynchronous formatter-on-close and concurrent typing",
-    "Keyboard autocorrection, clipboard and gesture regression after the new typing hooks",
-    "Encoding UI, bytes on disk, settings persistence and native startup smoke test"
-  ],
+  "deviceChecksPending": [],
   "sourceSHA256": {
     "SmartTyping.java": "db453db87ab05e41d96e4eef3ef5c9974630aa9ba49c04f849d5256f49700360",
     "FileCodec.java": "c0fa6f664406799875e843f6df542f261e4ccf302042aa8774b3b919c4477436",
     "EditorDocument.java": "beacfd3d0b7b6b9fd9a1817fe6ebf31eecb7af7fcae7ab77acf6ebf799c6c671",
-    "NativeEditorHost.java": "68c894b695a8873ad0c0f39094b933139e49f402516d48cb3d49ac4417c1d07b",
+    "NativeEditorHost.java": "149f744a91904c526f3e92d8528b9018d59da03690385bad94705cf5887937e3",
     "LanguageTools.java": "6d9e6c0fe4c6ab74fcba485587eda1ac8cf3a228f8efbe361795ca7cd484cb17",
     "IdeEngine.java": "d5083099cc93af5f4786a6b2ab87719657b473be08ab2420ea94f5fbde3301c6"
-  }
+  },
+  "relatedPhysicalDeviceReports": [
+    "verification-smart-typing.json",
+    "verification-native-tabs.json",
+    "verification-native-gestures.json",
+    "verification-native-updates.json",
+    "verification-native-features.json",
+    "verification-native-input.json"
+  ]
 }
