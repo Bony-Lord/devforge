@@ -2,6 +2,15 @@ name: Сообщить об ошибке / Bug report
 description: Помогите воспроизвести проблему в C++ Studio / Help reproduce a C++ Studio issue
 title: "[Bug]: "
 body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Платформа / Platform
+      options:
+        - Android
+        - Windows
+        - Linux
+        - macOS
   - type: textarea
     id: steps
     attributes:

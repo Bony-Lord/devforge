@@ -3,3 +3,4 @@ dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_P
 rootProject.name = 'GCCCppStudio'
 include ':app'
 include ':gesture-tests'
+include ':runtime-data'

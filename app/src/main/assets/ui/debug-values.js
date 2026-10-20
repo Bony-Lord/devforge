@@ -7,11 +7,11 @@ Object.assign(GdbClient.prototype,{
   },
   async renderVariableTree(){
     const serial=this.stopSerial,root=$('#debugVariables');root.replaceChildren();await this.clearVariableObjects();
-    const values=await Promise.all((this.variables||[]).filter(v=>this.ide.settings.showCompilerVariables||!/^__for_/.test(v.name)).map(variable=>this.variableObject(variable.name,serial)));
-    if(serial!==this.stopSerial||!this.paused)return;
-    root.replaceChildren();for(const value of values)if(value)this.appendVariable(root,value,0,serial);
-    this.variablesSerial=serial;
-    await this.refreshWatches();
+    const variables=(this.variables||[]).filter(v=>this.ide.settings.showCompilerVariables||!/^__for_/.test(v.name));let loaded=0;
+    const load=async()=>{if(serial!==this.stopSerial||!this.paused)return;root.querySelector('.debug-root-more')?.remove();const batch=variables.slice(loaded,loaded+80),values=await Promise.all(batch.map(v=>this.variableObject(v.name,serial)));if(serial!==this.stopSerial||!this.paused)return;
+      for(const value of values)if(value)this.appendVariable(root,value,0,serial);loaded+=batch.length;
+      if(loaded<variables.length){const more=document.createElement('button');more.className='debug-load-more debug-root-more';more.textContent=tr('Ещё 80 переменных');more.onclick=()=>load().catch(safeError);root.append(more);}this.variablesSerial=serial;
+    };await load();if(serial===this.stopSerial)await this.refreshWatches();
   },
   appendVariable(parent,value,depth,serial){
     const container=document.createElement('div');container.className='debug-value-node';container.dataset.expression=value.expression||value.exp||value.name||'';container.setAttribute('role','treeitem');container.setAttribute('aria-level',String(depth+1));
@@ -46,9 +46,9 @@ Object.assign(GdbClient.prototype,{
   },
   renderBreakpoints(){
     const root=$('#debugBreakpoints');if(!root)return;root.replaceChildren();
-    for(const[path,lines]of [...this.breakpoints].filter(([path])=>path.startsWith(this.ide.state.root+'/')))for(const[line,number]of lines){const row=document.createElement('div');row.className='debug-breakpoint-row';const open=document.createElement('button');open.textContent=relative(path,this.ide.state.root)+':'+line;open.title=path;open.onclick=()=>this.ide.openFile(path,{lineNumber:line,column:1});
+    for(const[path,lines]of [...this.breakpoints].filter(([path])=>pathWithin(path,this.ide.state.root)))for(const[line,number]of lines){const row=document.createElement('div');row.className='debug-breakpoint-row';const open=document.createElement('button');open.textContent=relative(path,this.ide.state.root)+':'+line;open.title=path;open.onclick=()=>this.ide.openFile(path,{lineNumber:line,column:1});
       const remove=document.createElement('button');remove.title=tr('Удалить точку останова');remove.innerHTML=svg('x');remove.onclick=async()=>{const model=await this.ide.ensureModel(path);await this.toggleBreakpoint(model,line);};row.append(open,remove);root.append(row);}
   },
   async breakpointAtCaret(){const model=this.ide.editor.getModel(),position=this.ide.editor.getPosition();if(model&&position)await this.toggleBreakpoint(model,position.lineNumber);},
-  async runToCursor(){const model=this.ide.editor.getModel(),position=this.ide.editor.getPosition();if(!model||!position||!this.paused)return;await this.command('-break-insert -t '+JSON.stringify(model.uri.fsPath+':'+position.lineNumber));await this.command('-exec-continue');}
+  async runToCursor(){const model=this.ide.editor.getModel(),position=this.ide.editor.getPosition();if(!model||!position||!this.paused)return;await this.command('-break-insert -f -t '+JSON.stringify(model.uri.fsPath+':'+position.lineNumber));await this.command('-exec-continue');}
 });

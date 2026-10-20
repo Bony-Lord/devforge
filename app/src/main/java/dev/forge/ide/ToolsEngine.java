@@ -51,7 +51,10 @@ final class ToolsEngine {
             finally{if(gdb==debugger){gdb=null;io.destroy();try{ide.app.event("gdbExit",new JSONObject().put("session",id));}catch(Exception ignored){}}}
         });
         ide.pool.execute(()->ide.pump(debugger.getErrorStream(),id,"stderr"));
-        return new JSONObject().put("printers",loader.getAbsolutePath()).put("tty",tty).put("session",id).put("executable",file.getAbsolutePath());
+        JSONObject result=new JSONObject().put("printers",loader.getAbsolutePath()).put("tty",tty).put("session",id).put("executable",file.getAbsolutePath());
+        result.put("environment",new JSONObject(ide.runtimeChecks.environment(file)));
+        if(ide.app.installedRuntime!=null)result.put("executable",ide.app.installedRuntime.runner().getAbsolutePath()).put("arguments",new JSONArray().put("--direct").put(file.getAbsolutePath()));
+        return result;
     }
     synchronized void sendDebug(String command)throws Exception {
         Process p=gdb;if(p==null||!p.isAlive())throw new IOException("GDB остановлен");

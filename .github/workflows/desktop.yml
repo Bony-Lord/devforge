@@ -1,0 +1,103 @@
+name: Desktop build and runtime checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: desktop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Linux compilers and debuggers
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y g++ cmake ninja-build clangd clang-format gdb gdbserver lldb-19 xvfb libnss3 libatk-bridge2.0-0 libgbm1
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-gdb mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-clang-tools-extra
+      - name: macOS compiler and LLDB DAP
+        if: runner.os == 'macOS'
+        run: |
+          brew list llvm >/dev/null 2>&1 || brew install llvm
+          brew list lldb >/dev/null 2>&1 || brew install lldb
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix lldb)/bin" >> "$GITHUB_PATH"
+          echo "SDKROOT=$(xcrun --show-sdk-path)" >> "$GITHUB_ENV"
+          xcrun --find lldb-dap || find "$(brew --prefix llvm)" -name "lldb*dap*" -type f
+      - name: Install pinned desktop dependencies
+        working-directory: desktop
+        run: |
+          npm ci --no-audit --no-fund
+          node -p 'require("electron")'
+      - uses: actions/cache@v4
+        with:
+          path: work/desktop-sources
+          key: desktop-native-sources-${{ hashFiles('desktop-sources.lock.json') }}
+      - name: Prepare offline notices
+        run: python tools/package_notices.py
+      - name: Filesystem, encoding, compiler, CMake, GDB and LLDB checks
+        working-directory: desktop
+        env:
+          CPP_STUDIO_REQUIRE_LLDB: ${{ runner.os == 'Windows' && '0' || '1' }}
+        run: npm test
+      - name: Configure Linux Electron sandbox helper
+        if: runner.os == 'Linux'
+        run: |
+          sudo chown root:root desktop/node_modules/electron/dist/chrome-sandbox
+          sudo chmod 4755 desktop/node_modules/electron/dist/chrome-sandbox
+      - name: Actual Electron renderer and application controls
+        working-directory: desktop
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a node node_modules/electron/cli.js . --smoke --data-dir=../work/ci-desktop
+          else
+            node node_modules/electron/cli.js . --smoke --data-dir=../work/ci-desktop
+          fi
+      - name: Package portable application with licenses
+        working-directory: desktop
+        run: |
+          python ../tools/prepare_desktop_sources.py --output dist/Cpp-Studio-desktop-native-sources-44.9.1.zip
+          npm run package
+      - name: Verify the actual packaged executable
+        working-directory: desktop
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            sudo chown root:root dist/Cpp-Studio-linux-x64-1.0.0-rc.1/chrome-sandbox
+            sudo chmod 4755 dist/Cpp-Studio-linux-x64-1.0.0-rc.1/chrome-sandbox
+            xvfb-run -a node verify-package.cjs
+          else
+            node verify-package.cjs
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpp-studio-${{ runner.os }}-${{ runner.arch }}
+          compression-level: 0
+          retention-days: 7
+          path: |
+            desktop/dist/*.zip
+            desktop/dist/*.sha256
+            work/ci-desktop/verification/*.json
+            work/ci-desktop/verification/*.png
+            work/ci-desktop-packaged/verification/*.json
+            work/ci-desktop-packaged/verification/*.png

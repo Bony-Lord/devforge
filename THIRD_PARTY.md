@@ -16,6 +16,10 @@
 | Ninja | Apache-2.0 |
 | JetBrains Mono | SIL OFL-1.1, [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) |
 | Inter | SIL OFL-1.1, [Inter](https://github.com/rsms/inter) |
+| Electron 44.9.1 / Chromium | Electron MIT, Chromium/BSD and dependency notices in the complete LICENSES.chromium.html supplied in desktop archives |
+| FFmpeg bundled by Electron | LGPL-2.1-or-later; exact Chromium source and Electron patches accompany desktop builds; [details](desktop/THIRD_PARTY.md) |
+| iconv-lite 0.7.3 / safer-buffer | MIT, original notices included in desktop archives |
+| Android NDK r28c static runtime | Full NDK/toolchain notices included in licenses/android-ndk-r28-NOTICE.txt and licenses/android-ndk-r28-toolchain-NOTICE.txt |
 | Gradle wrapper | Apache-2.0 |
 
 Все остальные нативные зависимости перечислены с версиями, URL и SHA256 в `native-packages.lock.json`; их исходные license/copyright-файлы находятся в `licenses/native/`. Лицензии также включены в APK и доступны через справку приложения.
@@ -36,3 +40,5 @@
 `SmartTyping.java` написан для этого приложения. Поведение сверялось с публичной [документацией Smart Keys CLion](https://www.jetbrains.com/help/clion/settings-smart-keys.html) и открытыми обработчиками `TypedHandler` / `TypedParenImpl` в [IntelliJ Community](https://github.com/JetBrains/intellij-community/tree/master/platform/lang-impl/src/com/intellij/codeInsight/editorActions), распространяемыми под Apache-2.0. Код этих обработчиков в приложение не переносился; закрытый код CLion не используется.
 
 Полная проверка происхождения и условий распространения: [LICENSE-AUDIT.md](docs/LICENSE-AUDIT.md). Инвентарь уведомлений 56 пакетов: [package-notices.json](licenses/package-notices.json). Символические ссылки copyright разрешены в соответствующие тексты из точного снимка Termux; пять дочерних пакетов ссылаются на уведомления LLVM/ncurses. JetBrains и CLion — товарные знаки JetBrains s.r.o.
+
+В modern runtime нативные файлы переупакованы в устанавливаемые Android ELF-библиотеки. libandroid-spawn пересобрана из точного рецепта для 16 KB. Скрипт prepare_modern_runtime.py, нативный хост и документы включаются в архив соответствующих исходников.

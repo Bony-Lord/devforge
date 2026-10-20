@@ -1,0 +1,10 @@
+plugins { id 'com.android.asset-pack' }
+assetPack {
+    packName = 'runtime_data'
+    dynamicDelivery { deliveryType = 'install-time' }
+}
+tasks.register('prepareRuntimeData', Sync) {
+    from new File(project(':app').file(providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern')), 'assets/runtime-modern-data.zip')
+    into 'src/main/assets'
+}
+tasks.configureEach { if (name != 'prepareRuntimeData') dependsOn 'prepareRuntimeData' }

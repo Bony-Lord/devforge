@@ -12,6 +12,7 @@ import android.view.*;
 import android.webkit.*;
 import android.widget.*;
 import org.json.*;
+import com.forgex.BuildConfig;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,7 @@ public final class MainActivity extends Activity {
     WebView web;
     final ResponsivenessWatch responsiveness=new ResponsivenessWatch();
     IdeEngine engine;
+    InstalledRuntime installedRuntime;
     final Handler ui = new Handler(Looper.getMainLooper());
     final ExecutorService workers = Executors.newCachedThreadPool();
     TextView progress;
@@ -42,6 +44,7 @@ public final class MainActivity extends Activity {
         getWindow().setStatusBarColor(Color.rgb(43,45,48));
         getWindow().setNavigationBarColor(Color.rgb(43,45,48));
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+        if(Build.VERSION.SDK_INT>=33)getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,()->emitScript("window.forgeBack && window.forgeBack()"));
         WebView.setWebContentsDebuggingEnabled((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0);
         progress = new TextView(this);
         progress.setTextColor(Color.rgb(222,226,239));
@@ -66,6 +69,7 @@ public final class MainActivity extends Activity {
     void status(String s) { ui.post(() -> progress.setText(s)); }
     String interfaceLanguage(){try{String value=new JSONObject(getSharedPreferences("forge",0).getString("settings","{}")).optString("language",Locale.getDefault().getLanguage());return value.equals("ru")?"ru":"en";}catch(JSONException e){return "ru";}}
     void installRuntime() throws Exception {
+        if(BuildConfig.PACKAGED_RUNTIME){installedRuntime=new InstalledRuntime(this);installedRuntime.install();new File(getFilesDir(),"tmp").mkdirs();return;}
         String abi = Build.SUPPORTED_ABIS[0];
         String expected;
         try(InputStream in=getAssets().open("runtime-info.json")){expected=new JSONObject(IdeEngine.slurp(in,1024)).getString("arch");}
@@ -166,7 +170,12 @@ public final class MainActivity extends Activity {
             int obscured=Math.max(0,point[1]+editorRoot.getHeight()-visible.bottom);
             updateKeyboardGeometry(obscured>editorRoot.getHeight()*.15?obscured:0);
         });
-        setContentView(editorRoot);web.requestFocus();web.loadUrl(baseUrl);getWindow().getDecorView().requestApplyInsets();
+        if(Build.VERSION.SDK_INT>=30&&BuildConfig.PACKAGED_RUNTIME){
+            getWindow().setDecorFitsSystemWindows(false);
+            FrameLayout safeArea=new FrameLayout(this);safeArea.setBackgroundColor(Color.rgb(43,45,48));safeArea.addView(editorRoot,new FrameLayout.LayoutParams(-1,-1));
+            safeArea.setOnApplyWindowInsetsListener((view,insets)->{android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());view.setPadding(bars.left,bars.top,bars.right,bars.bottom);return view.onApplyWindowInsets(insets);});setContentView(safeArea);
+        }else setContentView(editorRoot);
+        web.requestFocus();web.loadUrl(baseUrl);getWindow().getDecorView().requestApplyInsets();
         try{configureKeyboard(new JSONObject(engine.prefs.getString("settings","{}")));}catch(JSONException ignored){}
     }
     void configureKeyboard(JSONObject settings) {
@@ -301,6 +310,22 @@ public final class MainActivity extends Activity {
         }
         if(key==KeyEvent.KEYCODE_F8||key==KeyEvent.KEYCODE_F7){emitScript("window.forge && forge.debugger.active && forge.debugger.action("+JSONObject.quote(key==KeyEvent.KEYCODE_F7?"step":event.isShiftPressed()?"finish":"next")+")");return true;}
         return super.onKeyDown(key,event);
+    }
+    /** Debug-only app-window capture: includes the native editor, excludes OS bars. */
+    JSONObject captureApp()throws Exception {
+        if(!BuildConfig.DEBUG)throw new IOException("Capture is available only in debug builds");
+        CompletableFuture<String> result=new CompletableFuture<>();
+        ui.post(()->{try{
+            int[] at=new int[2];editorRoot.getLocationInWindow(at);int width=editorRoot.getWidth(),height=editorRoot.getHeight();
+            if(width<=0||height<=0||(long)width*height>12000000)throw new IOException("Invalid app capture size");
+            android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Rect source=new android.graphics.Rect(at[0],at[1],at[0]+width,at[1]+height);
+            PixelCopy.request(getWindow(),source,bitmap,status->{
+                if(status!=PixelCopy.SUCCESS){bitmap.recycle();result.completeExceptionally(new IOException("App capture failed: "+status));return;}
+                workers.execute(()->{try{File file=new File(getCacheDir(),"app-capture.png");try(OutputStream out=new FileOutputStream(file)){if(!bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out))throw new IOException("PNG capture failed");}result.complete(file.getAbsolutePath());}catch(Exception error){result.completeExceptionally(error);}finally{bitmap.recycle();}});
+            },ui);
+        }catch(Exception error){result.completeExceptionally(error);}});
+        return new JSONObject().put("path",result.get(15,TimeUnit.SECONDS));
     }
     @Override protected void onDestroy() {
         closed=true;responsiveness.close();
