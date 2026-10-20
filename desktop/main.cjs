@@ -30,7 +30,7 @@ async function serve(){
 async function start(){
   const page=await serve();
   host=await new DesktopHost(app.getPath('userData'),(type,data)=>{if(window&&!window.isDestroyed())window.webContents.send('studio:event',type,data);},{
-    projectsDirectory:smoke?undefined:path.join(app.getPath('documents'),'C++ Studio'),
+    projectsDirectory:smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'C++ Studio'),
     reducedMotion:()=>nativeTheme.prefersReducedMotion,
     chooseFolder:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openDirectory']});return r.canceled?null:r.filePaths[0];},
     chooseFile:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openFile']});return r.canceled?null:r.filePaths[0];},

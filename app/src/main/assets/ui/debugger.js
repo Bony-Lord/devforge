@@ -30,11 +30,11 @@ class GdbClient{
     if(kind==='*'&&state==='running'){this.ide.runtimeDiagnostics.banner.classList.add('hidden');this.paused=false;this.stopSerial++;this.variablesSerial=-1;$('#debugVariables').replaceChildren();$('#debugWatches').replaceChildren();this.renderControls();this.clearExecutionLine();$('#debugStatus').textContent='Программа выполняется';}
     if(kind==='*'&&state==='stopped'){if(this.starting)return;if(data.reason==='breakpoint-hit'&&this.runtimeBreakpoints?.has(String(data.bkptno).split('.')[0])){data['signal-name']='SIGABRT';data['signal-meaning']=tr('Вызван abort() или std::terminate()');data.runtimeFault=true;}if(['exited-normally','exited','exited-signalled'].includes(data.reason)){this.ide.appendOutput('console',`\nОтладка завершена · ${data.reason}${data['exit-code']?' · '+data['exit-code']:''}\n`,'meta');this.stop().catch(safeError);}else{this.paused=true;this.renderControls();$('#debugStatus').textContent=data.reason==='breakpoint-hit'?'Точка останова':data.reason==='end-stepping-range'?'Шаг выполнен':data['signal-name']||data.reason||'Пауза';this.refresh(data.frame,(data.runtimeFault||data.reason==='signal-received'&&['SIGSEGV','SIGABRT','SIGFPE','SIGBUS','SIGILL'].includes(data['signal-name']))?data:null).catch(safeError);}}
   }
-  async start(executable,args=[]){
+  async start(executable,args=[],launchOptions={}){
     this.session='debug-'+Date.now();this.ide.runtimeDiagnostics.begin(this.session,true);this.starting=true;this.runtimeBreakpoints=new Set();this.active=true;this.paused=false;this.ide.consoleId=this.session;this.ide.running=true;
     $('#consoleOutput').textContent='';$('#debugLogOutput').textContent='';
     try{
-      const info=await native('gdbStart',{executable,args,id:this.session});
+      const info=await native('gdbStart',{executable,args,id:this.session,...launchOptions});
       for(const cmd of ['-gdb-set mi-async on','-gdb-set pagination off','-gdb-set host-charset UTF-8','-gdb-set target-charset UTF-8','-gdb-set confirm off','-gdb-set disable-randomization off','-enable-pretty-printing','-gdb-set print elements 80','-gdb-set print max-depth 4'])try{await this.command(cmd);}catch(e){this.ide.appendOutput('debugLog',e.message+'\n','meta');}
       for(const [name,value] of Object.entries(info.environment||{}))await this.command('-gdb-set environment '+JSON.stringify(name+'='+value));
       for(const signal of ['SIGSEGV','SIGABRT','SIGFPE','SIGBUS','SIGILL'])try{await this.command('-interpreter-exec console '+JSON.stringify('handle '+signal+' stop print pass'));}catch{}

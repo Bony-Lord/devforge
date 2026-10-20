@@ -63,7 +63,7 @@ const workspaceMethods={
   saveWorkspaceSettings(){clearTimeout(this.workspaceSaveTimer);this.workspaceSaveTimer=setTimeout(()=>native('settings',this.settings).catch(safeError),220);},
   splitEditor(direction,persist=true){
     const model=this.editor.getModel();
-    if(!this.secondaryEditor){this.secondaryEditor=attachNativeEditor(monaco.editor.create($('#secondaryEditor'),{...this.editorOptions(),automaticLayout:false,model:null}),'secondary');this.attachWorkspaceEditor(this.secondaryEditor);}
+    if(!this.secondaryEditor){this.secondaryEditor=attachNativeEditor(monaco.editor.create($('#secondaryEditor'),{...this.editorOptions(),...(window.StudioDesktop?{overflowWidgetsDomNode:$('#desktopEditorOverlays'),fixedOverflowWidgets:true}:{}),automaticLayout:false,model:null}),'secondary');this.attachWorkspaceEditor(this.secondaryEditor);}
     $('#secondaryEditor').classList.remove('hidden');$('#editorSplitResizer').classList.remove('hidden');$('#editorArea').classList.add('split-editor');$('#editorArea').classList.toggle('split-stacked',direction==='stacked');
     this.settings.layout={...this.settings.layout,split:direction,splitRatio:this.settings.layout?.splitRatio||.5};
     if(!this.secondaryEditor.getModel()&&model){this.secondaryEditor.setModel(model);this.secondaryEditor.updateOptions({readOnly:!!this.docs.get(model.uri.toString())?.readonly});}this.layoutEditors();if(persist)this.saveWorkspaceSettings();

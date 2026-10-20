@@ -31,11 +31,11 @@ const projectToolsMethods={
   async selectDeviceFolder(){const result=await native('openFolder',{path:this.folderLocation});$('#folderDialog').close();await this.switchProject(result.project);await native('formatterConfig');await this.refreshTree();this.toast('Папка открыта без копирования');},
   async newFolder(directory){directory??=this.treeDirectory();const answer=await this.prompt('Новая папка','Путь относительно проекта',directory?directory+'/new_folder':'src');if(!answer)return;const path=this.state.root+'/'+answer.value.trim();await native('newFolder',{path});await this.refreshTree();this.selectTreeItem({path,dir:true});},
   async inspectCmake(model=this.active?.model){
-    if(!model||this.docs.get(model.uri.toString())?.readonly||!['cpp','c'].includes(model.getLanguageId()))return null;
-    const project=this.state.project,root=this.state.root,source=model.uri.fsPath;const files=this.flatFiles().filter(f=>f.name==='CMakeLists.txt'||f.name.endsWith('.cmake')).slice(0,100);
-    if(!files.some(f=>f.path===root+'/CMakeLists.txt'))return null;
+    if(!model||/\.(?:h|hh|hpp|hxx)$/i.test(model.uri.fsPath)||this.docs.get(model.uri.toString())?.readonly||!['cpp','c'].includes(model.getLanguageId()))return null;
+    const project=this.state.project,root=this.state.root.replaceAll('\\','/'),source=model.uri.fsPath.replaceAll('\\','/');const files=this.flatFiles().filter(f=>f.name==='CMakeLists.txt'||f.name.endsWith('.cmake')).slice(0,100);
+    if(!files.some(f=>studioPathKey(f.path)===studioPathKey(root+'/CMakeLists.txt')))return null;
     const targets=[],listed=new Set(),vars={CMAKE_SOURCE_DIR:root,PROJECT_SOURCE_DIR:root};let dynamic=false;
-    const absolute=(value,dir)=>{const parts=(value.startsWith('/')?value:dir+'/'+value).split('/'),out=[];for(const p of parts){if(p==='..')out.pop();else if(p&&p!=='.')out.push(p);}return '/'+out.join('/');};
+    const absolute=(value,dir)=>{value=value.replaceAll('\\','/');const path=/^(?:[A-Za-z]:\/|\/)/.test(value)?value:dir+'/'+value,parts=path.split('/'),out=[];for(const p of parts){if(p==='..')out.pop();else if(p&&p!=='.')out.push(p);}return (/^[A-Za-z]:/.test(path)?'':'/')+out.join('/');};
     for(const file of files){const doc=this.docs.get(monaco.Uri.file(file.path).toString()),text=doc?doc.model.getValue():(await native('read',{path:file.path})).text,dir=file.path.slice(0,file.path.lastIndexOf('/'));vars.CMAKE_CURRENT_SOURCE_DIR=dir;
       const expand=value=>value.replace(/\$\{([^}]+)\}/g,(all,key)=>vars[key]??all).split(';');
       for(const call of cmakeCalls(text)){const a=call.args;if(call.name==='set'&&a.length>1){vars[a[0]]=a.slice(1).flatMap(expand).join(';');continue;}
@@ -47,7 +47,7 @@ const projectToolsMethods={
       }
     }
     const database=await native('cmakeSources');if(project!==this.state.project)return null;
-    const included=listed.has(source)||database.files.includes(source),result={source,targets:[...new Map(targets.map(t=>[t.name,t])).values()],included,dynamic,configured:database.configured};this.cmakeSnapshot=result;return result;
+    const included=[...listed,...database.files].some(file=>studioPathKey(file)===studioPathKey(source)),result={source,targets:[...new Map(targets.map(t=>[t.name,t])).values()],included,dynamic,configured:database.configured};this.cmakeSnapshot=result;return result;
   },
   scheduleCMakeInspection(){clearTimeout(this.cmakeInspectTimer);this.cmakeInspectTimer=setTimeout(()=>this.refreshCMakeStatus().catch(console.warn),250);},
   async refreshCMakeStatus(){const doc=this.active,status=await this.inspectCmake(doc?.model);if(doc!==this.active)return;const button=$('#cmakeFileStatus');button.classList.toggle('hidden',!status||status.included||status.dynamic);if(!doc)return;monaco.editor.setModelMarkers(doc.model,'cmake-project',!status||status.included||status.dynamic?[]:[{startLineNumber:1,startColumn:1,endLineNumber:1,endColumn:Math.max(2,doc.model.getLineMaxColumn(1)),severity:monaco.MarkerSeverity.Info,message:tr('Файл не включён в цель CMake. Можно добавить его через быстрое исправление.'),source:'CMake',code:'cmake-unlisted-source'}]);if(status&&!status.included){button.textContent=tr('Не входит в CMake · Добавить');button.title=tr('Добавить исходный файл в цель CMake');}},

@@ -13,13 +13,13 @@ class DapClient extends GdbClient {
     if(message.event==='terminated'){this.finish();return;}
     if(message.event==='exited')this.ide.appendOutput('console','\n'+tr('Процесс завершён · код')+' '+data.exitCode+'\n',data.exitCode?'failure':'success');
   }
-  async start(executable,args=[]){
+  async start(executable,args=[],launchOptions={}){
     this.session='debug-'+Date.now();this.active=true;this.paused=false;this.ide.consoleId=this.session;this.ide.running=true;this.ide.runtimeDiagnostics.begin(this.session,true);$('#consoleOutput').textContent='';$('#debugLogOutput').textContent='';
     try{
-      await native('dapStart',{executable,id:this.session});
+      const context=await native('dapStart',{executable,id:this.session,...launchOptions});
       this.capabilities=await this.request('initialize',{clientID:'cpp-studio',clientName:'C++ Studio',adapterID:'lldb',pathFormat:'path',linesStartAt1:true,columnsStartAt1:true,supportsVariableType:true,supportsVariablePaging:true,supportsRunInTerminalRequest:true,supportsProgressReporting:false,locale:StudioI18n.locale});
       let ready;const initialized=new Promise(r=>ready=r);this.initialized=ready;
-      const launch=this.request('launch',{program:executable,args,cwd:this.ide.state.root,stopOnEntry:true,runInTerminal:true,terminalKind:'integrated',enableAutoVariableSummaries:true,enableSyntheticChildDebugging:true,initCommands:['settings set target.process.thread.step-avoid-regexp "^(std::|__gnu_cxx::)"']});
+      const launch=this.request('launch',{program:executable,args,cwd:context.cwd||this.ide.state.root,env:context.environment||{},stopOnEntry:true,runInTerminal:true,terminalKind:'integrated',enableAutoVariableSummaries:true,enableSyntheticChildDebugging:true,initCommands:['settings set target.process.thread.step-avoid-regexp "^(std::|__gnu_cxx::)"']});
       launch.catch(()=>ready());await initialized;
       for(const[path]of this.breakpoints)if(pathWithin(path,this.ide.state.root))await this.syncBreakpoints(path);
       if(this.capabilities.supportsFunctionBreakpoints)await this.request('setFunctionBreakpoints',{breakpoints:[{name:'abort'},{name:'std::terminate'}]});

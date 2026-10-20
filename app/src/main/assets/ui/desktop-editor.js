@@ -1,12 +1,14 @@
 'use strict';
 if(window.StudioDesktop){
   document.body.classList.add('desktop-host');
+  const overlays=document.createElement('div');overlays.id='desktopEditorOverlays';overlays.className='monaco-editor vs-dark';overlays.setAttribute('popover','manual');document.body.append(overlays);overlays.showPopover();
+  new MutationObserver(()=>{const light=document.body.classList.contains('light');overlays.classList.toggle('vs-dark',!light);overlays.classList.toggle('vs',light);}).observe(document.body,{attributes:true,attributeFilter:['class']});
   Object.assign(NativeEditing,{
     attach(editor,id){
       const container=document.querySelector(id==='primary'?'#editor':'#secondaryEditor'),api={editor,id,container,opening:Promise.resolve()};this.panes.set(id,api);
       const original=editor.setModel.bind(editor);editor.setModel=model=>{original(model);this.track(model);if(model)this.configureIndent(editor,model).catch(console.warn);};
       const dispose=editor.dispose.bind(editor);editor.dispose=()=>{this.panes.delete(id);dispose();};
-      editor.updateOptions({automaticLayout:false,autoIndent:'full',autoClosingBrackets:'languageDefined',autoClosingQuotes:'languageDefined',formatOnType:false});
+      editor.updateOptions({fixedOverflowWidgets:true,overflowWidgetsDomNode:overlays,automaticLayout:false,autoIndent:'full',autoClosingBrackets:'languageDefined',autoClosingQuotes:'languageDefined',formatOnType:false});
       editor.onDidType(text=>{if(text!=='}'||!window.forge?.settings.smartFormatOnClose||!window.forge?.toolPackState?.packs.find(p=>p.id==='analysis')?.installed)return;const model=editor.getModel();if(!model||!['c','cpp'].includes(model.getLanguageId()))return;const version=model.getVersionId(),cursor=model.getOffsetAt(editor.getPosition()),line=editor.getPosition().lineNumber;
         clearTimeout(api.formatTimer);api.formatTimer=setTimeout(async()=>{try{const r=await native('formatterOnType',{path:model.uri.fsPath,text:model.getValue(),cursor,firstLine:Math.max(1,line-1),lastLine:line});if(r.code||model.isDisposed()||model.getVersionId()!==version||editor.getModel()!==model)return;model.pushEditOperations([],[{range:model.getFullModelRange(),text:r.text}],()=>null);editor.setPosition(model.getPositionAt(r.cursor));}catch(e){console.warn('Format on close',e);}},180);
       });

@@ -66,3 +66,16 @@ Object.assign(window.STUDIO_EN,{"Анимации": "Animations", "Как в с�
 Object.assign(window.STUDIO_EN,{'Наблюдать':'Watch'});
 
 Object.assign(window.STUDIO_EN,{'Анализ кода и форматирование':'Code analysis and formatting'});
+
+Object.assign(window.STUDIO_EN,{
+  'Профиль CMake':'CMake profile','Конфигурация запуска':'Run configuration','Конфигурации запуска и профили CMake':'Run configurations and CMake profiles',
+  'Настроить профили CMake…':'Edit CMake profiles…','Изменить конфигурации запуска…':'Edit run configurations…','Профили CMake':'CMake profiles','Запуск':'Run',
+  'С обходом':'Step Over','Шаг с обходом':'Step Over','Тип сборки':'Build type','Из панели инструментов':'From the toolbar',
+  'Параметры CMake · по одному -DИМЯ=значение в строке':'CMake options · one -DNAME=value per line','Цель CMake':'CMake target',
+  'Аргументы программы · каждый с новой строки':'Program arguments · one per line','Рабочая папка · относительно проекта':'Working directory · relative to project',
+  'Переменные окружения · ИМЯ=значение':'Environment variables · NAME=value','Каждый профиль имеет отдельный каталог сборки.':'Each profile has a separate build directory.',
+  'Пустая цель — первая исполняемая цель из CMake. Точка означает корень проекта.':'An empty target selects the first CMake executable. A dot means the project root.',
+  'Все исходники проекта':'All project sources','Автоматически':'Automatic','Окружение: используйте ИМЯ=значение':'Environment: use NAME=value',
+  'Выбранная цель не является исполняемой программой':'The selected target is not an executable','Версии определяются установленными инструментами. Стандарт языка выбирается отдельно.':'Versions come from the installed tools. Select the language standard separately.',
+  'Дублировать':'Duplicate','Копия':'Copy','Удалить конфигурацию':'Remove configuration','Нужна хотя бы одна конфигурация':'Keep at least one configuration','Новый профиль':'New profile','Новая конфигурация':'New configuration'
+});

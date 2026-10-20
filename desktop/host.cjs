@@ -2,17 +2,22 @@
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {Workspace,portable,canonical,inside,exists,atomic,encode}=require('./workspace.cjs');
 const {Tooling,capture}=require('./tooling.cjs');
+const {ProjectConfigurations}=require('./project-config.cjs');
 const STYLE='BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n';
 const CLION_STYLE=STYLE.replace('ReferenceAlignment: Left','ReferenceAlignment: Right').replace('SpaceBeforeRangeBasedForLoopColon: true','SpaceBeforeRangeBasedForLoopColon: false');
 class DesktopHost {
-  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.operations=new Map();this.settingsQueue=Promise.resolve();}
+  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.configurations=new ProjectConfigurations(this);this.operations=new Map();this.settingsQueue=Promise.resolve();}
   async init(){await this.ws.init();await this.tools.discover();if(!this.ws.prefs.settings.compiler&&!this.tools.tools.gxx&&this.tools.tools.clangxx){this.ws.prefs.settings.compiler='clang';await this.ws.persist();}if(!await exists(path.join(this.ws.root,'.clang-format')))await this.ws.write(path.join(this.ws.root,'.clang-format'),STYLE);return this;}
-  async state(){return{project:this.ws.prefs.current,projectLabels:Object.fromEntries(Object.entries(this.ws.prefs.projects).map(([id,p])=>[id,p.label])),projects:Object.keys(this.ws.prefs.projects),root:this.ws.root,external:true,cache:portable(this.ws.cache),usr:portable(path.dirname(this.tools.tools.gxx||this.tools.tools.clangxx||process.execPath)),tree:await this.ws.tree(),settings:{keepAwake:false,...this.ws.prefs.settings},session:this.ws.prefs.session,abi:os.arch(),version:'1.0.0-rc.1',capabilities:{protocol:1,platform:process.platform,editor:'monaco',toolDelivery:'system',localExecution:'native-process',debugger:(!!this.tools.tools.gdb&&!!this.tools.tools.gdbserver)||!!this.tools.tools.lldbdap,debugProtocol:this.tools.tools.gdb&&this.tools.tools.gdbserver?'mi':'dap',systemAnimations:!this.system.reducedMotion?.()}};}
+  async state(){return{project:this.ws.prefs.current,projectLabels:Object.fromEntries(Object.entries(this.ws.prefs.projects).map(([id,p])=>[id,p.label])),projects:Object.keys(this.ws.prefs.projects),root:this.ws.root,external:true,cache:portable(this.ws.cache),usr:portable(path.dirname(this.tools.tools.gxx||this.tools.tools.clangxx||process.execPath)),tree:await this.ws.tree(),settings:{keepAwake:false,...this.ws.prefs.settings},session:this.ws.prefs.session,abi:os.arch(),version:'1.0.0-rc.2',capabilities:{protocol:1,platform:process.platform,editor:'monaco',toolDelivery:'system',localExecution:'native-process',debugger:(!!this.tools.tools.gdb&&!!this.tools.tools.gdbserver)||!!this.tools.tools.lldbdap,debugProtocol:this.tools.tools.gdb&&this.tools.tools.gdbserver?'mi':'dap',systemAnimations:!this.system.reducedMotion?.()}};}
   async handle(op,d={}){
     if(typeof op!=='string'||!d||typeof d!=='object'||Array.isArray(d))throw Error('Invalid request');
     if(op.startsWith('editor')){if(op==='editorSnapshot')return[];if(op==='editorAnalysis')return true;if(['editorReset','editorForget','editorLayout','editorTypingOptions'].includes(op))return true;throw Error('Desktop editor owns its document: unsupported native editor operation');}
     switch(op){
       case 'state':return this.state();
+      case 'projectConfigurations':return this.configurations.state();
+      case 'saveConfigurations':return this.configurations.save(d);
+      case 'selectConfiguration':return this.configurations.select(d);
+      case 'resolveConfiguration':return this.configurations.resolve(d);
       case 'settings':this.ws.prefs.settings=structuredClone(d);await this.ws.persist();await this.tools.discover();return d;
       case 'session':this.ws.prefs.session=structuredClone(d);await this.ws.persist();return true;
       case 'project':if(!this.ws.prefs.projects[d.name]||!await exists(this.ws.prefs.projects[d.name].path))throw Error('Project unavailable');this.tools.stopLsp();this.ws.prefs.current=d.name;await this.ws.persist();return this.state();
@@ -35,7 +40,7 @@ class DesktopHost {
       case 'importFile':{const source=await this.system.chooseFile?.();if(!source)return true;const file=await this.ws.writable(path.basename(source));await fs.copyFile(source,file,require('node:fs').constants.COPYFILE_EXCL);this.event('fileImported',{path:file});return true;}
       case 'export':return this.system.exportProject?.(this.ws.root)||false;
       case 'showInFiles':{const file=await canonical(d.path||this.ws.root);if(!inside(file,await canonical(this.ws.root)))throw Error('Path outside project');await this.system.showInFiles?.(file);return true;}
-      case 'reportBug':{const url=new URL('https://github.com/Bony-Lord/gcc-cpp-studio/issues/new');url.searchParams.set('template','bug_report.yml');url.searchParams.set('version','1.0.0-rc.1');url.searchParams.set('device',process.platform+' '+os.arch());await this.system.openExternal?.(url.href);return url.href;}
+      case 'reportBug':{const url=new URL('https://github.com/Bony-Lord/gcc-cpp-studio/issues/new');url.searchParams.set('template','bug_report.yml');url.searchParams.set('version','1.0.0-rc.2');url.searchParams.set('device',process.platform+' '+os.arch());await this.system.openExternal?.(url.href);return url.href;}
       case 'chooseToolExecutable':return this.system.chooseFile?.()||null;
       case 'screen':case 'keyboard':return true;
       case 'desktopNotices':return this.system.showNotices?.();
@@ -58,7 +63,7 @@ class DesktopHost {
       case 'lspStart':return this.tools.startLsp(d);
       case 'lspSend':this.tools.sendLsp(d.message);return true;
       case 'lspStop':this.tools.stopLsp();return true;
-      case 'dapStart':{if(this.tools.dap||this.tools.gdb||this.tools.execution)throw Error('Stop current process first');const {DebugAdapter}=require('./debug-adapter.cjs');const adapter=new DebugAdapter(this.tools,d.id,await this.tools.executable(d.executable));this.tools.dap=adapter;try{return await adapter.start();}catch(e){adapter.stop();throw e;}}
+      case 'dapStart':{if(this.tools.dap||this.tools.gdb||this.tools.execution)throw Error('Stop current process first');const {DebugAdapter}=require('./debug-adapter.cjs');const adapter=new DebugAdapter(this.tools,d.id,await this.tools.executable(d.executable),await this.tools.executionContext(d));this.tools.dap=adapter;try{return await adapter.start();}catch(e){adapter.stop();throw e;}}
       case 'dapSend':if(!this.tools.dap)throw Error('LLDB stopped');this.tools.dap.send(d.message);return true;
       case 'dapStop':this.tools.dap?.stop();return true;
       case 'runtimeSymbolize':return this.symbolize(d.addresses);
@@ -82,7 +87,7 @@ class DesktopHost {
       }
       case 'cmakeCommands':return capture(this.tools.tool('cmake'),['--help-command-list'],{env:this.tools.env()});
       case 'cmakeHelp':if(!/^[A-Za-z_]\w*$/.test(d.name))throw Error('Invalid CMake command');return capture(this.tools.tool('cmake'),['--help-command',d.name],{env:this.tools.env()});
-      case 'cmakeSources':{const file=path.join(this.tools.cmakeDir(this.ws.prefs.settings),'compile_commands.json');if(!await exists(file))return{configured:false,files:[],time:0};const entries=JSON.parse(await fs.readFile(file,'utf8'));return{configured:true,files:await Promise.all(entries.map(entry=>canonical(path.isAbsolute(entry.file)?entry.file:path.join(entry.directory,entry.file)))),time:(await fs.stat(file)).mtimeMs};}
+      case 'cmakeSources':return this.tools.cmakeModel(this.ws.prefs.settings);
       default:throw Error('Unsupported operation: '+op);
     }
   }
@@ -90,7 +95,7 @@ class DesktopHost {
   toolPacks(){const t=this.tools.tools,disabled=this.ws.prefs.settings.disabledTools||{};return{delivery:'system',base:{},packs:[
     {id:'gcc',name:'GCC',description:'Системный компилятор GCC',available:!!t.gcc&&!!t.gxx,path:t.gxx},
     {id:'clang',name:'Clang',description:'Системный компилятор Clang',available:!!t.clang&&!!t.clangxx,path:t.clangxx},
-    {id:'analysis',name:'clangd + clang-format',description:'Анализ кода и форматирование',available:!!t.clangd&&!!t.format,path:t.clangd},
+    {id:'analysis',name:'clangd'+(t.format?' + clang-format':''),description:'Анализ кода и форматирование',available:!!t.clangd,formatterAvailable:!!t.format,path:t.clangd},
     {id:'debugger',name:t.gdb&&t.gdbserver?'GDB + gdbserver':'LLDB',description:'Локальный отладчик с просмотром структур',available:(!!t.gdb&&!!t.gdbserver)||!!t.lldbdap,path:t.gdb&&t.gdbserver?t.gdb:t.lldbdap},
     {id:'git',name:'Git',description:'Локальный контроль версий',available:!!t.git,path:t.git}
   ].map(p=>({...p,system:true,installed:p.available&&!disabled[p.id],local:true,bytes:0,installedBytes:0}))};}

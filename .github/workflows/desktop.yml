@@ -82,12 +82,20 @@ jobs:
         working-directory: desktop
         run: |
           if [ "$RUNNER_OS" = Linux ]; then
-            sudo chown root:root dist/Cpp-Studio-linux-x64-1.0.0-rc.1/chrome-sandbox
-            sudo chmod 4755 dist/Cpp-Studio-linux-x64-1.0.0-rc.1/chrome-sandbox
+            sudo chown root:root dist/Cpp-Studio-linux-x64-1.0.0-rc.2/chrome-sandbox
+            sudo chmod 4755 dist/Cpp-Studio-linux-x64-1.0.0-rc.2/chrome-sandbox
             xvfb-run -a node verify-package.cjs
           else
             node verify-package.cjs
           fi
+      - name: Native installers with original dependency notices
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run installers
+      - name: Actual Windows installation or Linux/macOS native payload inspection
+        working-directory: desktop
+        run: node verify-installer.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -97,7 +105,14 @@ jobs:
           path: |
             desktop/dist/*.zip
             desktop/dist/*.sha256
+            desktop/dist/installers/*setup.exe
+            desktop/dist/installers/*.deb
+            desktop/dist/installers/*.pkg
+            desktop/dist/installers/*.sha256
+            desktop/dist/installers/installers-*.json
             work/ci-desktop/verification/*.json
             work/ci-desktop/verification/*.png
             work/ci-desktop-packaged/verification/*.json
             work/ci-desktop-packaged/verification/*.png
+            work/ci-desktop-installed/data/verification/*
+            work/ci-desktop-installed/package-inspection.json

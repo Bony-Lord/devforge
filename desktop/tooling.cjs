@@ -28,7 +28,7 @@ class LspFrames {
 async function findTool(name,overrides={}){
   if(overrides[name]){const file=await canonical(overrides[name]);if(await exists(file))return file;throw Error('Tool unavailable: '+file);}
   const names={gcc:process.platform==='darwin'?['gcc-16','gcc-15','gcc-14','gcc']:['gcc'],gxx:process.platform==='darwin'?['g++-16','g++-15','g++-14','g++']:['g++'],clang:['clang'],clangxx:['clang++'],cmake:['cmake'],ninja:['ninja'],gdb:['gdb'],gdbserver:['gdbserver'],git:['git'],clangd:['clangd'],format:['clang-format'],symbolizer:['llvm-symbolizer'],lldbdap:['lldb-dap','lldb-dap-23','lldb-dap-22','lldb-dap-21','lldb-dap-20','lldb-dap-19','lldb-vscode','lldb-vscode-18','lldb-vscode-17'],addr2line:['addr2line','llvm-addr2line']}[name]||[name];
-  const folders=[...(process.env.PATH||'').split(path.delimiter),...(isWindows?['C:/msys64/mingw64/bin','C:/msys64/ucrt64/bin','C:/Program Files/CMake/bin','C:/Program Files/LLVM/bin','C:/Program Files/Git/cmd']:['/usr/bin','/usr/local/bin','/opt/homebrew/bin','/opt/homebrew/opt/llvm/bin','/usr/local/opt/llvm/bin','/opt/homebrew/opt/llvm/libexec/bin','/usr/local/opt/llvm/libexec/bin','/opt/homebrew/opt/lldb/bin','/usr/local/opt/lldb/bin'])];
+  const folders=[...(process.env.PATH||'').split(path.delimiter),...(isWindows?['C:/msys64/mingw64/bin','C:/msys64/ucrt64/bin','C:/Program Files/CMake/bin','C:/Program Files/LLVM/bin','C:/Program Files/Git/cmd',...['bin/mingw/bin','bin/cmake/win/x64/bin','bin/ninja/win/x64','bin/clang/win/x64/bin','plugins/clion-radler/DotFiles/windows-x64'].map(p=>path.join(process.env.LOCALAPPDATA||'', 'Programs/CLion',p))]:['/usr/bin','/usr/local/bin','/opt/homebrew/bin','/opt/homebrew/opt/llvm/bin','/usr/local/opt/llvm/bin','/opt/homebrew/opt/llvm/libexec/bin','/usr/local/opt/llvm/libexec/bin','/opt/homebrew/opt/lldb/bin','/usr/local/opt/lldb/bin'])];
   for(const folder of folders.filter(Boolean))for(const tool of names){const file=path.join(folder,tool+(isWindows?'.exe':''));if(await exists(file))return portable(await fs.realpath(file));}return null;
 }
 class Tooling {
@@ -61,40 +61,56 @@ class Tooling {
   }
   async buildCommand(exe,args,id){
     if(this.cancelled)return 130;this.event('output',{id,stream:'command',text:[exe,...args].map(a=>/\s/.test(a)?JSON.stringify(a):a).join(' ')+'\n'});
-    const child=this.track(launch(exe,args,{cwd:this.ws.root,env:this.env()}));this.building=child;this.output(child,id,'build',child.stdout);this.output(child,id,'build',child.stderr);
+    const child=this.track(launch(exe,args,{cwd:this.ws.root,env:{...this.env(),...this.buildEnvironment}}));this.building=child;this.output(child,id,'build',child.stdout);this.output(child,id,'build',child.stderr);
     return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{this.terminate(child);reject(Error('Build exceeded 180 seconds'));},180000);timer.unref();child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('close',code=>{clearTimeout(timer);if(this.building===child)this.building=null;resolve(this.cancelled?130:code??128);});});
   }
   async sources(){const files=[],walk=async dir=>{for(const e of await fs.readdir(dir,{withFileTypes:true})){if(e.isSymbolicLink()||['.forge','build','.git','node_modules'].includes(e.name))continue;const file=path.join(dir,e.name);if(e.isDirectory())await walk(file);else if(/\.(c|cc|cpp|cxx|C)$/.test(e.name))files.push(portable(file));if(files.length>1000)throw Error('More than 1000 source files');}};await walk(this.ws.root);return files;}
-  cmakeDir(options){return path.join(this.ws.cache,'cmake-'+(options.compiler||'gcc')+'-'+this.standard(options,false).replaceAll('+','p'));}
+  cmakeDir(options){const profile=options.cmakeProfile;if(profile&&!/^[A-Za-z0-9_-]{1,64}$/.test(profile))throw Error('Invalid CMake profile');return path.join(this.ws.cache,'cmake-'+(options.compiler||'gcc')+'-'+this.standard(options,false).replaceAll('+','p')+(profile?'-'+profile+'-'+(options.cmakeBuildType||'Debug'):''));}
+  async cmakeModel(options={}){
+    const folder=this.cmakeDir(options),reply=path.join(folder,'.cmake/api/v1/reply'),result={configured:false,files:[],targets:[],time:0};
+    const db=path.join(folder,'compile_commands.json');if(await exists(db)){const entries=JSON.parse(await fs.readFile(db,'utf8'));result.files=await Promise.all(entries.map(e=>canonical(path.isAbsolute(e.file)?e.file:path.resolve(e.directory,e.file))));result.configured=true;result.time=(await fs.stat(db)).mtimeMs;}
+    if(!await exists(reply))return result;
+    const index=(await fs.readdir(reply)).filter(n=>/^index-.*\.json$/.test(n)).sort().at(-1);if(!index)return result;
+    const read=async name=>{if(path.basename(name)!==name)throw Error('Invalid CMake reply reference');const file=path.join(reply,name);if((await fs.stat(file)).size>16*1024*1024)throw Error('CMake reply too large');return JSON.parse(await fs.readFile(file,'utf8'));};
+    const metadata=await read(index),reference=metadata.objects?.find(o=>o.kind==='codemodel'&&o.version.major===2);if(!reference)return result;
+    const model=await read(reference.jsonFile),config=model.configurations.find(c=>c.name===(options.cmakeBuildType||'Debug'))||model.configurations[0];
+    for(const entry of config?.targets||[]){const target=await read(entry.jsonFile);const artifacts=await Promise.all((target.artifacts||[]).map(a=>canonical(path.resolve(model.paths.build,a.path))));result.targets.push({name:target.name,type:target.type,artifacts});for(const source of target.sources||[])result.files.push(await canonical(path.resolve(model.paths.source,source.path)));}
+    result.files=[...new Set(result.files)];result.configured=true;return result;
+  }
   async build(d){
-    if(this.building||this.execution||this.gdb||this.dap)throw Error('Stop the current process first');this.cancelled=false;const options={...this.ws.prefs.settings,...d.options};await this.verifySanitizers(options);await fs.mkdir(this.ws.cache,{recursive:true});
+    if(this.building||this.execution||this.gdb||this.dap)throw Error('Stop the current process first');this.cancelled=false;const options={...this.ws.prefs.settings,...d.options};this.buildEnvironment=options.buildEnvironment||{};await this.verifySanitizers(options);await fs.mkdir(this.ws.cache,{recursive:true});
     let output,code;
     if(d.mode==='cmake'){
       this.tool('ninja');
       const folder=this.cmakeDir(options),standard=c=>this.standard(options,c).replace('03','98').replace('89','90').replace('2x','23').replace(/\D/g,'');
+      await fs.mkdir(path.join(folder,'.cmake/api/v1/query/client-cpp-studio'),{recursive:true});await fs.writeFile(path.join(folder,'.cmake/api/v1/query/client-cpp-studio/codemodel-v2'),'');
       const args=['-S',this.ws.root,'-B',folder,'-G','Ninja','-DCMAKE_MAKE_PROGRAM='+this.tool('ninja'),
-        '-DCMAKE_C_COMPILER='+this.compiler(options,true),'-DCMAKE_CXX_COMPILER='+this.compiler(options),'-DCMAKE_BUILD_TYPE='+(options.optimization==='release'?'Release':'Debug'),'-DCMAKE_EXPORT_COMPILE_COMMANDS=ON','-DCMAKE_C_STANDARD='+standard(true),'-DCMAKE_CXX_STANDARD='+standard(false),
+        '-DCMAKE_C_COMPILER='+this.compiler(options,true),'-DCMAKE_CXX_COMPILER='+this.compiler(options),'-DCMAKE_BUILD_TYPE='+(options.cmakeBuildType||(options.optimization==='release'?'Release':'Debug')),'-DCMAKE_EXPORT_COMPILE_COMMANDS=ON','-DCMAKE_C_STANDARD='+standard(true),'-DCMAKE_CXX_STANDARD='+standard(false),
         '-DCMAKE_C_EXTENSIONS='+(this.standard(options,true).startsWith('gnu')?'ON':'OFF'),'-DCMAKE_CXX_EXTENSIONS='+(this.standard(options,false).startsWith('gnu')?'ON':'OFF'),
         '-DCMAKE_C_FLAGS='+this.flags(options,true).map(flag=>quoteFlag(flag).replaceAll('$',()=> '$$')).join(' '),'-DCMAKE_CXX_FLAGS='+this.flags(options).map(flag=>quoteFlag(flag).replaceAll('$',()=> '$$')).join(' ')];
-      code=await this.buildCommand(this.tool('cmake'),args,d.id);if(code||d.configureOnly)return{code,id:d.id,configured:code===0};
-      code=await this.buildCommand(this.tool('cmake'),['--build',folder,'--parallel','2'],d.id);const target=options.target||'app';output=await canonical(path.join(folder,target+(isWindows&&!target.endsWith('.exe')?'.exe':'')));if(!inside(output,await canonical(folder)))throw Error('Executable outside build directory');
+      const extra=options.cmakeOptions||[];if(!Array.isArray(extra)||extra.length>100||extra.some(x=>typeof x!=='string'||!x.startsWith('-D')||x.includes('\0')))throw Error('CMake options must be -DNAME=value arguments');args.push(...extra);
+      code=await this.buildCommand(this.tool('cmake'),args,d.id);if(code)return{code,id:d.id,configured:false};const model=await this.cmakeModel(options);if(d.configureOnly)return{code,id:d.id,configured:true,targets:model.targets};
+      const selected=model.targets.find(t=>t.name===options.target)||(!options.target||options.target==='app'?model.targets.find(t=>t.type==='EXECUTABLE'):null);if(!selected)throw Error(options.target?'CMake target unavailable: '+options.target:'CMake has no executable target. Configure a run target.');
+      code=await this.buildCommand(this.tool('cmake'),['--build',folder,'--config',options.cmakeBuildType||(options.optimization==='release'?'Release':'Debug'),'--target',selected.name,'--parallel','2'],d.id);output=selected.type==='EXECUTABLE'?selected.artifacts[0]:null;
+      if(output&&!inside(output,await canonical(folder))&&!inside(output,await canonical(this.ws.root)))throw Error('Executable outside project/build directory');
     }else{
       const file=await this.ws.writable(d.path),c=file.endsWith('.c');output=path.join(this.ws.cache,'bin',isWindows?'program.exe':'program');await fs.mkdir(path.dirname(output),{recursive:true});
       code=await this.buildCommand(this.compiler(options,c),[...this.flags(options,c),...d.mode==='project'?await this.sources():[file],'-o',output],d.id);
     }
-    if(!code&&await exists(output)){
+    if(!code&&output&&await exists(output)){
       const profile={sanitizers:options.optimization!=='release'&&options.runtimeChecks==='sanitizers'};this.profiles.set(portable(output),profile);await atomic(output+'.studio-runtime.json',JSON.stringify(profile));
     }
-    return {code,id:d.id,executable:portable(output),exists:await exists(output)};
+    return {code,id:d.id,executable:output?portable(output):null,exists:!!output&&await exists(output)};
   }
   async profile(executable){if(this.profiles.has(executable))return this.profiles.get(executable);try{const file=executable+'.studio-runtime.json';if((await fs.stat(file)).size<8192)return JSON.parse(await fs.readFile(file,'utf8'));}catch{}return{};}
   async runEnvironment(executable,{debug=false}={}){const env=this.env();if((await this.profile(executable)).sanitizers){env.ASAN_OPTIONS='halt_on_error=1:abort_on_error=1:color=never:symbolize=1'+(debug?':detect_leaks=0':'');env.UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1:color=never';if(this.tools.symbolizer)env.ASAN_SYMBOLIZER_PATH=this.tools.symbolizer;}return env;}
   async executable(input){const file=await canonical(input);if(!inside(file,await canonical(this.ws.root))&&!inside(file,await canonical(this.ws.cache)))throw Error('Executable outside project');return file;}
+  async executionContext(d){const cwd=await canonical(d.cwd||this.ws.root);if(!inside(cwd,await canonical(this.ws.root))||!(await fs.stat(cwd)).isDirectory())throw Error('Working directory must be inside the project');const environment=d.environment||{};if(typeof environment!=='object'||Array.isArray(environment)||Object.entries(environment).some(([k,v])=>!/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)||typeof v!=='string'||v.includes('\0')))throw Error('Invalid runtime environment');return{cwd,environment};}
   async run(d,shell=false){
     if(this.execution||this.gdb||this.dap)throw Error('Stop current process first');
     const file=shell?(isWindows?process.env.ComSpec||'C:/Windows/System32/cmd.exe':'/bin/sh'):await this.executable(d.executable);
     const args=shell?(isWindows?['/d','/s','/c',d.command]:['-c',d.command]):d.args||[];
-    const child=this.track(launch(file,args,{cwd:this.ws.root,env:shell?this.env():await this.runEnvironment(file),detached:!isWindows}));this.execution=child;
+    const context=await this.executionContext(d);const child=this.track(launch(file,args,{cwd:context.cwd,env:{...shell?this.env():await this.runEnvironment(file),...context.environment},detached:!isWindows}));this.execution=child;
     this.output(child,d.id,'stdout',child.stdout);this.output(child,d.id,'stderr',child.stderr);child.stdin.on('error',()=>{});
     await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});
     child.once('close',(code,signal)=>{if(this.execution===child)this.execution=null;if(signal&&!child.studioStopped){const numbers={SIGSEGV:11,SIGABRT:6,SIGBUS:7,SIGFPE:8,SIGILL:4};if(numbers[signal])this.event('output',{id:d.id,stream:'stderr',text:'\n\x1eCPPSTUDIO_FAULT:'+JSON.stringify({kind:'signal',signal:numbers[signal]})+'\n'});}this.event('exit',{id:d.id,code:code??128,signal,stopped:!!child.studioStopped});});return{id:d.id};
@@ -105,6 +121,11 @@ class Tooling {
   async startLsp(options){
     this.stopLsp();await fs.mkdir(this.ws.cache,{recursive:true});const db=path.join(this.ws.cache,'compile_commands.json'),cmakeDb=path.join(this.cmakeDir(options),'compile_commands.json');
     if(options.buildMode==='cmake'&&await exists(cmakeDb))await fs.copyFile(cmakeDb,db);else await atomic(db,JSON.stringify((await this.sources()).map(file=>({directory:this.ws.root,file,arguments:[this.compiler(options,file.endsWith('.c')),...this.flags(options,file.endsWith('.c'),true),'-c',file]})),null,2));
+    // Some IDE distributions ship only clangd.exe, without LLVM resource headers.
+    // Keep complete clangd packages unchanged; use the selected compiler's fallback
+    // headers only when clangd's own stddef.h cannot be found beside the binary.
+    const resourceRoot=path.resolve(path.dirname(this.tool('clangd')),'../lib/clang'),versions=await fs.readdir(resourceRoot).catch(()=>[]);let resources=false;for(const version of versions)if(await exists(path.join(resourceRoot,version,'include/stddef.h')))resources=true;
+    if(!resources){const entries=JSON.parse(await fs.readFile(db,'utf8')),headers=new Map();for(const entry of entries){const compiler=this.compiler(options,entry.file.endsWith('.c'));if(!headers.has(compiler)){const result=await capture(compiler,['-print-file-name=include'],{cwd:this.ws.root,env:this.env(),timeout:5000});const include=result.text.trim();headers.set(compiler,!result.code&&path.isAbsolute(include)&&await exists(path.join(include,'stddef.h'))?portable(include):null);}const include=headers.get(compiler);if(!include)continue;if(entry.arguments)entry.arguments.push('-idirafter',include);else if(entry.command)entry.command+=' -idirafter '+quoteFlag(include);}await atomic(db,JSON.stringify(entries,null,2));}
     const args=['--background-index','--background-index-priority=low','-j=2','--clang-tidy='+!!options.clangTidy,'--limit-results=100','--completion-style=detailed','--header-insertion=iwyu','--pch-storage=memory','--log=error','--compile-commands-dir='+portable(this.ws.cache),'--query-driver='+[this.tools.gcc,this.tools.gxx,this.tools.clang,this.tools.clangxx].filter(Boolean).join(',')];
     const child=this.track(launch(this.tool('clangd'),args,{cwd:this.ws.root,env:this.env()}));this.lsp=child;const frames=new LspFrames(m=>{if(this.lsp===child)this.event('lsp',m);});
     child.stdout.on('data',chunk=>{try{frames.feed(chunk);}catch(e){child.kill();this.event('lspLog',e.message);}});child.stderr.on('data',b=>this.event('lspLog',b.toString().slice(0,16000)));child.stdin.on('error',()=>{});
@@ -116,7 +137,7 @@ class Tooling {
     if(this.gdb||this.execution)throw Error('Stop current process first');const executable=await this.executable(d.executable),id=d.id;
     // The loopback gdbserver gives the inferior separate stdin/stdout pipes.
     // It also avoids opening a console window on Windows Bluetooth-keyboard setups.
-    const server=this.track(launch(this.tool('gdbserver'),['--once','127.0.0.1:0',executable,...d.args||[]],{cwd:this.ws.root,env:await this.runEnvironment(executable,{debug:true}),detached:!isWindows}));this.server=server;server.stdin.on('error',()=>{});
+    const context=await this.executionContext(d);const server=this.track(launch(this.tool('gdbserver'),['--once','127.0.0.1:0',executable,...d.args||[]],{cwd:context.cwd,env:{...await this.runEnvironment(executable,{debug:true}),...context.environment},detached:!isWindows}));this.server=server;server.stdin.on('error',()=>{});
     this.output(server,id,'stdout',server.stdout);let tail='';
     const port=await new Promise((resolve,reject)=>{
       const timer=setTimeout(()=>{this.terminate(server);reject(Error('gdbserver startup timed out'));},15000);timer.unref();

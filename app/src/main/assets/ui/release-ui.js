@@ -1,7 +1,7 @@
 'use strict';
 const releaseMethods={
   initReleaseUI(){
-    const form=$('#settingsForm'),sections=[...form.querySelectorAll(':scope > section')];
+    if(window.StudioDesktop)this.initDesktopConfigurations();const form=$('#settingsForm'),sections=[...form.querySelectorAll(':scope > section')];
     const motion=document.createElement('label');motion.innerHTML='Анимации<select name="motion"><option value="system">Как в системе</option><option value="reduced">Минимальные</option></select>';form.querySelector('[name=uiScale]')?.closest('section').append(motion);
     if(window.StudioDesktop){
       $('#keyboardButton').classList.add('hidden');const legal=document.createElement('div');legal.className='desktop-legal-note';legal.innerHTML='<p>Настольная версия использует Electron, Chromium и FFmpeg под LGPL 2.1 или новее. Исходники библиотек распространяются рядом со сборками.</p><button type="button" id="desktopNotices">Лицензии Electron / Chromium</button><button type="button" id="desktopSources">Исходники библиотек</button>';$('#helpDialog').append(legal);legal.querySelector('#desktopNotices').onclick=()=>native('desktopNotices').catch(safeError);legal.querySelector('#desktopSources').onclick=()=>native('desktopSources').catch(safeError);

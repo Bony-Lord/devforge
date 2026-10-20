@@ -14,6 +14,15 @@ test('LSP framing handles UTF-8, partial headers and multiple frames',()=>{
   for(let size=1;size<stream.length;size++){const result=[],parser=new LspFrames(m=>result.push(m));for(let i=0;i<stream.length;i+=size)parser.feed(stream.subarray(i,i+size));assert.deepEqual(result,messages);}
   assert.throws(()=>new LspFrames(()=>{}).feed(Buffer.from('Content-Length: 999999999\r\n\r\n')),/Invalid LSP/);
 });
+
+test('real clangd parses standard C++ headers and still reports an actual unused variable',{timeout:45000},async t=>{
+  const {host,wait}=await fixture(t);if(!host.tools.tools.clangd||!host.tools.tools.gxx&&!host.tools.tools.clangxx)return t.skip('clangd/compiler required');
+  const file=path.join(host.ws.root,'main.cpp'),text='#include <iostream>\n#include <vector>\n#include <cmath>\nint main(){ int unused=0; std::vector<int> values{42}; std::cout<<std::sqrt(values[0]); }\n',uri=new URL('file:///'+file.replaceAll('\\','/').replace(/^\//,'')).href;
+  await host.handle('write',{path:file,text});await host.handle('lspStart',{compiler:host.tools.tools.gxx?'gcc':'clang',buildMode:'file',cppStandard:'c++20'});
+  await host.handle('lspSend',{message:{jsonrpc:'2.0',id:1,method:'initialize',params:{processId:null,rootUri:new URL('.',uri).href,capabilities:{textDocument:{publishDiagnostics:{tagSupport:{valueSet:[1,2]}}}}}}});await wait('lsp',m=>m.id===1);await host.handle('lspSend',{message:{jsonrpc:'2.0',method:'initialized',params:{}}});await host.handle('lspSend',{message:{jsonrpc:'2.0',method:'textDocument/didOpen',params:{textDocument:{uri,languageId:'cpp',version:1,text}}}});
+  const published=await wait('lsp',m=>m.method==='textDocument/publishDiagnostics'&&m.params.uri===uri&&m.params.diagnostics.length);const diagnostics=published.params.diagnostics;assert.ok(!diagnostics.some(d=>d.severity===1),JSON.stringify(diagnostics));assert.ok(diagnostics.some(d=>/unused/.test(d.message)),JSON.stringify(diagnostics));
+  const pack=(await host.handle('toolPacks')).packs.find(p=>p.id==='analysis');const formatter=host.tools.tools.format;host.tools.tools.format=null;assert.equal((await host.handle('toolPacks')).packs.find(p=>p.id==='analysis').available,pack.available);host.tools.tools.format=formatter;
+});
 test('real GCC executable uses project cwd, supports stdin and exact return codes',{timeout:45000},async t=>{
   const {host,events,wait}=await fixture(t);if(!host.tools.tools.gxx)return t.skip('GCC is unavailable');const file=path.join(host.ws.root,'main.cpp');
   await host.handle('write',{path:file,text:'#include <iostream>\n#include <fstream>\nint main(){int x;std::cin>>x;std::ifstream f("data.txt");int y=0;f>>y;std::cout<<x+y<<"\\n";return 139;}\n'});await host.handle('newFile',{path:'data.txt',text:'35'});
