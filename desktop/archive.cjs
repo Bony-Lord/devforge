@@ -1,10 +1,10 @@
 'use strict';
 const fs=require('node:fs/promises'),path=require('node:path'),zlib=require('node:zlib');
-const {inside}=require('./workspace.cjs');
+const {inside,canonical}=require('./workspace.cjs');
 const table=Uint32Array.from({length:256},(_,n)=>{for(let i=0;i<8;i++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
 function crc32(buffer){let n=0xffffffff;for(const byte of buffer)n=table[(n^byte)&255]^(n>>>8);return(n^0xffffffff)>>>0;}
 async function zipDirectory(folder,destination,{exclude=new Set(),maxBytes=1024*1024*1024,preserveSymlinks=false}={}){
-  folder=await fs.realpath(folder);if(inside(destination,folder))throw Error('Archive destination must be outside source folder');
+  folder=await fs.realpath(folder);destination=await canonical(destination);if(inside(destination,folder))throw Error('Archive destination must be outside source folder');
   const handle=await fs.open(destination,'wx'),central=[];let offset=0,total=0,entries=0;
   const write=async buffer=>{let at=0;while(at<buffer.length){const {bytesWritten}=await handle.write(buffer,at,buffer.length-at);if(!bytesWritten)throw Error('ZIP write failed');at+=bytesWritten;}offset+=buffer.length;};
   const walk=async(directory,prefix='')=>{

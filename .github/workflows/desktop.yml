@@ -32,8 +32,11 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew list llvm >/dev/null 2>&1 || brew install llvm
+          brew list lldb >/dev/null 2>&1 || brew install lldb
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix lldb)/bin" >> "$GITHUB_PATH"
           echo "SDKROOT=$(xcrun --show-sdk-path)" >> "$GITHUB_ENV"
+          xcrun --find lldb-dap || find "$(brew --prefix llvm)" -name "lldb*dap*" -type f
       - name: Install pinned desktop dependencies
         working-directory: desktop
         run: |
@@ -43,6 +46,8 @@ jobs:
         run: python tools/package_notices.py
       - name: Filesystem, encoding, compiler, CMake, GDB and LLDB checks
         working-directory: desktop
+        env:
+          CPP_STUDIO_REQUIRE_LLDB: ${{ runner.os == 'Windows' && '0' || '1' }}
         run: npm test
       - name: Configure Linux Electron sandbox helper
         if: runner.os == 'Linux'

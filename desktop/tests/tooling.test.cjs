@@ -49,7 +49,7 @@ test('real CMake build runs with data from project root',{timeout:60000},async t
 });
 
 test('real LLDB DAP pauses, expands a structure and preserves crash stack',{timeout:60000},async t=>{
-  const {host,events,wait}=await fixture(t);if(!host.tools.tools.lldbdap||!host.tools.tools.gxx&&!host.tools.tools.clangxx)return t.skip('LLDB DAP/compiler unavailable');const file=path.join(host.ws.root,'main.cpp');
+  const {host,events,wait}=await fixture(t);if(!host.tools.tools.lldbdap||!host.tools.tools.gxx&&!host.tools.tools.clangxx){assert.notEqual(process.env.CPP_STUDIO_REQUIRE_LLDB,'1','CI requires an actual LLDB DAP executable');return t.skip('LLDB DAP is supported on macOS/Linux; Windows uses GDB');}const file=path.join(host.ws.root,'main.cpp');
   await host.handle('write',{path:file,text:'struct Node { int value; };\nint main(){\n Node item{42};\n volatile int* ptr=nullptr;\n *ptr=item.value;\n return 0;\n}\n'});
   const result=await host.handle('build',{path:file,mode:'file',options:{compiler:host.tools.tools.gxx?'gcc':'clang',optimization:'debug'},id:'dap-build'});assert.equal(result.code,0,JSON.stringify(events));
   await host.handle('dapStart',{executable:result.executable,id:'dap-debug'});let seq=0;

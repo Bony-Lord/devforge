@@ -21,6 +21,16 @@ async function runSmoke({window,host,base}){
     await check('GCC build and console output through renderer controls',async()=>{
       await evaluate("forge.settings.compiler=forge.toolPackState.packs.find(p=>p.id==='gcc')?.installed?'gcc':'clang';forge.settings.buildMode='file';forge.build(true)");await wait('!forge.running&&!forge.busy');const text=await evaluate('document.querySelector("#consoleOutput").textContent');assert.match(text,/Hello from C\+\+ Studio/);
     });
+    if(host.tools.tools.lldbdap||host.tools.tools.gdb&&host.tools.tools.gdbserver)await check('real debugger UI stops on invalid memory, shows locals and opens the project line',async()=>{
+      const useDap=!!host.tools.tools.lldbdap;
+      await evaluate(`(async()=>{forge.active.model.setValue('struct Node { int value; };\\nint main(){\\n Node item{42};\\n volatile int* ptr=nullptr;\\n *ptr=item.value;\\n return 0;\\n}\\n');await forge.saveAll();forge.debugger=${useDap?'new DapClient(forge)':'new GdbClient(forge)'};forge.debugger.breakpoints.clear();await forge.debugger.toggleBreakpoint(forge.active.model,5);const r=await native('build',{path:forge.active.path,mode:'file',options:{...forge.settings,optimization:'debug'},id:'smoke-debug-build'});if(r.code)throw Error('Debug compilation failed');await forge.debugger.start(r.executable);})()`);
+      await wait('forge.debugger.paused&&forge.debugger.variablesSerial===forge.debugger.stopSerial');
+      await evaluate("forge.debugger.action('continue')");await wait('forge.debugger.paused&&forge.debugger.nativeExecution?.line===5&&forge.debugger.variablesSerial===forge.debugger.stopSerial');
+      assert.equal((await evaluate("forge.debugger.command('-data-evaluate-expression '+JSON.stringify('item.value'))")).value,'42');
+      await evaluate("forge.debugger.action('continue')");await wait('forge.debugger.paused&&!!forge.runtimeDiagnostics.parser.fault&&forge.debugger.nativeExecution?.line===5&&forge.debugger.variablesSerial===forge.debugger.stopSerial');
+      const r=await evaluate('({fault:forge.runtimeDiagnostics.parser.fault.title,line:forge.debugger.nativeExecution.line,variableTree:document.querySelector("#debugVariables").textContent})');assert.equal(r.line,5);assert.match(r.variableTree,/item/);assert.ok(r.fault);
+      await evaluate('forge.debugger.stop()');
+    });
     await check('runtime fault panel displays text and source links',async()=>{
       const r=await evaluate(`(()=>{const d=forge.runtimeDiagnostics;d.begin('smoke-fault');d.feed({id:'smoke-fault',stream:'stderr',text:'main.cpp:7:3: runtime error: division by zero\\n'});d.end({id:'smoke-fault'});forge.showPanel('console');return{visible:!d.banner.classList.contains('hidden'),title:d.banner.querySelector('strong').textContent,links:d.banner.querySelectorAll('.runtime-frame').length};})()`);assert.ok(r.visible);assert.match(r.title,/division by zero/);assert.equal(r.links,1);
     });
