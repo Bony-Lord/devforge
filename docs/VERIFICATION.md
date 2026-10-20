@@ -13,7 +13,9 @@
 | Настоящий clang-format 21.1.8 на компьютере | 10/10: требуемый стиль, пробелы/табы, вложенные профили, форматирование диапазона, UTF-8 → UTF-16 позиции, CRLF, неправильный профиль |
 | GDB/MI parser | 6/6 |
 
-Отчёты: [verification-editor-offline.json](../verification-editor-offline.json), [verification-formatter-host.json](../verification-formatter-host.json). Release APK и тестовый APK собираются; release lint vital проходит. CI запускает эти локальные проверки.
+Отчёты: [verification-editor-offline.json](../verification-editor-offline.json), [verification-formatter-host.json](../verification-formatter-host.json). Оболочка дополнительно проверена в браузере с синтетическим адаптером: запуск, RU/EN, новые настройки, применение табов, окно кодировки и доступные подписи. [Отчёт предпросмотра](../verification-shell-preview.json) не подтверждает Android, IME или реальную запись файлов.
+
+Release APK и тестовый APK собираются; release lint vital проходит. CI запускает эти локальные проверки.
 
 **Не выполнено на устройстве после этих изменений:** новый IME SmartTyping, переключение C++ → CMake → C++, повторные жесты/буфер обмена, кодировки на диске через интерфейс, форматирование блока при одновременном вводе, проверка запуска новой сборки. Для вкладок и ввода добавлены Android-сценарии `TabStateChecks` и `SmartTypingChecks`; сборка сценариев подтверждена, выполнение ещё не подтверждено.
 

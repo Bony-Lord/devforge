@@ -1,0 +1,36 @@
+{
+  "dateUTC": "2026-10-20T03:21:28.332109+00:00",
+  "scope": "Manual browser shell UI inspection with tools/preview_shell.py and a synthetic ForgeNative adapter. This does not verify Android startup, native rendering, IME, real file I/O or persistence.",
+  "checks": [
+    {
+      "test": "Shell boot opens the fixture C++ tab",
+      "passed": true
+    },
+    {
+      "test": "Russian settings expose indentation, tab width, file encoding and smart block formatting",
+      "passed": true
+    },
+    {
+      "test": "English settings and encoding dialog are translated",
+      "passed": true
+    },
+    {
+      "test": "Selecting Tabs and applying changes displays Tabs: 4 in the status bar",
+      "passed": true
+    },
+    {
+      "test": "No Russian title, aria-label or placeholder attributes remain in the English fixture shell",
+      "passed": true,
+      "remaining": []
+    },
+    {
+      "test": "No Russian static leaf labels remain outside excluded code, output and language/file-name fields",
+      "passed": true,
+      "remaining": []
+    },
+    {
+      "test": "GNU standards display as GNU C++17 and GNU C11 rather than omitting C",
+      "passed": true
+    }
+  ]
+}

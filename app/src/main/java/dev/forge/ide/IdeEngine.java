@@ -15,6 +15,7 @@ final class IdeEngine {
     final WorkspaceFiles workspace;
     final LanguageTools languages;
     final File projects,usr,tmp;
+    final String version;
     final ExecutorService pool=Executors.newCachedThreadPool();
     final android.content.SharedPreferences prefs;
     final String triple=Build.SUPPORTED_ABIS[0].equals("x86_64")?"x86_64-linux-android":Build.SUPPORTED_ABIS[0].startsWith("armeabi")?"arm-linux-androideabi":"aarch64-linux-android";
@@ -28,7 +29,7 @@ final class IdeEngine {
     volatile boolean closed;
 
     IdeEngine(MainActivity a)throws Exception {
-        app=a;projects=new File(a.getFilesDir(),"projects");usr=new File(a.getFilesDir(),"usr");tmp=new File(a.getFilesDir(),"tmp");
+        app=a;version=a.getPackageManager().getPackageInfo(a.getPackageName(),0).versionName;projects=new File(a.getFilesDir(),"projects");usr=new File(a.getFilesDir(),"usr");tmp=new File(a.getFilesDir(),"tmp");
         projects.mkdirs();tmp.mkdirs();
         prefs=a.getSharedPreferences("forge",0);workspace=new WorkspaceFiles(this);languages=new LanguageTools(this);
         if(!new File(projects,"hello-cpp").exists()) createProject("hello-cpp","cpp");
@@ -109,7 +110,7 @@ final class IdeEngine {
         JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
         return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",workspace.isExternal()).put("cache",workspace.data().getAbsolutePath()).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
             .put("usr",usr.getAbsolutePath()).put("tree",tree(project(currentProject),0)).put("settings",new JSONObject(prefs.getString("settings","{}")))
-            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version","0.1.0");
+            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version);
     }
     File project(String name)throws IOException {
         File external=workspace.external(name);if(external!=null)return external;
