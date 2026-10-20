@@ -43,6 +43,7 @@ final class NativeEditorHost {
     NativeEditorHost(MainActivity app){this.app=app;createAccessory();}
     static final class StudioCodeEditor extends CodeEditor {
         InputConnection currentInput;
+        SmartTyping typing;boolean pasting;java.util.function.Consumer<SmartTyping.Edit> blockCompleted;
         java.util.function.Consumer<Float> fontChanged;boolean configuringFont;
         StudioCodeEditor(Context context){super(context);}
         @Override public InputConnection onCreateInputConnection(EditorInfo info){currentInput=super.onCreateInputConnection(info);info.imeOptions|=EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;return currentInput;}
@@ -51,16 +52,40 @@ final class NativeEditorHost {
             // A keyboard may mark the surrounding word as composing after a cursor jump.
             // Clipboard insertion must replace the selection, not that surrounding word.
             if(currentInput!=null)currentInput.finishComposingText();
-            super.pasteText(text);
+            pasting=true;try{super.pasteText(text);}finally{pasting=false;}
         }
+        @Override public void commitText(CharSequence text,boolean autoIndent,boolean pairs){
+            if(typing!=null&&isEditable()&&!pasting&&pairs&&autoIndent){var c=getCursor();SmartTyping.Edit edit=typing.typed(getText(),c.getLeft(),c.getRight(),text.toString(),getLineSeparator().getContent());if(edit!=null){smartEdit(edit);return;}}
+            super.commitText(text,pasting?false:autoIndent,typing==null&&pairs);
+        }
+        void smartEdit(SmartTyping.Edit edit){
+            Content text=getText();if(edit.start!=edit.end||!edit.text.isEmpty()){text.beginBatchEdit();try{replace(text,edit.start,edit.end,edit.text);}finally{text.endBatchEdit();}}
+            var a=text.getIndexer().getCharPosition(edit.anchor);var b=text.getIndexer().getCharPosition(edit.caret);
+            if(edit.anchor!=edit.caret)setSelectionRegion(a.line,a.column,b.line,b.column);else setSelection(b.line,b.column);
+            if(edit.blockStart>=0&&blockCompleted!=null)blockCompleted.accept(edit);
+        }
+        @Override public void deleteText(){if(typing!=null&&!getCursor().isSelected()){var edit=typing.backspace(getText(),getCursor().getLeft());if(edit!=null){smartEdit(edit);return;}}super.deleteText();}
+        @Override public String createTabString(){if(typing==null)return super.createTabString();if(typing.options.tabs)return "\t";int columns=0;var c=getCursor();String line=getText().getLineString(c.getLeftLine());for(int i=0;i<c.getLeftColumn();i++)columns+=line.charAt(i)=='\t'?typing.options.tab-columns%typing.options.tab:1;return typing.options.whitespace(typing.options.indent-columns%typing.options.indent);}
+        @Override public void indentLines(boolean onlyIfSelected){if(typing==null){super.indentLines(onlyIfSelected);return;}indentSmart(onlyIfSelected,false);}
+        @Override public void unindentSelection(){if(typing==null){super.unindentSelection();return;}indentSmart(false,true);}
+        void indentSmart(boolean onlySelected,boolean reverse){
+            var c=getCursor();boolean selected=c.isSelected();if(onlySelected&&!selected)return;Content text=getText();int left=c.getLeft(),right=c.getRight(),first=c.getLeftLine(),last=c.getRightLine();if(selected&&c.getRightColumn()==0&&last>first)last--;
+            text.beginBatchEdit();try{for(int line=last;line>=first;line--){String old=text.getLineString(line);int n=0;while(n<old.length()&&(old.charAt(n)==' '||old.charAt(n)=='\t'))n++;int columns=typing.indentOf(old,0),width=typing.options.indent,target=reverse?Math.max(0,(columns-1)/width*width):(columns/width+1)*width;String indent=typing.options.whitespace(target);int start=text.getIndexer().getCharIndex(line,0),end=start+n;replace(text,start,end,indent);left=mapOffset(left,start,end,indent.length());right=mapOffset(right,start,end,indent.length());}}finally{text.endBatchEdit();}
+            var a=text.getIndexer().getCharPosition(left);var b=text.getIndexer().getCharPosition(right);if(selected)setSelectionRegion(a.line,a.column,b.line,b.column);else setSelection(a.line,a.column);notifyIMEExternalCursorChange();
+        }
+        static int mapOffset(int index,int a,int b,int size){return index<a?index:index<=b?a+size:index+size-(b-a);}
+        void typingOptions(JSONObject options){if(typing==null||options==null)return;typing.options.indent=Math.max(1,Math.min(16,options.optInt("indent",4)));typing.options.tab=Math.max(1,Math.min(16,options.optInt("tab",4)));typing.options.continuation=Math.max(1,Math.min(32,options.optInt("continuation",4)));typing.options.tabs=options.optBoolean("tabs");setTabWidth(typing.options.tab);}
     }
     static JSONObject object(Object... pairs){JSONObject o=new JSONObject();try{for(int i=0;i<pairs.length;i+=2)o.put((String)pairs[i],pairs[i+1]);}catch(JSONException e){throw new IllegalStateException(e);}return o;}
     final class Buffer {
         String uri,path,text;volatile long revision;JSONArray pending=new JSONArray();boolean scheduled;
-        Buffer(JSONObject d){uri=d.optString("uri");path=d.optString("path");text=d.optString("text");}
+        long textRevision=0;final EditorDocument document;final Content content;JSONObject analysis=new JSONObject();long analysisRevision=-1;
+        Buffer(JSONObject d){uri=d.optString("uri");path=d.optString("path");text=d.optString("text");document=new EditorDocument(text);content=document.content;}
     }
+    static final class ViewState {int left,right,x,y;ViewState(CodeEditor e){left=e.getCursor().getLeft();right=e.getCursor().getRight();x=e.getOffsetX();y=e.getOffsetY();}}
     final class Pane {
         String id;CodeEditor editor;Buffer buffer;StudioLanguage language;boolean muted;
+        final Map<String,ViewState> views=new HashMap<>();
         float x,y,w,h;String configured="";boolean viewportScheduled;
         Pane(String id){
             this.id=id;
@@ -79,7 +104,8 @@ final class NativeEditorHost {
             editor.setScalable(true);
             editor.setVerticalExtraSpaceFactor(0.15f);editor.setTabWidth(4);
             editor.setOnFocusChangeListener((v,focused)->{if(focused){active=this;emitSelection(this);geometry();}});
-            editor.subscribeEvent(ContentChangeEvent.class,(e,unsubscribe)->changed(this,e));
+            editor.subscribeEvent(ContentChangeEvent.class,(e,unsubscribe)->{var smart=((StudioCodeEditor)editor).typing;if(smart!=null)smart.changed(e.getChangeStart().index);changed(this,e);});
+            ((StudioCodeEditor)editor).blockCompleted=edit->{if(buffer==null||!settings.optBoolean("smartFormatOnClose",true)||!Arrays.asList("c","cpp").contains(language.kind))return;flush(buffer);app.event("editorFormatOnType",object("id",id,"uri",buffer.uri,"revision",buffer.revision,"start",edit.blockStart,"end",edit.blockEnd+1));};
             editor.subscribeEvent(SelectionChangeEvent.class,(e,unsubscribe)->{if(!muted){active=this;emitSelection(this);reveal(this);}});
             editor.subscribeEvent(ScrollEvent.class,(e,unsubscribe)->{if(!viewportScheduled){viewportScheduled=true;app.ui.postDelayed(()->{viewportScheduled=false;if(buffer!=null)app.event("editorViewport",object("id",id,"uri",buffer.uri,"first",editor.getFirstVisibleLine(),"last",editor.getLastVisibleLine()));},80);}});
             editor.subscribeEvent(ClickEvent.class,(e,unsubscribe)->{active=this;if(e.getMotionRegion()==EditorMotionEvent.REGION_LINE_NUMBER||e.getMotionRegion()==EditorMotionEvent.REGION_SIDE_ICON)app.event("editorGutter",object("id",id,"uri",buffer==null?"":buffer.uri,"line",e.getLine()+1));});
@@ -92,19 +118,20 @@ final class NativeEditorHost {
         int end=event.getAction()==ContentChangeEvent.ACTION_DELETE?event.getChangeEnd().index:start;
         String text=event.getAction()==ContentChangeEvent.ACTION_INSERT?event.getChangedText().toString():"";
         // Do not read the entire document on each keystroke. Deltas are applied to the shadow off the input path.
-        b.revision++;b.pending.put(object("start",start,"end",end,"text",text));
+        mapViews(b,start,end,text.length());b.revision++;b.pending.put(object("start",start,"end",end,"text",text));
         if(!b.scheduled){b.scheduled=true;app.ui.postDelayed(()->flush(b),32);}
-        for(Pane other:panes.values())if(other!=pane&&other.buffer==b)app.ui.post(()->{
-            if(other.buffer!=b)return;other.muted=true;try{replace(other.editor.getText(),start,end,text);}finally{other.muted=false;}
-        });
+        // Views use independent cursors and one undo history. Mirroring must not record an edit twice.
+        applying=true;try{b.document.mirror(pane.editor.getText(),views(b),start,end,text);}finally{applying=false;}
     }
+    void mapViews(Buffer b,int start,int end,int size){for(Pane p:panes.values()){ViewState v=p.views.get(b.uri);if(v!=null){v.left=StudioCodeEditor.mapOffset(v.left,start,end,size);v.right=StudioCodeEditor.mapOffset(v.right,start,end,size);}}}
+    List<Content> views(Buffer b){List<Content> result=new ArrayList<>();for(Pane p:panes.values())if(p.buffer==b)result.add(p.editor.getText());return result;}
     void flush(Buffer b){
         if(b.pending.length()>0){app.event("editorChanges",object("uri",b.uri,"revision",b.revision,"changes",b.pending));b.pending=new JSONArray();}
         b.scheduled=false;
     }
     Pane source(Buffer b){for(Pane p:panes.values())if(p.buffer==b)return p;return null;}
     boolean currentRevision(String path,long revision){for(Buffer b:buffers.values())if(b.path.equals(path))return revision==b.revision;return true;}
-    JSONObject snapshot(Buffer b){Pane p=source(b);if(p!=null)b.text=p.editor.getText().toString();flush(b);return object("uri",b.uri,"revision",b.revision,"text",b.text);}
+    JSONObject snapshot(Buffer b){if(b.textRevision!=b.revision){b.text=b.content.toString();b.textRevision=b.revision;}flush(b);return object("uri",b.uri,"revision",b.revision,"text",b.text);}
     void emitSelection(Pane p){if(p.buffer==null)return;var c=p.editor.getCursor();app.event("editorSelection",object("id",p.id,"uri",p.buffer.uri,"revision",p.buffer.revision,"line",c.getRightLine()+1,"column",c.getRightColumn()+1,"startLine",c.getLeftLine()+1,"startColumn",c.getLeftColumn()+1,"focused",p.editor.hasFocus()));}
     Object handle(String op,JSONObject d)throws Exception{
         switch(op){
@@ -113,31 +140,37 @@ final class NativeEditorHost {
                 visible=d.optBoolean("visible",true);JSONArray list=d.optJSONArray("panes");Set<String> present=new HashSet<>();
                 settings=d.optJSONObject("settings")==null?settings:d.getJSONObject("settings");
                 if(list!=null)for(int i=0;i<list.length();i++){JSONObject rect=list.getJSONObject(i);String id=rect.getString("id");present.add(id);Pane p=panes.get(id);if(p==null){p=new Pane(id);panes.put(id,p);}p.x=(float)rect.optDouble("x");p.y=(float)rect.optDouble("y");p.w=(float)rect.optDouble("width");p.h=(float)rect.optDouble("height");configure(p);}
-                for(String id:new ArrayList<>(panes.keySet()))if(!present.contains(id)){Pane p=panes.remove(id);if(p.buffer!=null)snapshot(p.buffer);p.editor.release();app.editorRoot.removeView(p.editor);if(active==p)active=null;}
+                for(String id:new ArrayList<>(panes.keySet()))if(!present.contains(id)){Pane p=panes.remove(id);if(p.buffer!=null)flush(p.buffer);p.editor.release();app.editorRoot.removeView(p.editor);if(active==p)active=null;}
                 geometry();return true;
             }
             case "editorOpen":{
                 Pane p=panes.get(d.getString("id"));if(p==null)return false;
-                if(p.buffer!=null)snapshot(p.buffer);
+                if(p.buffer!=null){if(((StudioCodeEditor)p.editor).currentInput!=null)((StudioCodeEditor)p.editor).currentInput.finishComposingText();flush(p.buffer);p.views.put(p.buffer.uri,new ViewState(p.editor));}
                 String uri=d.optString("uri");if(uri.isEmpty()){p.buffer=null;p.editor.setVisibility(View.GONE);return true;}
                 Buffer b=buffers.get(uri);if(b==null){b=new Buffer(d);buffers.put(uri,b);}
-                if(p.buffer!=b){StudioLanguage next=new StudioLanguage(p,d.optString("language"));p.muted=true;try{p.editor.setEditorLanguage(next);p.editor.setText(b.text);p.language=next;p.buffer=b;}finally{p.muted=false;}}
+                if(p.buffer!=b){StudioLanguage next=new StudioLanguage(p,d.optString("language"));p.muted=true;try{((StudioCodeEditor)p.editor).typing=next.typing;p.editor.setEditorLanguage(next);Pane previous=source(b);Content content=b.document.open(previous!=null);p.editor.setText(content);var separator=content.getLine(0).getLineSeparator();p.editor.setLineSeparator(separator.getLength()>0?separator:LineSeparator.LF);p.editor.setDiagnostics(new DiagnosticsContainer());p.language=next;p.buffer=b;if(b.analysisRevision==b.revision)next.analysis(b.analysis);ViewState v=p.views.get(uri);if(v==null&&previous!=null)v=new ViewState(previous.editor);if(v!=null){var a=content.getIndexer().getCharPosition(Math.min(v.left,content.length()));var z=content.getIndexer().getCharPosition(Math.min(v.right,content.length()));p.editor.setSelectionRegion(a.line,a.column,z.line,z.column);p.editor.getScroller().startScroll(v.x,v.y,0,0,0);p.editor.getScroller().abortAnimation();}}finally{p.muted=false;}}
+                ((StudioCodeEditor)p.editor).typingOptions(d.optJSONObject("typing"));
                 p.editor.setEditable(!d.optBoolean("readonly"));geometry();emitSelection(p);return snapshot(b);
             }
-            case "editorSnapshot":{JSONArray result=new JSONArray();for(Buffer b:buffers.values())if(!d.has("uri")||d.optString("uri").equals(b.uri))result.put(snapshot(b));return result;}
-            case "editorForget":{Buffer b=buffers.remove(d.optString("uri"));if(b!=null)for(Pane p:panes.values())if(p.buffer==b){p.buffer=null;p.editor.setVisibility(View.GONE);}return true;}
+            case "editorSnapshot":{JSONArray result=new JSONArray();JSONObject known=d.optJSONObject("known");for(Buffer b:buffers.values())if(!d.has("uri")||d.optString("uri").equals(b.uri)){if(known!=null&&known.optLong(b.uri,-1)==b.revision)flush(b);else result.put(snapshot(b));}return result;}
+            case "editorForget":{Buffer b=buffers.remove(d.optString("uri"));if(b!=null)for(Pane p:panes.values()){p.views.remove(b.uri);if(p.buffer==b){p.buffer=null;p.editor.setVisibility(View.GONE);}}return true;}
             case "editorEdits":{
                 Buffer b=buffers.get(d.optString("uri"));if(b==null)return true;
                 if(b.revision!=d.optLong("revision")){app.event("editorResync",snapshot(b));return false;}
-                JSONArray edits=d.getJSONArray("edits");applying=true;
-                if(source(b)==null){Content c=new Content(b.text);for(int i=0;i<edits.length();i++){JSONObject e=edits.getJSONObject(i);replace(c,e.getInt("start"),e.getInt("end"),e.getString("text"));}b.text=c.toString();}
-                try{for(Pane p:panes.values())if(p.buffer==b){Content c=p.editor.getText();c.beginBatchEdit();try{for(int i=0;i<edits.length();i++){JSONObject e=edits.getJSONObject(i);replace(c,e.getInt("start"),e.getInt("end"),e.getString("text"));}}finally{c.endBatchEdit();}p.editor.notifyIMEExternalCursorChange();}}finally{applying=false;}
+                JSONArray edits=d.getJSONArray("edits");for(int i=0;i<edits.length();i++){JSONObject e=edits.getJSONObject(i);mapViews(b,e.getInt("start"),e.getInt("end"),e.getString("text").length());}applying=true;
+                try{b.document.edit(views(b),c->{try{for(int i=0;i<edits.length();i++){JSONObject e=edits.getJSONObject(i);replace(c,e.getInt("start"),e.getInt("end"),e.getString("text"));}}catch(JSONException error){throw new IllegalArgumentException(error);}});for(Pane p:panes.values())if(p.buffer==b)p.editor.notifyIMEExternalCursorChange();}finally{applying=false;}
                 b.revision++;snapshot(b);return b.revision;
             }
             case "editorSelection":{Pane p=panes.get(d.optString("id"));if(p==null||p.buffer==null)return false;int line=d.optInt("line",1)-1,col=d.optInt("column",1)-1;Content c=p.editor.getText();line=Math.max(0,Math.min(c.getLineCount()-1,line));col=Math.max(0,Math.min(c.getColumnCount(line),col));if(d.has("endLine")){int el=Math.max(0,Math.min(c.getLineCount()-1,d.getInt("endLine")-1));p.editor.setSelectionRegion(line,col,el,Math.min(c.getColumnCount(el),Math.max(0,d.optInt("endColumn",1)-1)));}else p.editor.setSelection(line,col);p.editor.notifyIMEExternalCursorChange();return true;}
             case "editorFocus":{Pane p=panes.get(d.optString("id"));if(p!=null){active=p;p.editor.requestFocus();if(d.optBoolean("keyboard"))showKeyboard();}return true;}
             case "editorAction":{Pane p=panes.get(d.optString("id"));if(p!=null){active=p;action(d.optString("action"));}return true;}
-            case "editorAnalysis":{Buffer b=buffers.get(d.optString("uri"));if(b==null||b.revision!=d.optLong("revision"))return false;for(Pane p:panes.values())if(p.buffer==b&&p.language!=null)p.language.analysis(d);return true;}
+            case "editorAnalysis":{Buffer b=buffers.get(d.optString("uri"));if(b==null||b.revision!=d.optLong("revision"))return false;if(b.analysisRevision!=b.revision){b.analysis=new JSONObject();b.analysisRevision=b.revision;}for(String field:new String[]{"styles","unusedStyles","diagnostics","hints"})if(d.has(field))b.analysis.put(field,d.get(field));for(Pane p:panes.values())if(p.buffer==b&&p.language!=null)p.language.analysis(d);return true;}
+            case "editorTypingOptions":{for(Pane p:panes.values())if(p.buffer!=null&&p.buffer.uri.equals(d.optString("uri")))((StudioCodeEditor)p.editor).typingOptions(d.optJSONObject("typing"));return true;}
+            case "editorFormatEdits":{
+                Pane p=panes.get(d.optString("id"));if(p==null||p.buffer==null||!p.buffer.uri.equals(d.optString("uri")))return false;Buffer b=p.buffer;var cursor=p.editor.getCursor();
+                if(b.revision!=d.optLong("revision")||cursor.getLeft()!=d.optInt("expectedStart")||cursor.getRight()!=d.optInt("expectedEnd"))return false;
+                handle("editorEdits",d);var pos=p.editor.getText().getIndexer().getCharPosition(Math.max(0,Math.min(p.editor.getText().length(),d.optInt("cursor"))));p.editor.setSelection(pos.line,pos.column);p.editor.notifyIMEExternalCursorChange();app.event("editorResync",snapshot(b));return true;
+            }
             case "editorDecorations":{for(Pane p:panes.values())if(p.buffer!=null&&p.buffer.uri.equals(d.optString("uri"))&&p.language!=null){p.language.breakpoints=d.optJSONArray("breakpoints");p.language.execution=d.optInt("execution",0)-1;p.language.lexer.rerun();}return true;}
             case "editorCompletionResult":{CompletableFuture<JSONArray> future=completions.remove(d.optString("request"));if(future!=null)future.complete(d.optJSONArray("items"));return true;}
         }
@@ -168,7 +201,7 @@ final class NativeEditorHost {
     }
     void geometry(){
         float scale=app.web.getScale();if(scale<=0)scale=app.getResources().getDisplayMetrics().density;
-        int bar=app.imeHeight>0&&visible&&active!=null&&active.editor.hasFocus()&&settings.optBoolean("keyboardExtraKeys",true)?Math.round(42*app.getResources().getDisplayMetrics().density):0;
+        boolean resized=false;int bar=app.imeHeight>0&&visible&&active!=null&&active.editor.hasFocus()&&settings.optBoolean("keyboardExtraKeys",true)?Math.round(42*app.getResources().getDisplayMetrics().density):0;
         int bottom=app.editorRoot.getHeight()-app.imeHeight-bar;
         for(Pane p:panes.values()){
             int left=Math.round(p.x*scale),top=Math.round(p.y*scale),width=Math.round(p.w*scale),height=Math.round(p.h*scale);
@@ -176,18 +209,18 @@ final class NativeEditorHost {
             height=Math.min(height,Math.max(0,bottom-top));
             boolean show=visible&&p.buffer!=null&&width>1&&height>1;p.editor.setVisibility(show?View.VISIBLE:View.GONE);
             FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)p.editor.getLayoutParams();
-            if(lp.leftMargin!=left||lp.topMargin!=top||lp.width!=width||lp.height!=height){lp.leftMargin=left;lp.topMargin=top;lp.width=Math.max(1,width);lp.height=Math.max(1,height);p.editor.setLayoutParams(lp);}
+            if(lp.leftMargin!=left||lp.topMargin!=top||lp.width!=width||lp.height!=height){resized=true;lp.leftMargin=left;lp.topMargin=top;lp.width=Math.max(1,width);lp.height=Math.max(1,height);p.editor.setLayoutParams(lp);}
         }
         accessory.setVisibility(bar>0?View.VISIBLE:View.GONE);
         if(bar>0){FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)accessory.getLayoutParams();lp.height=bar;lp.gravity=Gravity.TOP;lp.topMargin=Math.max(0,bottom);accessory.setLayoutParams(lp);accessory.bringToFront();}
-        if(active!=null)reveal(active);
+        if(resized&&active!=null)reveal(active);
     }
-    void reveal(Pane p){if(p.editor.hasFocus()&&app.imeHeight>0)p.editor.post(()->{if(p.buffer!=null)p.editor.ensureSelectionVisible();});}
+    void reveal(Pane p){Buffer expected=p.buffer;if(p.editor.hasFocus()&&app.imeHeight>0)p.editor.post(()->{if(p.buffer==expected&&expected!=null)p.editor.ensureSelectionVisible();});}
     void showKeyboard(){if(active==null)return;active.editor.requestFocus();((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(active.editor,InputMethodManager.SHOW_IMPLICIT);geometry();}
     void createAccessory(){
         accessory=new HorizontalScrollView(app);accessory.setHorizontalScrollBarEnabled(false);accessory.setFillViewport(false);accessory.setBackgroundColor(Color.rgb(43,45,48));
         LinearLayout row=new LinearLayout(app);row.setOrientation(LinearLayout.HORIZONTAL);accessory.addView(row);app.editorRoot.addView(accessory,new FrameLayout.LayoutParams(-1,1));accessory.setVisibility(View.GONE);
-        String[][] keys={{"arrow_left","left"},{"arrow_down","down"},{"arrow_up","up"},{"arrow_right","right"},{"Tab","tab"},{"braces","{}"},{"parentheses","()"},{"brackets","[]"},{";",";"},{"\"","\""},{"&","&"},{"*","*"},{"undo_2","undo"},{"redo_2","redo"},{"copy","copy"},{"clipboard_paste","paste"}};
+        String[][] keys={{"Tab","tab"},{"arrow_left","left"},{"arrow_down","down"},{"arrow_up","up"},{"arrow_right","right"},{"braces","{}"},{"parentheses","()"},{"brackets","[]"},{";",";"},{"\"","\""},{"&","&"},{"*","*"},{"undo_2","undo"},{"redo_2","redo"},{"copy","copy"},{"clipboard_paste","paste"}};
         for(String[] k:keys){View key;int icon=app.getResources().getIdentifier("ic_"+k[0],"drawable",app.getPackageName());
             if(icon!=0){ImageView image=new ImageView(app);image.setImageResource(icon);image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);int pad=Math.round(11*app.getResources().getDisplayMetrics().density);image.setPadding(pad,pad,pad,pad);key=image;}else{TextView text=new TextView(app);text.setText(k[0]);text.setTextColor(Color.rgb(188,190,196));text.setTextSize(16);text.setGravity(Gravity.CENTER);key=text;}
             key.setContentDescription(k[1]);key.setBackgroundResource(android.R.drawable.list_selector_background);int dp=Math.round(44*app.getResources().getDisplayMetrics().density);row.addView(key,new LinearLayout.LayoutParams(dp,-1));
@@ -199,20 +232,20 @@ final class NativeEditorHost {
         if(active==null||active.buffer==null)return;CodeEditor e=active.editor;e.requestFocus();
         int key=action.equals("left")?KeyEvent.KEYCODE_DPAD_LEFT:action.equals("right")?KeyEvent.KEYCODE_DPAD_RIGHT:action.equals("up")?KeyEvent.KEYCODE_DPAD_UP:action.equals("down")?KeyEvent.KEYCODE_DPAD_DOWN:action.equals("home")?KeyEvent.KEYCODE_MOVE_HOME:action.equals("end")?KeyEvent.KEYCODE_MOVE_END:0;
         if(key!=0){e.getComponent(EditorAutoCompletion.class).hide();e.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,key));e.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,key));return;}
-        switch(action){case "copy":e.copyText();break;case "cut":e.cutText();break;case "paste":e.pasteText();break;case "selectAll":e.selectAll();break;case "undo":e.undo();break;case "redo":e.redo();break;case "suggest":e.getComponent(EditorAutoCompletion.class).requireCompletion();break;case "duplicate":e.duplicateSelection();break;case "deleteLine":{var c=e.getCursor();int line=c.getLeftLine();if(line+1<e.getText().getLineCount())e.getText().delete(line,0,line+1,0);else e.getText().delete(line,0,line,e.getText().getColumnCount(line));break;}case "tab":e.insertText("    ",4);break;default:e.insertText(action,action.length()==2?1:action.length());}
+        switch(action){case "copy":e.copyText();break;case "cut":e.cutText();break;case "paste":e.pasteText();break;case "selectAll":e.selectAll();break;case "undo":e.undo();break;case "redo":e.redo();break;case "suggest":e.getComponent(EditorAutoCompletion.class).requireCompletion();break;case "duplicate":e.duplicateSelection();break;case "deleteLine":{var c=e.getCursor();int line=c.getLeftLine();if(line+1<e.getText().getLineCount())e.getText().delete(line,0,line+1,0);else e.getText().delete(line,0,line,e.getText().getColumnCount(line));break;}case "tab":e.indentOrCommitTab();break;default:e.commitText(action.equals("{}")?"{":action.equals("()")?"(":action.equals("[]")?"[":action);}
     }
     void pause(){for(Buffer b:buffers.values()){Pane p=source(b);if(p==null)continue;String text=p.editor.getText().toString(),path=b.path;long revision=b.revision;if(!p.editor.isEditable())continue;app.workers.execute(()->{try{app.engine.saveVersioned(path,text,revision);}catch(Exception error){android.util.Log.w("Studio","Save on pause",error);}});}}
     void close(){for(Pane p:panes.values())p.editor.release();for(var f:completions.values())f.cancel(true);completions.clear();}
 
     final class StudioLanguage extends EmptyLanguage {
-        final Pane pane;final String kind;final Lexer lexer=new Lexer();
+        final Pane pane;final String kind;final Lexer lexer=new Lexer();final SmartTyping typing;
         volatile List<DiagnosticRegion> diagnostics=Collections.emptyList();volatile JSONArray styles=new JSONArray(),unusedStyles=new JSONArray(),breakpoints=new JSONArray();volatile int execution=-1;
         final Set<String> keywords=new HashSet<>(Arrays.asList(("alignas alignof and asm auto bool break case catch char char8_t char16_t char32_t class concept const consteval constexpr constinit const_cast continue co_await co_return co_yield decltype default delete do double dynamic_cast else enum explicit export extern false float for friend goto if inline int long mutable namespace new noexcept nullptr operator private protected public register reinterpret_cast requires return short signed sizeof static static_assert static_cast struct switch template this thread_local throw true try typedef typeid typename union unsigned using virtual void volatile wchar_t while override final import module _Atomic _Bool _Complex _Generic _Noreturn _Static_assert _Thread_local if endif elseif else foreach endforeach function endfunction macro endmacro set unset option project cmake_minimum_required add_executable add_library target_sources target_link_libraries target_include_directories find_package include add_subdirectory message return while endwhile").split(" ")));
-        StudioLanguage(Pane p,String kind){pane=p;this.kind=kind;}
+        StudioLanguage(Pane p,String kind){pane=p;this.kind=kind;typing=new SmartTyping(kind);}
         final io.github.rosemoe.sora.widget.SymbolPairMatch pairs=new io.github.rosemoe.sora.widget.SymbolPairMatch.DefaultSymbolPairs();
         @Override public io.github.rosemoe.sora.widget.SymbolPairMatch getSymbolPairs(){return pairs;}
         @Override public AnalyzeManager getAnalyzeManager(){return lexer;}
-        @Override public int getIndentAdvance(ContentReference content,int line,int column){String s=content.getLine(line).substring(0,column).trim();return s.endsWith("{")||s.endsWith("(")?4:0;}
+        @Override public int getIndentAdvance(ContentReference content,int line,int column){String s=content.getLine(line).substring(0,column).trim();return s.endsWith("{")||s.endsWith("(")?typing.options.indent:0;}
         void analysis(JSONObject d){
             JSONArray ds=d.optJSONArray("diagnostics");
             if(ds!=null){List<DiagnosticRegion> regions=new ArrayList<>();for(int i=0;i<ds.length();i++){JSONObject v=ds.optJSONObject(i);if(v==null)continue;regions.add(new DiagnosticRegion(v.optInt("start"),v.optInt("end"),(short)(v.optInt("severity")==1?3:v.optInt("severity")==2?2:1),i,new DiagnosticDetail(v.optString("message"),null,null,null)));}diagnostics=regions;DiagnosticsContainer container=new DiagnosticsContainer();container.addDiagnostics(regions);pane.editor.setDiagnostics(container);}

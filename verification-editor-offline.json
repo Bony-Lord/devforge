@@ -1,0 +1,75 @@
+{
+  "dateUTC": "2026-10-20T03:11:18.271240+00:00",
+  "scope": "Development host checks; this report does not verify Android IME, gestures, startup or device rendering.",
+  "basePreviouslyDeviceTestedCommit": "9037dd36be28fed56060e09fe4d7d0b9ead37b5a",
+  "suites": [
+    {
+      "name": "Smart typing decisions",
+      "passed": 46,
+      "total": 46,
+      "runner": "tests/java/dev/forge/ide/SmartTypingTest.java"
+    },
+    {
+      "name": "Lossless encoding conversions",
+      "passed": 27,
+      "total": 27,
+      "runner": "tests/java/dev/forge/ide/FileCodecTest.java"
+    },
+    {
+      "name": "Actual Sora Content and shared undo",
+      "passed": 8,
+      "total": 8,
+      "runner": "app/src/test/java/dev/forge/ide/EditorDocumentTest.java",
+      "tests": [
+        "formatterBatchIsOneUndo",
+        "offlineCanonicalStaysCurrent",
+        "splitUndoFromEitherViewRecordsOnce",
+        "replaceAndUndoFromSecondView",
+        "unicodeOffsetsStayInSync",
+        "tabReopenRetainsUndo",
+        "multipleViewsDoNotMultiplyUndo",
+        "splitViewsHaveIndependentCursors"
+      ]
+    },
+    {
+      "name": "JS state and async formatting races",
+      "passed": 14,
+      "total": 14,
+      "runner": "tests/native-editor-state.test.cjs"
+    },
+    {
+      "name": "Actual host clang-format 21.1.8",
+      "passed": 10,
+      "total": 10,
+      "report": "verification-formatter-host.json"
+    },
+    {
+      "name": "GDB MI parser",
+      "passed": 6,
+      "total": 6,
+      "runner": "tests/protocol.test.cjs"
+    }
+  ],
+  "build": {
+    "releaseApk": true,
+    "releaseLintVital": true,
+    "gestureTestApkCompiled": true,
+    "allAppJavaScriptSyntax": true,
+    "pythonSyntax": true
+  },
+  "deviceChecksPending": [
+    "SmartTypingChecks: actual IME/hardware Enter, paired closers, backspace, paste, Tab, CRLF, comments",
+    "TabStateChecks: C++ to CMake and back, gray spans, errors, semantic styles, inlays, caret, scroll, undo",
+    "Actual asynchronous formatter-on-close and concurrent typing",
+    "Keyboard autocorrection, clipboard and gesture regression after the new typing hooks",
+    "Encoding UI, bytes on disk, settings persistence and native startup smoke test"
+  ],
+  "sourceSHA256": {
+    "SmartTyping.java": "db453db87ab05e41d96e4eef3ef5c9974630aa9ba49c04f849d5256f49700360",
+    "FileCodec.java": "c0fa6f664406799875e843f6df542f261e4ccf302042aa8774b3b919c4477436",
+    "EditorDocument.java": "beacfd3d0b7b6b9fd9a1817fe6ebf31eecb7af7fcae7ab77acf6ebf799c6c671",
+    "NativeEditorHost.java": "68c894b695a8873ad0c0f39094b933139e49f402516d48cb3d49ac4417c1d07b",
+    "LanguageTools.java": "6d9e6c0fe4c6ab74fcba485587eda1ac8cf3a228f8efbe361795ca7cd484cb17",
+    "IdeEngine.java": "ce4bf9796de270e6896fe909e4b9e10bb5e743cc9fa7909b8f579e9c6bf8cf09"
+  }
+}

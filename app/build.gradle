@@ -4,6 +4,7 @@ android {
     compileSdk 35
     defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 28; versionCode 2; versionName '0.2.0'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    testOptions { unitTests.returnDefaultValues = true }
     signingConfigs {
         local {
             if (System.getenv('GCC_STUDIO_KEYSTORE')) {
@@ -24,4 +25,7 @@ android {
         release { minifyEnabled false; if (System.getenv('GCC_STUDIO_KEYSTORE')) signingConfig signingConfigs.local }
     }
 }
-dependencies { implementation 'io.github.rosemoe:editor:0.24.4' }
+dependencies {
+    implementation 'io.github.rosemoe:editor:0.24.4'
+    testImplementation 'junit:junit:4.13.2'
+}

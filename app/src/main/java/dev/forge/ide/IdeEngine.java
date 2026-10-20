@@ -58,19 +58,21 @@ final class IdeEngine {
             case "read": {
                 File f=readable(d.getString("path"));
                 if(f.length()>4*1024*1024)throw new IOException("Редактор открывает файлы до 4 МБ");
-                return new JSONObject().put("text",read(f)).put("path",f.getAbsolutePath()).put("readonly",!inside(f,project(currentProject)));
+                String requested=d.optString("encoding",prefs.getString("fileEncoding:"+f.getAbsolutePath(),"auto"));FileCodec.Decoded decoded=FileCodec.decode(Files.readAllBytes(f.toPath()),requested);prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),decoded.encoding).apply();
+                return new JSONObject().put("text",decoded.text).put("encoding",decoded.encoding).put("path",f.getAbsolutePath()).put("readonly",!inside(f,project(currentProject)));
             }
+            case "convertEncoding":{if(app.nativeEditors!=null&&!app.nativeEditors.currentRevision(d.getString("path"),d.getLong("revision")))return false;return save(d.getString("path"),d.getString("text"),d.getString("encoding"));}
             case "write":return d.has("revision")?saveVersioned(d.getString("path"),d.getString("text"),d.getLong("revision")):save(d.getString("path"),d.getString("text"));
             case "newFile": {
                 File f=writable(d.getString("path"));
                 if(f.exists())throw new IOException("Файл уже существует");
-                f.getParentFile().mkdirs();Files.write(f.toPath(),d.optString("text","").getBytes(StandardCharsets.UTF_8));return f.getAbsolutePath();
+                String encoding=settings().optString("defaultEncoding","UTF-8");byte[] bytes=FileCodec.encode(d.optString("text",""),encoding);f.getParentFile().mkdirs();Files.write(f.toPath(),bytes);prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return f.getAbsolutePath();
             }
             case "renameFile": {
                 File from=writablePath(d.getString("path")),to=writablePath(d.getString("to"));
                 if(!inside(to,project(currentProject)))throw new IOException("Выберите путь внутри проекта");
                 if(to.exists())throw new IOException("Этот путь уже существует");
-                to.getParentFile().mkdirs();Files.move(from.toPath(),to.toPath());return true;
+                to.getParentFile().mkdirs();Files.move(from.toPath(),to.toPath());String encoding=prefs.getString("fileEncoding:"+from.getAbsolutePath(),null);if(encoding!=null)prefs.edit().remove("fileEncoding:"+from.getAbsolutePath()).putString("fileEncoding:"+to.getAbsolutePath(),encoding).apply();return true;
             }
             case "deleteFile": {
                 File f=writable(d.getString("path"));
@@ -154,17 +156,19 @@ final class IdeEngine {
         if(app.nativeEditors!=null&&!app.nativeEditors.currentRevision(path,revision))return false;
         return save(path,text);
     }
-    synchronized boolean save(String path,String text)throws Exception {
-        File f=writable(path);f.getParentFile().mkdirs();
-        if(f.exists()) {
-            String old=read(f);if(old.equals(text))return true;
-            File hist=historyDir(f);hist.mkdirs();
-            Files.write(new File(hist,System.currentTimeMillis()+".txt").toPath(),old.getBytes(StandardCharsets.UTF_8));
+    synchronized boolean save(String path,String text)throws Exception {File f=writable(path);return save(path,text,prefs.getString("fileEncoding:"+f.getAbsolutePath(),"auto"));}
+    synchronized boolean save(String path,String text,String requested)throws Exception {
+        File f=writable(path);String previous=prefs.getString("fileEncoding:"+f.getAbsolutePath(),"auto");
+        byte[] old=f.isFile()?Files.readAllBytes(f.toPath()):new byte[0];FileCodec.Decoded decoded=FileCodec.decode(old,previous);
+        String encoding=requested.equals("auto")?decoded.encoding:requested;byte[] bytes=FileCodec.encode(text,encoding);
+        if(f.exists()&&Arrays.equals(old,bytes)){prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return true;}
+        if(f.exists()){
+            File hist=historyDir(f);hist.mkdirs();Files.write(new File(hist,System.currentTimeMillis()+".txt").toPath(),decoded.text.getBytes(StandardCharsets.UTF_8));
             File[] versions=hist.listFiles();if(versions!=null&&versions.length>30){Arrays.sort(versions,Comparator.comparing(File::getName));for(int i=0;i<versions.length-30;i++)versions[i].delete();}
         }
-        File temporary=new File(f.getParentFile(),".forge-write-"+UUID.randomUUID());
-        Files.write(temporary.toPath(),text.getBytes(StandardCharsets.UTF_8));
-        Files.move(temporary.toPath(),f.toPath(),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);return true;
+        f.getParentFile().mkdirs();File temporary=new File(f.getParentFile(),".forge-write-"+UUID.randomUUID());
+        try{Files.write(temporary.toPath(),bytes);Files.move(temporary.toPath(),f.toPath(),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);}finally{temporary.delete();}
+        prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return true;
     }
     File historyDir(File f)throws Exception {
         String key=android.util.Base64.encodeToString(f.getAbsolutePath().getBytes(StandardCharsets.UTF_8),android.util.Base64.URL_SAFE|android.util.Base64.NO_WRAP|android.util.Base64.NO_PADDING);

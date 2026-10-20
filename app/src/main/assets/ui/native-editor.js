@@ -1,7 +1,7 @@
 'use strict';
 // Monaco models are the LSP shadow; Android owns the visible document and IME.
 const NativeEditing={
-  panes:new Map(),revisions:new Map(),generations:new Map(),editTasks:new Map(),completionTasks:new Map(),viewports:new Map(),incoming:false,layoutQueued:false,
+  panes:new Map(),revisions:new Map(),generations:new Map(),editTasks:new Map(),completionTasks:new Map(),viewports:new Map(),formatJobs:new Map(),incoming:false,layoutQueued:false,
   cancellation(){let cancelled=false;const listeners=new Set();return{get isCancellationRequested(){return cancelled;},onCancellationRequested(fn){listeners.add(fn);if(cancelled)fn();return{dispose:()=>listeners.delete(fn)};},cancel(){if(cancelled)return;cancelled=true;for(const fn of [...listeners])fn();listeners.clear();}};},
   attach(editor,id){
     const container=document.querySelector(id==='primary'?'#editor':'#secondaryEditor');
@@ -13,8 +13,10 @@ const NativeEditing={
       original.setModel(model);this.track(model);this.layout();
       api.opening=api.opening.catch(()=>{}).then(async()=>{
         if(editor.getModel()!==model)return;
-        const r=await native('editorOpen',{id,uri:model?.uri.toString()||'',path:model?.uri.fsPath||'',text:model?.getValue()||'',language:model?.getLanguageId(),readonly:window.forge?.docs.get(model?.uri.toString())?.readonly||false});
-        if(r?.uri){this.snapshot(r);this.decorations(model);this.scheduleAnalysis(model);}
+        const typing=model?await this.typingOptions(model):null;
+        if(editor.getModel()!==model)return;
+        const r=await native('editorOpen',{id,uri:model?.uri.toString()||'',path:model?.uri.fsPath||'',text:model&&!this.revisions.has(model.uri.toString())?model.getValue():'',language:model?.getLanguageId(),readonly:window.forge?.docs.get(model?.uri.toString())?.readonly||false,typing});
+        if(r?.uri){this.snapshot(r);this.decorations(model);this.publishDiagnostics(model);this.scheduleAnalysis(model);}
       });
     };
     editor.focus=()=>send('editorFocus');
@@ -23,7 +25,7 @@ const NativeEditing={
     editor.setPosition=position=>{original.setPosition(position);send('editorSelection',{line:position.lineNumber,column:position.column});};
     editor.setSelection=range=>{original.setSelection(range);send('editorSelection',{line:range.startLineNumber,column:range.startColumn,endLine:range.endLineNumber,endColumn:range.endColumn});};
     for(const name of ['revealRangeInCenter','revealPositionInCenter','revealRange','revealLineInCenter','revealLine'])editor[name]=()=>{};
-    editor.saveViewState=()=>({native:true,selection:editor.getSelection()});
+    editor.saveViewState=()=>({native:true});
     editor.restoreViewState=state=>{if(state?.native&&state.selection)editor.setSelection(state.selection);};
     editor.getScrolledVisiblePosition=()=>null;
     editor.layout=()=>{original.layout({width:0,height:0});this.queueLayout();};
@@ -44,7 +46,7 @@ const NativeEditing={
       this.revisions.set(uri,revision+1);
       const task=previous.catch(()=>false).then(accepted=>{if(!accepted||generation!==(this.generations.get(uri)||0))return false;return native('editorEdits',{uri,revision,edits}).then(r=>r!==false);}).catch(error=>{safeError(error);return false;});this.editTasks.set(uri,task);
     });
-    model.onWillDispose(()=>{clearTimeout(model.__analysisTimer);clearTimeout(model.__viewportTimer);model.__analysisCancel?.cancel();model.__viewportCancel?.cancel();const uri=model.uri.toString();this.revisions.delete(uri);this.editTasks.delete(uri);this.generations.delete(uri);native('editorForget',{uri}).catch(console.warn);});
+    model.onWillDispose(()=>{clearTimeout(model.__analysisTimer);clearTimeout(model.__viewportTimer);model.__analysisCancel?.cancel();model.__viewportCancel?.cancel();const uri=model.uri.toString(),job=this.formatJobs.get(uri);if(job)clearTimeout(job.timer);this.formatJobs.delete(uri);this.revisions.delete(uri);this.editTasks.delete(uri);this.generations.delete(uri);native('editorForget',{uri}).catch(console.warn);});
   },
   changes(event){
     const model=monaco.editor.getModel(monaco.Uri.parse(event.uri));if(!model)return;
@@ -57,7 +59,7 @@ const NativeEditing={
     this.incoming=true;try{if(model.getValue()!==value.text)model.applyEdits([{range:model.getFullModelRange(),text:value.text}]);this.revisions.set(value.uri,value.revision);}finally{this.incoming=false;}
   },
   async waitEdits(uri){return await(this.editTasks.get(uri)||Promise.resolve(true));},
-  async sync(uri){for(const p of this.panes.values())await p.opening;const pending=[...this.editTasks];await Promise.all(pending.map(([,task])=>task));for(const[key,task]of pending)if(this.editTasks.get(key)===task)this.editTasks.delete(key);for(const s of await native('editorSnapshot',{uri}))this.snapshot(s);},
+  async sync(uri){for(const p of this.panes.values())if(!uri||p.editor.getModel()?.uri.toString()===uri)await p.opening;const pending=[...this.editTasks].filter(([key])=>!uri||key===uri);await Promise.all(pending.map(([,task])=>task));for(const[key,task]of pending)if(this.editTasks.get(key)===task)this.editTasks.delete(key);for(const s of await native('editorSnapshot',{uri,known:Object.fromEntries(this.revisions)}))this.snapshot(s);},
   queueLayout(){if(this.layoutQueued)return;this.layoutQueued=true;requestAnimationFrame(()=>{this.layoutQueued=false;this.layout();});},
   layout(){
     const panes=[...this.panes.values()].filter(p=>!p.container.classList.contains('hidden')).map(p=>{const box=p.container.getBoundingClientRect();return{id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};});
@@ -69,12 +71,50 @@ const NativeEditing={
     p.original.setSelection(new monaco.Selection(e.startLine,e.startColumn,e.line,e.column));
     if(e.focused){this.focused=e.id;for(const fn of p.focusListeners)fn();}
   },
-  invalidate(model){model.__analysisCancel?.cancel();for(const task of this.completionTasks.values())if(task.uri===model.uri.toString())task.cancel.cancel();this.scheduleAnalysis(model);},
+  invalidate(model){model.__analysisCancel?.cancel();for(const task of this.completionTasks.values())if(task.uri===model.uri.toString())task.cancel.cancel();this.scheduleAnalysis(model);const job=this.formatJobs.get(model.uri.toString());if(job&&!job.applying)this.scheduleFormat(job);},
+  async typingOptions(model){
+    if(['c','cpp'].includes(model.getLanguageId()))return native('formatterTypingConfig',{path:model.uri.fsPath}).catch(()=>({indent:4,tab:4,continuation:4,tabs:false}));
+    const settings=window.forge?.settings||{},custom=settings.indentMode&&settings.indentMode!=='formatter',indent=custom?settings.indentWidth||4:['cmake','yaml','json'].includes(model.getLanguageId())?2:4;
+    return{indent,tab:custom?settings.tabWidth||4:indent,continuation:indent,tabs:settings.indentMode==='tabs'};
+  },
+  async refreshTypingOptions(){for(const p of this.panes.values()){const model=p.editor.getModel();if(!model)continue;const typing=await this.typingOptions(model);if(!model.isDisposed())await native('editorTypingOptions',{uri:model.uri.toString(),typing});}},
+  queueFormat(event){
+    const model=monaco.editor.getModel(monaco.Uri.parse(event.uri));if(!model||window.forge?.settings.smartFormatOnClose===false||event.revision!==this.revisions.get(event.uri))return;
+    let range=monaco.Range.fromPositions(model.getPositionAt(event.start),model.getPositionAt(event.end)),job=this.formatJobs.get(event.uri);
+    if(job){const old=model.getDecorationRange(job.decoration);if(old)range=old.plusRange(range);model.deltaDecorations([job.decoration],[]);}
+    else job={uri:event.uri,model,id:event.id,running:false};
+    job.sequence=(job.sequence||0)+1;job.id=event.id;job.decoration=model.deltaDecorations([],[{range,options:{stickiness:monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges}}])[0];this.formatJobs.set(event.uri,job);this.scheduleFormat(job);
+  },
+  scheduleFormat(job){clearTimeout(job.timer);job.timer=setTimeout(()=>this.formatBlock(job),180);},
+  discardFormat(job){clearTimeout(job.timer);if(!job.model.isDisposed())job.model.deltaDecorations([job.decoration],[]);if(this.formatJobs.get(job.uri)===job)this.formatJobs.delete(job.uri);},
+  async formatBlock(job){
+    if(job.running){job.again=true;return;}job.running=true;job.again=false;
+    try{
+      const ide=window.forge,model=job.model;if(model.isDisposed()||ide.settings.smartFormatOnClose===false){this.discardFormat(job);return;}
+      await this.sync(job.uri);const pane=this.panes.get(job.id),range=model.getDecorationRange(job.decoration);if(!range||pane?.editor.getModel()!==model){this.discardFormat(job);return;}
+      const text=model.getValue(),end=model.getOffsetAt(range.getEndPosition());if(text[end-1]!=='}'){this.discardFormat(job);return;}
+      const sequence=job.sequence,revision=this.revisions.get(job.uri),version=model.getVersionId(),selection=pane.editor.getSelection(),expectedStart=model.getOffsetAt(selection.getStartPosition()),expectedEnd=model.getOffsetAt(selection.getEndPosition());
+      if(expectedStart!==expectedEnd)return;
+      const result=await native('formatterOnType',{path:model.uri.fsPath,text,firstLine:range.startLineNumber,lastLine:range.endLineNumber,cursor:expectedEnd});
+      if(model.isDisposed()||this.formatJobs.get(job.uri)!==job)return;
+      if(sequence!==job.sequence||revision!==this.revisions.get(job.uri)||version!==model.getVersionId()){job.again=true;return;}
+      if(result.code){this.lastOnTypeResult={status:'formatter-error',error:result.error};this.discardFormat(job);return;}
+      if(text===result.text){this.lastOnTypeResult={status:'unchanged',uri:job.uri};this.discardFormat(job);return;}
+      const formatted=result.text;let start=0,oldEnd=text.length,newEnd=formatted.length;
+      while(start<oldEnd&&start<newEnd&&text[start]===formatted[start])start++;
+      if(start>0&&/[\uD800-\uDBFF]/.test(text[start-1]))start--;
+      while(oldEnd>start&&newEnd>start&&text[oldEnd-1]===formatted[newEnd-1]){oldEnd--;newEnd--;}
+      if(oldEnd<text.length&&/[\uDC00-\uDFFF]/.test(text[oldEnd])){oldEnd++;newEnd++;}
+      job.applying=true;const accepted=await native('editorFormatEdits',{id:job.id,uri:job.uri,revision,expectedStart,expectedEnd,edits:[{start,end:oldEnd,text:formatted.slice(start,newEnd)}],cursor:result.cursor});job.applying=false;
+      this.lastOnTypeResult={status:accepted?'applied':'stale',uri:job.uri};if(accepted&&sequence===job.sequence)this.discardFormat(job);else job.again=true;
+    }catch(error){console.warn('On-type formatting',error);this.discardFormat(job);}
+    finally{job.running=false;if(job.again&&this.formatJobs.get(job.uri)===job)this.scheduleFormat(job);}
+  },
   scheduleAnalysis(model){clearTimeout(model.__analysisTimer);model.__analysisTimer=setTimeout(()=>this.analysis(model),120);},
   publishDiagnostics(model){
     const ide=window.forge;if(!ide||model.isDisposed())return;const uri=model.uri.toString(),revision=this.revisions.get(uri);if(revision===undefined)return;
     const diagnostics=[],unusedStyles=[];
-    for(const d of ide.diagnosticMap.get(uri)?.diagnostics||[]){const start=model.getOffsetAt({lineNumber:d.range.start.line+1,column:d.range.start.character+1}),end=model.getOffsetAt({lineNumber:d.range.end.line+1,column:d.range.end.character+1});diagnostics.push({start,end:Math.max(start+1,end),severity:d.severity,message:d.message});if(d.tags?.includes(1)||/unused|unneeded-internal|unreachable/.test(String(d.code||'')))unusedStyles.push({start,end,type:'unused'});}
+    for(const d of ((ide.diagnosticMap.get(uri)?.version===undefined||ide.diagnosticMap.get(uri)?.version===model.getVersionId())?ide.diagnosticMap.get(uri)?.diagnostics||[]:[])){const start=model.getOffsetAt({lineNumber:d.range.start.line+1,column:d.range.start.character+1}),end=model.getOffsetAt({lineNumber:d.range.end.line+1,column:d.range.end.character+1});diagnostics.push({start,end:Math.max(start+1,end),severity:d.severity,message:d.message});if(d.tags?.includes(1)||/unused|unneeded-internal|unreachable/.test(String(d.code||'')))unusedStyles.push({start,end,type:'unused'});}
     for(const marker of monaco.editor.getModelMarkers({resource:model.uri}).filter(m=>m.owner!=='clangd'))diagnostics.push({start:model.getOffsetAt({lineNumber:marker.startLineNumber,column:marker.startColumn}),end:model.getOffsetAt({lineNumber:marker.endLineNumber,column:marker.endColumn}),severity:marker.severity===8?1:marker.severity===4?2:3,message:marker.message});
     return native('editorAnalysis',{uri,revision,diagnostics,unusedStyles}).catch(console.warn);
   },
@@ -169,6 +209,7 @@ function nativeBuildCompletions(model,pos){
 }
 onNative('editorChanges',e=>NativeEditing.changes(e));onNative('editorResync',e=>{NativeEditing.generations.set(e.uri,(NativeEditing.generations.get(e.uri)||0)+1);NativeEditing.snapshot(e,true);NativeEditing.editTasks.delete(e.uri);});onNative('editorSelection',e=>NativeEditing.selection(e));onNative('editorCompletion',e=>NativeEditing.completion(e));onNative('editorGutter',e=>{const p=NativeEditing.panes.get(e.id);if(p)window.forge?.debugger?.toggleBreakpoint(p.editor.getModel(),e.line);});
 onNative('editorCompletionCancel',e=>{NativeEditing.completionTasks.get(e.request)?.cancel.cancel();NativeEditing.completionTasks.delete(e.request);});
+onNative('editorFormatOnType',e=>NativeEditing.queueFormat(e));
 onNative('editorViewport',e=>{NativeEditing.viewports.set(e.id,e);const model=monaco.editor.getModel(monaco.Uri.parse(e.uri));if(!model)return;clearTimeout(model.__viewportTimer);model.__viewportCancel?.cancel();model.__viewportTimer=setTimeout(()=>{model.__viewportCancel=NativeEditing.cancellation();NativeEditing.inlayHints(model,model.__viewportCancel);},150);});
 window.addEventListener('resize',()=>NativeEditing.queueLayout());
 onNative('editorScale',e=>{const ide=window.forge;if(!ide)return;ide.settings.codeScale=Math.max(50,Math.min(250,e.percent));document.querySelector('#fontStatus').textContent=ide.settings.codeScale+'%';ide.saveWorkspaceSettings();});

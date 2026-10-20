@@ -22,9 +22,20 @@ jobs:
         run: |
           for f in app/src/main/assets/ui/*.js; do node --check "$f"; done
           node tests/protocol.test.cjs
+          node tests/native-editor-state.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
+      - name: Real host clang-format behavior
+        run: |
+          python -m pip install --target build/test-tools clang-format==21.1.8 --no-deps
+          python tests/formatter_host_checks.py --binary build/test-tools/clang_format/data/bin/clang-format
+      - name: Smart typing and lossless file encoding
+        run: |
+          mkdir -p build/core-checks
+          javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{SmartTyping,FileCodec}.java tests/java/dev/forge/ide/{SmartTypingTest,FileCodecTest}.java
+          java -cp build/core-checks dev.forge.ide.SmartTypingTest
+          java -cp build/core-checks dev.forge.ide.FileCodecTest
       - name: Compile Android Java host
         run: |
           chmod +x gradlew
-          ./gradlew :app:compileDebugJavaWithJavac --console=plain
+          ./gradlew :app:compileDebugJavaWithJavac :app:testDebugUnitTest --console=plain

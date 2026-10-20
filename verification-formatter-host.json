@@ -1,0 +1,62 @@
+{
+  "scope": "host CLI; Android on-type integration remains a separate device check",
+  "version": "clang-format version 21.1.8",
+  "checks": [
+    {
+      "test": "Requested reference, pointer and range-for style",
+      "passed": true,
+      "evidence": "void f() {\n    for (auto& el : v) {\n        auto *ptr = &el;\n        *ptr += 1;\n    }\n}\n"
+    },
+    {
+      "test": "Tab override indents the function body",
+      "passed": true,
+      "evidence": "void f() {\n\tint x = 1;\n\tif (x) {\n\t\tx++;\n\t}\n}\n"
+    },
+    {
+      "test": "Space override applies the selected width",
+      "passed": true,
+      "evidence": "void f() {\n  int x = 1;\n  if (x) {\n    x++;\n  }\n}\n"
+    },
+    {
+      "test": "Nested project style is inherited",
+      "passed": true,
+      "evidence": "void f() {\n      int x = 1;\n      if (x) {\n            x++;\n      }\n}\n"
+    },
+    {
+      "test": "Explicit indentation overrides a nested style",
+      "passed": true,
+      "evidence": "void f() {\n  int x = 1;\n  if (x) {\n    x++;\n  }\n}\n"
+    },
+    {
+      "test": "On-type cursor mapping uses UTF-8 byte offsets",
+      "passed": true,
+      "evidence": {
+        "cursorBytes": 48,
+        "prefix": "// Привет 🙂\nvoid f() {\n    int x = 1;\n}"
+      }
+    },
+    {
+      "test": "Mapped cursor converts safely to UTF-16",
+      "passed": true,
+      "evidence": {
+        "utf16": 40,
+        "characters": 39
+      }
+    },
+    {
+      "test": "Block range formatting preserves separate declarations",
+      "passed": true,
+      "evidence": "int    untouched   = 0;\n\nvoid f() {\n    int x = 1;\n}\n\nint    after =2;\n"
+    },
+    {
+      "test": "Formatter preserves CRLF line endings",
+      "passed": true,
+      "evidence": "b'void f() {\\r\\n    int x = 1;\\r\\n}\\r\\n'"
+    },
+    {
+      "test": "Invalid formatter config fails without output",
+      "passed": true,
+      "evidence": "<command-line>:1:2: error: unknown key 'NotAValidOption'\r\n{NotAValidOption: broken}\r\n ^~~~~~~~~~~~~~~\r\nError parsing -style: invalid argument\r\n"
+    }
+  ]
+}

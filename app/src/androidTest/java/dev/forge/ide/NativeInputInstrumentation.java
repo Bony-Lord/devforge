@@ -13,8 +13,8 @@ import io.github.rosemoe.sora.widget.CodeEditor;
 
 /** Real injected Android gestures against an isolated input-check project on the device. */
 public final class NativeInputInstrumentation extends Instrumentation {
-    JSONArray checks=new JSONArray();MainActivity activity;CodeEditor editor;
-    @Override public void onCreate(Bundle args){super.onCreate(args);start();}
+    JSONArray checks=new JSONArray();MainActivity activity;CodeEditor editor;boolean smartOnly,tabsOnly;
+    @Override public void onCreate(Bundle args){super.onCreate(args);smartOnly=args!=null&&"true".equals(args.getString("smart"));tabsOnly=args!=null&&"true".equals(args.getString("tabs"));start();}
     <T>T ui(Callable<T> task)throws Exception{AtomicReference<T> result=new AtomicReference<>();AtomicReference<Exception> error=new AtomicReference<>();runOnMainSync(()->{try{result.set(task.call());}catch(Exception e){error.set(e);}});if(error.get()!=null)throw error.get();return result.get();}
     void check(String name,boolean passed,Object evidence)throws Exception{JSONObject r=new JSONObject().put("test",name).put("passed",passed).put("evidence",evidence);checks.put(r);Bundle progress=new Bundle();progress.putString("stream",(passed?"PASS ":"FAIL ")+name+"\n");sendStatus(0,progress);}
     void touch(long down,long now,int action,float x,float y){MotionEvent e=MotionEvent.obtain(down,now,action,x,y,0);e.setSource(android.view.InputDevice.SOURCE_TOUCHSCREEN);getUiAutomation().injectInputEvent(e,true);e.recycle();}
@@ -31,6 +31,8 @@ public final class NativeInputInstrumentation extends Instrumentation {
             for(int i=0;i<150;i++){if(ui(()->activity.nativeEditors!=null&&activity.nativeEditors.active!=null&&activity.nativeEditors.active.buffer!=null))break;SystemClock.sleep(100);}
             if(!ui(()->activity.engine.currentProject.startsWith("input-check-")))throw new IllegalStateException("Select an isolated input-check-* project first; user projects are never changed by this test");
             editor=ui(()->activity.nativeEditors.active.editor);
+            if(tabsOnly){new TabStateChecks(this).run();result.putString("checks",checks.toString());result.putString("stream",checks.toString()+"\n");finish(Activity.RESULT_OK,result);return;}
+            if(smartOnly){new SmartTypingChecks(this).run();result.putString("checks",checks.toString());result.putString("stream",checks.toString()+"\n");finish(Activity.RESULT_OK,result);return;}
             ui(()->{((InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(editor.getWindowToken(),0);return null;});SystemClock.sleep(500);
             String unused="static int unused_function(int unused_parameter) { return 10; }\nint main() { int unused_variable = 5; return 0; }\n";
             ui(()->{var t=editor.getText();t.replace(0,0,t.getLineCount()-1,t.getColumnCount(t.getLineCount()-1),unused);editor.setSelection(0,0);editor.notifyIMEExternalCursorChange();return null;});

@@ -65,3 +65,28 @@ python tools/prepare_sources.py
 Для пересборки самих GCC, GDB и библиотек следуйте включённым рецептам Termux/TUR на поддерживаемом Linux-хосте. Скрипт `prepare_runtime.py` выполняет документированное изменение префикса, корректировку порядка заголовков GCC и упаковку runtime.
 
 Приложение намеренно использует `targetSdk 28`: Android ограничивает непосредственный запуск сгенерированных программ из приватной папки при target SDK 29+. См. [Android: removed execute permission](https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission). Это APK для установки напрямую, а не готовая конфигурация публикации Google Play.
+
+
+## Локальные проверки редактора
+
+```sh
+mkdir -p build/core-checks
+javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{SmartTyping,FileCodec}.java tests/java/dev/forge/ide/{SmartTypingTest,FileCodecTest}.java
+java -cp build/core-checks dev.forge.ide.SmartTypingTest
+java -cp build/core-checks dev.forge.ide.FileCodecTest
+./gradlew :app:testDebugUnitTest
+node tests/native-editor-state.test.cjs
+python -m pip install --target build/test-tools clang-format==21.1.8 --no-deps
+python tests/formatter_host_checks.py --binary build/test-tools/clang_format/data/bin/clang-format
+```
+
+На Windows путь к тестовому clang-format заканчивается на `clang-format.exe`; команды с `{...}` выше рассчитаны на bash. JVM-проверки используют настоящие классы текста и undo Sora. Android-заглушки JVM не являются проверкой IME или отрисовки.
+
+Дополнительные сценарии на отдельном проекте `input-check-*`:
+
+```sh
+adb shell am instrument -w -e smart true com.forgex.gesturetests/dev.forge.ide.NativeInputInstrumentation
+adb shell am instrument -w -e tabs true com.forgex.gesturetests/dev.forge.ide.NativeInputInstrumentation
+```
+
+Запускайте их только когда устройство доступно для тестирования: сценарии меняют тестовый файл, переключают вкладки и требуют debug-сборку. Текущий статус выполнения указан в VERIFICATION.md.
