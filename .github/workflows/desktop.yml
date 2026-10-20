@@ -78,6 +78,16 @@ jobs:
         run: |
           python ../tools/prepare_desktop_sources.py --output dist/Cpp-Studio-desktop-native-sources-44.9.1.zip
           npm run package
+      - name: Verify the actual packaged executable
+        working-directory: desktop
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            sudo chown root:root dist/Cpp-Studio-linux-x64-1.0.0-rc.1/chrome-sandbox
+            sudo chmod 4755 dist/Cpp-Studio-linux-x64-1.0.0-rc.1/chrome-sandbox
+            xvfb-run -a node verify-package.cjs
+          else
+            node verify-package.cjs
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -89,3 +99,5 @@ jobs:
             desktop/dist/*.sha256
             work/ci-desktop/verification/*.json
             work/ci-desktop/verification/*.png
+            work/ci-desktop-packaged/verification/*.json
+            work/ci-desktop-packaged/verification/*.png
