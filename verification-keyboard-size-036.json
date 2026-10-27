@@ -1,0 +1,223 @@
+{
+  "checks": [
+    {
+      "test": "Own keyboard dismisses the system IME",
+      "passed": true,
+      "evidence": 0
+    },
+    {
+      "test": "Finger drag resize-right resizes and keeps opposite edge fixed",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 227,
+          "y": 659,
+          "width": 1855,
+          "height": 638
+        },
+        "after": {
+          "x": 227,
+          "y": 659,
+          "width": 1746,
+          "height": 638
+        }
+      }
+    },
+    {
+      "test": "Finger drag resize-left resizes and keeps opposite edge fixed",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 227,
+          "y": 659,
+          "width": 1746,
+          "height": 638
+        },
+        "after": {
+          "x": 320,
+          "y": 659,
+          "width": 1653,
+          "height": 638
+        }
+      }
+    },
+    {
+      "test": "Finger drag resize-top resizes and keeps opposite edge fixed",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 320,
+          "y": 659,
+          "width": 1653,
+          "height": 638
+        },
+        "after": {
+          "x": 320,
+          "y": 590,
+          "width": 1653,
+          "height": 707
+        }
+      }
+    },
+    {
+      "test": "Finger drag resize-bottom resizes and keeps opposite edge fixed",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 320,
+          "y": 590,
+          "width": 1653,
+          "height": 707
+        },
+        "after": {
+          "x": 320,
+          "y": 590,
+          "width": 1653,
+          "height": 647
+        }
+      }
+    },
+    {
+      "test": "Finger drag resize changes both dimensions",
+      "passed": true,
+      "evidence": {
+        "before": [
+          1653,
+          647
+        ],
+        "after": [
+          1712,
+          691
+        ]
+      }
+    },
+    {
+      "test": "Finger drag resize-bottomleft changes both dimensions",
+      "passed": true,
+      "evidence": {
+        "before": [
+          1712,
+          691
+        ],
+        "after": [
+          1756,
+          726
+        ]
+      }
+    },
+    {
+      "test": "Canceled edge gesture restores keyboard bounds",
+      "passed": true,
+      "evidence": {
+        "before": [
+          276,
+          590,
+          1756,
+          726
+        ],
+        "after": [
+          276,
+          590,
+          1756,
+          726
+        ]
+      }
+    },
+    {
+      "test": "Second finger neither types nor takes over edge resize",
+      "passed": true,
+      "evidence": {
+        "before": [
+          321,
+          1711
+        ],
+        "after": [
+          321,
+          1711
+        ]
+      }
+    },
+    {
+      "test": "No resize button is added to the keyboard header",
+      "passed": true,
+      "evidence": [
+        "move",
+        "modifiers",
+        "system",
+        "close",
+        "resize",
+        "resize-left",
+        "resize-right",
+        "resize-top",
+        "resize-bottom",
+        "resize-bottomleft"
+      ]
+    },
+    {
+      "test": "Key input still works after edge resizing",
+      "passed": true,
+      "evidence": "a"
+    },
+    {
+      "test": "Android keyboard resizes independently of PC layout",
+      "passed": true,
+      "evidence": {
+        "before": 1570,
+        "after": 1501,
+        "pc": {
+          "width": 60,
+          "height": 43
+        }
+      }
+    },
+    {
+      "test": "Scroll past EOF keeps final row partly visible: 12 lines / 100%",
+      "passed": true,
+      "evidence": {
+        "offset": 449,
+        "max": 449,
+        "remaining": 19,
+        "rowHeight": 39,
+        "viewport": 1498
+      }
+    },
+    {
+      "test": "Scroll past EOF keeps final row partly visible: 60 lines / 100%",
+      "passed": true,
+      "evidence": {
+        "offset": 2321,
+        "max": 2321,
+        "remaining": 19,
+        "rowHeight": 39,
+        "viewport": 1498
+      }
+    },
+    {
+      "test": "Scroll past EOF keeps final row partly visible: 12 lines / 175%",
+      "passed": true,
+      "evidence": {
+        "offset": 785.75,
+        "max": 785.75,
+        "remaining": 33.25,
+        "rowHeight": 68.25,
+        "viewport": 1498
+      }
+    },
+    {
+      "test": "Resized keyboard dimensions survive restart",
+      "passed": true,
+      "evidence": {
+        "before": [
+          1712,
+          722
+        ],
+        "after": [
+          1712,
+          722
+        ]
+      }
+    }
+  ],
+  "passed": 16,
+  "total": 16
+}
