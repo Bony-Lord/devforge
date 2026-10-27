@@ -1,0 +1,216 @@
+{
+  "completed": true,
+  "method": "Cold usr. Shared-library archive and GCC resume prefix prefilled through ADB; CMake HTTPS download and GCC cancellation/resume use the real network. All archives and extracted files checked against SHA256.",
+  "checks": [
+    {
+      "test": "APK has no compiler runtime asset or residual 100 MB payload",
+      "passed": true,
+      "evidence": {
+        "bytes": 11193824,
+        "runtimeAsset": false
+      }
+    },
+    {
+      "test": "Editor starts with no native tool packages installed",
+      "passed": true,
+      "evidence": {
+        "platform": false,
+        "gcc": false,
+        "cmake": false,
+        "analysis": false,
+        "clang": false,
+        "debugger": false,
+        "git": false
+      }
+    },
+    {
+      "test": "Upgrade recognizes all previous tool installations",
+      "passed": true,
+      "evidence": null
+    },
+    {
+      "test": "Quick setup includes GCC CMake analysis and shared libraries once",
+      "passed": true,
+      "evidence": [
+        "platform",
+        "gcc",
+        "cmake",
+        "analysis"
+      ]
+    },
+    {
+      "test": "Unselecting a required shared component unselects dependents",
+      "passed": true,
+      "evidence": []
+    },
+    {
+      "test": "Selecting GCC automatically selects its shared libraries",
+      "passed": true,
+      "evidence": [
+        "platform",
+        "gcc"
+      ]
+    },
+    {
+      "test": "Build without compiler opens the tool installer",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "CMake HTTPS download installs shared libraries but no GCC",
+      "passed": true,
+      "evidence": {
+        "installed": {
+          "platform": true,
+          "gcc": false,
+          "cmake": true,
+          "analysis": false,
+          "clang": false,
+          "debugger": false,
+          "git": false
+        },
+        "phases": [
+          "platform:download",
+          "platform:extract",
+          "platform:installed",
+          "cmake:download",
+          "cmake:extract",
+          "cmake:installed"
+        ]
+      }
+    },
+    {
+      "test": "Cancel stops download and retains a resumable partial archive",
+      "passed": true,
+      "evidence": {
+        "result": {
+          "error": "Загрузка отменена"
+        },
+        "partialBytes": 539484
+      }
+    },
+    {
+      "test": "Real HTTPS Range resume uses the saved prefix and installs GCC",
+      "passed": true,
+      "evidence": {
+        "firstProgress": {
+          "id": "gcc",
+          "done": 63319479,
+          "total": 63843767,
+          "phase": "download"
+        },
+        "installed": true
+      }
+    },
+    {
+      "test": "Downloaded GCC compiles C++20 with bits convenience header",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-runtime-037-20261027/.forge/bin/program",
+        "exists": true,
+        "id": "packs-cpp"
+      }
+    },
+    {
+      "test": "Downloaded C++ runtime executes correctly",
+      "passed": true,
+      "evidence": {
+        "exit": {
+          "id": "packs-run",
+          "code": 0
+        },
+        "text": "PACKS=6\n"
+      }
+    },
+    {
+      "test": "Downloaded CMake Ninja and GCC build a real project",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "id": "packs-cmake",
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-runtime-037-20261027/.forge/cmake-debug/packs",
+        "exists": true
+      }
+    },
+    {
+      "test": "Downloaded GCC compiles C17 with platform headers",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-runtime-037-20261027/.forge/bin/program",
+        "exists": true,
+        "id": "packs-c"
+      }
+    },
+    {
+      "test": "GCC LTO tools work without debug information",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-runtime-037-20261027/.forge/bin/program",
+        "exists": true,
+        "id": "packs-lto"
+      }
+    },
+    {
+      "test": "Shared libraries cannot be removed while dependent tools are installed",
+      "passed": true,
+      "evidence": {
+        "error": "Component is required by gcc"
+      }
+    },
+    {
+      "test": "Removing GCC preserves CMake and shared libraries",
+      "passed": true,
+      "evidence": {
+        "platform": true,
+        "gcc": false,
+        "cmake": true
+      }
+    },
+    {
+      "test": "GCC can be installed again from a verified cached archive",
+      "passed": true,
+      "evidence": null
+    },
+    {
+      "test": "CMake can be removed independently from GCC",
+      "passed": true,
+      "evidence": {
+        "gcc": true,
+        "cmake": false
+      }
+    },
+    {
+      "test": "CMake can be installed again independently",
+      "passed": true,
+      "evidence": null
+    },
+    {
+      "test": "English package wizard has no untranslated Russian text",
+      "passed": true,
+      "evidence": "GCC 15.2 · CMake · NinjaDownloaded separately from the appOther compiler versions are not supplied yet. Select C++98–C++26 and GNU dialects in the editor.C/C++ librariesHeaders, system libraries and linker toolsInstalledGCC 15.2C/C++ compiler; downloaded separately from the appInstalledCMake and NinjaCMake project builds; includes Ninja and MakeInstalledAnalysis and formattingclangd, clang-tidy, clang-format; semantic colors, diagnostics and completion68.1 MBClang compilerAlternative LLVM Clang compiler2.2 MBDebuggerGDB, Python and C++ container visualization25.5 MBGitHistory, commits and HTTPS cloning11.6 MB"
+    },
+    {
+      "test": "English tool manager has no untranslated Russian text",
+      "passed": true,
+      "evidence": "Tools\n  \n  \n\nGCC, CMake and other tools are downloaded separately. Shared libraries are installed automatically once. No internet connection is needed to use installed tools.C/C++ librariesHeaders, system libraries and linker tools · 28.4 MB package · 112.3 MB on device\n  \n  \n  \n  \n  \n\nRemoveGCC 15.2C/C++ compiler; downloaded separately from the app · 63.8 MB package · 170.2 MB on device\n  \n  \n  \n  \n  \n\nRemoveCMake and NinjaCMake project builds; includes Ninja and Make · 8.4 MB package · 20.7 MB on device\n  \n  \n  \n  \n  \n\nRemoveAnalysis and formattingclangd, clang-tidy, clang-format; semantic colors, diagnostics and completion · 68.1 MB package · 215.4 MB on device\n  \n  \n  \n\nDownloadClang compilerAlternative LLVM Clang compiler · 2.2 MB package · including dependencies: 70.3 MB · 6.0 MB on device\n  \n  \n  \n\nDownloadDebuggerGDB, Python and C++ container visualization · 25.5 MB package · 97.1 MB on device\n  \n  \n  \n\nDownloadGitHistory, commits and HTTPS cloning · 11.6 MB package · 23.5 MB on device\n  \n  \n  \n\nDownloadStop download"
+    },
+    {
+      "test": "Downloaded package installation survives interface restart",
+      "passed": true,
+      "evidence": {
+        "platform": true,
+        "gcc": true,
+        "cmake": true,
+        "analysis": false,
+        "clang": false,
+        "debugger": false,
+        "git": false
+      }
+    }
+  ],
+  "passed": 23,
+  "total": 23
+}

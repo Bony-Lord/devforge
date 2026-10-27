@@ -77,3 +77,19 @@ Object.assign(window.STUDIO_EN,{"Режим интерфейса": "Interface mo
 Object.assign(window.STUDIO_EN,{'Отделить вкладку':'Detach tab'});
 
 Object.assign(window.STUDIO_EN,{'Место привязки':'Docking destination'});
+
+Object.assign(window.STUDIO_EN,{
+  'Библиотеки C/C++':'C/C++ libraries',
+  'Заголовки, системные библиотеки и инструменты линковки':'Headers, system libraries and linker tools',
+  'Компилятор C/C++; загружается отдельно от приложения':'C/C++ compiler; downloaded separately from the app',
+  'CMake и Ninja':'CMake and Ninja',
+  'Сборка проектов CMake; включает Ninja и Make':'CMake project builds; includes Ninja and Make',
+  'GCC, CMake и другие инструменты скачиваются отдельно. Общие библиотеки устанавливаются автоматически один раз. После установки интернет для работы не нужен.':'GCC, CMake and other tools are downloaded separately. Shared libraries are installed automatically once. No internet connection is needed to use installed tools.',
+  'Скачать GCC, CMake, clangd и форматтер; профиль C++ Studio.':'Download GCC, CMake, clangd and the formatter; C++ Studio style.',
+  'Загружаются отдельно от приложения':'Downloaded separately from the app',
+  'Остановить загрузку':'Stop download',
+  'Загрузка отменена':'Download cancelled',
+  'Распаковка…':'Extracting…',
+  'с зависимостями':'including dependencies',
+  'пакет':'package'
+});

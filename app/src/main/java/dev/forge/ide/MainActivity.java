@@ -51,7 +51,7 @@ public final class MainActivity extends Activity {
         progress.setTextSize(18);
         progress.setPadding(32,32,32,32);
         setContentView(progress);
-        status("C++ STUDIO\n\nПодготовка локальных инструментов…\nПервый запуск может занять несколько минут.");
+        status(interfaceLanguage().equals("ru")?"C++ STUDIO\n\nПодготовка редактора…":"C++ STUDIO\n\nPreparing editor…");
         workers.execute(() -> {
             try {
                 if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0)StabilityDiagnostics.captureExitHistory(this);
@@ -74,6 +74,11 @@ public final class MainActivity extends Activity {
         String actual=abi.equals("arm64-v8a")?"aarch64":abi.equals("x86_64")?"x86_64":abi.startsWith("armeabi")?"arm":abi;
         if (!actual.equals(expected)) throw new IOException("Эта сборка: "+expected+". Архитектура устройства: "+abi);
         File usr = new File(getFilesDir(), "usr");
+        try(InputStream in=getAssets().open("tool-packs.json")){
+            if(new JSONObject(IdeEngine.slurp(in,4*1024*1024)).optString("delivery").equals("download")){
+                usr.mkdirs();new File(getFilesDir(),"tmp").mkdirs();ensureShell(usr);return;
+            }
+        }
         File marker = new File(usr,".studio-base-v2");
         String baseHash;try(InputStream in=getAssets().open("tool-packs.json")){baseHash=new JSONObject(IdeEngine.slurp(in,4*1024*1024)).getJSONObject("base").getString("sha256");}
         if(marker.exists()&&IdeEngine.read(marker).equals(baseHash)){ensureShell(usr);return;}
@@ -86,6 +91,7 @@ public final class MainActivity extends Activity {
 
     void ensureShell(File usr)throws IOException {
         File sh=new File(usr,"bin/sh");
+        sh.getParentFile().mkdirs();
         if(!Files.exists(sh.toPath(),LinkOption.NOFOLLOW_LINKS))Files.createSymbolicLink(sh.toPath(),Paths.get("/system/bin/sh"));
     }
     void serveAssets() throws IOException {

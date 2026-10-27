@@ -43,6 +43,8 @@ jobs:
           java -cp build/core-checks dev.forge.ide.FileCodecTest
           java -cp build/core-checks dev.forge.ide.FileTemplatesTest
           java -cp build/core-checks dev.forge.ide.IndentGuidesTest
+          javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/PackDownload.java tests/java/dev/forge/ide/PackDownloadTest.java
+          java -cp build/core-checks dev.forge.ide.PackDownloadTest
       - name: Compile Android Java host
         run: |
           chmod +x gradlew

@@ -121,6 +121,7 @@ final class IdeEngine {
             case "toolPacks":return toolPacks.state();
             case "toolPackInstall":return toolPacks.install(d.getString("id"));
             case "toolPackRemove":return toolPacks.remove(d.getString("id"));
+            case "toolPackCancel":toolPacks.cancel();return true;
             case "showInFiles":{File root=project(currentProject),selected=new File(d.optString("path",root.getAbsolutePath())).getCanonicalFile();if(!inside(selected,root)||!selected.exists())throw new IOException("Project path unavailable");File directory=selected.isDirectory()?selected:selected.getParentFile();android.net.Uri uri=ProjectDocumentsProvider.directoryUri(currentProject,root,directory);app.ui.post(()->{try{android.content.Intent intent=new android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri,android.provider.DocumentsContract.Document.MIME_TYPE_DIR).addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);app.startActivity(intent);}catch(android.content.ActivityNotFoundException e){app.event("toast",JSONObject.quote("File manager unavailable"));}});return true;}
             case "probe":return probes();
             case "lspStart":return startLsp(d);
