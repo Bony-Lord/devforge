@@ -1,0 +1,448 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "scope": "On-device WebView touch/mouse, native Android touch, actual Sora spans and clangd diagnostics",
+  "checks": [
+    {
+      "test": "One 42px header, icon actions and full-width console above which project tree ends",
+      "passed": true,
+      "evidence": {
+        "header": 42,
+        "toolbarInside": true,
+        "panelWidth": 1355.2940673828125,
+        "viewport": 1355,
+        "sidebarBottom": 541.0220642089844,
+        "panelTop": 547.0220336914062,
+        "icons": true
+      }
+    },
+    {
+      "test": "Menu replaces toolbar without moving code",
+      "passed": true,
+      "evidence": {
+        "menu": true,
+        "toolbar": true,
+        "editor": {
+          "x": 267.41912841796875,
+          "y": 107,
+          "width": 1087.875,
+          "height": 434.0220642089844,
+          "top": 107,
+          "right": 1355.2941284179688,
+          "bottom": 541.0220642089844,
+          "left": 267.41912841796875
+        }
+      }
+    },
+    {
+      "test": "Touch outside main menu restores tools",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Choosing New project closes main menu and retains newly opened anchored form",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Touch inside modal padding does not dismiss it",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Dragging out of dialog does not dismiss it",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Backdrop touch cancels settings without applying",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Dynamically created documentation dialog also closes outside",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "A top-layer choice remains usable inside a modal",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "A real native editor touch dismisses anchored compiler choices",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Maximized bottom dock hides native editor and fills workspace",
+      "passed": true,
+      "evidence": {
+        "height": 735.8235473632812,
+        "available": 735.8235473632812
+      }
+    },
+    {
+      "test": "Restoring panel retains code viewport and caret",
+      "passed": true,
+      "evidence": {
+        "old": {
+          "state": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": true,
+            "textOffset": 83.625,
+            "guides": 2,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 0,
+              "top": 0,
+              "width": 0,
+              "height": 0
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 568,
+            "top": 227,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 0,
+            "layoutWidth": 595,
+            "visible": true,
+            "width": 2312,
+            "height": 922,
+            "innerWidth": 2312,
+            "innerHeight": 922,
+            "occlusions": [
+              {
+                "x": 254.4191131591797,
+                "y": 42,
+                "width": 20,
+                "height": 499.0220642089844,
+                "paint": false,
+                "touch": true
+              },
+              {
+                "x": 0,
+                "y": 534.0220336914062,
+                "width": 1355.2940673828125,
+                "height": 20,
+                "paint": false,
+                "touch": true
+              }
+            ]
+          },
+          "selection": {
+            "startLineNumber": 3,
+            "startColumn": 2,
+            "endLineNumber": 3,
+            "endColumn": 2,
+            "selectionStartLineNumber": 3,
+            "selectionStartColumn": 2,
+            "positionLineNumber": 3,
+            "positionColumn": 2
+          }
+        },
+        "new": {
+          "state": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": true,
+            "textOffset": 83.625,
+            "guides": 2,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 0,
+              "top": 750,
+              "width": 2880,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 568,
+            "top": 227,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 0,
+            "layoutWidth": 595,
+            "visible": true,
+            "width": 2312,
+            "height": 612,
+            "innerWidth": 2312,
+            "innerHeight": 612,
+            "occlusions": [
+              {
+                "x": 254.4191131591797,
+                "y": 42,
+                "width": 20,
+                "height": 499.0220642089844,
+                "paint": false,
+                "touch": true
+              },
+              {
+                "x": 0,
+                "y": 534.0220336914062,
+                "width": 1355.2940673828125,
+                "height": 20,
+                "paint": false,
+                "touch": true
+              }
+            ]
+          },
+          "selection": {
+            "startLineNumber": 3,
+            "startColumn": 2,
+            "endLineNumber": 3,
+            "endColumn": 2,
+            "selectionStartLineNumber": 3,
+            "selectionStartColumn": 2,
+            "positionLineNumber": 3,
+            "positionColumn": 2
+          }
+        }
+      }
+    },
+    {
+      "test": "Focus mode restores previously visible panels",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "sidebar": false,
+          "panel": false
+        },
+        "focus": {
+          "sidebar": true,
+          "panel": true
+        },
+        "after": {
+          "sidebar": false,
+          "panel": false
+        }
+      }
+    },
+    {
+      "test": "Android Ctrl Shift F12 enters focus mode",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Android Ctrl Shift F12 leaves focus mode",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Double-clicking active file tab toggles focus mode",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Mouse hover on icon exposes action and shortcut",
+      "passed": true,
+      "evidence": "Собрать · F9"
+    },
+    {
+      "test": "Actual native diagnostics and grey unused spans before formatting",
+      "passed": true,
+      "evidence": {
+        "revision": 1,
+        "analysisRevision": 1,
+        "documentVersion": 3,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 84
+      }
+    },
+    {
+      "test": "Whole-document formatting retains actual native underlines and grey spans",
+      "passed": true,
+      "evidence": {
+        "revision": 2,
+        "analysisRevision": 2,
+        "documentVersion": 4,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "Formatting cursor stays near original code instead of document end",
+      "passed": true,
+      "evidence": {
+        "position": {
+          "lineNumber": 6,
+          "column": 5
+        },
+        "line": "    return 0;",
+        "end": 8
+      }
+    },
+    {
+      "test": "Native undo restores current diagnostic spans",
+      "passed": true,
+      "evidence": {
+        "revision": 4,
+        "analysisRevision": 4,
+        "documentVersion": 6,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 84
+      }
+    },
+    {
+      "test": "Native redo refreshes current diagnostic spans",
+      "passed": true,
+      "evidence": {
+        "revision": 6,
+        "analysisRevision": 6,
+        "documentVersion": 8,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "Repeated CMake/C++ tab changes retain diagnostics and actual grey paint",
+      "passed": true,
+      "evidence": {
+        "revision": 6,
+        "analysisRevision": 6,
+        "documentVersion": 8,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "A new unknown function is diagnosed after formatting and previous tab changes",
+      "passed": true,
+      "evidence": {
+        "native": {
+          "revision": 7,
+          "analysisRevision": 7,
+          "documentVersion": 9,
+          "stylesCurrent": true,
+          "diagnostics": 1,
+          "unused": 0,
+          "paintedUnused": 0,
+          "semantic": 2,
+          "length": 127
+        },
+        "errors": [
+          "Use of undeclared identifier 'missing_compact_probe'"
+        ]
+      }
+    },
+    {
+      "test": "Fixing an error after formatting clears obsolete native diagnostics",
+      "passed": true,
+      "evidence": {
+        "revision": 8,
+        "analysisRevision": 8,
+        "documentVersion": 10,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "Formatting an already formatted document avoids a no-op revision",
+      "passed": true,
+      "evidence": {
+        "before": 9,
+        "after": 9
+      }
+    },
+    {
+      "test": "Late formatting of previous tab preserves current CMake focus and formatted buffer",
+      "passed": true,
+      "evidence": {
+        "retained": true,
+        "text": "static int unused_function() {\n    return 1;\n}\nint main() {\n    int unused_variable = 2;\n    return 0;\n}\n",
+        "native": "static int unused_function() {\n    return 1;\n}\nint main() {\n    int unused_variable = 2;\n    return 0;\n}\n"
+      }
+    },
+    {
+      "test": "Returning to a background-formatted file restores grey spans",
+      "passed": true,
+      "evidence": {
+        "revision": 10,
+        "analysisRevision": 10,
+        "documentVersion": 12,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "Full-width dock and single header at UI scale 65%",
+      "passed": true,
+      "evidence": {
+        "panelWidth": 1355.2940673828125,
+        "width": 1355,
+        "header": 27.294116973876953,
+        "expected": 27.3,
+        "overflow": false
+      }
+    },
+    {
+      "test": "Full-width dock and single header at UI scale 100%",
+      "passed": true,
+      "evidence": {
+        "panelWidth": 1355.2940673828125,
+        "width": 1355,
+        "header": 42,
+        "expected": 42,
+        "overflow": false
+      }
+    },
+    {
+      "test": "Full-width dock and single header at UI scale 150%",
+      "passed": true,
+      "evidence": {
+        "panelWidth": 1355.2940673828125,
+        "width": 1355,
+        "header": 63,
+        "expected": 63,
+        "overflow": false
+      }
+    }
+  ],
+  "passed": 31,
+  "total": 31
+}

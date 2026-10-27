@@ -44,26 +44,28 @@ const NativeEditing={
       const edits=e.changes.map(c=>({start:c.rangeOffset,end:c.rangeOffset+c.rangeLength,text:c.text})).sort((a,b)=>b.start-a.start);
       const generation=this.generations.get(uri)||0,previous=this.editTasks.get(uri)||Promise.resolve(true);
       this.revisions.set(uri,revision+1);
-      const task=previous.catch(()=>false).then(accepted=>{if(!accepted||generation!==(this.generations.get(uri)||0))return false;return native('editorEdits',{uri,revision,edits}).then(r=>r!==false);}).catch(error=>{safeError(error);return false;});this.editTasks.set(uri,task);
+      const task=previous.catch(()=>false).then(accepted=>{if(!accepted||generation!==(this.generations.get(uri)||0))return false;return native('editorEdits',{uri,revision,edits}).then(r=>{if(r!==false)this.documentSettled(model);return r!==false;});}).catch(error=>{safeError(error);return false;});this.editTasks.set(uri,task);
     });
     model.onWillDispose(()=>{clearTimeout(model.__analysisTimer);clearTimeout(model.__viewportTimer);model.__analysisCancel?.cancel();model.__viewportCancel?.cancel();const uri=model.uri.toString(),job=this.formatJobs.get(uri);if(job)clearTimeout(job.timer);this.formatJobs.delete(uri);this.revisions.delete(uri);this.editTasks.delete(uri);this.generations.delete(uri);native('editorForget',{uri}).catch(console.warn);});
   },
   changes(event){
     const model=monaco.editor.getModel(monaco.Uri.parse(event.uri));if(!model)return;
     if(event.revision<=(this.revisions.get(event.uri)??-1))return;
-    this.incoming=true;try{for(const c of event.changes){const a=model.getPositionAt(c.start),b=model.getPositionAt(c.end);model.applyEdits([{range:new monaco.Range(a.lineNumber,a.column,b.lineNumber,b.column),text:c.text}]);}this.revisions.set(event.uri,event.revision);}finally{this.incoming=false;}
+    this.incoming=true;try{for(const c of event.changes){const a=model.getPositionAt(c.start),b=model.getPositionAt(c.end);model.applyEdits([{range:new monaco.Range(a.lineNumber,a.column,b.lineNumber,b.column),text:c.text}]);}this.revisions.set(event.uri,event.revision);}finally{this.incoming=false;}this.documentSettled(model);
   },
   snapshot(value,force=false){
     const model=monaco.editor.getModel(monaco.Uri.parse(value.uri));if(!model)return;
     if(!force&&value.revision<(this.revisions.get(value.uri)??-1))return;
-    this.incoming=true;try{if(model.getValue()!==value.text)model.applyEdits([{range:model.getFullModelRange(),text:value.text}]);this.revisions.set(value.uri,value.revision);}finally{this.incoming=false;}
+    const changed=value.revision!==this.revisions.get(value.uri);
+    this.incoming=true;try{if(model.getValue()!==value.text)model.applyEdits([{range:model.getFullModelRange(),text:value.text}]);this.revisions.set(value.uri,value.revision);}finally{this.incoming=false;}if(changed)this.documentSettled(model);
   },
   async waitEdits(uri){return await(this.editTasks.get(uri)||Promise.resolve(true));},
   async sync(uri){for(const p of this.panes.values())if(!uri||p.editor.getModel()?.uri.toString()===uri)await p.opening;const pending=[...this.editTasks].filter(([key])=>!uri||key===uri);await Promise.all(pending.map(([,task])=>task));for(const[key,task]of pending)if(this.editTasks.get(key)===task)this.editTasks.delete(key);for(const s of await native('editorSnapshot',{uri,known:Object.fromEntries(this.revisions)}))this.snapshot(s);},
   queueLayout(){if(this.layoutQueued)return;this.layoutQueued=true;requestAnimationFrame(()=>{this.layoutQueued=false;this.layout();});},
   layout(){
-    const panes=[...this.panes.values()].filter(p=>!p.container.classList.contains('hidden')).map(p=>{const box=p.container.getBoundingClientRect();return{id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};});
-    const visible=!document.querySelector('dialog[open]')&&!document.body.classList.contains('sidebar-mobile-open');
+    const maximized=document.body.classList.contains('panel-maximized');
+    const panes=[...this.panes.values()].filter(p=>!p.container.classList.contains('hidden')).map(p=>{const box=p.container.getBoundingClientRect();if(!maximized)p.layoutRect={id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};return p.layoutRect||{id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};});
+    const visible=!maximized&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('sidebar-mobile-open');
     const occlusions=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit,#menu:not(.hidden),.studio-inline-popover,.studio-hover-tip')].filter(e=>e.getClientRects().length).map(e=>{const b=e.getBoundingClientRect();return{x:b.x,y:b.y,width:b.width,height:b.height,paint:!e.classList.contains('studio-resize-hit'),touch:!e.classList.contains('studio-hover-tip')};});
     return native('editorLayout',{panes,visible,occlusions,settings:window.forge?.settings||{language:StudioI18n.locale}}).catch(console.warn);
   },
@@ -112,7 +114,9 @@ const NativeEditing={
     finally{job.running=false;if(job.again&&this.formatJobs.get(job.uri)===job)this.scheduleFormat(job);}
   },
   scheduleAnalysis(model){clearTimeout(model.__analysisTimer);model.__analysisTimer=setTimeout(()=>this.analysis(model),60);},
-  publishDiagnostics(model){
+  documentSettled(model){if(model.isDisposed())return;const cached=window.forge?.diagnosticMap.get(model.uri.toString());if(cached&&(cached.version===undefined||cached.version===model.getVersionId()))this.publishDiagnostics(model);this.scheduleAnalysis(model);},
+  async publishDiagnostics(model){
+    await this.waitEdits(model.uri.toString());
     const ide=window.forge;if(!ide||model.isDisposed())return;const uri=model.uri.toString(),revision=this.revisions.get(uri);if(revision===undefined)return;
     const diagnostics=[],unusedStyles=[];
     for(const d of ((ide.diagnosticMap.get(uri)?.version===undefined||ide.diagnosticMap.get(uri)?.version===model.getVersionId())?ide.diagnosticMap.get(uri)?.diagnostics||[]:[])){const start=model.getOffsetAt({lineNumber:d.range.start.line+1,column:d.range.start.character+1}),end=model.getOffsetAt({lineNumber:d.range.end.line+1,column:d.range.end.character+1});diagnostics.push({start,end:Math.max(start+1,end),severity:d.severity,message:d.message});if(d.tags?.includes(1)||/unused|unneeded-internal|unreachable/.test(String(d.code||'')))unusedStyles.push({start,end,type:'unused'});}
@@ -121,6 +125,7 @@ const NativeEditing={
   },
   decorations(model){if(!model||model.isDisposed())return;const debug=window.forge?.debugger;if(!debug)return;native('editorDecorations',{uri:model.uri.toString(),breakpoints:[...(debug.breakpoints.get(model.uri.fsPath)?.keys()||[])],execution:debug.nativeExecution?.uri===model.uri.toString()?debug.nativeExecution.line:0}).catch(console.warn);},
   async analysis(model){
+    await this.waitEdits(model.uri.toString());
     const ide=window.forge;if(!ide||model.isDisposed())return;const uri=model.uri.toString(),revision=this.revisions.get(uri);if(revision===undefined)return;
     model.__analysisCancel?.cancel();const token=model.__analysisCancel=this.cancellation(),current=()=>!token.isCancellationRequested&&!model.isDisposed()&&revision===this.revisions.get(uri);
     if(!ide.lsp.ready||!['c','cpp'].includes(model.getLanguageId()))return;

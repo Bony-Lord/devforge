@@ -36,7 +36,11 @@ final class LanguageTools {
             }
             case "formatDocument": {
                 File file=ide.readable(data.getString("path"));config();
-                return capture(Arrays.asList(ide.bin("clang-format"),formatStyle(),"--assume-filename="+file.getAbsolutePath()),data.getString("text"));
+                String input=data.getString("text");List<String> command=new ArrayList<>(Arrays.asList(ide.bin("clang-format"),formatStyle(),"--assume-filename="+file.getAbsolutePath()));
+                int cursor=Math.max(0,Math.min(input.length(),data.optInt("cursor"))),byteCursor=input.substring(0,cursor).getBytes(StandardCharsets.UTF_8).length;
+                if(data.has("cursor"))command.add("--cursor="+byteCursor);
+                JSONObject result=capture(command,input);
+                if(data.has("cursor")&&result.optInt("code")==0){String out=result.getString("text");int newline=out.indexOf('\n');JSONObject header=new JSONObject(out.substring(0,newline));String formatted=out.substring(newline+1);byte[] bytes=formatted.getBytes(StandardCharsets.UTF_8);int offset=Math.max(0,Math.min(bytes.length,header.optInt("Cursor",byteCursor)));result.put("text",formatted).put("cursor",new String(bytes,0,offset,StandardCharsets.UTF_8).length());}return result;
             }
             default:throw new IOException("Unknown language tool operation");
         }

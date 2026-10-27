@@ -68,5 +68,13 @@ async function formatterRace(kind){
     const{editing:e,calls}=environment(),uri='file:///current.cpp';e.revisions.set(uri,12);e.editTasks.set(uri,Promise.resolve(true));e.editTasks.set('file:///unrelated.cpp',new Promise(()=>{}));
     await e.sync(uri);assert.equal(calls.at(-1).data.uri,uri);assert.equal(calls.at(-1).data.known[uri],12);assert.equal(e.editTasks.has('file:///unrelated.cpp'),true);checks++;
   }
+  {
+    const{editing:e,calls,forge}=environment(),uri='file:///pending.cpp',pending=deferred();let version=1;
+    const model={uri:{toString:()=>uri},isDisposed:()=>false,getVersionId:()=>version,getOffsetAt:p=>p.column-1};
+    e.revisions.set(uri,4);e.editTasks.set(uri,pending.promise);forge.diagnosticMap.set(uri,{version:1,diagnostics:[]});
+    const publishing=e.publishDiagnostics(model);await Promise.resolve();assert.equal(calls.length,0);
+    version=2;e.revisions.set(uri,5);forge.diagnosticMap.set(uri,{version:2,diagnostics:[{range:{start:{line:0,character:2},end:{line:0,character:4}},severity:1,message:'fresh error'}]});
+    pending.resolve(true);await publishing;assert.equal(calls.at(-1).data.revision,5);assert.equal(calls.at(-1).data.diagnostics[0].message,'fresh error');checks++;
+  }
   console.log(checks+' editor state and asynchronous formatting checks passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

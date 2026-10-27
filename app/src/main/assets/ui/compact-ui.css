@@ -1,0 +1,52 @@
+/* One toolbar at every width; the menu temporarily occupies its workspace. */
+.studio-header{height:42px!important;min-height:42px;gap:4px;padding:0 6px!important}
+.studio-header .brand{flex-shrink:0;padding:0 4px}
+.studio-header .brand strong{display:none}
+.studio-header .toolbar{position:static!important;flex:1;min-width:0;height:100%;padding:0 2px;gap:4px;border:0;background:transparent}
+.studio-header .toolbar .top-spacer{flex:1;max-width:none}
+.studio-header .menubar{flex:1;min-width:0;margin:0;gap:2px;overflow-x:auto}
+.studio-header .menubar button{height:32px;padding:5px 12px;color:var(--text)}
+.studio-header .studio-select{height:30px;padding:4px 22px 4px 7px;max-width:140px;background:transparent;border-color:transparent}
+.studio-header .project-switch{min-width:70px;max-width:190px;gap:3px}
+.studio-header .project-switch .studio-select{max-width:175px}
+.studio-header .project-switch>span{display:none}
+.studio-header .tool-divider{margin:0 2px}
+.studio-header #compilerSelect+.studio-select{max-width:92px}
+.studio-header #standardSelect+.studio-select{max-width:98px}
+.studio-header .studio-toolbar-action,.breadcrumbs .icon-button{width:32px;min-width:32px;height:32px;padding:6px;gap:0;flex-shrink:0}
+.studio-header .studio-toolbar-action label{display:none}
+.studio-header .studio-toolbar-action svg{width:18px;height:18px}
+.studio-header #mainMenuToggle[aria-expanded=true]{background:var(--hover);color:var(--text)}
+.breadcrumbs{height:29px;min-height:29px;gap:4px;padding-right:5px}
+.breadcrumbs .icon-button{width:28px;min-width:28px;height:27px;padding:5px}
+
+/* A bottom dock spans both project manager and editor, without a second overlay. */
+.work-area{display:grid;grid-template-columns:40px var(--sidebar) 6px minmax(0,1fr);grid-template-rows:minmax(80px,1fr) 6px min(var(--panel-height),65%)}
+.work-area>.activitybar{grid-column:1;grid-row:1;width:40px;min-height:0;overflow:auto}
+.work-area>.sidebar{grid-column:2;grid-row:1;min-height:0;width:auto;min-width:0}
+.work-area>#sidebarResizer{grid-column:3;grid-row:1}
+.work-area>.main{grid-column:4;grid-row:1;min-height:0}
+.work-area>#panelResizer{grid-column:1/-1;grid-row:2}
+.work-area>#panel{grid-column:1/-1;grid-row:3;height:auto;min-height:0;max-height:none;overflow:hidden}
+body.sidebar-hidden .work-area{grid-template-columns:40px 0 0 minmax(0,1fr)}
+body.panel-hidden .work-area{grid-template-rows:minmax(0,1fr) 0 0}
+body.panel-maximized:not(.panel-hidden) .work-area{grid-template-rows:0 0 minmax(0,1fr)}
+body.panel-maximized:not(.panel-hidden) .work-area>:is(.activitybar,.sidebar,#sidebarResizer,.main,#panelResizer){visibility:hidden;overflow:hidden;min-height:0}
+.panel-actions{margin-left:auto}
+.panel-tabs{min-width:0}
+.panel-tabs button{white-space:nowrap}
+@media(max-width:620px){
+  .studio-header .brand,.studio-header #paletteButton{display:none}
+  .studio-header{gap:2px;padding:0 3px!important}
+  .studio-header .project-switch{max-width:110px;min-width:45px}
+  .studio-header .project-switch .studio-select{max-width:105px}
+  .studio-header .studio-select{padding-left:5px;padding-right:18px;font-size:11px}
+  .studio-header .toolbar{gap:1px}
+  .studio-header .studio-toolbar-action{width:29px;min-width:29px;padding:5px}
+  .studio-header #compilerSelect+.studio-select{max-width:72px}
+  .studio-header #standardSelect+.studio-select{max-width:82px}
+  .work-area,body.sidebar-hidden .work-area{grid-template-columns:0 0 0 minmax(0,1fr)}
+  .work-area>.sidebar{position:fixed;left:0;top:42px;bottom:25px;width:min(260px,85vw);z-index:20}
+  body.sidebar-mobile-open .work-area>.sidebar{display:flex}
+}
+@media(max-width:390px){.studio-header #settingsButton{display:none}.studio-header .project-switch{max-width:80px}.studio-header .project-switch .studio-select{max-width:76px}}
