@@ -8,7 +8,7 @@
   <a href="LICENSE"><img alt="App license: MIT" src="https://img.shields.io/badge/App-MIT-868A91"></a>
 </p>
 
-> **[Android 0.3.6 — preview](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.6):** изменение размера клавиатуры за края без кнопки и прокрутка ниже конца кода с видимой частью последней строки. 16 целевых проверок на планшете. Сохраняет изменения 0.3.5: [окна и ввод](https://github.com/Bony-Lord/gcc-cpp-studio/blob/v0.3.6/docs/INPUT-LAYOUT-0.3.5.md), [конфигурации и runtime warning](https://github.com/Bony-Lord/gcc-cpp-studio/blob/v0.3.6/docs/RUN-CONFIGURATIONS-0.3.5.md). Target SDK28 сохранён; 0.3.2 preview — вариант возврата к прежнему интерфейсу, 1.0.0-rc.1 нестабильна. [Многоязычный SDK, Python/ipynb и моды](docs/ADDONS-ROADMAP.md) пока в планах.
+> **[Android 0.3.7 — preview](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.7):** небольшой APK без встроенных GCC/CMake. Компилятор и CMake скачиваются отдельно, общие библиотеки — один раз; старые инструменты сохраняются. Отмена/продолжение загрузки, 23 проверки на планшете и 11 HTTP-проверок загрузчика. [Подробности и ограничения](https://github.com/Bony-Lord/gcc-cpp-studio/blob/v0.3.7/docs/DOWNLOADABLE-RUNTIME-0.3.7.md). Target SDK28 сохранён; [0.3.6](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.6) доступна для возврата. SDK модов и маркетплейс пока [в планах](docs/ADDONS-ROADMAP.md).
 >
 > **Последний выпуск [1.0.0-rc.1](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v1.0.0-rc.1) — НЕСТАБИЛЬНЫЙ, только для тестирования.** В нём обнаружены проблемы настольного интерфейса, анализа кода, CMake и управления запуском. Исправления 1.0.0-rc.2 находятся в разработке и пока не выпущены. Более ранней стабильной настольной версии нет.
 >
