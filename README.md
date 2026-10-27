@@ -8,7 +8,7 @@
   <a href="LICENSE"><img alt="App license: MIT" src="https://img.shields.io/badge/App-MIT-868A91"></a>
 </p>
 
-> **Рекомендуемый выпуск для Android — [0.3.1](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.1)**, предыдущая, более стабильная версия. Её известные ограничения, включая старый target SDK, перечислены в описании выпуска.
+> **Android: [0.3.2 preview](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.2)** исправляет подтверждённое зависание списка подсказок в 0.3.1, сохраняет колонку при движении стрелками и добавляет переназначаемое автодополнение **Ctrl+Alt+Space**. На физическом Xiaomi Pad 6 прошли 54 целевые проверки. Это предварительный выпуск со старым target SDK 28; отсутствие остальных ошибок не гарантируется. Прежняя рекомендация 0.3.1 снята после подтверждения ANR.
 >
 > **Последний выпуск [1.0.0-rc.1](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v1.0.0-rc.1) — НЕСТАБИЛЬНЫЙ, только для тестирования.** В нём обнаружены проблемы настольного интерфейса, анализа кода, CMake и управления запуском. Исправления 1.0.0-rc.2 находятся в разработке и пока не выпущены. Более ранней стабильной настольной версии нет.
 >
@@ -18,7 +18,7 @@
 
 Интерфейс и привычные действия вдохновлены CLion Dark. Это самостоятельное приложение с открытым кодом; оно не связано с JetBrains и не использует закрытый код CLion.
 
-<p align="center"><a href="https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.1"><b>Скачать рекомендуемую 0.3.1 →</b></a> · <a href="docs/BUILDING.md">Сборка из исходников</a> · <a href="docs/VERIFICATION.md">Проверки</a> · <a href="THIRD_PARTY.md">Компоненты и лицензии</a></p>
+<p align="center"><a href="https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.2"><b>Скачать Android 0.3.2 preview →</b></a> · <a href="docs/BUILDING.md">Сборка из исходников</a> · <a href="docs/VERIFICATION.md">Проверки</a> · <a href="THIRD_PARTY.md">Компоненты и лицензии</a></p>
 
 **История 0.3.1:** исправлена обрезка прокрученного редактора при масштабировании, переработаны создание/переименование в дереве и панель клавиатуры, добавлены Android-сочетания отладчика и удаление GCC с восстановлением из APK. [Изменения](CHANGELOG.md) · [Галерея](docs/GALLERY.md) · [Готовые примеры](examples/README.md) · [Проверка лицензий](docs/LICENSE-AUDIT.md) · [Приватность](docs/PRIVACY.md).
 
