@@ -82,8 +82,8 @@ return{nativeMatches:await visible()===model.getValue(),lines:model.getLineCount
     finally:
         try:d.evaluate("(async()=>{await forge.changeSettings({indentMode:'formatter'});})()")
         except Exception:pass
-        d.close();report={'device':'realme RMX3951 / Android 16 / ARM64','scope':'Actual native editor operations, on-device clang-format, settings UI handlers and bytes read back with ADB','checks':checks,'passed':sum(c['passed'] for c in checks),'total':len(checks)}
-        (ROOT/'verification-native-updates.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        d.close();report={'device':subprocess.check_output([ADB,'shell','getprop','ro.product.model'],text=True).strip()+' / Android '+subprocess.check_output([ADB,'shell','getprop','ro.build.version.release'],text=True).strip(),'scope':'Actual native editor operations, on-device clang-format, settings UI handlers and bytes read back with ADB','checks':checks,'passed':sum(c['passed'] for c in checks),'total':len(checks)}
+        (ROOT/(sys.argv[1] if len(sys.argv)>1 else 'verification-native-updates.json')).write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     if not all(c['passed'] for c in checks):raise AssertionError('Some native update checks failed')
 
 if __name__=='__main__':run()

@@ -16,6 +16,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.*;
 import io.github.rosemoe.sora.widget.CodeEditor;
+import io.github.rosemoe.sora.widget.SelectionMovement;
+import io.github.rosemoe.sora.util.IntPair;
 import io.github.rosemoe.sora.widget.component.EditorAutoCompletion;
 import io.github.rosemoe.sora.widget.schemes.EditorColorScheme;
 import io.github.rosemoe.sora.event.*;
@@ -80,8 +82,8 @@ final class NativeEditorHost {
         void finishZoom(){
             if(!zoomActive)return;renderZoomFrame();zoomActive=false;fontGestureUntil=SystemClock.uptimeMillis()+80;if(fontChanged!=null)fontChanged.accept(zoomBaseFont*zoomRatio);
         }
-        int popupX(int x){return Math.round((x-getOffsetX())*getScaleX())+getOffsetX();}
-        int popupY(int y){return Math.round((y-getOffsetY())*getScaleY())+getOffsetY();}
+        int popupX(int x,int width){int viewport=Math.round(getWidth()*getScaleX());return getOffsetX()+Math.max(0,Math.min(Math.round((x-getOffsetX())*getScaleX()),Math.max(0,viewport-width)));}
+        int popupY(int y,int height){int viewport=Math.round(getHeight()*getScaleY()),top=Math.round((y-getOffsetY())*getScaleY());if(top+height>viewport)top-=height+Math.round(getRowHeight()*getScaleY());return getOffsetY()+Math.max(0,Math.min(top,Math.max(0,viewport-height)));}
         @Override protected void onDetachedFromWindow(){zoomActive=false;super.onDetachedFromWindow();}
         @Override public boolean dispatchTouchEvent(MotionEvent event){
             if(event.getActionMasked()==MotionEvent.ACTION_DOWN){for(RectF rect:touchOcclusions)if(rect.contains(event.getX()*getScaleX(),event.getY()*getScaleY()))return false;if(dismissPopover!=null)dismissPopover.run();}
@@ -103,11 +105,26 @@ final class NativeEditorHost {
         SmartTyping typing;boolean pasting;java.util.function.Consumer<SmartTyping.Edit> blockCompleted;
         java.util.function.Consumer<Float> fontChanged;boolean configuringFont;
         StudioCodeEditor(Context context){super(context);
+            subscribeEvent(SelectionChangeEvent.class,(event,unsubscribe)->{if(!verticalMoving&&(event.getCause()!=SelectionChangeEvent.CAUSE_IME||event.getOldLeft()==null||!event.getOldLeft().equals(event.getLeft())||!event.getOldRight().equals(event.getRight())))preferredX=Float.NaN;});
+            subscribeEvent(ContentChangeEvent.class,(event,unsubscribe)->preferredX=Float.NaN);
             // Sora still asks its animator for geometry before mutations even when animation is off.
             // A selected range can be edited before the first draw; do not consult the renderer then.
             setCursorAnimator(new io.github.rosemoe.sora.widget.style.CursorAnimator(){public void markStartPos(){}public void markEndPos(){}public void start(){}public void cancel(){}public boolean isRunning(){return false;}public float animatedX(){return 0;}public float animatedY(){return 0;}public float animatedLineHeight(){return 0;}public float animatedLineBottom(){return 0;}});
         }
-        @Override public boolean onKeyDown(int key,KeyEvent event){if(key==KeyEvent.KEYCODE_SPACE&&event.isCtrlPressed()&&!event.isShiftPressed()&&!event.isAltPressed())return false;return super.onKeyDown(key,event);}
+        float preferredX=Float.NaN;boolean verticalMoving;
+        @Override public void moveSelection(SelectionMovement movement){if(movement==SelectionMovement.UP||movement==SelectionMovement.DOWN)moveVertically(movement,false);else{preferredX=Float.NaN;super.moveSelection(movement);}}
+        @Override public void extendSelection(SelectionMovement movement){if(movement==SelectionMovement.UP||movement==SelectionMovement.DOWN)moveVertically(movement,true);else{preferredX=Float.NaN;super.extendSelection(movement);}}
+        void moveVertically(SelectionMovement movement,boolean extend){
+            if(getLayout()==null){if(extend)super.extendSelection(movement);else super.moveSelection(movement);return;}
+            if(extend)ensureSelectionAnchorAvailable();
+            CharPosition from=extend?getSelectingTarget():movement==SelectionMovement.UP?getCursor().left():getCursor().right();
+            if(Float.isNaN(preferredX))preferredX=getLayout().getCharLayoutOffset(from.line,from.column)[1];
+            int row=getLayout().getRowIndexForPosition(from.index),target=Math.max(0,Math.min(getLayout().getRowCount()-1,row+(movement==SelectionMovement.UP?-1:1)));
+            if(row==target)return;
+            long position=getLayout().getCharPositionForLayoutOffset(preferredX,(target+.5f)*getRowHeight());int line=IntPair.getFirst(position),column=IntPair.getSecond(position);
+            verticalMoving=true;try{if(extend){setSelectionRegion(selectionAnchor.line,selectionAnchor.column,line,column,false,SelectionChangeEvent.CAUSE_KEYBOARD_OR_CODE);ensureSelectingTargetVisible();}else setSelection(line,column,SelectionChangeEvent.CAUSE_KEYBOARD_OR_CODE);}finally{verticalMoving=false;}
+        }
+        @Override public boolean onKeyDown(int key,KeyEvent event){if(key==KeyEvent.KEYCODE_SPACE&&event.isCtrlPressed())return false;return super.onKeyDown(key,event);}
         @Override public InputConnection onCreateInputConnection(EditorInfo info){InputConnection base=super.onCreateInputConnection(info);currentInput=base==null?null:Build.VERSION.SDK_INT>=33?new StudioInputConnection33(base):new StudioInputConnection(base);info.imeOptions|=EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;return currentInput;}
         class StudioInputConnection extends InputConnectionWrapper {
             StudioInputConnection(InputConnection base){super(base,false);}
@@ -168,7 +185,7 @@ final class NativeEditorHost {
     }
     static final class ViewState {int left,right,x,y;ViewState(CodeEditor e){left=e.getCursor().getLeft();right=e.getCursor().getRight();x=e.getOffsetX();y=e.getOffsetY();}}
     final class Pane {
-        String id;CodeEditor editor;FrameLayout viewport;Buffer buffer;StudioLanguage language;boolean muted;
+        String id;CodeEditor editor;FrameLayout viewport;Buffer buffer;StudioLanguage language;boolean muted;final StudioCompletionLayout completionLayout=new StudioCompletionLayout();
         final Map<String,ViewState> views=new HashMap<>();
         float x,y,w,h;String configured="";boolean viewportScheduled,deferredConfig;ViewState resizeAnchor;Buffer resizeBuffer;int resizeGeneration;
         Pane(String id){
@@ -176,9 +193,10 @@ final class NativeEditorHost {
             Configuration config=new Configuration(app.getResources().getConfiguration());config.setLocale(Locale.forLanguageTag(settings.optString("language","ru")));
             editor=new StudioCodeEditor(app.createConfigurationContext(config));
             StudioCodeEditor code=(StudioCodeEditor)editor;
-            editor.replaceComponent(EditorAutoCompletion.class,new EditorAutoCompletion(editor){@Override public void setLocation(int x,int y){super.setLocation(code.popupX(x),code.popupY(y));}@Override public boolean isFeatureEnabled(int feature){return feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
-            editor.replaceComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class,new io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow(editor){@Override public void setLocation(int x,int y){super.setLocation(code.popupX(x),code.popupY(y));}@Override public boolean isFeatureEnabled(int feature){return feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
-            editor.replaceComponent(io.github.rosemoe.sora.widget.component.EditorTextActionWindow.class,new io.github.rosemoe.sora.widget.component.EditorTextActionWindow(editor){@Override public void setLocation(int x,int y){super.setLocation(code.popupX(x),code.popupY(y));}@Override public boolean isFeatureEnabled(int feature){return feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
+            editor.replaceComponent(EditorAutoCompletion.class,new EditorAutoCompletion(editor){int rawX,rawY;@Override public void setLocation(int x,int y){rawX=x;rawY=y;super.setLocation(code.popupX(x,getWidth()),code.popupY(y,getHeight()));}@Override public void setSize(int width,int height){super.setSize(width,height);setLocation(rawX,rawY);}@Override public boolean isFeatureEnabled(int feature){return feature==FEATURE_SHOW_OUTSIDE_VIEW_ALLOWED||feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
+            editor.getComponent(EditorAutoCompletion.class).setLayout(completionLayout);
+            editor.replaceComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class,new io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow(editor){int rawX,rawY;@Override public void setLocation(int x,int y){rawX=x;rawY=y;super.setLocation(code.popupX(x,getWidth()),code.popupY(y,getHeight()));}@Override public void setSize(int width,int height){super.setSize(width,height);setLocation(rawX,rawY);}@Override public boolean isFeatureEnabled(int feature){return feature==FEATURE_SHOW_OUTSIDE_VIEW_ALLOWED||feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
+            editor.replaceComponent(io.github.rosemoe.sora.widget.component.EditorTextActionWindow.class,new io.github.rosemoe.sora.widget.component.EditorTextActionWindow(editor){int rawX,rawY;@Override public void setLocation(int x,int y){rawX=x;rawY=y;super.setLocation(code.popupX(x,getWidth()),code.popupY(y,getHeight()));}@Override public void setSize(int width,int height){super.setSize(width,height);setLocation(rawX,rawY);}@Override public boolean isFeatureEnabled(int feature){return feature==FEATURE_SHOW_OUTSIDE_VIEW_ALLOWED||feature!=FEATURE_DISMISS_WHEN_OBSCURING_CURSOR&&super.isFeatureEnabled(feature);}});
             editor.getProps().sideIconSizeFactor=.76f;editor.setDividerMargin(2*editor.getDpUnit(),10*editor.getDpUnit());
             editor.getProps().adjustToSelectionOnResize=false;
             ((StudioCodeEditor)editor).dismissPopover=()->app.event("editorDismissPopover",new JSONObject());
@@ -226,6 +244,7 @@ final class NativeEditorHost {
     void emitSelection(Pane p){if(p.buffer==null)return;var c=p.editor.getCursor();app.event("editorSelection",object("id",p.id,"uri",p.buffer.uri,"revision",p.buffer.revision,"line",c.getRightLine()+1,"column",c.getRightColumn()+1,"startLine",c.getLeftLine()+1,"startColumn",c.getLeftColumn()+1,"focused",p.editor.hasFocus()));}
     Object handle(String op,JSONObject d)throws Exception{
         switch(op){
+            case "editorTestCompletionState":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0||!app.engine.currentProject.startsWith("input-check-"))return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;EditorAutoCompletion completion=p.editor.getComponent(EditorAutoCompletion.class);ListView list=p.completionLayout.getCompletionList();return object("line",p.editor.getCursor().getRightLine()+1,"column",p.editor.getCursor().getRightColumn()+1,"start",p.editor.getCursor().getLeft(),"end",p.editor.getCursor().getRight(),"showing",completion.isShowing(),"selected",completion.getCurrentPosition(),"count",list.getCount(),"first",list.getFirstVisiblePosition(),"last",list.getLastVisiblePosition(),"requests",p.completionLayout.requests,"reveals",p.completionLayout.reveals);}
             case "editorResizeStart":{for(Pane p:panes.values()){p.resizeGeneration++;p.resizeBuffer=p.buffer;p.resizeAnchor=new ViewState(p.editor);p.editor.getScroller().startScroll(p.resizeAnchor.x,p.resizeAnchor.y,0,0,0);p.editor.getScroller().abortAnimation();}return true;}
             case "editorResizeEnd":{for(Pane p:panes.values()){int generation=p.resizeGeneration;p.editor.postDelayed(()->{if(p.resizeGeneration==generation){restoreResizeAnchor(p);p.resizeAnchor=null;}},100);}return true;}
             case "editorTestHover":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0||!app.engine.currentProject.startsWith("input-check-"))return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;float[] point=p.editor.getLayout().getCharLayoutOffset(d.getInt("line"),d.getInt("column"));MotionEvent event=MotionEvent.obtain(SystemClock.uptimeMillis(),SystemClock.uptimeMillis(),d.optInt("action",MotionEvent.ACTION_HOVER_MOVE),point[1]+p.editor.measureTextRegionOffset()-p.editor.getOffsetX()+2,point[0]-p.editor.getOffsetY()-p.editor.getRowHeight()/2f,0);event.setSource(InputDevice.SOURCE_MOUSE);try{p.editor.dispatchGenericMotionEvent(event);}finally{event.recycle();}return p.editor.getComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class).isShowing();}
@@ -400,19 +419,21 @@ final class NativeEditorHost {
             JSONArray hs=d.optJSONArray("hints");if(hs!=null){InlayHintsContainer hints=new InlayHintsContainer();for(int i=0;i<hs.length();i++){JSONObject h=hs.optJSONObject(i);if(h!=null)hints.add(new TextInlayHint(h.optInt("line"),h.optInt("column"),h.optString("text")));}pane.editor.setInlayHints(hints);}
         }
         @Override public void requireAutoComplete(ContentReference content,CharPosition pos,CompletionPublisher publisher,Bundle args){
+            final Content expectedContent=pane.editor.getText();final long expectedVersion=expectedContent.getDocumentVersion();
             String request=String.valueOf(requestSequence.incrementAndGet());CompletableFuture<JSONArray> f=new CompletableFuture<>();completions.put(request,f);
             app.ui.post(()->{if(pane.buffer!=null){flush(pane.buffer);app.event("editorCompletion",object("request",request,"uri",pane.buffer.uri,"revision",pane.buffer.revision,"line",pos.line,"column",pos.column));}});
-            try{JSONArray items=f.get(3000,TimeUnit.MILLISECONDS);if(items!=null)for(int i=0;i<items.length();i++){publisher.checkCancelled();JSONObject item=items.getJSONObject(i);final JSONObject value=item;
+            try{JSONArray items=f.get(3000,TimeUnit.MILLISECONDS);publisher.setUpdateThreshold(101);if(items!=null)for(int i=0;i<items.length();i++){publisher.checkCancelled();JSONObject item=items.getJSONObject(i);final JSONObject value=item;
                 CompletionItem completion=new CompletionItem(item.optString("label"),item.optString("detail")){
                     @Override public void performCompletion(CodeEditor editor,Content text,int line,int column){performCompletion(editor,text,text.getIndexer().getCharPosition(line,column));}
                     @Override public void performCompletion(CodeEditor editor,Content text,CharPosition position){
+                        if(editor.getEditorLanguage()!=StudioLanguage.this||text!=expectedContent||text.getDocumentVersion()!=expectedVersion){editor.getComponent(EditorAutoCompletion.class).hide();return;}
                         try{int end=value.optInt("end",position.index),start=value.optInt("start",position.index),index=start;String insert=value.optString("text");replace(text,start,end,"");
                             JSONArray extra=value.optJSONArray("additional");if(extra!=null)for(int j=0;j<extra.length();j++){JSONObject e=extra.getJSONObject(j);int a=e.getInt("start"),z=e.getInt("end");String s=e.getString("text");replace(text,a,z,s);if(a<=index)index+=s.length()-(z-a);}
                             if(value.optBoolean("snippet"))editor.getSnippetController().startSnippet(index,CodeSnippetParser.parse(insert),null);else{var p=text.getIndexer().getCharPosition(index);text.insert(p.line,p.column,insert);var c=text.getIndexer().getCharPosition(index+insert.length());editor.setSelection(c.line,c.column);}
                         }catch(Exception error){android.util.Log.w("Studio","Completion",error);}
                     }
                 };completion.sortText=item.optString("sortText");publisher.addItem(completion);
-            }}catch(InterruptedException e){Thread.currentThread().interrupt();}catch(Exception ignored){}finally{completions.remove(request);app.ui.post(()->app.event("editorCompletionCancel",object("request",request)));}
+            }publisher.updateList();}catch(InterruptedException e){Thread.currentThread().interrupt();}catch(TimeoutException|CancellationException ignored){}catch(Exception error){if(!(error instanceof CompletionCancelledException))android.util.Log.w("Studio","Completion",error);}finally{completions.remove(request);app.ui.post(()->app.event("editorCompletionCancel",object("request",request)));}
         }
         final class Lexer extends SimpleAnalyzeManager<Void> {
             final Pattern tokens=Pattern.compile("//[^\\n]*|/\\*[\\s\\S]*?(?:\\*/|$)|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'|\\b(?:0[xX][0-9a-fA-F']+|[0-9][0-9a-zA-Z'.]*)\\b|[a-zA-Z_][a-zA-Z_0-9]*|#[^\\n]*|\\$\\{[^}]*\\}");

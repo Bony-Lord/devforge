@@ -1,6 +1,6 @@
-import json,pathlib,sys,time
+import json,pathlib,sys,time,subprocess
 source=pathlib.Path(__file__).resolve().parents[1];root=source;sys.path.insert(0,str(source/'tools'))
-from device_cdp import Device
+from device_cdp import Device,ADB
 (source/'work').mkdir(exist_ok=True);d=Device();results=[]
 def check(name,code,predicate=bool):
  try:
@@ -24,5 +24,5 @@ try:
 finally:
  try:d.evaluate("(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());await forge.openFile(forge.state.root+'/main.cpp');forge.setCodeScale(100);forge.setUIScale(100);await forge.saveAll();})()")
  except Exception:pass
- report={'device':'realme RMX3951','android':'16','results':results,'passed':sum(r['passed'] for r in results),'total':len(results)}
- (source/'verification-native-features.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8');print(json.dumps({'passed':report['passed'],'total':report['total']}));d.close()
+ report={'device':subprocess.check_output([ADB,'shell','getprop','ro.product.model'],text=True).strip(),'android':subprocess.check_output([ADB,'shell','getprop','ro.build.version.release'],text=True).strip(),'results':results,'passed':sum(r['passed'] for r in results),'total':len(results)}
+ (source/(sys.argv[1] if len(sys.argv)>1 else 'verification-native-features.json')).write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8');print(json.dumps({'passed':report['passed'],'total':report['total']}));d.close()

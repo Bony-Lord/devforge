@@ -14,4 +14,4 @@ try:
 finally:
  try:d.evaluate("(async()=>{if(forge.debugger.active)await forge.debugger.stop();await forge.saveAll();return true;})()")
  except Exception:pass
- d.close();(root/'verification-native-debugger.json').write_text(json.dumps({'results':results,'passed':sum(r['passed'] for r in results),'total':len(results)},ensure_ascii=False,indent=2),encoding='utf-8')
+ d.close();(root/(sys.argv[1] if len(sys.argv)>1 else 'verification-native-debugger.json')).write_text(json.dumps({'results':results,'passed':sum(r['passed'] for r in results),'total':len(results)},ensure_ascii=False,indent=2),encoding='utf-8')

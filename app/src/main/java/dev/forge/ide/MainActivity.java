@@ -35,6 +35,7 @@ public final class MainActivity extends Activity {
     FrameLayout editorRoot;
     NativeEditorHost nativeEditors;
     int keyboardOverlap=100,imeHeight=0,imeReserved=-1;
+    String completionShortcut="Ctrl+Alt+Space",parameterShortcut="Ctrl+Alt+P";
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -53,6 +54,7 @@ public final class MainActivity extends Activity {
         status("C++ STUDIO\n\nПодготовка локальных инструментов…\nПервый запуск может занять несколько минут.");
         workers.execute(() -> {
             try {
+                if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0)StabilityDiagnostics.captureExitHistory(this);
                 installRuntime();
                 engine = new IdeEngine(this);
                 serveAssets();
@@ -171,7 +173,13 @@ public final class MainActivity extends Activity {
     }
     void configureKeyboard(JSONObject settings) {
         final int value=Math.max(0,Math.min(100,settings.optInt("keyboardOverlap",100)));
-        ui.post(() -> {if(keyboardOverlap!=value){keyboardOverlap=value;imeReserved=-1;updateKeyboardGeometry(imeHeight);}});
+        final String completion=settings.optString("completionShortcut","Ctrl+Alt+Space"),parameters=settings.optString("parameterShortcut","Ctrl+Alt+P");
+        ui.post(() -> {completionShortcut=completion;parameterShortcut=parameters;if(keyboardOverlap!=value){keyboardOverlap=value;imeReserved=-1;updateKeyboardGeometry(imeHeight);}});
+    }
+    boolean matchesCompletionShortcut(KeyEvent event,String binding){
+        if(!event.isCtrlPressed()||event.isMetaPressed()||event.isAltPressed()!=binding.contains("+Alt+")||event.isShiftPressed()!=binding.contains("+Shift+"))return false;
+        int code=binding.endsWith("+Enter")?KeyEvent.KEYCODE_ENTER:binding.endsWith("+Space")?KeyEvent.KEYCODE_SPACE:binding.endsWith("+P")?KeyEvent.KEYCODE_P:binding.endsWith("+I")?KeyEvent.KEYCODE_I:0;
+        return code!=0&&event.getKeyCode()==code;
     }
     void updateKeyboardGeometry(int height) {
         boolean sameHeight=imeHeight==height;
@@ -285,7 +293,8 @@ public final class MainActivity extends Activity {
     @Override public boolean dispatchKeyEvent(KeyEvent event){
         if(nativeEditors!=null&&nativeEditors.active!=null&&nativeEditors.active.editor.hasFocus()&&event.getAction()==KeyEvent.ACTION_DOWN){
             int key=event.getKeyCode();boolean ctrl=event.isCtrlPressed();
-            boolean appKey=ctrl&&(key==KeyEvent.KEYCODE_F||key==KeyEvent.KEYCODE_H||key==KeyEvent.KEYCODE_S||key==KeyEvent.KEYCODE_P||key==KeyEvent.KEYCODE_N||key==KeyEvent.KEYCODE_COMMA||key==KeyEvent.KEYCODE_J||key==KeyEvent.KEYCODE_B||key==KeyEvent.KEYCODE_Q||key==KeyEvent.KEYCODE_G||key==KeyEvent.KEYCODE_W||key==KeyEvent.KEYCODE_TAB||key==KeyEvent.KEYCODE_EQUALS||key==KeyEvent.KEYCODE_MINUS||key==KeyEvent.KEYCODE_0||key==KeyEvent.KEYCODE_BACKSLASH||key==KeyEvent.KEYCODE_1||key==KeyEvent.KEYCODE_2||key==KeyEvent.KEYCODE_D||key==KeyEvent.KEYCODE_Y||key==KeyEvent.KEYCODE_L||key==KeyEvent.KEYCODE_O||key==KeyEvent.KEYCODE_SPACE&&(event.isShiftPressed()||event.isAltPressed()));
+            boolean appKey=ctrl&&(key==KeyEvent.KEYCODE_F||key==KeyEvent.KEYCODE_H||key==KeyEvent.KEYCODE_S||key==KeyEvent.KEYCODE_P||key==KeyEvent.KEYCODE_N||key==KeyEvent.KEYCODE_COMMA||key==KeyEvent.KEYCODE_J||key==KeyEvent.KEYCODE_B||key==KeyEvent.KEYCODE_Q||key==KeyEvent.KEYCODE_G||key==KeyEvent.KEYCODE_W||key==KeyEvent.KEYCODE_TAB||key==KeyEvent.KEYCODE_EQUALS||key==KeyEvent.KEYCODE_MINUS||key==KeyEvent.KEYCODE_0||key==KeyEvent.KEYCODE_BACKSLASH||key==KeyEvent.KEYCODE_1||key==KeyEvent.KEYCODE_2||key==KeyEvent.KEYCODE_D||key==KeyEvent.KEYCODE_Y||key==KeyEvent.KEYCODE_L||key==KeyEvent.KEYCODE_O);
+            appKey|=matchesCompletionShortcut(event,completionShortcut)||matchesCompletionShortcut(event,parameterShortcut);
             appKey|=ctrl&&event.isAltPressed()&&(key==KeyEvent.KEYCODE_DPAD_RIGHT||key==KeyEvent.KEYCODE_DPAD_DOWN||key==KeyEvent.KEYCODE_DPAD_UP||key==KeyEvent.KEYCODE_R||key==KeyEvent.KEYCODE_K||key==KeyEvent.KEYCODE_T||key==KeyEvent.KEYCODE_E);
             appKey|=key==KeyEvent.KEYCODE_F7||key==KeyEvent.KEYCODE_F8||key==KeyEvent.KEYCODE_F5||key==KeyEvent.KEYCODE_F9||key==KeyEvent.KEYCODE_F12||key==KeyEvent.KEYCODE_F2||(event.isShiftPressed()&&key==KeyEvent.KEYCODE_F6)||(event.isAltPressed()&&(key==KeyEvent.KEYCODE_ENTER||key==KeyEvent.KEYCODE_F12))||(event.isShiftPressed()&&event.isAltPressed()&&key==KeyEvent.KEYCODE_F);
             if(appKey){String name=KeyEvent.keyCodeToString(key).replace("KEYCODE_","");if(key==KeyEvent.KEYCODE_SPACE)name=" ";else if(key==KeyEvent.KEYCODE_ENTER)name="Enter";else if(key==KeyEvent.KEYCODE_TAB)name="Tab";else if(key==KeyEvent.KEYCODE_DPAD_RIGHT)name="ArrowRight";else if(key==KeyEvent.KEYCODE_DPAD_DOWN)name="ArrowDown";else if(key==KeyEvent.KEYCODE_DPAD_UP)name="ArrowUp";else if(key==KeyEvent.KEYCODE_EQUALS)name="=";else if(key==KeyEvent.KEYCODE_MINUS)name="-";else if(key==KeyEvent.KEYCODE_COMMA)name=",";else if(key==KeyEvent.KEYCODE_BACKSLASH)name="\\";
