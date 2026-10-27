@@ -1,0 +1,130 @@
+{
+  "device": "23043RP34I / Android 14",
+  "scope": "Actual native editor operations, on-device clang-format, settings UI handlers and bytes read back with ADB",
+  "checks": [
+    {
+      "test": "Completing a brace dedents and runs the actual block formatter",
+      "passed": true,
+      "evidence": {
+        "result": {
+          "status": "applied",
+          "uri": "file:///data/user/0/com.forgex/files/projects/input-check-stability-updates-20261027/main.cpp"
+        },
+        "text": "int main(){\n    int value=  1;\n    if (value) {\n        value++;\n    }\n}\n",
+        "immediate": "int main(){\n    int value=  1;\n    if(value){\n      value ++;\n    }\n}\n",
+        "nativeMatches": true,
+        "cursor": {
+          "lineNumber": 5,
+          "column": 3
+        }
+      }
+    },
+    {
+      "test": "A late real formatter result preserves newly typed text",
+      "passed": true,
+      "evidence": {
+        "requests": 2,
+        "text": "void f() {\n    int x = 1;\n} // fresh_input\n",
+        "nativeMatches": true
+      }
+    },
+    {
+      "test": "Native caret guard rejects formatting after a cursor move",
+      "passed": true,
+      "evidence": {
+        "accepted": false,
+        "unchanged": true
+      }
+    },
+    {
+      "test": "Tab accessory uses the selected real tab mode",
+      "passed": true,
+      "evidence": {
+        "text": "\t",
+        "options": {
+          "indent": 4,
+          "tab": 4,
+          "continuation": 4,
+          "tabs": true
+        }
+      }
+    },
+    {
+      "test": "Space mode and clang-format share the selected indentation",
+      "passed": true,
+      "evidence": {
+        "text": "  ",
+        "formatted": "void f() {\n  int x = 1;\n}\n"
+      }
+    },
+    {
+      "test": "Encoding dialog writes actual Windows-1251 bytes",
+      "passed": true,
+      "evidence": {
+        "encoding": "windows-1251",
+        "bytes": 33
+      }
+    },
+    {
+      "test": "Unrepresentable characters do not overwrite file bytes or encoding",
+      "passed": true,
+      "evidence": {
+        "rejected": true,
+        "encoding": "windows-1251"
+      }
+    },
+    {
+      "test": "File rename preserves decoding preference and source text",
+      "passed": true,
+      "evidence": {
+        "encoding": "windows-1251",
+        "text": "// Привет, мир!\r\nint value = 1;\r\n"
+      }
+    },
+    {
+      "test": "Real UTF-8-BOM BOM and text round trip",
+      "passed": true,
+      "evidence": {
+        "encoding": "UTF-8-BOM",
+        "bytes": 45
+      }
+    },
+    {
+      "test": "Real UTF-16LE BOM and text round trip",
+      "passed": true,
+      "evidence": {
+        "encoding": "UTF-16LE",
+        "bytes": 68
+      }
+    },
+    {
+      "test": "Real UTF-16BE BOM and text round trip",
+      "passed": true,
+      "evidence": {
+        "encoding": "UTF-16BE",
+        "bytes": 68
+      }
+    },
+    {
+      "test": "Mixed-line-ending native input stays synchronized with the CRLF model",
+      "passed": true,
+      "evidence": {
+        "nativeMatches": true,
+        "onlyCRLF": true,
+        "prefix": "// pasted\r\n// second\r\n// При",
+        "eol": "\r\n"
+      }
+    },
+    {
+      "test": "Rapid line-count changes and repeated tab switches retain the live buffer",
+      "passed": true,
+      "evidence": {
+        "nativeMatches": true,
+        "lines": 3,
+        "unused": 2
+      }
+    }
+  ],
+  "passed": 13,
+  "total": 13
+}

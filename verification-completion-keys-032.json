@@ -1,0 +1,158 @@
+{
+  "device": "Xiaomi Pad6 Android14",
+  "checks": [
+    {
+      "test": "Ctrl Alt Space dispatches completion without Quick Fix",
+      "passed": true,
+      "evidence": {
+        "calls": [
+          "editor.action.triggerSuggest"
+        ],
+        "popup": {
+          "line": 2,
+          "column": 31,
+          "start": 59,
+          "end": 59,
+          "showing": false,
+          "selected": -1,
+          "count": 1,
+          "first": 0,
+          "last": -1,
+          "requests": 2,
+          "reveals": 0
+        }
+      }
+    },
+    {
+      "test": "Default shortcut shows actual clangd completion",
+      "passed": true,
+      "evidence": {
+        "line": 2,
+        "column": 31,
+        "start": 59,
+        "end": 59,
+        "showing": true,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 2,
+        "reveals": 1
+      }
+    },
+    {
+      "test": "Single-item popup stays visible at code scale50",
+      "passed": true,
+      "evidence": {
+        "line": 2,
+        "column": 31,
+        "start": 59,
+        "end": 59,
+        "showing": true,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 4,
+        "reveals": 2
+      }
+    },
+    {
+      "test": "Single-item popup stays visible at code scale100",
+      "passed": true,
+      "evidence": {
+        "line": 2,
+        "column": 31,
+        "start": 59,
+        "end": 59,
+        "showing": true,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 6,
+        "reveals": 2
+      }
+    },
+    {
+      "test": "Single-item popup stays visible at code scale188",
+      "passed": true,
+      "evidence": {
+        "line": 2,
+        "column": 31,
+        "start": 59,
+        "end": 59,
+        "showing": true,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 8,
+        "reveals": 4
+      }
+    },
+    {
+      "test": "Single-item popup stays visible at code scale250",
+      "passed": true,
+      "evidence": {
+        "line": 2,
+        "column": 31,
+        "start": 59,
+        "end": 59,
+        "showing": true,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 10,
+        "reveals": 5
+      }
+    },
+    {
+      "test": "Tab accepts a real one-item completion exactly once",
+      "passed": true,
+      "evidence": "struct Item { int member; };\nint main(){ Item item{}; item.member }\n"
+    },
+    {
+      "test": "Ctrl Space and unassigned Ctrl Shift Space do not trigger completion",
+      "passed": true,
+      "evidence": []
+    },
+    {
+      "test": "Ctrl Alt P opens real function parameter information",
+      "passed": true,
+      "evidence": {
+        "calls": [
+          "editor.action.triggerParameterHints"
+        ],
+        "open": true,
+        "text": "add(int first, int second) -> int"
+      }
+    },
+    {
+      "test": "Settings reject assigning both actions to the same key",
+      "passed": true,
+      "evidence": {
+        "open": true,
+        "completion": "Ctrl+Alt+Space",
+        "parameters": "Ctrl+Alt+P"
+      }
+    },
+    {
+      "test": "Custom Ctrl Alt I routes through native hardware dispatch",
+      "passed": true,
+      "evidence": [
+        "editor.action.triggerSuggest"
+      ]
+    },
+    {
+      "test": "Custom Ctrl Shift Space triggers only parameter information",
+      "passed": true,
+      "evidence": [
+        "editor.action.triggerParameterHints"
+      ]
+    }
+  ],
+  "passed": true,
+  "input": "Android keycombination"
+}

@@ -1,0 +1,283 @@
+{
+  "platform": "Android physical tablet",
+  "checks": [
+    {
+      "test": "Hardware Down preserves column17 across short and empty lines",
+      "passed": true,
+      "evidence": {
+        "line": 5,
+        "column": 17,
+        "start": 60,
+        "end": 60,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 13,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Hardware Up restores the original column",
+      "passed": true,
+      "evidence": {
+        "line": 1,
+        "column": 17,
+        "start": 16,
+        "end": 16,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 13,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Accessory Down shares the preferred column",
+      "passed": true,
+      "evidence": {
+        "line": 5,
+        "column": 17,
+        "start": 60,
+        "end": 60,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 13,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Accessory Up shares the preferred column",
+      "passed": true,
+      "evidence": {
+        "line": 1,
+        "column": 17,
+        "start": 16,
+        "end": 16,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 13,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Horizontal movement resets the preferred column",
+      "passed": true,
+      "evidence": {
+        "line": 5,
+        "column": 3,
+        "start": 46,
+        "end": 46,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 13,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Typing resets the preferred column",
+      "passed": true,
+      "evidence": {
+        "line": 5,
+        "column": 5,
+        "start": 49,
+        "end": 49,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 14,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Shift Down keeps the anchor and preferred column",
+      "passed": true,
+      "evidence": {
+        "line": 5,
+        "column": 17,
+        "start": 16,
+        "end": 60,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 14,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Tab widths preserve the visual column",
+      "passed": true,
+      "evidence": {
+        "line": 3,
+        "column": 11,
+        "start": 30,
+        "end": 30,
+        "showing": false,
+        "selected": -1,
+        "count": 1,
+        "first": 0,
+        "last": 0,
+        "requests": 14,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Actual clangd completion list contains at least50 entries",
+      "passed": true,
+      "evidence": {
+        "line": 145,
+        "column": 8,
+        "start": 2431,
+        "end": 2431,
+        "showing": true,
+        "selected": -1,
+        "count": 100,
+        "first": 0,
+        "last": 1,
+        "requests": 16,
+        "reveals": 6
+      }
+    },
+    {
+      "test": "Completion remains responsive and selected row visible: cycle0 key20",
+      "passed": true,
+      "evidence": {
+        "line": 145,
+        "column": 8,
+        "start": 2431,
+        "end": 2431,
+        "showing": true,
+        "selected": 99,
+        "count": 100,
+        "first": 98,
+        "last": 99,
+        "requests": 116,
+        "reveals": 56
+      }
+    },
+    {
+      "test": "Completion remains responsive and selected row visible: cycle0 key19",
+      "passed": true,
+      "evidence": {
+        "line": 145,
+        "column": 8,
+        "start": 2431,
+        "end": 2431,
+        "showing": true,
+        "selected": 0,
+        "count": 100,
+        "first": 0,
+        "last": 1,
+        "requests": 215,
+        "reveals": 111
+      }
+    },
+    {
+      "test": "Completion remains responsive and selected row visible: cycle1 key20",
+      "passed": true,
+      "evidence": {
+        "line": 145,
+        "column": 8,
+        "start": 2431,
+        "end": 2431,
+        "showing": true,
+        "selected": 99,
+        "count": 100,
+        "first": 98,
+        "last": 99,
+        "requests": 314,
+        "reveals": 160
+      }
+    },
+    {
+      "test": "Completion remains responsive and selected row visible: cycle1 key19",
+      "passed": true,
+      "evidence": {
+        "line": 145,
+        "column": 8,
+        "start": 2431,
+        "end": 2431,
+        "showing": true,
+        "selected": 0,
+        "count": 100,
+        "first": 0,
+        "last": 1,
+        "requests": 413,
+        "reveals": 207
+      }
+    },
+    {
+      "test": "Completion remains responsive and selected row visible: cycle2 key20",
+      "passed": true,
+      "evidence": {
+        "line": 145,
+        "column": 8,
+        "start": 2431,
+        "end": 2431,
+        "showing": true,
+        "selected": 99,
+        "count": 100,
+        "first": 98,
+        "last": 99,
+        "requests": 512,
+        "reveals": 255
+      }
+    },
+    {
+      "test": "Completion remains responsive and selected row visible: cycle2 key19",
+      "passed": true,
+      "evidence": {
+        "line": 145,
+        "column": 8,
+        "start": 2431,
+        "end": 2431,
+        "showing": true,
+        "selected": 0,
+        "count": 100,
+        "first": 0,
+        "last": 1,
+        "requests": 611,
+        "reveals": 307
+      }
+    },
+    {
+      "test": "Completion navigation leaves the source unchanged",
+      "passed": true,
+      "evidence": {
+        "length": 2434
+      }
+    },
+    {
+      "test": "No Android UI stalls over1s in this regression run",
+      "passed": true,
+      "evidence": []
+    },
+    {
+      "test": "Android key batches complete within3seconds",
+      "passed": true,
+      "evidence": {
+        "count": 31,
+        "maxMs": 344
+      }
+    }
+  ],
+  "passed": true,
+  "keyInput": "Android input keyevent/keycombination",
+  "durationNote": "Not a claim of exhaustive stability"
+}
