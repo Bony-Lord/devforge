@@ -29,7 +29,7 @@ class ForgeIDE {
     onNative('output',p=>this.output(p));onNative('exit',p=>this.processExit(p));onNative('toast',s=>this.toast(s));
     onNative('imported',p=>this.switchProject(p.project));onNative('fileImported',async p=>{await this.refreshTree();await this.openFile(p.path);await this.lsp.start();this.toast('Файл импортирован');});
     this.saveInterval=setInterval(()=>this.persistSession(),10000);
-    document.addEventListener('visibilitychange',()=>{if(document.hidden){this.saveAll().catch(safeError);this.persistSession();}});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){this.saveAll().catch(safeError);this.windows?.persist(true)?.catch(safeError);this.persistSession();}});
     window.forgeRun=()=>this.build(true);window.forgeBuild=()=>this.build(false);window.forgeBack=()=>this.back();
   }
   setupIcons(){for(const[id,name]of Object.entries({paletteButton:'command',settingsButton:'settings',treeToggle:'menu',newFileButton:'plus',refreshButton:'refresh',formatButton:'format',helpButton:'help',clearOutput:'clear',hidePanel:'down',projectIcon:'folder',keyboardButton:'keyboard'}))$('#'+id).innerHTML=svg(name);$('#buildButton span').innerHTML=svg('build');$('#runButton span').innerHTML=svg('play');$('#stopButton').innerHTML=svg('stop');$$('.activity[data-side]').forEach(b=>b.innerHTML=svg(b.dataset.side==='project'?'files':b.dataset.side));}

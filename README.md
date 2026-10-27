@@ -8,7 +8,7 @@
   <a href="LICENSE"><img alt="App license: MIT" src="https://img.shields.io/badge/App-MIT-868A91"></a>
 </p>
 
-> **[Android 0.3.5 — preview](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.5):** режимы клавиатуры и мультитач, восстановление размеров и отрисовки окон, привязка после отпускания и вставка вкладок на выбранное место. [Окна и ввод](docs/INPUT-LAYOUT-0.3.5.md), [конфигурации, ручной проект и runtime warning](docs/RUN-CONFIGURATIONS-0.3.5.md). 135 целевых проверок на планшете. Target SDK28 сохранён; 0.3.2 preview — вариант возврата к прежнему интерфейсу, 1.0.0-rc.1 нестабильна. [Многоязычный SDK, Python/ipynb и моды](docs/ADDONS-ROADMAP.md) пока в планах.
+> **[Android 0.3.5 — preview](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.5):** режимы клавиатуры и мультитач, восстановление размеров и отрисовки окон, привязка после отпускания и вставка вкладок на выбранное место. [Окна и ввод](docs/INPUT-LAYOUT-0.3.5.md), [конфигурации, ручной проект и runtime warning](docs/RUN-CONFIGURATIONS-0.3.5.md). 147 целевых проверок на планшете. Target SDK28 сохранён; 0.3.2 preview — вариант возврата к прежнему интерфейсу, 1.0.0-rc.1 нестабильна. [Многоязычный SDK, Python/ipynb и моды](docs/ADDONS-ROADMAP.md) пока в планах.
 
 | Плавающая PC-клавиатура | Конфигурации запуска и профили |
 |---|---|
