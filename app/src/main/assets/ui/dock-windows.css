@@ -48,10 +48,12 @@ body.studio-docking .activitybar{display:flex!important;position:static;min-widt
 #dockWorkspace .dv-resize-handle-topleft,#dockWorkspace .dv-resize-handle-topright,#dockWorkspace .dv-resize-handle-bottomleft,#dockWorkspace .dv-resize-handle-bottomright{width:24px!important;height:24px!important}
 #dockWorkspace .dv-tabs-and-actions-container{min-width:0}.studio-window-actions{flex-shrink:0}.studio-tool-tab{min-width:0;max-width:220px}.studio-tool-tab>span:not(.file-kind){overflow:hidden;text-overflow:ellipsis;min-width:0}.studio-tool-close{flex-shrink:0}
 .studio-window-essential{display:flex;flex-shrink:0}.studio-window-optional{display:flex;min-width:0;overflow:hidden}
-.studio-dock-preview{position:fixed;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 20%,transparent);border-radius:4px;pointer-events:none;transition:left .08s,top .08s,width .08s,height .08s}
+.studio-dock-preview{position:fixed;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 20%,transparent);border-radius:4px;pointer-events:none;opacity:calc(.3 + var(--dock-dwell,0)*.7);transition:left .08s,top .08s,width .08s,height .08s}
 .studio-window-dragging .dv-drag-ghost{display:none}
+.studio-tab-insertion{background:var(--accent);border:0;border-radius:2px;box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 30%,transparent)}.studio-tab-insertion:before,.studio-tab-insertion:after{content:'';position:absolute;left:-3px;width:10px;height:3px;border-radius:2px;background:var(--accent)}.studio-tab-insertion:before{top:0}.studio-tab-insertion:after{bottom:0}
 
 #dockWorkspace .studio-narrow-window .studio-window-optional{display:none}#dockWorkspace .studio-narrow-window .studio-tool-close{display:none}#dockWorkspace .studio-narrow-window .studio-tool-tab{max-width:calc(100% - 2px)}
 #dockWorkspace .dv-tabs-container{min-width:0}#dockWorkspace .dv-right-actions-container{flex-shrink:0}#dockWorkspace .studio-window-essential .icon-button{flex-shrink:0}
 .studio-window-tabs button{min-width:160px;max-width:330px}.studio-window-tabs .selected{background:var(--accent-bg)}.studio-window-tabs button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #dockWorkspace .dv-resize-handle-top,#dockWorkspace .dv-resize-handle-topleft,#dockWorkspace .dv-resize-handle-topright{display:none!important}
+.studio-tab-ghost{position:fixed;pointer-events:none;z-index:2350;background:var(--panel);box-shadow:0 3px 12px #0005;border-radius:4px;opacity:.94}.studio-tab-moving{opacity:.25}.studio-dock-dismiss{position:fixed;right:12px;bottom:30px;padding:10px 14px;border-radius:8px;background:var(--deep);border:1px solid var(--red);color:var(--red);pointer-events:none;box-shadow:0 3px 15px #0005}

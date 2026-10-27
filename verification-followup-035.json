@@ -1,0 +1,266 @@
+{
+  "checks": [
+    {
+      "test": "Second activity-rail press hides the navigation window",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Next rail press restores navigation",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Different rail action changes the existing navigator",
+      "passed": true,
+      "evidence": "search"
+    },
+    {
+      "test": "Repeated press also hides Search mode",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "console resize survives pointer release and layout settling",
+      "passed": true,
+      "evidence": {
+        "before": 420,
+        "during": 480,
+        "after": 480
+      }
+    },
+    {
+      "test": "console size survives hide/show",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 420,
+          "y": 152,
+          "width": 480,
+          "height": 300,
+          "top": 152,
+          "right": 900,
+          "bottom": 452,
+          "left": 420
+        },
+        "reopened": {
+          "x": 420,
+          "y": 152,
+          "width": 480,
+          "height": 300,
+          "top": 152,
+          "right": 900,
+          "bottom": 452,
+          "left": 420
+        }
+      }
+    },
+    {
+      "test": "project resize survives pointer release and layout settling",
+      "passed": true,
+      "evidence": {
+        "before": 420,
+        "during": 480,
+        "after": 480
+      }
+    },
+    {
+      "test": "project size survives hide/show",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 420,
+          "y": 152,
+          "width": 480,
+          "height": 300,
+          "top": 152,
+          "right": 900,
+          "bottom": 452,
+          "left": 420
+        },
+        "reopened": {
+          "x": 420,
+          "y": 152,
+          "width": 480,
+          "height": 300,
+          "top": 152,
+          "right": 900,
+          "bottom": 452,
+          "left": 420
+        }
+      }
+    },
+    {
+      "test": "editor resize survives pointer release and layout settling",
+      "passed": true,
+      "evidence": {
+        "before": 420,
+        "during": 480,
+        "after": 480
+      }
+    },
+    {
+      "test": "editor size survives hide/show",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 420,
+          "y": 152,
+          "width": 480,
+          "height": 300,
+          "top": 152,
+          "right": 900,
+          "bottom": 452,
+          "left": 420
+        },
+        "reopened": {
+          "x": 420,
+          "y": 152,
+          "width": 480,
+          "height": 300,
+          "top": 152,
+          "right": 900,
+          "bottom": 452,
+          "left": 420
+        }
+      }
+    },
+    {
+      "test": "Dragging across sibling tab reorders in-place without detaching",
+      "passed": true,
+      "evidence": [
+        "code-14",
+        "editor",
+        "code-15"
+      ]
+    },
+    {
+      "test": "Moving over right screen edge shows a pale destination",
+      "passed": true,
+      "evidence": {
+        "side": "right",
+        "opacity": "0.619433",
+        "ready": "false",
+        "where": "floating"
+      }
+    },
+    {
+      "test": "Dwell readies preview but does not attach while finger is down",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Right docking commits only on pointer release",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Window-side docking works 45px inside its edge",
+      "passed": true,
+      "evidence": {
+        "side": "right",
+        "scope": "window",
+        "ids": [
+          "code-14",
+          "code-15"
+        ],
+        "key": "8:right"
+      }
+    },
+    {
+      "test": "Window can travel past workspace edge while held",
+      "passed": true,
+      "evidence": {
+        "x": -386.95587158203125,
+        "y": 290.058837890625,
+        "width": 538.1544189453125,
+        "height": 529.7867431640625,
+        "top": 290.058837890625,
+        "right": 151.19854736328125,
+        "bottom": 819.8455810546875,
+        "left": -386.95587158203125
+      }
+    },
+    {
+      "test": "Mostly offscreen release folds window away without closing its document",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Configuration editor has CLion-style list and independent details",
+      "passed": true,
+      "evidence": {
+        "open": true,
+        "columns": true,
+        "rows": 3
+      }
+    },
+    {
+      "test": "Enhanced profile chooser and build checkbox retain usable dimensions",
+      "passed": true,
+      "evidence": {
+        "select": 533.2073974609375,
+        "checkbox": 15.999138832092285
+      }
+    },
+    {
+      "test": "Floating keyboard edits configuration fields without changing source",
+      "passed": true,
+      "evidence": "appa"
+    },
+    {
+      "test": "GCC debug runtime instrumentation links successfully",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program",
+        "exists": true,
+        "id": "runtime-bounds"
+      }
+    },
+    {
+      "test": "Real out-of-bounds access is a warning and inferior continues",
+      "passed": true,
+      "evidence": {
+        "warnings": [
+          {
+            "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp",
+            "line": 5,
+            "column": 36,
+            "message": "index 3 out of bounds for type 'int [3]'"
+          }
+        ],
+        "text": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp:5:36: runtime error: index 3 out of bounds for type 'int [3]'\nSUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp:5:36 \nvalue=3\nCONTINUED_AFTER_WARNING\n\nОтладка завершена · exited-normally\n",
+        "markers": [
+          {
+            "severity": 4,
+            "line": 5,
+            "message": "index 3 out of bounds for type 'int [3]'"
+          }
+        ]
+      }
+    },
+    {
+      "test": "CMake selects named target and discovers real renamed/nested artifact",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "id": "file-api",
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/profile-file-api/nested/different_name",
+        "exists": true
+      }
+    },
+    {
+      "test": "Manual project executes explicit build argv and environment",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "id": "custom-argv",
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027",
+        "exists": false
+      }
+    }
+  ],
+  "passed": 24,
+  "total": 24
+}

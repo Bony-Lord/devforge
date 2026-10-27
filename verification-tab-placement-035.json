@@ -1,0 +1,115 @@
+{
+  "checks": [
+    {
+      "test": "Tab insertion marker shows beginning",
+      "passed": true,
+      "evidence": {
+        "before": "editor",
+        "width": 4,
+        "ready": "true"
+      }
+    },
+    {
+      "test": "Cross-window drop inserts at beginning",
+      "passed": true,
+      "evidence": [
+        "d",
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "test": "Tab insertion marker shows middle",
+      "passed": true,
+      "evidence": {
+        "before": "code-1",
+        "width": 4,
+        "ready": "true"
+      }
+    },
+    {
+      "test": "Cross-window drop inserts at middle",
+      "passed": true,
+      "evidence": [
+        "a",
+        "d",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "test": "Tab insertion marker shows end",
+      "passed": true,
+      "evidence": {
+        "before": "",
+        "width": 4,
+        "ready": "true"
+      }
+    },
+    {
+      "test": "Cross-window drop inserts at end",
+      "passed": true,
+      "evidence": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    {
+      "test": "Menu detach shrinks both axes despite an oversized saved float",
+      "passed": true,
+      "evidence": {
+        "old": {
+          "x": 989,
+          "y": 42,
+          "width": 366.2867736816406,
+          "height": 735.8235473632812,
+          "top": 42,
+          "right": 1355.2867736816406,
+          "bottom": 777.8235473632812,
+          "left": 989
+        },
+        "new": {
+          "x": 1021.9632568359375,
+          "y": 66,
+          "width": 300.3529357910156,
+          "height": 529.7867431640625,
+          "top": 66,
+          "right": 1322.3161926269531,
+          "bottom": 595.7867431640625,
+          "left": 1021.9632568359375
+        }
+      }
+    },
+    {
+      "test": "Immediate release still finishes float shrink on both axes",
+      "passed": true,
+      "evidence": {
+        "old": {
+          "x": 989,
+          "y": 42,
+          "width": 366.2867736816406,
+          "height": 735.8235473632812,
+          "top": 42,
+          "right": 1355.2867736816406,
+          "bottom": 777.8235473632812,
+          "left": 989
+        },
+        "new": {
+          "x": 679.5,
+          "y": 248.03675842285156,
+          "width": 300.3529357910156,
+          "height": 529.7867431640625,
+          "top": 248.03675842285156,
+          "right": 979.8529357910156,
+          "bottom": 777.8235015869141,
+          "left": 679.5
+        }
+      }
+    }
+  ],
+  "passed": 8,
+  "total": 8
+}

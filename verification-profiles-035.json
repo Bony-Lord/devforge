@@ -1,0 +1,130 @@
+{
+  "checks": [
+    {
+      "test": "c project receives separate Debug/Release profiles",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "debug",
+          "name": "Debug",
+          "compiler": "gcc",
+          "optimization": "debug",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "undefined",
+          "buildDirectory": ".forge/cmake-debug"
+        },
+        {
+          "id": "release",
+          "name": "Release",
+          "compiler": "gcc",
+          "optimization": "release",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "off",
+          "buildDirectory": ".forge/cmake-release"
+        }
+      ]
+    },
+    {
+      "test": "c project generates only its intended structure",
+      "passed": true,
+      "evidence": [
+        ".",
+        "..",
+        ".clang-format",
+        ".cpp-studio",
+        ".gitignore",
+        "CMakeLists.txt",
+        "main.c"
+      ]
+    },
+    {
+      "test": "empty project receives separate Debug/Release profiles",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "debug",
+          "name": "Debug",
+          "compiler": "gcc",
+          "optimization": "debug",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "undefined",
+          "buildDirectory": ".forge/cmake-debug"
+        },
+        {
+          "id": "release",
+          "name": "Release",
+          "compiler": "gcc",
+          "optimization": "release",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "off",
+          "buildDirectory": ".forge/cmake-release"
+        }
+      ]
+    },
+    {
+      "test": "empty project generates only its intended structure",
+      "passed": true,
+      "evidence": [
+        ".",
+        "..",
+        ".cpp-studio"
+      ]
+    },
+    {
+      "test": "Definite uninitialized use remains a warning under general Werror",
+      "passed": true,
+      "evidence": {
+        "result": {
+          "code": 0,
+          "executable": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program",
+          "exists": true,
+          "id": "uninit-warning"
+        },
+        "output": "F9 — собрать · F5 — собрать и запустить/data/user/0/com.forgex/files/usr/bin/g++-15 -std=c++20 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027 -I/data/user/0/com.forgex/files/usr/include/forge -nostdinc++ -isystem /data/user/0/com.forgex/files/usr/include/c++/v1 -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib -Wuninitialized -Wno-error=uninitialized -Warray-bounds -Wno-error=array-bounds -fno-omit-frame-pointer -B/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/sanitizers/ -fsanitize=bounds,signed-integer-overflow,shift,null,alignment -fsanitize-recover=all -L/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/sanitizers -static-libubsan -ldl -Werror /data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp -o /data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program\n/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp: In function 'int main()':\n/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp:1:32: warning: 'value' is used uninitialized [-Wuninitialized]\n    1 | int main() { int value; return value; }\n      |                                ^~~~~\n/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp:1:18: note: 'value' was declared here\n    1 | int main() { int value; return value; }\n      |                  ^~~~~\n"
+      }
+    },
+    {
+      "test": "Clang ASan+UBSan debug build links on Android",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program",
+        "exists": true,
+        "id": "asan-build"
+      }
+    },
+    {
+      "test": "Actual heap overflow is reported and recovery continues under GDB",
+      "passed": true,
+      "evidence": {
+        "text": "=================================================================\n==21000==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x0040567f0060 at pc 0x005f568f4e34 bp 0x007ff11ee910 sp 0x007ff11ee908\nWRITE of size 4 at 0x0040567f0060 thread T0\n    #0 0x005f568f4e30  (/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program+0x101e30)\n    #1 0x0072833049cc  (/apex/com.android.runtime/lib64/bionic/libc.so+0x8d9cc) (BuildId: 4bdefc10cfc9decb2a98e2727eadcc4a)\n    #2 0x005f5684d248  (/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program+0x5a248)\n\n0x0040567f0060 is located 8 bytes after 8-byte region [0x0040567f0050,0x0040567f0058)\nallocated by thread T0 here:\n    #0 0x005f568f39c0  (/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program+0x1009c0)\n    #1 0x005f568f4cac  (/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program+0x101cac)\n    #2 0x0072833049cc  (/apex/com.android.runtime/lib64/bionic/libc.so+0x8d9cc) (BuildId: 4bdefc10cfc9decb2a98e2727eadcc4a)\n    #3 0x005f5684d248  (/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program+0x5a248)\n\nSUMMARY: AddressSanitizer: heap-buffer-overflow (/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program+0x101e30) \nShadow bytes around the buggy address:\n  0x0040567efd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n  0x0040567efe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n  0x0040567efe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n  0x0040567eff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n  0x0040567eff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n=>0x0040567f0000: fa fa 00 fa fa fa 00 fa fa fa 00 fa[fa]fa fa fa\n  0x0040567f0080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x0040567f0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x0040567f0180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x0040567f0200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\n  0x0040567f0280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa\nShadow byte legend (one shadow byte represents 8 application bytes):\n  Addressable:           00\n  Partially addressable: 01 02 03 04 05 06 07 \n  Heap left redzone:       fa\n  Freed heap region:       fd\n  Stack left redzone:      f1\n  Stack mid redzone:       f2\n  Stack right redzone:     f3\n  Stack after return:      f5\n  Stack use after scope:   f8\n  Global redzone:          f9\n  Global init order:       f6\n  Poisoned by user:        f7\n  Container overflow:      fc\n  Array cookie:            ac\n  Intra object redzone:    bb\n  ASan internal:           fe\n  Left alloca redzone:     ca\n  Right alloca redzone:    cb\nASAN_CONTINUED\n\nОтладка завершена · exited-normally\n",
+        "warnings": [
+          {
+            "path": "",
+            "line": 0,
+            "column": 0,
+            "message": "==21000==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x0040567f0060 at pc 0x005f568f4e34 bp 0x007ff11ee910 sp 0x007ff11ee908"
+          }
+        ]
+      }
+    }
+  ],
+  "passed": 7,
+  "total": 7
+}

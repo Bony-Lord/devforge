@@ -1,0 +1,1092 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "checks": [
+    {
+      "test": "PC keys expose small secondary Shift legends",
+      "passed": true,
+      "evidence": {
+        "`": "~",
+        "1": "!",
+        "2": "@",
+        "3": "#",
+        "4": "$",
+        "5": "%",
+        "6": "^",
+        "7": "&",
+        "8": "*",
+        "9": "(",
+        "0": ")",
+        "-": "_",
+        "=": "+",
+        "[": "{",
+        "]": "}",
+        "\\": "|",
+        ";": ":",
+        "'": "\"",
+        ",": "<",
+        ".": ">",
+        "/": "?"
+      }
+    },
+    {
+      "test": "Shift legend matches actual typed symbol",
+      "passed": true,
+      "evidence": "!"
+    },
+    {
+      "test": "Tap chord keeps Shift even when modifier finger lifts first and indices reorder",
+      "passed": true,
+      "evidence": {
+        "text": "A",
+        "state": {
+          "held": [],
+          "latched": [],
+          "activePointers": 0
+        }
+      }
+    },
+    {
+      "test": "Releasing one of two Shift fingers preserves the other",
+      "passed": true,
+      "evidence": "B"
+    },
+    {
+      "test": "Two ordinary touch keys type once each with changing pointer indices",
+      "passed": true,
+      "evidence": "qw"
+    },
+    {
+      "test": "Three-finger Ctrl Alt Space works when both modifiers release first",
+      "passed": true,
+      "evidence": {
+        "actions": [
+          "editor.action.triggerSuggest"
+        ],
+        "pointers": 0
+      }
+    },
+    {
+      "test": "Header mode button switches to Hold and persists preference",
+      "passed": true,
+      "evidence": "hold"
+    },
+    {
+      "test": "Holding a shortcut does not flood completion requests",
+      "passed": true,
+      "evidence": 1
+    },
+    {
+      "test": "Hold mode starts typing on pointer down",
+      "passed": true,
+      "evidence": "a"
+    },
+    {
+      "test": "Held printable key repeats and stops on release",
+      "passed": true,
+      "evidence": 5
+    },
+    {
+      "test": "No extra key after releasing repeated hold",
+      "passed": true,
+      "evidence": 5
+    },
+    {
+      "test": "Hold chord uses independent pointer IDs",
+      "passed": true,
+      "evidence": "A"
+    },
+    {
+      "test": "Held key repeat follows modifiers still physically down",
+      "passed": true,
+      "evidence": "Aaaa"
+    },
+    {
+      "test": "Cancel clears every held pointer and modifier",
+      "passed": true,
+      "evidence": 0
+    },
+    {
+      "test": "Input after canceled chord has no stuck Ctrl",
+      "passed": true,
+      "evidence": "b"
+    },
+    {
+      "test": "Header button also returns to Tap mode",
+      "passed": true,
+      "evidence": "sticky"
+    },
+    {
+      "test": "Keyboard drag does not jump to the remaining finger",
+      "passed": true,
+      "evidence": {
+        "before": [
+          713,
+          618
+        ],
+        "after": [
+          713,
+          618
+        ]
+      }
+    },
+    {
+      "test": "Floating file is aligned after animation without manual resize",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "primary",
+          "content": {
+            "x": 385.08087158203125,
+            "y": 114.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 114.94117736816406,
+            "right": 1233.0808715820312,
+            "bottom": 482.21324157714844,
+            "left": 385.08087158203125
+          },
+          "native": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": false,
+            "breakpoints": [
+              2
+            ],
+            "executionLine": -1,
+            "textOffset": 27.625,
+            "guides": 0,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 13,
+              "top": 74,
+              "width": 2115,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 820,
+            "top": 244,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 0,
+            "layoutWidth": 17,
+            "visible": true,
+            "width": 1798,
+            "height": 778,
+            "innerWidth": 1798,
+            "innerHeight": 778,
+            "screenX": 820,
+            "screenY": 304,
+            "occlusions": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 409.08087158203125,
+                "y": 482.1544189453125,
+                "width": 800.11767578125,
+                "height": 11,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 374.13970947265625,
+                "y": 90.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1233.1397094726562,
+                "y": 90.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 373.08087158203125,
+                "y": 470.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1221.198486328125,
+                "y": 470.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              }
+            ],
+            "paneVisible": true,
+            "z": 1
+          },
+          "overlay": {
+            "x": 385.08087158203125,
+            "y": 114.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 114.94117736816406,
+            "right": 1233.0808715820312,
+            "bottom": 482.21324157714844,
+            "left": 385.08087158203125
+          },
+          "scale": 2.125
+        }
+      ]
+    },
+    {
+      "test": "Second touch cannot hijack an active window drag",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "left": 380.08087158203125,
+          "top": 67.94117736816406,
+          "width": 848,
+          "height": 397.2720642089844
+        },
+        "after": {
+          "left": 380.08087158203125,
+          "top": 67.94117736816406,
+          "width": 848,
+          "height": 397.2720642089844
+        }
+      }
+    },
+    {
+      "test": "Held docking preview keeps native code aligned",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "primary",
+          "content": {
+            "x": 1323.2940673828125,
+            "y": 403.83087158203125,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 403.83087158203125,
+            "right": 2171.2940673828125,
+            "bottom": 771.1029357910156,
+            "left": 1323.2940673828125
+          },
+          "native": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": false,
+            "breakpoints": [
+              2
+            ],
+            "executionLine": -1,
+            "textOffset": 27.625,
+            "guides": 0,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 13,
+              "top": 74,
+              "width": 2115,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 2814,
+            "top": 858,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 0,
+            "layoutWidth": 17,
+            "visible": true,
+            "width": 1798,
+            "height": 778,
+            "innerWidth": 1798,
+            "innerHeight": 778,
+            "screenX": 2814,
+            "screenY": 918,
+            "occlusions": [
+              {
+                "x": 987.0073852539062,
+                "y": 42,
+                "width": 368.2794189453125,
+                "height": 735.8235473632812,
+                "paint": true,
+                "touch": false,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1347.2940673828125,
+                "y": 771.0441284179688,
+                "width": 800.11767578125,
+                "height": 11,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1312.3529052734375,
+                "y": 379.83087158203125,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 2171.3529052734375,
+                "y": 379.83087158203125,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1311.2940673828125,
+                "y": 759.1029663085938,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 2159.411865234375,
+                "y": 759.1029663085938,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              }
+            ],
+            "paneVisible": true,
+            "z": 2
+          },
+          "overlay": {
+            "x": 1323.2940673828125,
+            "y": 403.83087158203125,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 403.83087158203125,
+            "right": 2171.2940673828125,
+            "bottom": 771.1029357910156,
+            "left": 1323.2940673828125
+          },
+          "scale": 2.125
+        },
+        {
+          "id": "code-68",
+          "content": {
+            "x": 420.08087158203125,
+            "y": 139.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 139.94117736816406,
+            "right": 1268.0808715820312,
+            "bottom": 507.21324157714844,
+            "left": 420.08087158203125
+          },
+          "native": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": false,
+            "breakpoints": [],
+            "executionLine": -1,
+            "textOffset": 27.625,
+            "guides": 0,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 13,
+              "top": 74,
+              "width": 2115,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 895,
+            "top": 297,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 1134,
+            "layoutWidth": 2006,
+            "visible": true,
+            "width": 1798,
+            "height": 778,
+            "innerWidth": 1798,
+            "innerHeight": 778,
+            "screenX": 895,
+            "screenY": 357,
+            "occlusions": [
+              {
+                "x": 1315.3529052734375,
+                "y": 347.88970947265625,
+                "width": 864,
+                "height": 431.1544189453125,
+                "paint": true,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 987.0073852539062,
+                "y": 42,
+                "width": 368.2794189453125,
+                "height": 735.8235473632812,
+                "paint": true,
+                "touch": false,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 444.08087158203125,
+                "y": 507.1544189453125,
+                "width": 800.11767578125,
+                "height": 11,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 409.13970947265625,
+                "y": 115.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1268.1397094726562,
+                "y": 115.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 408.08087158203125,
+                "y": 495.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1256.198486328125,
+                "y": 495.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              }
+            ],
+            "paneVisible": true,
+            "z": 1
+          },
+          "overlay": {
+            "x": 420.08087158203125,
+            "y": 139.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 139.94117736816406,
+            "right": 1268.0808715820312,
+            "bottom": 507.21324157714844,
+            "left": 420.08087158203125
+          },
+          "scale": 2.125
+        }
+      ]
+    },
+    {
+      "test": "Drop target rectangles track the new live layout",
+      "passed": true,
+      "evidence": [
+        {
+          "group": "8",
+          "dx": 0,
+          "dy": 0,
+          "dw": 0,
+          "dh": 0
+        },
+        {
+          "group": "9",
+          "dx": 0,
+          "dy": 0,
+          "dw": 0,
+          "dh": 0
+        },
+        {
+          "group": "10",
+          "dx": 0,
+          "dy": 0,
+          "dw": 0,
+          "dh": 0
+        }
+      ]
+    },
+    {
+      "test": "Released docked file needs no resize to repaint correctly",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "primary",
+          "content": {
+            "x": 699,
+            "y": 72,
+            "width": 656.2867431640625,
+            "height": 705.8235473632812,
+            "top": 72,
+            "right": 1355.2867431640625,
+            "bottom": 777.8235473632812,
+            "left": 699
+          },
+          "native": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": false,
+            "breakpoints": [
+              2
+            ],
+            "executionLine": -1,
+            "textOffset": 27.625,
+            "guides": 0,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 13,
+              "top": 74,
+              "width": 2115,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 1488,
+            "top": 153,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 0,
+            "layoutWidth": 17,
+            "visible": true,
+            "width": 1390,
+            "height": 1498,
+            "innerWidth": 1390,
+            "innerHeight": 1498,
+            "screenX": 1488,
+            "screenY": 213,
+            "occlusions": [
+              {
+                "x": 412.13970947265625,
+                "y": 84,
+                "width": 864,
+                "height": 431.1544189453125,
+                "paint": true,
+                "touch": true,
+                "popup": false
+              }
+            ],
+            "paneVisible": true,
+            "z": 0
+          },
+          "overlay": {
+            "x": 699,
+            "y": 72,
+            "width": 656.2867431640625,
+            "height": 705.8235473632812,
+            "top": 72,
+            "right": 1355.2867431640625,
+            "bottom": 777.8235473632812,
+            "left": 699
+          },
+          "scale": 2.125
+        },
+        {
+          "id": "code-68",
+          "content": {
+            "x": 420.08087158203125,
+            "y": 139.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 139.94117736816406,
+            "right": 1268.0808715820312,
+            "bottom": 507.21324157714844,
+            "left": 420.08087158203125
+          },
+          "native": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": false,
+            "breakpoints": [],
+            "executionLine": -1,
+            "textOffset": 27.625,
+            "guides": 0,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 13,
+              "top": 74,
+              "width": 2115,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 895,
+            "top": 297,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 1134,
+            "layoutWidth": 2006,
+            "visible": true,
+            "width": 1798,
+            "height": 778,
+            "innerWidth": 1798,
+            "innerHeight": 778,
+            "screenX": 895,
+            "screenY": 357,
+            "occlusions": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 444.08087158203125,
+                "y": 507.1544189453125,
+                "width": 800.11767578125,
+                "height": 11,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 409.13970947265625,
+                "y": 115.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1268.1397094726562,
+                "y": 115.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 408.08087158203125,
+                "y": 495.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1256.198486328125,
+                "y": 495.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              }
+            ],
+            "paneVisible": true,
+            "z": 1
+          },
+          "overlay": {
+            "x": 420.08087158203125,
+            "y": 139.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 139.94117736816406,
+            "right": 1268.0808715820312,
+            "bottom": 507.21324157714844,
+            "left": 420.08087158203125
+          },
+          "scale": 2.125
+        }
+      ]
+    },
+    {
+      "test": "Next drag can join the newly relocated window at its current header",
+      "passed": true,
+      "evidence": [
+        "editor",
+        "code-67"
+      ]
+    },
+    {
+      "test": "Joining tabs settles all native viewports and overlays",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "code-67",
+          "content": {
+            "x": 699,
+            "y": 72,
+            "width": 656.2867431640625,
+            "height": 705.8235473632812,
+            "top": 72,
+            "right": 1355.2867431640625,
+            "bottom": 777.8235473632812,
+            "left": 699
+          },
+          "native": {
+            "indent": 2,
+            "tabWidth": 2,
+            "sideIcons": false,
+            "breakpoints": [],
+            "executionLine": -1,
+            "textOffset": 44.625,
+            "guides": 8,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 13,
+              "top": 74,
+              "width": 2115,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 1488,
+            "top": 153,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 131,
+            "layoutWidth": 782,
+            "visible": true,
+            "width": 1390,
+            "height": 1498,
+            "innerWidth": 1390,
+            "innerHeight": 1498,
+            "screenX": 1488,
+            "screenY": 213,
+            "occlusions": [
+              {
+                "x": 412.13970947265625,
+                "y": 84,
+                "width": 864,
+                "height": 431.1544189453125,
+                "paint": true,
+                "touch": true,
+                "popup": false
+              }
+            ],
+            "paneVisible": true,
+            "z": 0
+          },
+          "overlay": {
+            "x": 699,
+            "y": 72,
+            "width": 656.2867431640625,
+            "height": 705.8235473632812,
+            "top": 72,
+            "right": 1355.2867431640625,
+            "bottom": 777.8235473632812,
+            "left": 699
+          },
+          "scale": 2.125
+        },
+        {
+          "id": "code-68",
+          "content": {
+            "x": 420.08087158203125,
+            "y": 139.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 139.94117736816406,
+            "right": 1268.0808715820312,
+            "bottom": 507.21324157714844,
+            "left": 420.08087158203125
+          },
+          "native": {
+            "indent": 4,
+            "tabWidth": 4,
+            "sideIcons": false,
+            "breakpoints": [],
+            "executionLine": -1,
+            "textOffset": 27.625,
+            "guides": 0,
+            "guideColor": 894325079,
+            "previewRatio": 1,
+            "preview": false,
+            "accessory": {
+              "visible": false,
+              "left": 13,
+              "top": 74,
+              "width": 2115,
+              "height": 89
+            },
+            "diagnosticPopup": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "fontPx": 29.75,
+            "layoutFontPx": 29.75,
+            "rowHeight": 39,
+            "layoutRowHeight": 39,
+            "left": 895,
+            "top": 297,
+            "viewScaleX": 1,
+            "viewScaleY": 1,
+            "maxX": 1134,
+            "layoutWidth": 2006,
+            "visible": true,
+            "width": 1798,
+            "height": 778,
+            "innerWidth": 1798,
+            "innerHeight": 778,
+            "screenX": 895,
+            "screenY": 357,
+            "occlusions": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 444.08087158203125,
+                "y": 507.1544189453125,
+                "width": 800.11767578125,
+                "height": 11,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 409.13970947265625,
+                "y": 115.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1268.1397094726562,
+                "y": 115.94117736816406,
+                "width": 11,
+                "height": 367.2720642089844,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 408.08087158203125,
+                "y": 495.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              },
+              {
+                "x": 1256.198486328125,
+                "y": 495.2132263183594,
+                "width": 24,
+                "height": 24,
+                "paint": false,
+                "touch": true,
+                "popup": false
+              }
+            ],
+            "paneVisible": true,
+            "z": 1
+          },
+          "overlay": {
+            "x": 420.08087158203125,
+            "y": 139.94117736816406,
+            "width": 848,
+            "height": 367.2720642089844,
+            "top": 139.94117736816406,
+            "right": 1268.0808715820312,
+            "bottom": 507.21324157714844,
+            "left": 420.08087158203125
+          },
+          "scale": 2.125
+        }
+      ]
+    }
+  ],
+  "passed": 24,
+  "total": 24
+}

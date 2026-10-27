@@ -22,11 +22,11 @@ class GdbClient{
     if(kind==='*'&&state==='running'){this.paused=false;this.stopSerial++;this.variablesSerial=-1;$('#debugVariables').replaceChildren();$('#debugWatches').replaceChildren();this.renderControls();this.clearExecutionLine();$('#debugStatus').textContent='Программа выполняется';}
     if(kind==='*'&&state==='stopped'){if(['exited-normally','exited','exited-signalled'].includes(data.reason)){this.ide.appendOutput('console',`\nОтладка завершена · ${data.reason}${data['exit-code']?' · '+data['exit-code']:''}\n`,'meta');this.stop().catch(safeError);}else{this.paused=true;this.renderControls();$('#debugStatus').textContent=data.reason==='breakpoint-hit'?'Точка останова':data.reason==='end-stepping-range'?'Шаг выполнен':data['signal-name']||data.reason||'Пауза';this.refresh(data.frame).catch(safeError);}}
   }
-  async start(executable,args=[]){
-    this.session='debug-'+Date.now();this.active=true;this.paused=false;this.ide.consoleId=this.session;this.ide.running=true;
+  async start(executable,args=[],options=this.ide.settings){
+    this.session='debug-'+Date.now();this.active=true;this.paused=false;this.ide.consoleId=this.session;this.ide.running=true;RuntimeWarnings.begin(this.ide,this.session);
     $('#consoleOutput').textContent='';$('#debugLogOutput').textContent='';
     try{
-      const info=await native('gdbStart',{executable,id:this.session});
+      const info=await native('gdbStart',{executable,options,id:this.session});
       for(const cmd of ['-gdb-set mi-async on','-gdb-set pagination off','-gdb-set confirm off','-gdb-set disable-randomization off','-enable-pretty-printing'])try{await this.command(cmd);}catch(e){this.ide.appendOutput('debugLog',e.message+'\n','meta');}
       if(info.printers)try{await this.command('-interpreter-exec console '+JSON.stringify('source '+info.printers));}catch(error){this.ide.appendOutput('debugLog',error.message+'\n','stderr');}
       for(const skip of ['skip -rfu ^std::.*','skip -rfu ^__gnu_cxx::.*','skip -gfi */include/c++/*'])try{await this.command('-interpreter-exec console '+JSON.stringify(skip));}catch{}

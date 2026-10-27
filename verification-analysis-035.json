@@ -1,0 +1,160 @@
+{
+  "checks": [
+    {
+      "test": "Actual native diagnostics and grey unused spans before formatting",
+      "passed": true,
+      "evidence": {
+        "revision": 32,
+        "analysisRevision": 32,
+        "documentVersion": 34,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 84
+      }
+    },
+    {
+      "test": "Whole-document formatting retains actual native underlines and grey spans",
+      "passed": true,
+      "evidence": {
+        "revision": 33,
+        "analysisRevision": 33,
+        "documentVersion": 35,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "Formatting cursor stays near original code instead of document end",
+      "passed": true,
+      "evidence": {
+        "position": {
+          "lineNumber": 6,
+          "column": 5
+        },
+        "line": "    return 0;",
+        "end": 8
+      }
+    },
+    {
+      "test": "Native undo restores current diagnostic spans",
+      "passed": true,
+      "evidence": {
+        "revision": 35,
+        "analysisRevision": 35,
+        "documentVersion": 37,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 84
+      }
+    },
+    {
+      "test": "Native redo refreshes current diagnostic spans",
+      "passed": true,
+      "evidence": {
+        "revision": 37,
+        "analysisRevision": 37,
+        "documentVersion": 39,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "Repeated CMake/C++ tab changes retain diagnostics and actual grey paint",
+      "passed": true,
+      "evidence": {
+        "revision": 37,
+        "analysisRevision": 37,
+        "documentVersion": 39,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "A new unknown function is diagnosed after formatting and previous tab changes",
+      "passed": true,
+      "evidence": {
+        "native": {
+          "revision": 38,
+          "analysisRevision": 38,
+          "documentVersion": 40,
+          "stylesCurrent": true,
+          "diagnostics": 1,
+          "unused": 0,
+          "paintedUnused": 0,
+          "semantic": 2,
+          "length": 127
+        },
+        "errors": [
+          "Use of undeclared identifier 'missing_compact_probe'"
+        ]
+      }
+    },
+    {
+      "test": "Fixing an error after formatting clears obsolete native diagnostics",
+      "passed": true,
+      "evidence": {
+        "revision": 39,
+        "analysisRevision": 39,
+        "documentVersion": 41,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    },
+    {
+      "test": "Formatting an already formatted document avoids a no-op revision",
+      "passed": true,
+      "evidence": {
+        "before": 40,
+        "after": 40
+      }
+    },
+    {
+      "test": "Late formatting of previous tab preserves current CMake focus and formatted buffer",
+      "passed": true,
+      "evidence": {
+        "retained": true,
+        "text": "static int unused_function() {\n    return 1;\n}\nint main() {\n    int unused_variable = 2;\n    return 0;\n}\n",
+        "native": "static int unused_function() {\n    return 1;\n}\nint main() {\n    int unused_variable = 2;\n    return 0;\n}\n"
+      }
+    },
+    {
+      "test": "Returning to a background-formatted file restores grey spans",
+      "passed": true,
+      "evidence": {
+        "revision": 41,
+        "analysisRevision": 41,
+        "documentVersion": 43,
+        "stylesCurrent": true,
+        "diagnostics": 2,
+        "unused": 2,
+        "paintedUnused": 2,
+        "semantic": 2,
+        "length": 105
+      }
+    }
+  ],
+  "passed": 11,
+  "total": 11
+}

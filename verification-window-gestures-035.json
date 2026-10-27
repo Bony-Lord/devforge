@@ -1,0 +1,362 @@
+{
+  "checks": [
+    {
+      "test": "Default navigation is left; console spans entire workbench",
+      "passed": true,
+      "evidence": {
+        "nav": {
+          "left": 0,
+          "top": 0,
+          "width": 219,
+          "height": 497
+        },
+        "output": {
+          "left": 0,
+          "top": 501,
+          "width": 1315.2940673828125,
+          "height": 234.8235321044922
+        },
+        "work": 1315
+      }
+    },
+    {
+      "test": "Detached tab follows pointer before release; peers are not reconstructed",
+      "passed": true,
+      "evidence": {
+        "where": {
+          "type": "floating"
+        },
+        "box": {
+          "left": 497.9044189453125,
+          "top": 212.94117736816406,
+          "width": 848,
+          "height": 387.6544189453125
+        },
+        "live": true
+      }
+    },
+    {
+      "test": "Free throw continues with decaying inertia and settles inside workspace",
+      "passed": true,
+      "evidence": {
+        "first": {
+          "left": 579.4044189453125,
+          "top": 250.6544189453125,
+          "width": 418,
+          "height": 278.1176452636719
+        },
+        "middle": {
+          "left": 615.441162109375,
+          "top": 262.6764831542969,
+          "width": 418,
+          "height": 278.1176452636719
+        },
+        "last": {
+          "left": 623.4044189453125,
+          "top": 265.33087158203125,
+          "width": 418,
+          "height": 278.1176452636719
+        }
+      }
+    },
+    {
+      "test": "Passing near edge does not dock immediately",
+      "passed": true,
+      "evidence": "floating"
+    },
+    {
+      "test": "Highlighted destination replaces cross targets before docking",
+      "passed": true,
+      "evidence": {
+        "highlight": true,
+        "crosses": 0
+      }
+    },
+    {
+      "test": "Stationary dwell prepares docking without committing while held",
+      "passed": true,
+      "evidence": {
+        "where": {
+          "type": "floating"
+        },
+        "held": true
+      }
+    },
+    {
+      "test": "Tab dragged onto another header joins the same window",
+      "passed": true,
+      "evidence": [
+        "editor",
+        "code-4"
+      ]
+    },
+    {
+      "test": "Cancel after live preview restores original split tree and groups",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "root": {
+            "type": "branch",
+            "data": [
+              {
+                "type": "branch",
+                "data": [
+                  {
+                    "type": "leaf",
+                    "data": {
+                      "views": [
+                        "navigator"
+                      ],
+                      "activeView": "navigator",
+                      "id": "20"
+                    },
+                    "size": 108
+                  },
+                  {
+                    "type": "leaf",
+                    "data": {
+                      "views": [
+                        "editor",
+                        "code-4"
+                      ],
+                      "activeView": "code-4",
+                      "id": "19"
+                    },
+                    "size": 1203.2940673828125
+                  }
+                ],
+                "size": 497
+              },
+              {
+                "type": "leaf",
+                "data": {
+                  "views": [
+                    "output"
+                  ],
+                  "activeView": "output",
+                  "id": "21"
+                },
+                "size": 234.82354736328125
+              }
+            ],
+            "size": 1315.2940673828125
+          },
+          "width": 1315.2940673828125,
+          "height": 735.8235473632812,
+          "orientation": "VERTICAL"
+        },
+        "after": {
+          "root": {
+            "type": "branch",
+            "data": [
+              {
+                "type": "branch",
+                "data": [
+                  {
+                    "type": "leaf",
+                    "data": {
+                      "views": [
+                        "navigator"
+                      ],
+                      "activeView": "navigator",
+                      "id": "20"
+                    },
+                    "size": 106
+                  },
+                  {
+                    "type": "leaf",
+                    "data": {
+                      "views": [
+                        "editor",
+                        "code-4"
+                      ],
+                      "activeView": "code-4",
+                      "id": "19"
+                    },
+                    "size": 1205.2940673828125
+                  }
+                ],
+                "size": 498
+              },
+              {
+                "type": "leaf",
+                "data": {
+                  "views": [
+                    "output"
+                  ],
+                  "activeView": "output",
+                  "id": "21"
+                },
+                "size": 233.82354736328125
+              }
+            ],
+            "size": 1315.2940673828125
+          },
+          "width": 1315.2940673828125,
+          "height": 735.8235473632812,
+          "orientation": "VERTICAL"
+        },
+        "floatsBefore": [],
+        "floatsAfter": []
+      }
+    },
+    {
+      "test": "Leaving a live docking preview restores peer sizes on free release",
+      "passed": true,
+      "evidence": {
+        "before": [
+          {
+            "left": 0,
+            "top": 0,
+            "width": 106,
+            "height": 498
+          },
+          {
+            "left": 0,
+            "top": 502,
+            "width": 1315.2940673828125,
+            "height": 233.8235321044922
+          }
+        ],
+        "after": [
+          {
+            "left": 0,
+            "top": 0,
+            "width": 106,
+            "height": 498
+          },
+          {
+            "left": 0,
+            "top": 502,
+            "width": 1315.2940673828125,
+            "height": 233.8235321044922
+          }
+        ]
+      }
+    },
+    {
+      "test": "Repeated real finger resize 70",
+      "passed": true,
+      "evidence": {
+        "before": 420,
+        "after": 488.8676452636719
+      }
+    },
+    {
+      "test": "Repeated real finger resize -45",
+      "passed": true,
+      "evidence": {
+        "before": 488.8676452636719,
+        "after": 443.38970947265625
+      }
+    },
+    {
+      "test": "Resizing one float does not move or resize another",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "left": 10.941177368164062,
+          "top": 558.941162109375,
+          "width": 298,
+          "height": 130.11764526367188
+        },
+        "after": {
+          "left": 10.941177368164062,
+          "top": 558.941162109375,
+          "width": 298,
+          "height": 130.11764526367188
+        }
+      }
+    },
+    {
+      "test": "Upper edge and upper corners cannot resize windows",
+      "passed": true,
+      "evidence": [
+        "none",
+        "none",
+        "none"
+      ]
+    },
+    {
+      "test": "Close, menu and tab chooser remain reachable in a 150px window",
+      "passed": true,
+      "evidence": [
+        {
+          "type": "windowTabs",
+          "visible": true
+        },
+        {
+          "type": "windowMenu",
+          "visible": true
+        },
+        {
+          "type": "windowClose",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "test": "Compact tab chooser exposes all grouped files",
+      "passed": true,
+      "evidence": 2
+    },
+    {
+      "test": "Actual touch on line number toggles overlaid breakpoint without icon strip",
+      "passed": true,
+      "evidence": {
+        "points": [
+          2
+        ],
+        "sideIcons": false,
+        "textOffset": 27.625
+      }
+    },
+    {
+      "test": "Simple mode starts without Dockview and retains file tabs",
+      "passed": true,
+      "evidence": {
+        "mode": "simple",
+        "windows": false,
+        "tabs": 2,
+        "editor": true
+      }
+    },
+    {
+      "test": "Simple mode console remains full width",
+      "passed": true,
+      "evidence": {
+        "console": {
+          "x": 0,
+          "y": 540.61767578125,
+          "width": 1355.2940673828125,
+          "height": 237.2058868408203,
+          "top": 540.61767578125,
+          "right": 1355.2940673828125,
+          "bottom": 777.8235626220703,
+          "left": 0
+        },
+        "work": {
+          "x": 0,
+          "y": 42,
+          "width": 1355.2940673828125,
+          "height": 735.8235473632812,
+          "top": 42,
+          "right": 1355.2940673828125,
+          "bottom": 777.8235473632812,
+          "left": 0
+        }
+      }
+    },
+    {
+      "test": "Windowed mode restores its saved groups after returning from simple mode",
+      "passed": true,
+      "evidence": {
+        "mode": "windows",
+        "windows": true,
+        "panels": 4
+      }
+    }
+  ],
+  "passed": 19,
+  "total": 19
+}

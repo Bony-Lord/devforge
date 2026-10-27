@@ -1,0 +1,67 @@
+{
+  "results": [
+    {
+      "test": "GCC builds an isolated source with debug symbols",
+      "passed": true,
+      "evidence": {
+        "code": 0,
+        "executable": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/.forge/bin/program",
+        "exists": true,
+        "id": "native-debug-build"
+      }
+    },
+    {
+      "test": "GDB stops at main with native execution decoration",
+      "passed": true,
+      "evidence": {
+        "frame": {
+          "level": "0",
+          "addr": "0x0000005dc63486a4",
+          "func": "main",
+          "file": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp",
+          "fullname": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp",
+          "line": "2",
+          "arch": "aarch64"
+        },
+        "execution": {
+          "uri": "file:///data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp",
+          "line": 2
+        },
+        "breakpoints": [
+          3
+        ]
+      }
+    },
+    {
+      "test": "Native breakpoint stops at source line and reads value",
+      "passed": true,
+      "evidence": {
+        "value": "5",
+        "line": "3"
+      }
+    },
+    {
+      "test": "Step over updates the actual inferior and native execution line",
+      "passed": true,
+      "evidence": {
+        "value": "7",
+        "execution": {
+          "uri": "file:///data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp",
+          "line": 4
+        }
+      }
+    },
+    {
+      "test": "Stopping debugger clears obsolete stack, locals and execution marker",
+      "passed": true,
+      "evidence": {
+        "active": false,
+        "stack": 0,
+        "variables": 0,
+        "execution": null
+      }
+    }
+  ],
+  "passed": 5,
+  "total": 5
+}

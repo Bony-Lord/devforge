@@ -33,6 +33,7 @@ import io.github.rosemoe.sora.text.*;
 
 /** Native input and rendering. WebView receives batched edits, never drives an IME session. */
 final class NativeEditorHost {
+    boolean webFieldFocused;
     final MainActivity app;
     final Map<String,Pane> panes=new LinkedHashMap<>();
     final Map<String,Buffer> buffers=new ConcurrentHashMap<>();
@@ -227,7 +228,7 @@ final class NativeEditorHost {
             editor.getProps().scrollAnimationDurationMs=0;editor.setCursorAnimationEnabled(false);
             editor.setScalable(true);
             editor.setVerticalExtraSpaceFactor(0.15f);editor.setTabWidth(4);
-            editor.setOnFocusChangeListener((v,focused)->{if(focused){active=this;emitSelection(this);geometry();}});
+            editor.setOnFocusChangeListener((v,focused)->{if(focused){webFieldFocused=false;active=this;emitSelection(this);geometry();}});
             editor.subscribeEvent(ContentChangeEvent.class,(e,unsubscribe)->{var smart=((StudioCodeEditor)editor).typing;if(smart!=null)smart.changed(e.getChangeStart().index);changed(this,e);});
             ((StudioCodeEditor)editor).blockCompleted=edit->{if(buffer==null||!settings.optBoolean("smartFormatOnClose",true)||!Arrays.asList("c","cpp").contains(language.kind))return;flush(buffer);app.event("editorFormatOnType",object("id",id,"uri",buffer.uri,"revision",buffer.revision,"start",edit.blockStart,"end",edit.blockEnd+1));};
             editor.subscribeEvent(SelectionChangeEvent.class,(e,unsubscribe)->{if(!muted){if(editor.hasFocus())active=this;emitSelection(this);if(editor.hasFocus())reveal(this);}});
@@ -266,6 +267,7 @@ final class NativeEditorHost {
             case "editorTestTouch":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0||!app.engine.currentProject.startsWith("input-check-"))return false;Pane p=panes.get(d.optString("id","primary"));if(p==null)return false;JSONArray points=d.getJSONArray("points");MotionEvent.PointerProperties[] props=new MotionEvent.PointerProperties[points.length()];MotionEvent.PointerCoords[] coords=new MotionEvent.PointerCoords[points.length()];for(int i=0;i<points.length();i++){props[i]=new MotionEvent.PointerProperties();props[i].id=i;props[i].toolType=MotionEvent.TOOL_TYPE_FINGER;coords[i]=new MotionEvent.PointerCoords();coords[i].x=(float)points.getJSONObject(i).getDouble("x");coords[i].y=(float)points.getJSONObject(i).getDouble("y");coords[i].pressure=1;coords[i].size=1;}long now=SystemClock.uptimeMillis();MotionEvent event=MotionEvent.obtain(d.optLong("down",now),now,d.getInt("action"),points.length(),props,coords,0,0,1,1,0,0,InputDevice.SOURCE_TOUCHSCREEN,0);try{return p.viewport.dispatchTouchEvent(event);}finally{event.recycle();}}
             case "editorReadOnly":{JSONArray paths=d.getJSONArray("paths");for(Pane p:panes.values())if(p.buffer!=null)for(int i=0;i<paths.length();i++)if(p.buffer.path.equals(paths.getString(i)))p.editor.setEditable(!d.optBoolean("readonly"));return true;}
             case "editorReset":{for(Pane p:panes.values()){p.editor.release();app.editorRoot.removeView(p.viewport);}panes.clear();buffers.clear();active=null;return true;}
+            case "editorWebInput":webFieldFocused=d.optBoolean("focused");if(webFieldFocused){app.web.requestFocus();if(floatingKeyboard.enabled){((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(app.web.getWindowToken(),0);floatingKeyboard.show();}}return true;
             case "editorLayout":{
                 windowResizeHandles.update(d.optJSONArray("windowHandles"));occlusions=d.optJSONArray("occlusions");if(occlusions==null)occlusions=new JSONArray();
                 visible=d.optBoolean("visible",true);JSONArray list=d.optJSONArray("panes");Set<String> present=new HashSet<>();
@@ -293,7 +295,7 @@ final class NativeEditorHost {
                 b.revision++;snapshot(b);return b.revision;
             }
             case "editorSelection":{Pane p=panes.get(d.optString("id"));if(p==null||p.buffer==null)return false;int line=d.optInt("line",1)-1,col=d.optInt("column",1)-1;Content c=p.editor.getText();line=Math.max(0,Math.min(c.getLineCount()-1,line));col=Math.max(0,Math.min(c.getColumnCount(line),col));if(d.has("endLine")){int el=Math.max(0,Math.min(c.getLineCount()-1,d.getInt("endLine")-1));p.editor.setSelectionRegion(line,col,el,Math.min(c.getColumnCount(el),Math.max(0,d.optInt("endColumn",1)-1)));}else p.editor.setSelection(line,col);p.editor.notifyIMEExternalCursorChange();return true;}
-            case "editorFocus":{Pane p=panes.get(d.optString("id"));if(p!=null){active=p;p.editor.requestFocus();if(d.optBoolean("keyboard"))showKeyboard();}return true;}
+            case "editorFocus":{Pane p=panes.get(d.optString("id"));if(p!=null){webFieldFocused=false;active=p;p.editor.requestFocus();if(d.optBoolean("keyboard"))showKeyboard();}return true;}
             case "editorAction":{Pane p=panes.get(d.optString("id"));if(p!=null){active=p;action(d.optString("action"));}return true;}
             case "editorAnalysis":{Buffer b=buffers.get(d.optString("uri"));if(b==null||b.revision!=d.optLong("revision"))return false;if(b.analysisRevision!=b.revision){b.analysis=new JSONObject();b.analysisRevision=b.revision;}for(String field:new String[]{"styles","unusedStyles","diagnostics","hints"})if(d.has(field))b.analysis.put(field,d.get(field));for(Pane p:panes.values())if(p.buffer==b&&p.language!=null)p.language.analysis(d);return true;}
             case "editorTypingOptions":{for(Pane p:panes.values())if(p.buffer!=null&&p.buffer.uri.equals(d.optString("uri")))((StudioCodeEditor)p.editor).typingOptions(d.optJSONObject("typing"));return true;}
@@ -402,7 +404,7 @@ final class NativeEditorHost {
     }
     void restoreResizeAnchor(Pane p){ViewState anchor=p.resizeAnchor;if(anchor==null||p.buffer!=p.resizeBuffer)return;int x=Math.min(anchor.x,p.editor.getScrollMaxX()),y=Math.min(anchor.y,p.editor.getScrollMaxY());p.editor.getScroller().startScroll(x,y,0,0,0);p.editor.getScroller().abortAnimation();p.editor.invalidate();}
     void reveal(Pane p){Buffer expected=p.buffer;if(p.resizeAnchor==null&&p.editor.hasFocus()&&app.imeHeight>0&&!((StudioCodeEditor)p.editor).zoomActive&&SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil)p.editor.post(()->{if(p.resizeAnchor==null&&p.buffer==expected&&expected!=null&&!((StudioCodeEditor)p.editor).zoomActive&&SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil)p.editor.ensureSelectionVisible();});}
-    void showKeyboard(){if(active==null)return;active.editor.requestFocus();if(floatingKeyboard.enabled){floatingKeyboard.show();return;}((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(active.editor,InputMethodManager.SHOW_FORCED);geometry();}
+    void showKeyboard(){if(webFieldFocused){if(floatingKeyboard.enabled)floatingKeyboard.show();else ((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(app.web,InputMethodManager.SHOW_IMPLICIT);return;}if(active==null)return;active.editor.requestFocus();if(floatingKeyboard.enabled){floatingKeyboard.show();return;}((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(active.editor,InputMethodManager.SHOW_FORCED);geometry();}
     void createAccessory(){
         accessory=new HorizontalScrollView(app);accessory.setHorizontalScrollBarEnabled(false);accessory.setFillViewport(false);accessory.setBackgroundColor(Color.rgb(43,45,48));
         LinearLayout row=new LinearLayout(app);row.setOrientation(LinearLayout.HORIZONTAL);accessory.addView(row);app.editorRoot.addView(accessory,new FrameLayout.LayoutParams(-1,1));accessory.setVisibility(View.GONE);accessory.setZ(90*app.getResources().getDisplayMetrics().density);

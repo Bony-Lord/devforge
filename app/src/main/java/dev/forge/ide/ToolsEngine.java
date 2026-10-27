@@ -27,7 +27,7 @@ final class ToolsEngine {
     synchronized JSONObject startDebug(JSONObject d)throws Exception {
         if(debuggerRunning())throw new IOException("Отладчик уже запущен");
         if(ide.execution!=null&&ide.execution.isAlive())throw new IOException("Сначала остановите программу");
-        File root=ide.project(ide.currentProject),file=new File(d.getString("executable")).getCanonicalFile();
+        JSONObject options=d.optJSONObject("options");if(options==null)options=ide.settings();File root=BuildProfiles.workingDirectory(ide,options),file=new File(d.getString("executable")).getCanonicalFile();Map<String,String> environment=BuildProfiles.environment(options);environment.putIfAbsent("UBSAN_OPTIONS","halt_on_error=0:print_stacktrace=0:color=never:log_to_syslog=0");environment.putIfAbsent("ASAN_OPTIONS","halt_on_error=0:detect_leaks=0:color=never:symbolize=0");
         if(!ide.workspace.canExecute(file)||!file.isFile())throw new IOException("Программа для отладки не найдена");
         file.setExecutable(true,true);
         File printers=new File(ide.app.getFilesDir(),"debug/libcxx/printers.py");printers.getParentFile().mkdirs();
@@ -42,7 +42,7 @@ final class ToolsEngine {
         ide.pool.execute(()->ide.pump(io.getInputStream(),id,"stdout"));
         ide.pool.execute(()->ide.pump(io.getErrorStream(),id,"stderr"));
         final Process debugger;
-        try{debugger=ide.spawn(Arrays.asList(ide.bin("gdb"),"--quiet","--nx","--interpreter=mi2"),root,false);gdb=debugger;}
+        try{debugger=ide.spawn(Arrays.asList(ide.bin("gdb"),"--quiet","--nx","--interpreter=mi2"),root,false,environment);gdb=debugger;}
         catch(IOException e){io.destroyForcibly();relay=null;throw e;}
         ide.pool.execute(()->{
             try(BufferedReader reader=new BufferedReader(new InputStreamReader(debugger.getInputStream(),StandardCharsets.UTF_8))){

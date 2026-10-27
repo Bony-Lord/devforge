@@ -30,7 +30,7 @@ final class LanguageTools {
                 return capture(Arrays.asList(ide.bin("cmake"),"--help-command",name),"");
             }
             case "cmakeSources": {
-                JSONObject options=ide.settings();File file=new File(ide.workspace.data(),"cmake-"+options.optString("compiler","gcc")+"-"+ide.standard(options,false).replace('+','p')+"/compile_commands.json");
+                JSONObject options=ide.settings();File file=new File(BuildProfiles.cmakeDirectory(ide,options),"compile_commands.json");
                 JSONArray files=new JSONArray();if(file.isFile()&&file.length()<16*1024*1024){JSONArray entries=new JSONArray(IdeEngine.read(file));for(int i=0;i<entries.length();i++){JSONObject entry=entries.getJSONObject(i);File source=new File(entry.getString("file"));if(!source.isAbsolute())source=new File(entry.getString("directory"),source.getPath());files.put(source.getCanonicalPath());}}
                 return new JSONObject().put("configured",file.isFile()).put("files",files).put("time",file.lastModified());
             }

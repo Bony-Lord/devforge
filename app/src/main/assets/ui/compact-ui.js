@@ -1,4 +1,5 @@
 'use strict';
+window.StudioWebInput=text=>{const field=document.activeElement;if(!field?.matches('input:not([type=checkbox]),textarea')||field.disabled||field.readOnly)return false;const start=field.selectionStart??field.value.length,end=field.selectionEnd??start;try{field.setRangeText(text,start,end,'end');}catch{field.value=field.value.slice(0,start)+text+field.value.slice(end);}field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));return true;};
 const compactMethods={
   initCompactUI(){
     for(const id of ['buildButton','runButton','debugButton']){
@@ -14,9 +15,11 @@ const compactMethods={
     onNative('editorDismissPopover',()=>{this.toggleMainMenu(false);$('#menu').classList.add('hidden');});
     $('#tabs').addEventListener('dblclick',event=>{if(event.target.closest('.tab')&&!event.target.closest('.tab-close'))this.toggleFocusMode();});
     $('.panel-heading').addEventListener('dblclick',event=>{if(!event.target.closest('button'))this.maximizePanel();});
+    onNative('floatingKeyboardModifiers',e=>{this.settings.keyboardModifiers=e.mode;this.saveWorkspaceSettings();});
     onNative('floatingKeyboardMode',e=>{if(this.settings.keyboardPrimary===e.mode)return;this.settings.keyboardPrimary=e.mode;this.saveWorkspaceSettings();});
     onNative('floatingKeyboardSize',e=>{const prefix=e.layout==='pc'?'keyboardPc':'keyboardAndroid';this.settings[prefix+'Width']=e.width;this.settings[prefix+'Height']=e.height;this.saveWorkspaceSettings();});
     this.initDialogDismiss();
+    const webInput=()=>native('editorWebInput',{focused:!!document.activeElement?.matches('input,textarea,[contenteditable="true"]')}).catch(console.warn);document.addEventListener('focusin',webInput);document.addEventListener('focusout',()=>queueMicrotask(webInput));
     this.initTouchTips();
   },
   toggleMainMenu(show=$('#mainMenus').classList.contains('hidden')){

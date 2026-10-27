@@ -1,0 +1,366 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "checks": [
+    {
+      "test": "File names replace generic Editor heading; global duplicate tabs hidden",
+      "passed": true,
+      "evidence": {
+        "tabs": [
+          "Проект",
+          "main.cpp",
+          "CMakeLists.txt",
+          "Консоль"
+        ],
+        "oldTabs": "none"
+      }
+    },
+    {
+      "test": "One shared navigation window: project",
+      "passed": true,
+      "evidence": {
+        "ids": [
+          "navigator"
+        ],
+        "mode": "project",
+        "visible": [
+          "project"
+        ]
+      }
+    },
+    {
+      "test": "One shared navigation window: search",
+      "passed": true,
+      "evidence": {
+        "ids": [
+          "navigator"
+        ],
+        "mode": "search",
+        "visible": [
+          "search"
+        ]
+      }
+    },
+    {
+      "test": "One shared navigation window: outline",
+      "passed": true,
+      "evidence": {
+        "ids": [
+          "navigator"
+        ],
+        "mode": "outline",
+        "visible": [
+          "outline"
+        ]
+      }
+    },
+    {
+      "test": "One shared navigation window: git",
+      "passed": true,
+      "evidence": {
+        "ids": [
+          "navigator"
+        ],
+        "mode": "git",
+        "visible": [
+          "git"
+        ]
+      }
+    },
+    {
+      "test": "Navigation window reopens at its saved floating location",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "left": 8.941177368164062,
+          "top": 42.94117736816406,
+          "width": 238,
+          "height": 397.2720642089844
+        },
+        "after": {
+          "left": 8.941177368164062,
+          "top": 42.94117736816406,
+          "width": 238,
+          "height": 397.2720642089844
+        }
+      }
+    },
+    {
+      "test": "New files share one tabbed window by default",
+      "passed": true,
+      "evidence": [
+        [
+          "editor",
+          "code-79"
+        ]
+      ]
+    },
+    {
+      "test": "Two different files render together in independent native viewports",
+      "passed": true,
+      "evidence": [
+        {
+          "id": "editor",
+          "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp",
+          "visible": true,
+          "w": 1439
+        },
+        {
+          "id": "code-79",
+          "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/CMakeLists.txt",
+          "visible": true,
+          "w": 555
+        }
+      ]
+    },
+    {
+      "test": "Floating file paints its own code instead of masking itself",
+      "passed": true,
+      "evidence": {
+        "visible": true,
+        "masks": 8
+      }
+    },
+    {
+      "test": "Popup is above floating window and masks native code",
+      "passed": true,
+      "evidence": {
+        "top": true,
+        "popupMasks": 1
+      }
+    },
+    {
+      "test": "Mouse moves floating titlebar freely without docking",
+      "passed": true,
+      "evidence": {
+        "before": [
+          380,
+          172
+        ],
+        "after": [
+          463.933837890625,
+          217.19117736816406
+        ]
+      }
+    },
+    {
+      "test": "Finger moves floating titlebar freely without docking",
+      "passed": true,
+      "evidence": {
+        "before": [
+          463.933837890625,
+          217.19117736816406
+        ],
+        "after": [
+          543.5,
+          260.0367736816406
+        ]
+      }
+    },
+    {
+      "test": "Dragging docked file into free space creates a floating window",
+      "passed": true,
+      "evidence": {
+        "type": "floating"
+      }
+    },
+    {
+      "test": "Holding at highlighted screen edge docks the file",
+      "passed": true,
+      "evidence": {
+        "type": "grid"
+      }
+    },
+    {
+      "test": "One shared output window: console",
+      "passed": true,
+      "evidence": {
+        "count": 1,
+        "mode": "console",
+        "visible": [
+          "console"
+        ]
+      }
+    },
+    {
+      "test": "One shared output window: build",
+      "passed": true,
+      "evidence": {
+        "count": 1,
+        "mode": "build",
+        "visible": [
+          "build"
+        ]
+      }
+    },
+    {
+      "test": "One shared output window: terminal",
+      "passed": true,
+      "evidence": {
+        "count": 1,
+        "mode": "terminal",
+        "visible": [
+          "terminal"
+        ]
+      }
+    },
+    {
+      "test": "One shared output window: debug",
+      "passed": true,
+      "evidence": {
+        "count": 1,
+        "mode": "debug",
+        "visible": [
+          "debug"
+        ]
+      }
+    },
+    {
+      "test": "One shared output window: problems",
+      "passed": true,
+      "evidence": {
+        "count": 1,
+        "mode": "problems",
+        "visible": [
+          "problems"
+        ]
+      }
+    },
+    {
+      "test": "Same file can be viewed in two separate windows",
+      "passed": true,
+      "evidence": [
+        "primary",
+        "code-80"
+      ]
+    },
+    {
+      "test": "Full PC keyboard has function row, navigation, modifiers and number pad",
+      "passed": true,
+      "evidence": {
+        "keys": 103,
+        "layout": "pc"
+      }
+    },
+    {
+      "test": "PC number pad types digits",
+      "passed": true,
+      "evidence": "7"
+    },
+    {
+      "test": "Num Lock switches the pad to navigation",
+      "passed": true,
+      "evidence": "bcd"
+    },
+    {
+      "test": "PC keyboard types code without autocorrection",
+      "passed": true,
+      "evidence": "std "
+    },
+    {
+      "test": "Sticky Shift affects only next key",
+      "passed": true,
+      "evidence": "std Ab"
+    },
+    {
+      "test": "Ctrl A plus Delete edits actual native buffer",
+      "passed": true,
+      "evidence": ""
+    },
+    {
+      "test": "Shift navigation selects text and Delete removes selection",
+      "passed": true,
+      "evidence": "bcd"
+    },
+    {
+      "test": "Ctrl Space switches floating layout without opening completion",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Full Cyrillic including yo works",
+      "passed": true,
+      "evidence": "приветё"
+    },
+    {
+      "test": "Holding Backspace repeats without duplicating text",
+      "passed": true,
+      "evidence": 52
+    },
+    {
+      "test": "Ctrl Alt Space routes completion; one-shot modifiers release",
+      "passed": true,
+      "evidence": {
+        "ctrl": false,
+        "alt": false
+      }
+    },
+    {
+      "test": "Real simultaneous native touch holds Shift while another finger types",
+      "passed": true,
+      "evidence": {
+        "text": "Ab",
+        "held": []
+      }
+    },
+    {
+      "test": "Canceled modifier gesture does not leave Ctrl stuck",
+      "passed": true,
+      "evidence": false
+    },
+    {
+      "test": "Android layout has its own size and fewer keys",
+      "passed": true,
+      "evidence": {
+        "layout": "android",
+        "keys": 56,
+        "width": 1855
+      }
+    },
+    {
+      "test": "Compact keyboard also edits native code",
+      "passed": true,
+      "evidence": "a"
+    },
+    {
+      "test": "Primary keyboard setting returns to Android IME",
+      "passed": true,
+      "evidence": false
+    },
+    {
+      "test": "Process restart restores per-file windows, including duplicate views",
+      "passed": true,
+      "evidence": {
+        "before": [
+          {
+            "id": "code-79",
+            "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/CMakeLists.txt"
+          },
+          {
+            "id": "code-80",
+            "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp"
+          },
+          {
+            "id": "editor",
+            "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp"
+          }
+        ],
+        "after": [
+          {
+            "id": "code-79",
+            "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/CMakeLists.txt"
+          },
+          {
+            "id": "code-80",
+            "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp"
+          },
+          {
+            "id": "editor",
+            "path": "/data/user/0/com.forgex/files/projects/input-check-workspace-035-20261027/main.cpp"
+          }
+        ]
+      }
+    }
+  ],
+  "passed": 37,
+  "total": 37
+}
