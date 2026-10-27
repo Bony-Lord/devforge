@@ -6205,7 +6205,7 @@ Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toString
 				touchInitiationDelay: () => isFloating() ? 500 : 250,
 				pressTolerance: () => isFloating() ? Infinity : 8,
 				isCancelled: (event) => {
-					if (isFloating() && event.pointerType === "mouse" && !event.shiftKey) return true;
+					if (isFloating() && !event.shiftKey) return true;
 					if (!resolveDndCapabilities(this.accessor.options).pointer) return true;
 					if (this.group.api.location.type === "edge" && this.group.size === 0) return true;
 					return false;
@@ -12077,6 +12077,7 @@ Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toString
 			this._dragCancelled = false;
 			this.addDisposables(this._onDidChange, this._onDidChangeEnd, this._onDidStartMoving, this._dragMove);
 			this._element.className = "dv-resize-container";
+			this._element.addEventListener("studio-set-bounds", event => this.setBounds(event.detail));
 			this._element.setAttribute("role", "dialog");
 			this._element.setAttribute("aria-modal", "false");
 			this._isVisible = true;
@@ -12293,7 +12294,7 @@ Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toString
 					resizeHandleElement.setPointerCapture(pointerId);
 				} catch (_unused3) {}
 				const end = () => {
-					move.dispose();
+					move.clear();
 					this._onDidChangeEnd.fire();
 				};
 				move.value = new CompositeDisposable(addDisposableListener(globalThis.window, "pointermove", (e) => {

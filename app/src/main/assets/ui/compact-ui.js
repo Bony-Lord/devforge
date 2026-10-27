@@ -14,6 +14,8 @@ const compactMethods={
     onNative('editorDismissPopover',()=>{this.toggleMainMenu(false);$('#menu').classList.add('hidden');});
     $('#tabs').addEventListener('dblclick',event=>{if(event.target.closest('.tab')&&!event.target.closest('.tab-close'))this.toggleFocusMode();});
     $('.panel-heading').addEventListener('dblclick',event=>{if(!event.target.closest('button'))this.maximizePanel();});
+    onNative('floatingKeyboardMode',e=>{if(this.settings.keyboardPrimary===e.mode)return;this.settings.keyboardPrimary=e.mode;this.saveWorkspaceSettings();});
+    onNative('floatingKeyboardSize',e=>{const prefix=e.layout==='pc'?'keyboardPc':'keyboardAndroid';this.settings[prefix+'Width']=e.width;this.settings[prefix+'Height']=e.height;this.saveWorkspaceSettings();});
     this.initDialogDismiss();
     this.initTouchTips();
   },
@@ -54,7 +56,8 @@ const compactMethods={
   compactKeydown(event){
     if(document.querySelector('dialog[open]')||event.target?.closest?.('input,textarea,[contenteditable=true]'))return false;
     let action;
-    if(event.ctrlKey&&event.shiftKey&&event.key==='F12')action=()=>this.toggleFocusMode();
+    if(event.key==='Escape'&&this.windows?.targets.ctx)action=()=>this.windows.targets.cancel();
+    else if(event.ctrlKey&&event.shiftKey&&event.key==='F12')action=()=>this.toggleFocusMode();
     else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='j'&&this.windows)action=()=>this.windows.toggle(this.currentPanel||'console');
     else if(event.altKey&&!event.ctrlKey&&this.windows&&({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key])action=()=>this.windows.toggle(({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key]);
     else if(event.key==='Escape'&&$('#mainMenuToggle').getAttribute('aria-expanded')==='true')action=()=>{this.toggleMainMenu(false);this.editor.focus();};

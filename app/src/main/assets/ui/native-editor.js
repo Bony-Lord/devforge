@@ -3,8 +3,8 @@
 const NativeEditing={
   panes:new Map(),revisions:new Map(),generations:new Map(),editTasks:new Map(),completionTasks:new Map(),viewports:new Map(),formatJobs:new Map(),incoming:false,layoutQueued:false,
   cancellation(){let cancelled=false;const listeners=new Set();return{get isCancellationRequested(){return cancelled;},onCancellationRequested(fn){listeners.add(fn);if(cancelled)fn();return{dispose:()=>listeners.delete(fn)};},cancel(){if(cancelled)return;cancelled=true;for(const fn of [...listeners])fn();listeners.clear();}};},
-  attach(editor,id){
-    const container=document.querySelector(id==='primary'?'#editor':'#secondaryEditor');
+  attach(editor,id,container){
+    container||=document.querySelector(id==='primary'?'#editor':'#secondaryEditor');
     const api={editor,id,container,opening:Promise.resolve(),nativeSelection:null,focusListeners:new Set()};this.panes.set(id,api);
     const original={};for(const name of ['setModel','setSelection','setPosition','focus','layout','updateOptions','dispose','onDidFocusEditorWidget','hasTextFocus','hasWidgetFocus','saveViewState','restoreViewState','getAction','trigger'])original[name]=editor[name].bind(editor);
     api.original=original;
@@ -19,7 +19,7 @@ const NativeEditing={
         if(r?.uri){this.snapshot(r);this.decorations(model);this.publishDiagnostics(model);this.scheduleAnalysis(model);}
       });
     };
-    editor.focus=async()=>{await this.layout();return send('editorFocus');};
+    editor.focus=async()=>{this.requestedFocus=id;window.forge?.windows?.activateEditor(id);await this.layout();return send('editorFocus');};
     editor.hasTextFocus=editor.hasWidgetFocus=()=>this.focused===id&&!document.querySelector('dialog[open]');
     editor.onDidFocusEditorWidget=fn=>{api.focusListeners.add(fn);return{dispose:()=>api.focusListeners.delete(fn)};};
     editor.setPosition=position=>{original.setPosition(position);send('editorSelection',{line:position.lineNumber,column:position.column});};
@@ -63,16 +63,27 @@ const NativeEditing={
   async sync(uri){for(const p of this.panes.values())if(!uri||p.editor.getModel()?.uri.toString()===uri)await p.opening;const pending=[...this.editTasks].filter(([key])=>!uri||key===uri);await Promise.all(pending.map(([,task])=>task));for(const[key,task]of pending)if(this.editTasks.get(key)===task)this.editTasks.delete(key);for(const s of await native('editorSnapshot',{uri,known:Object.fromEntries(this.revisions)}))this.snapshot(s);},
   queueLayout(){if(this.layoutQueued)return;this.layoutQueued=true;requestAnimationFrame(()=>{this.layoutQueued=false;this.layout();});},
   layout(){
-    const maximized=window.forge?.windows?!window.forge.windows.api.getPanel('editor')?.api.isVisible:document.body.classList.contains('panel-maximized');
-    const panes=[...this.panes.values()].filter(p=>!p.container.classList.contains('hidden')).map(p=>{const box=p.container.getBoundingClientRect();if(!maximized)p.layoutRect={id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};return p.layoutRect||{id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};});
-    const visible=!maximized&&!document.querySelector('dialog[open]')&&(!!window.forge?.windows||!document.body.classList.contains('sidebar-mobile-open'));
-    const occlusions=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit,#menu:not(.hidden),.studio-inline-popover,.studio-hover-tip,.dv-resize-container,.dv-drop-target-selection,.dv-drag-ghost')].filter(e=>e.getClientRects().length).map(e=>{const b=e.getBoundingClientRect(),floating=e.classList.contains('dv-resize-container');return{x:b.x-(floating?7:0),y:b.y-(floating?7:0),width:b.width+(floating?14:0),height:b.height+(floating?14:0),paint:!e.classList.contains('studio-resize-hit'),touch:!e.classList.contains('studio-hover-tip'),popup:!floating};});
-    return native('editorLayout',{panes,visible,occlusions,settings:window.forge?.settings||{language:StudioI18n.locale}}).catch(console.warn);
+    const windows=window.forge?.windows,visible=(!!windows||!document.body.classList.contains('panel-maximized'))&&!document.querySelector('dialog[open]')&&(!!windows||!document.body.classList.contains('sidebar-mobile-open'));
+    const overlays=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit,#menu:not(.hidden),.studio-inline-popover,.studio-hover-tip,.dv-resize-container,.dv-drop-target-selection,.dv-drag-ghost,.studio-dock-target,.studio-dock-target-label,.studio-dock-preview')].filter(e=>e.getClientRects().length);
+    const floating=[...document.querySelectorAll('.dv-resize-container')].filter(e=>e.getClientRects().length).sort((a,b)=>(Number.parseInt(getComputedStyle(a).zIndex)||0)-(Number.parseInt(getComputedStyle(b).zIndex)||0));
+    const resizeRect=(handle,element)=>{const b=handle.getBoundingClientRect(),f=element.getBoundingClientRect(),direction=handle.className.replace('dv-resize-handle-','');let x=b.x,y=b.y,width=b.width,height=b.height;if(direction==='left'){x=f.left-10;width=11;}if(direction==='right'){x=f.right-1;width=11;}if(direction==='bottom'){y=f.bottom-1;height=11;}return{x,y,width,height,direction};};
+    const mask=e=>{const b=e.getBoundingClientRect(),float=e.classList.contains('dv-resize-container'),compass=e.matches('.studio-dock-target,.studio-dock-target-label,.studio-dock-preview');return{x:b.x-(float?7:0),y:b.y-(float?7:0),width:b.width+(float?14:0),height:b.height+(float?14:0),paint:!e.classList.contains('studio-resize-hit'),touch:!e.classList.contains('studio-hover-tip')&&!compass,popup:!float&&!compass};};
+    const panes=[...this.panes.values()].map(p=>{
+      const panel=windows?.editorPanel(p.id),ownFloat=panel?.group.element.closest('.dv-resize-container'),rank=floating.indexOf(ownFloat),box=p.container.getBoundingClientRect();
+      const occlusions=overlays.filter(e=>!e.classList.contains('dv-resize-container')||e!==ownFloat&&floating.indexOf(e)>rank).map(mask);
+      if(ownFloat)for(const handle of ownFloat.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,ownFloat);occlusions.push({x:b.x,y:b.y,width:b.width,height:b.height,paint:false,touch:true,popup:false});}
+      const bounds=panel?.group.element.getBoundingClientRect(),x=bounds?Math.max(box.x,bounds.x+1):box.x,y=bounds?Math.max(box.y,bounds.y+1):box.y,right=bounds?Math.min(box.right,bounds.right-1):box.right,bottom=bounds?Math.min(box.bottom,bounds.bottom-1):box.bottom;
+      return{id:p.id,x,y,width:Math.max(0,right-x),height:Math.max(0,bottom-y),visible:windows?!!panel?.api.isVisible:!!p.container.getClientRects().length,occlusions,z:rank+1};
+    });
+    const occlusions=overlays.filter(e=>!e.classList.contains('dv-resize-container')).map(mask);
+    const windowHandles=[];for(const element of floating){const group=windows?.api.groups.find(g=>g.element.closest('.dv-resize-container')===element);if(!group)continue;for(const handle of element.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,element),direction=b.direction;if(!b.width||!b.height||direction.includes('top'))continue;if(floating.slice(floating.indexOf(element)+1).some(other=>{const r=other.getBoundingClientRect();return b.x+b.width/2>=r.left&&b.x+b.width/2<=r.right&&b.y+b.height/2>=r.top&&b.y+b.height/2<=r.bottom;}))continue;windowHandles.push({id:group.id+':'+direction,group:group.id,direction,x:b.x,y:b.y,width:b.width,height:b.height});}}
+    const source=window.forge?.settings||{language:StudioI18n.locale},settings={};for(const key of ['language','theme','fontSize','codeScale','wordWrap','indentGuides','smartFormatOnClose','keyboardExtraKeys','keyboardPrimary','keyboardLayout','keyboardModifiers','keyboardNumpad','keyboardPcWidth','keyboardPcHeight','keyboardAndroidWidth','keyboardAndroidHeight'])if(source[key]!==undefined)settings[key]=source[key];
+    return native('editorLayout',{panes,visible,occlusions,windowHandles,settings}).catch(console.warn);
   },
   selection(e){
     const p=this.panes.get(e.id);if(!p||p.editor.getModel()?.uri.toString()!==e.uri)return;
     p.original.setSelection(new monaco.Selection(e.startLine,e.startColumn,e.line,e.column));
-    if(e.focused){this.focused=e.id;for(const fn of p.focusListeners)fn();}
+    if(e.focused&&(!this.requestedFocus||this.requestedFocus===e.id)&&(!window.forge?.windows||window.forge.windows.editorPanel(e.id)?.api.isVisible)){if(this.requestedFocus===e.id)this.requestedFocus=null;this.focused=e.id;window.forge?.windows?.activateEditor(e.id);for(const fn of p.focusListeners)fn();}
   },
   invalidate(model){model.__analysisCancel?.cancel();for(const task of this.completionTasks.values())if(task.uri===model.uri.toString())task.cancel.cancel();this.scheduleAnalysis(model);const job=this.formatJobs.get(model.uri.toString());if(job&&!job.applying)this.scheduleFormat(job);},
   async typingOptions(model){
@@ -171,7 +182,7 @@ const NativeEditing={
   async action(id){
     const ide=window.forge,editor=ide.editor,model=editor.getModel();if(!model)return;
     const key={ 'editor.action.triggerSuggest':'suggest','undo':'undo','redo':'redo','editor.action.clipboardCopyAction':'copy','editor.action.clipboardCutAction':'cut','editor.action.clipboardPasteAction':'paste','editor.action.selectAll':'selectAll','editor.action.copyLinesDownAction':'duplicate','editor.action.deleteLines':'deleteLine'}[id];
-    if(key)return native('editorAction',{id:editor===ide.secondaryEditor?'secondary':'primary',action:key});
+    if(key)return native('editorAction',{id:[...this.panes.values()].find(p=>p.editor===editor)?.id||'primary',action:key});
     await this.sync(model.uri.toString());const pos=editor.getPosition(),at=ide.lsp.at(model,pos);
     if(id==='editor.action.formatDocument')return ide.formatCurrentDocument();
     if(id==='editor.action.quickOutline')return ide.showSide('outline');
@@ -199,7 +210,7 @@ const NativeEditing={
     }
   }
 };
-function attachNativeEditor(editor,id){return NativeEditing.attach(editor,id);}
+function attachNativeEditor(editor,id,container){return NativeEditing.attach(editor,id,container);}
 async function nativeBuildCompletions(model,pos){
   const ide=window.forge,before=model.getLineContent(pos.lineNumber).slice(0,pos.column-1);
   if(model.getLanguageId()==='cmake'){

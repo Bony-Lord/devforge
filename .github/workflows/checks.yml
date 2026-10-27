@@ -25,6 +25,7 @@ jobs:
           node tests/native-editor-state.test.cjs
           node tests/interaction.test.cjs
           node tests/completion-keys.test.cjs
+          node tests/dock-layout.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
       - name: License inventory and notices

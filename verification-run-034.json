@@ -1,0 +1,14 @@
+{
+  "passed": 1,
+  "total": 1,
+  "checks": [
+    {
+      "test": "GCC builds and runs the visible demo through workspace controls",
+      "passed": true,
+      "evidence": {
+        "output": "1 2 3 C++ Studio\n\nПроцесс завершён · код 0\n",
+        "build": "/data/user/0/com.forgex/files/usr/bin/g++-15 -std=c++20 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/input-check-workspace-034-20261027 -I/data/user/0/com.forgex/files/usr/include/forge -nostdinc++ -isystem /data/user/0/com.forgex/files/usr/include/c++/v1 -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib /data/user/0/com.forgex/files/projects/input-check-workspace-034-20261027/main.cpp -o /data/user/0/com.forgex/files/projects/input-check-workspace-034-20261027/.forge/bin/program\n/data/user/0/com.forgex/files/projects/input-check-workspace-034-20261027/main.cpp: In function 'int main()':\n/data/user/0/com.forgex/files/projects/input-check-workspace-034-20261027/main.cpp:15:9: warning: unused variable 'unused_value' [-Wunused-variable]\n   15 |     int unused_value = 4;\n      |         ^~~~~~~~~~~~\n/data/user/0/com.forgex/files/projects/input-check-workspace-034-20261027/main.cpp: At global scope:\n/data/user/0/com.forgex/files/projects/input-check-workspace-034-20261027/main.cpp:9:12: warning: 'int unused_helper()' defined but not used [-Wunused-function]\n    9 | static int unused_helper() {\n      |            ^~~~~~~~~~~~~\n\nСборка завершена · 2.42 с · код 0\n"
+      }
+    }
+  ]
+}

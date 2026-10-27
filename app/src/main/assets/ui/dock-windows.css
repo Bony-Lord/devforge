@@ -1,6 +1,7 @@
-:root{--color-project:#69a4f9;--color-search:#78b5de;--color-outline:#73c4bc;--color-git:#67b8dc;--color-console:#6bc59c;--color-terminal:#b2b8c3;--color-build:#d8a568;--color-debug:#ba99e8;--color-problems:#dfb86b}
-body.light{--color-project:#326bb7;--color-search:#3574a1;--color-outline:#257e76;--color-git:#267699;--color-console:#247b56;--color-terminal:#596473;--color-build:#946119;--color-debug:#7852a9;--color-problems:#966b17}
+:root{--color-project:#69a4f9;--color-search:#78b5de;--color-outline:#73c4bc;--color-git:#67b8dc;--color-console:#6bc59c;--color-terminal:#b2b8c3;--color-build:#d8a568;--color-debug:#6bc59c;--color-problems:#dfb86b}
+body.light{--color-project:#326bb7;--color-search:#3574a1;--color-outline:#257e76;--color-git:#267699;--color-console:#247b56;--color-terminal:#596473;--color-build:#946119;--color-debug:#247b56;--color-problems:#966b17}
 .tool-project{--tool-color:var(--color-project)}.tool-search{--tool-color:var(--color-search)}.tool-outline{--tool-color:var(--color-outline)}.tool-git{--tool-color:var(--color-git)}.tool-console{--tool-color:var(--color-console)}.tool-terminal{--tool-color:var(--color-terminal)}.tool-build{--tool-color:var(--color-build)}.tool-debug{--tool-color:var(--color-debug)}.tool-problems{--tool-color:var(--color-problems)}
+.tool-editor{--tool-color:var(--color-project)}
 body.studio-docking .work-area{display:flex!important;min-height:0;position:relative}
 body.studio-docking .activitybar{display:flex!important;position:static;min-width:40px;width:40px;min-height:0;overflow:auto;padding:5px 0;gap:4px}
 .studio-docking .activity{width:32px;height:32px;min-height:32px;color:var(--tool-color,var(--muted));border-left:2px solid transparent;border-radius:4px;position:relative}
@@ -30,5 +31,27 @@ body.studio-docking .activitybar{display:flex!important;position:static;min-widt
 #dockWorkspace .dv-tab{padding:0!important}
 .studio-window-dragging,.studio-window-dragging *{cursor:grabbing!important;user-select:none!important}
 #dockWorkspace .dv-drop-target-selection{border-radius:4px}
-.studio-docking .studio-code-group>.dv-tabs-and-actions-container{display:none}
+.studio-docking #tabs,.studio-docking .breadcrumbs{display:none}
+.studio-code-surface,.studio-code-editor{position:relative;flex:1;min-width:0;min-height:0;width:100%;height:100%}
+.studio-code-content .editor-area{flex:1}.studio-tool-tab .file-kind{display:flex;width:16px;height:16px}.studio-tool-tab .file-kind svg{width:16px;height:16px}.studio-tool-tab .dirty-dot{width:5px;height:5px;background:var(--accent);border-radius:50%}
+.studio-placement-scopes{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:2px 0 5px;margin-bottom:4px}.studio-placement-scopes>button{flex:1;padding:5px}.studio-placement-scopes>.selected{background:var(--accent-bg);color:var(--accent)}
+.studio-dock-compass{position:fixed;inset:0;pointer-events:none;z-index:1800}.studio-dock-target{position:fixed;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--accent);border-radius:5px;background:var(--deep);color:var(--accent);box-shadow:0 2px 8px #0005;pointer-events:none}.studio-dock-target svg{width:22px;height:22px}.studio-dock-target.scope-group{color:var(--color-outline);border-color:var(--color-outline)}.studio-dock-target.scope-screen{color:var(--color-debug);border-color:var(--color-debug)}.studio-dock-target.selected{background:var(--accent-bg);outline:2px solid currentColor;outline-offset:2px}.studio-dock-target-label{position:fixed;font-size:10px;padding:2px 4px;border-radius:3px;background:var(--deep);color:var(--text);pointer-events:none}
 @media(max-width:620px){body.studio-docking .activitybar{min-width:36px;width:36px}.studio-docking .activity{width:30px;height:30px;min-height:30px}.studio-tool-tab{font-size:11px;gap:4px;padding:0 4px}}
+
+.studio-dock-theme{--dv-overlay-z-index:100}#menu{z-index:2100}.studio-choice-popover,.studio-inline-popover{z-index:2200}.studio-hover-tip{z-index:2400}.studio-dock-compass{z-index:2300}
+
+#dockWorkspace .dv-groupview{outline:1px solid color-mix(in srgb,var(--muted) 45%,var(--line));outline-offset:-1px}#dockWorkspace .dv-sash{background:transparent!important}#dockWorkspace .dv-sash:after{content:"";position:absolute;background:var(--line);pointer-events:none}#dockWorkspace .dv-sash.dv-vertical:after{left:50%;top:0;bottom:0;width:1px}#dockWorkspace .dv-sash.dv-horizontal:after{top:50%;left:0;right:0;height:1px}
+
+#dockWorkspace [class*="dv-resize-handle-"]{touch-action:none}
+#dockWorkspace .dv-resize-handle-left,#dockWorkspace .dv-resize-handle-right{width:16px!important}#dockWorkspace .dv-resize-handle-left{left:-8px!important}#dockWorkspace .dv-resize-handle-right{right:-8px!important}
+#dockWorkspace .dv-resize-handle-top,#dockWorkspace .dv-resize-handle-bottom{height:16px!important}#dockWorkspace .dv-resize-handle-top{top:-8px!important}#dockWorkspace .dv-resize-handle-bottom{bottom:-8px!important}
+#dockWorkspace .dv-resize-handle-topleft,#dockWorkspace .dv-resize-handle-topright,#dockWorkspace .dv-resize-handle-bottomleft,#dockWorkspace .dv-resize-handle-bottomright{width:24px!important;height:24px!important}
+#dockWorkspace .dv-tabs-and-actions-container{min-width:0}.studio-window-actions{flex-shrink:0}.studio-tool-tab{min-width:0;max-width:220px}.studio-tool-tab>span:not(.file-kind){overflow:hidden;text-overflow:ellipsis;min-width:0}.studio-tool-close{flex-shrink:0}
+.studio-window-essential{display:flex;flex-shrink:0}.studio-window-optional{display:flex;min-width:0;overflow:hidden}
+.studio-dock-preview{position:fixed;border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 20%,transparent);border-radius:4px;pointer-events:none;transition:left .08s,top .08s,width .08s,height .08s}
+.studio-window-dragging .dv-drag-ghost{display:none}
+
+#dockWorkspace .studio-narrow-window .studio-window-optional{display:none}#dockWorkspace .studio-narrow-window .studio-tool-close{display:none}#dockWorkspace .studio-narrow-window .studio-tool-tab{max-width:calc(100% - 2px)}
+#dockWorkspace .dv-tabs-container{min-width:0}#dockWorkspace .dv-right-actions-container{flex-shrink:0}#dockWorkspace .studio-window-essential .icon-button{flex-shrink:0}
+.studio-window-tabs button{min-width:160px;max-width:330px}.studio-window-tabs .selected{background:var(--accent-bg)}.studio-window-tabs button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dockWorkspace .dv-resize-handle-top,#dockWorkspace .dv-resize-handle-topleft,#dockWorkspace .dv-resize-handle-topright{display:none!important}

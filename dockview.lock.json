@@ -5,7 +5,7 @@
   "source": "https://registry.npmjs.org/dockview-core/-/dockview-core-8.3.1.tgz",
   "integrity": "sha512-6Loais9hlIRo25sTQSWGWlgbPr22ddoLBzpGDFaTnocawnC45twp5f2S2WxUz5/HPa/a65I4yxKUqZa8xrcc5Q==",
   "upstreamBundleSha256": "e5b0282d73a2e19f2eb51a3e7f031de38a1162f09f22ae0276644744aad91876",
-  "localPatch": "Keep normal mouse floating-titlebar movement separate from Shift+drag docking in pointer backend",
+  "localPatch": "Free pointer float moves; reusable resize listener; app event bridge for live Overlay.setBounds",
   "bundle": "app/src/main/assets/ui/vendor/dockview-core.js",
-  "sha256": "0786625e01bf3c1c6a5761c4ead9147a0e1c19f8b11c5ca4ca8b6fe6dd5ffef1"
+  "sha256": "e8e87488b9e3e45742305d53c0febd10731fd1e919387270e866bb3f8deae7c9"
 }

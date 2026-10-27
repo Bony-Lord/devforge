@@ -8,7 +8,7 @@ const workspaceMethods={
     onNative('keyboardGeometry',geometry=>{this.keyboardGeometry=geometry;requestAnimationFrame(()=>this.updateKeyboardOcclusion());});
     window.addEventListener('resize',()=>this.updateKeyboardOcclusion());
     const layout=this.settings.layout;document.body.classList.toggle('sidebar-hidden',!!layout.sidebarHidden);document.body.classList.toggle('panel-hidden',!!layout.panelHidden);
-    if(layout.split)this.splitEditor(layout.split,false);
+    // Dockview restores per-file splits; the old two-pane layout is migrated there.
     const persist=()=>{const scale=this.settings.uiScale/100;this.settings.layout={...this.settings.layout,sidebarWidth:$('#sidebar').getBoundingClientRect().width/scale,panelHeight:$('#panel').getBoundingClientRect().height/scale,sidebarHidden:document.body.classList.contains('sidebar-hidden'),panelHidden:document.body.classList.contains('panel-hidden')};this.saveWorkspaceSettings();};
     for(const id of ['sidebarResizer','panelResizer'])$('#'+id).addEventListener('studio-resize-end',persist);
     $('#resetLayout').onclick=()=>this.resetLayout();
@@ -18,7 +18,7 @@ const workspaceMethods={
   },
   toggleSide(name){const visible=innerWidth<=620?document.body.classList.contains('sidebar-mobile-open'):!document.body.classList.contains('sidebar-hidden');if(visible&&this.currentSide===name){document.body.classList.add('sidebar-hidden');document.body.classList.remove('sidebar-mobile-open');$$('.activity.active').forEach(b=>b.classList.remove('active'));this.settings.layout.sidebarHidden=true;this.layoutEditors();this.saveWorkspaceSettings();return;}if(name==='git')this.showGit().catch(safeError);else this.showSide(name);this.settings.layout.sidebarHidden=false;this.layoutEditors();this.saveWorkspaceSettings();},
   attachWorkspaceEditor(editor){
-    const container=editor===this.primaryEditor?$('#editor'):$('#secondaryEditor');
+    const container=editor.getDomNode();
     editor.onDidFocusEditorWidget(()=>{this.editor=editor;const model=editor.getModel(),doc=model&&this.docs.get(model.uri.toString());if(doc){this.active=doc;this.renderTabs();this.updateStandard();$('#breadcrumb').textContent=relative(doc.path,this.state.root).replaceAll('/','  ›  ');$('#readonlyBadge').classList.toggle('hidden',!doc.readonly);}});
     editor.onDidChangeCursorPosition(e=>{$('#cursorStatus').textContent=`Стр ${e.position.lineNumber}, стлб ${e.position.column}`;this.revealCaretAboveKeyboard(editor);});
     editor.onMouseDown(e=>{if(e.target.type===monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN&&e.target.position)this.debugger?.toggleBreakpoint(editor.getModel(),e.target.position.lineNumber);});
@@ -40,11 +40,11 @@ const workspaceMethods={
   },
   layoutEditors(){
     const ratio=this.settings.layout?.splitRatio||.5;document.documentElement.style.setProperty('--split-ratio',ratio);
-    requestAnimationFrame(()=>{this.primaryEditor?.layout();this.secondaryEditor?.layout();this.updateKeyboardOcclusion();});
+    requestAnimationFrame(()=>{for(const p of NativeEditing.panes.values())p.editor.layout();this.updateKeyboardOcclusion();});
   },
   updateKeyboardOcclusion(){
     const geometry=this.keyboardGeometry,bottom=innerHeight-(geometry?.visible?geometry.overlap:0);
-    for(const editor of [this.primaryEditor,this.secondaryEditor]){
+    for(const editor of [...NativeEditing.panes.values()].map(p=>p.editor)){
       const box=editor?.getDomNode()?.getBoundingClientRect();if(!box)continue;
       const hidden=Math.min(box.height,Math.max(0,box.bottom-bottom));
       editor.updateOptions({padding:{top:9,bottom:16+Math.ceil(hidden)}});
@@ -59,7 +59,7 @@ const workspaceMethods={
     if(box.top+caret.top+caret.height>bottom)editor.setScrollTop(editor.getScrollTop()+box.top+caret.top+caret.height-bottom);
   },
   setUIScale(value,persist=true){this.settings.uiScale=Math.max(65,Math.min(180,Math.round(value)));this.applyUIScale();if(persist)this.saveWorkspaceSettings();},
-  setCodeScale(value,persist=true){this.settings.codeScale=Math.max(50,Math.min(250,Number.isFinite(Number(value))?Number(value):100));const size=this.settings.fontSize*this.settings.codeScale/100;for(const editor of [this.primaryEditor,this.secondaryEditor])editor?.updateOptions({fontSize:size,lineHeight:Math.round(size*1.6)});$('#fontStatus').textContent=Math.round(this.settings.codeScale)+'%';$('#fontStatus').title=`Код: ${Math.round(this.settings.codeScale)}% · ${size.toFixed(1)} px`;if(persist)this.saveWorkspaceSettings();},
+  setCodeScale(value,persist=true){this.settings.codeScale=Math.max(50,Math.min(250,Number.isFinite(Number(value))?Number(value):100));const size=this.settings.fontSize*this.settings.codeScale/100;for(const editor of [...NativeEditing.panes.values()].map(p=>p.editor))editor?.updateOptions({fontSize:size,lineHeight:Math.round(size*1.6)});$('#fontStatus').textContent=Math.round(this.settings.codeScale)+'%';$('#fontStatus').title=`Код: ${Math.round(this.settings.codeScale)}% · ${size.toFixed(1)} px`;if(persist)this.saveWorkspaceSettings();},
   saveWorkspaceSettings(){clearTimeout(this.workspaceSaveTimer);this.workspaceSaveTimer=setTimeout(()=>native('settings',this.settings).catch(safeError),220);},
   splitEditor(direction,persist=true){
     const model=this.editor.getModel();
@@ -95,8 +95,8 @@ const workspaceMethods={
     else if(ctrl&&k==='d')fn=()=>this.action('editor.action.copyLinesDownAction');
     else if(ctrl&&k==='y')fn=()=>this.action('editor.action.deleteLines');
     else if(e.key==='Escape'&&!this.editor.hasTextFocus())fn=()=>this.editor.focus();
-    else if(ctrl&&k==='1')fn=()=>this.primaryEditor.focus();
-    else if(ctrl&&k==='2'&&this.secondaryEditor)fn=()=>this.secondaryEditor.focus();
+    else if(ctrl&&k==='1')fn=()=>this.windows?this.windows.focusEditor(0):this.primaryEditor.focus();
+    else if(ctrl&&k==='2'&&this.secondaryEditor)fn=()=>this.windows?this.windows.focusEditor(1):this.secondaryEditor.focus();
     if(fn){e.preventDefault();e.stopImmediatePropagation();Promise.resolve(fn()).catch(safeError);return true;}return false;
   },
   workspaceCommands(){return[

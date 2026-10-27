@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.forgex'
     compileSdk 35
-    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 28; versionCode 7; versionName '0.3.3'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 28; versionCode 8; versionName '0.3.4'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     testOptions { unitTests.returnDefaultValues = true }
     signingConfigs {

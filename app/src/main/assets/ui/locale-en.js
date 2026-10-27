@@ -1,5 +1,6 @@
 'use strict';
 window.STUDIO_EN={
+  'Редактор':'Editor','Окно':'Window','Группа':'Group','Экран':'Screen','Объединить вкладками':'Join as tabs',
   'Проект':'Project','Скрыть окно':'Hide window','Размещение окна':'Window placement','Плавающее окно':'Floating window','Привязать слева':'Dock left','Привязать справа':'Dock right','Привязать сверху':'Dock top','Привязать снизу':'Dock bottom','Плавающая клавиатура':'Floating keyboard','Системная клавиатура':'System keyboard',
   'Главное меню':'Main menu','Развернуть панель':'Maximize panel','Восстановить размер панели':'Restore panel size','Режим фокуса на коде':'Focus on code','Развернуть/восстановить нижнюю панель':'Maximize/restore bottom panel',
   'Файл':'File','Правка':'Edit','Код':'Code','Вид':'View','Настройки':'Settings','Сборка':'Build','Консоль':'Console','Терминал':'Terminal','Проблемы':'Problems','Отладка':'Debug','ПРОЕКТ':'PROJECT','ПОИСК ФАЙЛОВ':'FIND FILES','СТРУКТУРА':'STRUCTURE',
@@ -62,3 +63,13 @@ Object.assign(window.STUDIO_EN,{'Создать…':'New…','Переимено
 Object.assign(window.STUDIO_EN,{'Восстановление…':'Restoring…','Диагностика отзывчивости':'Responsiveness diagnostics','Длительных задержек в этой сессии не зафиксировано.':'No long delays have been recorded in this session.'});
 
 Object.assign(window.STUDIO_EN,{'Сочетания клавиш': 'Keyboard shortcuts', 'Автодополнение': 'Code completion', 'Подсказка параметров': 'Parameter information', 'Ctrl+Space оставлен системе для переключения раскладки.': 'Ctrl+Space is reserved for system keyboard layout switching.', 'Выберите разные сочетания для автодополнения и параметров': 'Choose different shortcuts for completion and parameter information'});
+
+Object.assign(window.STUDIO_EN,{"Окно": "Window", "Группа": "Group", "Экран": "Screen", "Объединить вкладками": "Join tabs", "Открыть файл": "Open file", "Основная клавиатура": "Primary keyboard", "Системная Android": "Android system", "Плавающая C++ Studio": "C++ Studio floating", "Раскладка плавающей клавиатуры": "Floating keyboard layout", "Полная PC": "Full PC", "Компактная Android": "Compact Android", "Модификаторы": "Modifiers", "Закреплять на следующее нажатие": "Latch for the next key", "Удерживать пальцем": "Hold with a finger", "Цифровой блок PC": "PC number pad", "Ширина клавиатуры PC": "PC keyboard width", "Высота клавиатуры PC": "PC keyboard height", "Ширина клавиатуры Android": "Android keyboard width", "Высота клавиатуры Android": "Android keyboard height", "В режиме закрепления модификатор действует на следующую клавишу. Двойное нажатие или удержание закрепляет его до повторного нажатия. Одновременное удержание нескольких клавиш работает в обоих режимах. Ctrl+Space меняет язык плавающей клавиатуры; Ctrl+Alt+Space вызывает автодополнение.": "In latch mode a modifier applies to the next key. Double tap or long press to lock it until tapped again. Holding several keys together works in both modes. Ctrl+Space changes the floating keyboard language; Ctrl+Alt+Space opens completion."});
+
+Object.assign(window.STUDIO_EN,{'Вкладки окна':'Window tabs','Обновить':'Refresh'});
+
+Object.assign(window.STUDIO_EN,{"Режим интерфейса": "Interface mode", "Оконный интерфейс": "Windowed interface", "Упрощённый — без оконника": "Simple — fixed layout", "Показывать мишени привязки": "Show docking targets", "Для привязки задержите окно у края примерно на треть секунды. Перенесите вкладку на заголовок другой группы для объединения; вытащите в свободное место для отделения. Смена режима сохраняет проекты и перезапускает интерфейс.": "Hold a window near an edge for about a third of a second to dock. Drag a tab to another group header to merge, or into free space to detach. Changing modes saves projects and restarts the interface."});
+
+Object.assign(window.STUDIO_EN,{'Отделить вкладку':'Detach tab'});
+
+Object.assign(window.STUDIO_EN,{'Место привязки':'Docking destination'});
