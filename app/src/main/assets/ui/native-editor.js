@@ -63,10 +63,10 @@ const NativeEditing={
   async sync(uri){for(const p of this.panes.values())if(!uri||p.editor.getModel()?.uri.toString()===uri)await p.opening;const pending=[...this.editTasks].filter(([key])=>!uri||key===uri);await Promise.all(pending.map(([,task])=>task));for(const[key,task]of pending)if(this.editTasks.get(key)===task)this.editTasks.delete(key);for(const s of await native('editorSnapshot',{uri,known:Object.fromEntries(this.revisions)}))this.snapshot(s);},
   queueLayout(){if(this.layoutQueued)return;this.layoutQueued=true;requestAnimationFrame(()=>{this.layoutQueued=false;this.layout();});},
   layout(){
-    const maximized=document.body.classList.contains('panel-maximized');
+    const maximized=window.forge?.windows?!window.forge.windows.api.getPanel('editor')?.api.isVisible:document.body.classList.contains('panel-maximized');
     const panes=[...this.panes.values()].filter(p=>!p.container.classList.contains('hidden')).map(p=>{const box=p.container.getBoundingClientRect();if(!maximized)p.layoutRect={id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};return p.layoutRect||{id:p.id,x:box.x,y:box.y,width:box.width,height:box.height};});
-    const visible=!maximized&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('sidebar-mobile-open');
-    const occlusions=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit,#menu:not(.hidden),.studio-inline-popover,.studio-hover-tip')].filter(e=>e.getClientRects().length).map(e=>{const b=e.getBoundingClientRect();return{x:b.x,y:b.y,width:b.width,height:b.height,paint:!e.classList.contains('studio-resize-hit'),touch:!e.classList.contains('studio-hover-tip')};});
+    const visible=!maximized&&!document.querySelector('dialog[open]')&&(!!window.forge?.windows||!document.body.classList.contains('sidebar-mobile-open'));
+    const occlusions=[...document.querySelectorAll('.studio-choice-popover,.studio-resize-hit,#menu:not(.hidden),.studio-inline-popover,.studio-hover-tip,.dv-resize-container,.dv-drop-target-selection,.dv-drag-ghost')].filter(e=>e.getClientRects().length).map(e=>{const b=e.getBoundingClientRect(),floating=e.classList.contains('dv-resize-container');return{x:b.x-(floating?7:0),y:b.y-(floating?7:0),width:b.width+(floating?14:0),height:b.height+(floating?14:0),paint:!e.classList.contains('studio-resize-hit'),touch:!e.classList.contains('studio-hover-tip'),popup:!floating};});
     return native('editorLayout',{panes,visible,occlusions,settings:window.forge?.settings||{language:StudioI18n.locale}}).catch(console.warn);
   },
   selection(e){

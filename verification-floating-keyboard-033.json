@@ -1,0 +1,762 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "scope": "Actual ADB taps and holds on native keyboard, Android IME replacement, native code editing and process restart",
+  "checks": [
+    {
+      "test": "Button on accessory strip replaces real Android IME with floating keyboard",
+      "passed": true,
+      "evidence": {
+        "toggleDescription": "Плавающая клавиатура",
+        "state": {
+          "enabled": true,
+          "shown": true,
+          "russian": false,
+          "shift": false,
+          "ctrl": false,
+          "alt": false,
+          "imeHeight": 0,
+          "x": 921,
+          "y": 593,
+          "width": 1229,
+          "height": 614,
+          "stripBounds": {
+            "description": "null",
+            "x": 934,
+            "y": 727,
+            "width": 1203,
+            "height": 89
+          }
+        }
+      }
+    },
+    {
+      "test": "Native keyboard types std without autocorrection or capitalization",
+      "passed": true,
+      "evidence": "std "
+    },
+    {
+      "test": "Shift affects one letter and then releases",
+      "passed": true,
+      "evidence": "std Ab"
+    },
+    {
+      "test": "Russian layout includes full Cyrillic input including yo",
+      "passed": true,
+      "evidence": "std Abприветё"
+    },
+    {
+      "test": "Brace pair plus Enter uses native smart indentation",
+      "passed": true,
+      "evidence": "{\n    \n}"
+    },
+    {
+      "test": "Tab on retained accessory strip advances to next four-column stop",
+      "passed": true,
+      "evidence": "abc "
+    },
+    {
+      "test": "Holding Backspace repeatedly erases text",
+      "passed": true,
+      "evidence": {
+        "lengthAfter": 51
+      }
+    },
+    {
+      "test": "Select all, copy and paste stay integrated with native buffer",
+      "passed": true,
+      "evidence": {
+        "text": "copy_mecopy_me",
+        "caretBeforePaste": {
+          "line": 1,
+          "column": 8,
+          "start": 7,
+          "end": 7,
+          "showing": false,
+          "selected": -1,
+          "count": 0,
+          "first": 0,
+          "last": 4,
+          "requests": 15,
+          "reveals": 3
+        }
+      }
+    },
+    {
+      "test": "Floating Ctrl Alt Space routes completion and clears modifiers",
+      "passed": true,
+      "evidence": {
+        "ctrl": false,
+        "alt": false
+      }
+    },
+    {
+      "test": "Dragging keyboard handle moves it",
+      "passed": true,
+      "evidence": {
+        "before": [
+          921,
+          593
+        ],
+        "after": [
+          759,
+          491
+        ]
+      }
+    },
+    {
+      "test": "Keyboard resize grip changes width and height",
+      "passed": true,
+      "evidence": {
+        "before": [
+          1229,
+          614
+        ],
+        "after": [
+          1077,
+          548
+        ]
+      }
+    },
+    {
+      "test": "Close hides keyboard without changing preferred mode",
+      "passed": true,
+      "evidence": {
+        "enabled": true,
+        "shown": false,
+        "russian": false,
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "imeHeight": 0,
+        "x": 759,
+        "y": 491,
+        "width": 1077,
+        "height": 548,
+        "keys": [
+          {
+            "action": "1",
+            "description": "1",
+            "x": 776,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "2",
+            "description": "2",
+            "x": 881,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "3",
+            "description": "3",
+            "x": 986,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "4",
+            "description": "4",
+            "x": 1091,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "5",
+            "description": "5",
+            "x": 1196,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "6",
+            "description": "6",
+            "x": 1301,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "7",
+            "description": "7",
+            "x": 1406,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "8",
+            "description": "8",
+            "x": 1511,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "9",
+            "description": "9",
+            "x": 1616,
+            "y": 718,
+            "width": 97,
+            "height": 66
+          },
+          {
+            "action": "0",
+            "description": "0",
+            "x": 1721,
+            "y": 718,
+            "width": 98,
+            "height": 66
+          },
+          {
+            "action": "q",
+            "description": "q",
+            "x": 776,
+            "y": 792,
+            "width": 79,
+            "height": 66
+          },
+          {
+            "action": "w",
+            "description": "w",
+            "x": 863,
+            "y": 792,
+            "width": 79,
+            "height": 66
+          },
+          {
+            "action": "e",
+            "description": "e",
+            "x": 950,
+            "y": 792,
+            "width": 79,
+            "height": 66
+          },
+          {
+            "action": "r",
+            "description": "r",
+            "x": 1037,
+            "y": 792,
+            "width": 79,
+            "height": 66
+          },
+          {
+            "action": "t",
+            "description": "t",
+            "x": 1124,
+            "y": 792,
+            "width": 79,
+            "height": 66
+          },
+          {
+            "action": "y",
+            "description": "y",
+            "x": 1211,
+            "y": 792,
+            "width": 80,
+            "height": 66
+          },
+          {
+            "action": "u",
+            "description": "u",
+            "x": 1299,
+            "y": 792,
+            "width": 80,
+            "height": 66
+          },
+          {
+            "action": "i",
+            "description": "i",
+            "x": 1387,
+            "y": 792,
+            "width": 80,
+            "height": 66
+          },
+          {
+            "action": "o",
+            "description": "o",
+            "x": 1475,
+            "y": 792,
+            "width": 80,
+            "height": 66
+          },
+          {
+            "action": "p",
+            "description": "p",
+            "x": 1563,
+            "y": 792,
+            "width": 80,
+            "height": 66
+          },
+          {
+            "action": "[",
+            "description": "[",
+            "x": 1651,
+            "y": 792,
+            "width": 80,
+            "height": 66
+          },
+          {
+            "action": "]",
+            "description": "]",
+            "x": 1739,
+            "y": 792,
+            "width": 80,
+            "height": 66
+          },
+          {
+            "action": "a",
+            "description": "a",
+            "x": 776,
+            "y": 866,
+            "width": 87,
+            "height": 66
+          },
+          {
+            "action": "s",
+            "description": "s",
+            "x": 871,
+            "y": 866,
+            "width": 87,
+            "height": 66
+          },
+          {
+            "action": "d",
+            "description": "d",
+            "x": 966,
+            "y": 866,
+            "width": 87,
+            "height": 66
+          },
+          {
+            "action": "f",
+            "description": "f",
+            "x": 1061,
+            "y": 866,
+            "width": 87,
+            "height": 66
+          },
+          {
+            "action": "g",
+            "description": "g",
+            "x": 1156,
+            "y": 866,
+            "width": 87,
+            "height": 66
+          },
+          {
+            "action": "h",
+            "description": "h",
+            "x": 1251,
+            "y": 866,
+            "width": 88,
+            "height": 66
+          },
+          {
+            "action": "j",
+            "description": "j",
+            "x": 1347,
+            "y": 866,
+            "width": 88,
+            "height": 66
+          },
+          {
+            "action": "k",
+            "description": "k",
+            "x": 1443,
+            "y": 866,
+            "width": 88,
+            "height": 66
+          },
+          {
+            "action": "l",
+            "description": "l",
+            "x": 1539,
+            "y": 866,
+            "width": 88,
+            "height": 66
+          },
+          {
+            "action": ";",
+            "description": ";",
+            "x": 1635,
+            "y": 866,
+            "width": 88,
+            "height": 66
+          },
+          {
+            "action": "'",
+            "description": "'",
+            "x": 1731,
+            "y": 866,
+            "width": 88,
+            "height": 66
+          },
+          {
+            "action": "shift",
+            "description": "shift",
+            "x": 776,
+            "y": 940,
+            "width": 101,
+            "height": 67
+          },
+          {
+            "action": "z",
+            "description": "z",
+            "x": 885,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": "x",
+            "description": "x",
+            "x": 968,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": "c",
+            "description": "c",
+            "x": 1051,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": "v",
+            "description": "v",
+            "x": 1134,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": "b",
+            "description": "b",
+            "x": 1217,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": "n",
+            "description": "n",
+            "x": 1300,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": "m",
+            "description": "m",
+            "x": 1383,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": ",",
+            "description": ",",
+            "x": 1466,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": ".",
+            "description": ".",
+            "x": 1549,
+            "y": 940,
+            "width": 75,
+            "height": 67
+          },
+          {
+            "action": "/",
+            "description": "/",
+            "x": 1632,
+            "y": 940,
+            "width": 76,
+            "height": 67
+          },
+          {
+            "action": "backspace",
+            "description": "Удалить слева",
+            "x": 1716,
+            "y": 940,
+            "width": 102,
+            "height": 67
+          },
+          {
+            "action": "language",
+            "description": "EN",
+            "x": 776,
+            "y": 1015,
+            "width": 109,
+            "height": 67
+          },
+          {
+            "action": "symbols",
+            "description": "?123",
+            "x": 893,
+            "y": 1015,
+            "width": 119,
+            "height": 67
+          },
+          {
+            "action": "ctrl",
+            "description": "Ctrl",
+            "x": 1020,
+            "y": 1015,
+            "width": 109,
+            "height": 67
+          },
+          {
+            "action": "alt",
+            "description": "Alt",
+            "x": 1137,
+            "y": 1015,
+            "width": 98,
+            "height": 67
+          },
+          {
+            "action": "space",
+            "description": "Пробел",
+            "x": 1243,
+            "y": 1015,
+            "width": 436,
+            "height": 67
+          },
+          {
+            "action": "enter",
+            "description": "Новая строка",
+            "x": 1687,
+            "y": 1015,
+            "width": 132,
+            "height": 67
+          }
+        ],
+        "controls": [
+          {
+            "action": "move",
+            "description": "Переместить клавиатуру",
+            "x": 772,
+            "y": 557,
+            "width": 907,
+            "height": 68
+          },
+          {
+            "action": "system",
+            "description": "Системная клавиатура",
+            "x": 1679,
+            "y": 559,
+            "width": 72,
+            "height": 64
+          },
+          {
+            "action": "close",
+            "description": "Скрыть клавиатуру",
+            "x": 1751,
+            "y": 559,
+            "width": 72,
+            "height": 64
+          },
+          {
+            "action": "resize",
+            "description": "Изменить размер клавиатуры",
+            "x": 1785,
+            "y": 1048,
+            "width": 51,
+            "height": 51
+          }
+        ],
+        "strip": [
+          {
+            "action": "floatingKeyboard",
+            "description": "Системная клавиатура",
+            "x": 377,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "tab",
+            "description": "tab",
+            "x": 471,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "left",
+            "description": "left",
+            "x": 565,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "down",
+            "description": "down",
+            "x": 659,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "up",
+            "description": "up",
+            "x": 753,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "right",
+            "description": "right",
+            "x": 847,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "{}",
+            "description": "{}",
+            "x": 941,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "()",
+            "description": "()",
+            "x": 1035,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "[]",
+            "description": "[]",
+            "x": 1129,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": ";",
+            "description": ";",
+            "x": 1223,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "\"",
+            "description": "\"",
+            "x": 1317,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "&",
+            "description": "&",
+            "x": 1411,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "*",
+            "description": "*",
+            "x": 1505,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "undo",
+            "description": "undo",
+            "x": 1599,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "redo",
+            "description": "redo",
+            "x": 1693,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "copy",
+            "description": "copy",
+            "x": 1787,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          },
+          {
+            "action": "paste",
+            "description": "paste",
+            "x": 1881,
+            "y": 625,
+            "width": 94,
+            "height": 89
+          }
+        ],
+        "stripBounds": {
+          "description": "null",
+          "x": 772,
+          "y": 625,
+          "width": 1051,
+          "height": 89
+        }
+      }
+    },
+    {
+      "test": "Editor keyboard button reopens floating mode",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Modal settings hide floating keys until dialog closes",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Cold launch remembers floating mode and keyboard dimensions",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "width": 1077,
+          "height": 548,
+          "x": 759,
+          "y": 491
+        },
+        "after": {
+          "width": 1077,
+          "height": 548,
+          "x": 759,
+          "y": 491
+        }
+      }
+    },
+    {
+      "test": "Return button restores system keyboard",
+      "passed": true,
+      "evidence": true
+    }
+  ],
+  "passed": 16,
+  "total": 16
+}

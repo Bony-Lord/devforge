@@ -6,6 +6,7 @@
 | Sora Editor 0.24.4 | LGPL-2.1-or-later, [Rosemoe](https://github.com/Rosemoe/sora-editor/tree/0.24.4); нативный редактор, без изменений исходников библиотеки |
 | Lucide icons | ISC; часть иконок унаследована от Feather/MIT. Точный commit и SHA256 — `icons.lock.json` |
 | yaml 2.9.1 | ISC, точная версия и integrity — `frontend-vendor.lock.json` |
+| dockview-core 8.3.1 | MIT, [Dockview](https://github.com/dockview/dockview); точный пакет и SHA256 — `dockview.lock.json`. Свободный core, без dockview-enterprise. Локальная правка устраняет конфликт перемещения плавающего заголовка мышью с pointer-docking; повторяется через `tools/vendor_dockview.py` |
 | Kotlin standard library / AndroidX Collection / AndroidX Annotation | Apache-2.0, зависимости Sora; версии фиксируются его Maven POM |
 | LLVM, Clang, clangd, libc++ | Apache-2.0 с LLVM exceptions и NCSA; см. точные notices в `licenses/native/` |
 | Визуализаторы GDB libc++ 21.1.8 | Apache-2.0 WITH LLVM-exception, [LLVM libcxx/utils/gdb](https://github.com/llvm/llvm-project/tree/llvmorg-21.1.8/libcxx/utils/gdb); исходник и SHA256 — `debug-printers.lock.json` |

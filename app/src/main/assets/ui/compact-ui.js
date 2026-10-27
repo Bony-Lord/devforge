@@ -15,6 +15,7 @@ const compactMethods={
     $('#tabs').addEventListener('dblclick',event=>{if(event.target.closest('.tab')&&!event.target.closest('.tab-close'))this.toggleFocusMode();});
     $('.panel-heading').addEventListener('dblclick',event=>{if(!event.target.closest('button'))this.maximizePanel();});
     this.initDialogDismiss();
+    this.initTouchTips();
   },
   toggleMainMenu(show=$('#mainMenus').classList.contains('hidden')){
     if(show===!$('#mainMenus').classList.contains('hidden'))return;
@@ -28,6 +29,16 @@ const compactMethods={
     document.addEventListener('pointerdown',event=>{const dialog=event.target.closest?.('dialog[open]');press=dialog&&event.button===0&&outside(dialog,event)?{dialog,id:event.pointerId,x:event.clientX,y:event.clientY}:null;},true);
     document.addEventListener('pointerup',event=>{const p=press;press=null;if(p&&p.id===event.pointerId&&p.dialog.open&&outside(p.dialog,event)&&Math.hypot(event.clientX-p.x,event.clientY-p.y)<8){event.preventDefault();event.stopImmediatePropagation();p.dialog.close('cancel');}},true);
     document.addEventListener('pointercancel',()=>{press=null;},true);
+  },
+  initTouchTips(){
+    let press=null,suppress=null;
+    const clear=()=>{if(press)clearTimeout(press.timer);press=null;};
+    document.addEventListener('pointerdown',event=>{clear();if(event.pointerType!=='touch')return;const target=event.target.closest('.studio-toolbar-action,.activity,#formatButton,#formatterSettingsButton');if(!target||target.disabled||(!target.title&&!target.dataset.studioTooltip))return;press={target,id:event.pointerId,x:event.clientX,y:event.clientY,shown:false};const item=press;item.timer=setTimeout(()=>{if(press!==item)return;StudioHover.hide();StudioHover.target=target;StudioHover.original=target.title||target.dataset.studioTooltip;StudioHover.x=item.x;StudioHover.y=item.y;StudioHover.show();item.shown=true;},600);},true);
+    document.addEventListener('pointermove',event=>{if(press&&press.id===event.pointerId&&Math.hypot(event.clientX-press.x,event.clientY-press.y)>8){clear();StudioHover.hide();}},true);
+    document.addEventListener('pointerup',event=>{if(press?.id!==event.pointerId)return;if(press.shown){suppress={target:press.target,until:performance.now()+800};event.preventDefault();setTimeout(()=>StudioHover.hide(),1300);}clear();},true);
+    document.addEventListener('pointercancel',()=>{clear();StudioHover.hide();},true);
+    document.addEventListener('click',event=>{if(suppress&&performance.now()<suppress.until&&suppress.target.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}suppress=null;},true);
+    document.addEventListener('contextmenu',event=>{if(press?.shown){event.preventDefault();event.stopImmediatePropagation();}},true);
   },
   updatePanelMaximize(){
     const button=$('#maximizePanel'),max=document.body.classList.contains('panel-maximized');if(!button)return;
@@ -44,9 +55,12 @@ const compactMethods={
     if(document.querySelector('dialog[open]')||event.target?.closest?.('input,textarea,[contenteditable=true]'))return false;
     let action;
     if(event.ctrlKey&&event.shiftKey&&event.key==='F12')action=()=>this.toggleFocusMode();
+    else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='j'&&this.windows)action=()=>this.windows.toggle(this.currentPanel||'console');
+    else if(event.altKey&&!event.ctrlKey&&this.windows&&({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key])action=()=>this.windows.toggle(({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key]);
     else if(event.key==='Escape'&&$('#mainMenuToggle').getAttribute('aria-expanded')==='true')action=()=>{this.toggleMainMenu(false);this.editor.focus();};
+    else if(event.key==='Escape'&&this.windows?.api.hasMaximizedGroup())action=()=>this.windows.restoreMaximized();
     else if(event.key==='Escape'&&document.body.classList.contains('panel-maximized'))action=()=>this.maximizePanel(false);
-    else if(event.shiftKey&&event.key==='Escape')action=()=>{this.togglePanel(false);this.editor.focus();};
+    else if(event.shiftKey&&event.key==='Escape')action=()=>{if(this.windows){const id=this.windows.api.activePanel?.id;if(id&&id!=='editor')this.windows.hide(id);else this.togglePanel(false);}else this.togglePanel(false);this.editor.focus();};
     if(!action)return false;event.preventDefault();event.stopImmediatePropagation();action();return true;
   }
 };

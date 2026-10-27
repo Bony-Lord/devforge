@@ -1,0 +1,434 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "scope": "Real on-device CDP mouse/touch gestures plus native overlay state and process restart",
+  "checks": [
+    {
+      "test": "Console spans workbench below project; tool tabs have distinct vector icons",
+      "passed": true,
+      "evidence": {
+        "console": {
+          "x": 40,
+          "y": 579.1985473632812,
+          "width": 1315,
+          "height": 198.8014678955078,
+          "top": 579.1985473632812,
+          "right": 1355,
+          "bottom": 778.0000152587891,
+          "left": 40
+        },
+        "project": {
+          "x": 40,
+          "y": 72,
+          "width": 219,
+          "height": 473.1985168457031,
+          "top": 72,
+          "right": 259,
+          "bottom": 545.1985168457031,
+          "left": 40
+        },
+        "work": {
+          "x": 40,
+          "y": 42,
+          "width": 1315.2940673828125,
+          "height": 735.8235473632812,
+          "top": 42,
+          "right": 1355.2940673828125,
+          "bottom": 777.8235473632812,
+          "left": 40
+        },
+        "icons": true
+      }
+    },
+    {
+      "test": "Second click on left Console icon hides that window",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Console icon restores output without recreating its data",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Left project icon also hides project manager",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Search rail opens its own populated window",
+      "passed": true,
+      "evidence": {
+        "visible": true,
+        "files": 4
+      }
+    },
+    {
+      "test": "Console docks right of code",
+      "passed": true,
+      "evidence": {
+        "c": {
+          "x": 810.6617431640625,
+          "y": 72,
+          "width": 544.3308715820312,
+          "height": 198.8014678955078,
+          "top": 72,
+          "right": 1354.9926147460938,
+          "bottom": 270.8014678955078,
+          "left": 810.6617431640625
+        },
+        "e": {
+          "x": 262.3235168457031,
+          "y": 107,
+          "width": 544.3308715820312,
+          "height": 163.8014678955078,
+          "top": 107,
+          "right": 806.6543884277344,
+          "bottom": 270.8014678955078,
+          "left": 262.3235168457031
+        }
+      }
+    },
+    {
+      "test": "Console docks top",
+      "passed": true,
+      "evidence": {
+        "c": {
+          "x": 701,
+          "y": 72,
+          "width": 654,
+          "height": 82.80146789550781,
+          "top": 72,
+          "right": 1355,
+          "bottom": 154.8014678955078,
+          "left": 701
+        },
+        "e": {
+          "x": 701,
+          "y": 223.8014678955078,
+          "width": 654,
+          "height": 80,
+          "top": 223.8014678955078,
+          "right": 1355,
+          "bottom": 303.8014678955078,
+          "left": 701
+        }
+      }
+    },
+    {
+      "test": "Console docks left",
+      "passed": true,
+      "evidence": {
+        "c": {
+          "x": 700.3308715820312,
+          "y": 72,
+          "width": 325.33087158203125,
+          "height": 198.8014678955078,
+          "top": 72,
+          "right": 1025.6617431640625,
+          "bottom": 270.8014678955078,
+          "left": 700.3308715820312
+        },
+        "e": {
+          "x": 1029.6617431640625,
+          "y": 107,
+          "width": 325.33087158203125,
+          "height": 163.8014678955078,
+          "top": 107,
+          "right": 1354.9926147460938,
+          "bottom": 270.8014678955078,
+          "left": 1029.6617431640625
+        }
+      }
+    },
+    {
+      "test": "Console docks bottom",
+      "passed": true,
+      "evidence": {
+        "c": {
+          "x": 40,
+          "y": 564.6617431640625,
+          "width": 1315,
+          "height": 213.3308868408203,
+          "top": 564.6617431640625,
+          "right": 1355,
+          "bottom": 777.9926300048828,
+          "left": 40
+        },
+        "e": {
+          "x": 699,
+          "y": 107,
+          "width": 656,
+          "height": 177.3308868408203,
+          "top": 107,
+          "right": 1355,
+          "bottom": 284.3308868408203,
+          "left": 699
+        }
+      }
+    },
+    {
+      "test": "Floating console cuts out native code and leaves editor visible",
+      "passed": true,
+      "evidence": {
+        "location": {
+          "type": "floating"
+        },
+        "native": {
+          "indent": 4,
+          "tabWidth": 4,
+          "sideIcons": true,
+          "textOffset": 108.712494,
+          "guides": 1,
+          "guideColor": 894325079,
+          "previewRatio": 1,
+          "preview": false,
+          "accessory": {
+            "visible": false,
+            "left": 0,
+            "top": 0,
+            "width": 0,
+            "height": 0
+          },
+          "diagnosticPopup": false,
+          "offsetX": 0,
+          "offsetY": 0,
+          "fontPx": 38.675,
+          "layoutFontPx": 29.75,
+          "rowHeight": 50.699997,
+          "layoutRowHeight": 39,
+          "left": 1485,
+          "top": 227,
+          "viewScaleX": 1.3,
+          "viewScaleY": 1.3,
+          "maxX": 0,
+          "layoutWidth": 397.8,
+          "visible": true,
+          "width": 1394,
+          "height": 640,
+          "innerWidth": 1072,
+          "innerHeight": 492,
+          "occlusions": [
+            {
+              "x": 296.058837890625,
+              "y": 167.44117736816406,
+              "width": 534,
+              "height": 354,
+              "paint": true,
+              "touch": true,
+              "popup": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "test": "Mouse drags floating titlebar",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 303.058837890625,
+          "y": 174.44117736816406,
+          "width": 520,
+          "height": 340,
+          "top": 174.44117736816406,
+          "right": 823.058837890625,
+          "bottom": 514.4411773681641,
+          "left": 303.058837890625
+        },
+        "after": {
+          "x": 394.7205810546875,
+          "y": 220.27206420898438,
+          "width": 520,
+          "height": 340,
+          "top": 220.27206420898438,
+          "right": 914.7205810546875,
+          "bottom": 560.2720642089844,
+          "left": 394.7205810546875
+        }
+      }
+    },
+    {
+      "test": "Finger drags floating titlebar",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 394.7205810546875,
+          "y": 220.27206420898438,
+          "width": 520,
+          "height": 340,
+          "top": 220.27206420898438,
+          "right": 914.7205810546875,
+          "bottom": 560.2720642089844,
+          "left": 394.7205810546875
+        },
+        "after": {
+          "x": 330.5514831542969,
+          "y": 201.93382263183594,
+          "width": 520,
+          "height": 340,
+          "top": 201.93382263183594,
+          "right": 850.5514831542969,
+          "bottom": 541.9338226318359,
+          "left": 330.5514831542969
+        }
+      }
+    },
+    {
+      "test": "Floating edge resizes the window",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "x": 330.5514831542969,
+          "y": 201.93382263183594,
+          "width": 520,
+          "height": 340,
+          "top": 201.93382263183594,
+          "right": 850.5514831542969,
+          "bottom": 541.9338226318359,
+          "left": 330.5514831542969
+        },
+        "after": {
+          "x": 338.2720642089844,
+          "y": 201.93382263183594,
+          "width": 593.3308715820312,
+          "height": 340,
+          "top": 201.93382263183594,
+          "right": 931.6029357910156,
+          "bottom": 541.9338226318359,
+          "left": 338.2720642089844
+        }
+      }
+    },
+    {
+      "test": "Dragging a floating Console tab docks it at code edge",
+      "passed": true,
+      "evidence": {
+        "location": {
+          "type": "grid"
+        },
+        "c": {
+          "x": 1028.6617431640625,
+          "y": 72,
+          "width": 326.33087158203125,
+          "height": 336,
+          "top": 72,
+          "right": 1354.9926147460938,
+          "bottom": 408,
+          "left": 1028.6617431640625
+        },
+        "e": {
+          "x": 698.3308715820312,
+          "y": 107,
+          "width": 326.33087158203125,
+          "height": 301,
+          "top": 107,
+          "right": 1024.6617431640625,
+          "bottom": 408,
+          "left": 698.3308715820312
+        }
+      }
+    },
+    {
+      "test": "Cold start restores panels and floating bounds",
+      "passed": true,
+      "evidence": {
+        "before": {
+          "location": {
+            "type": "floating"
+          },
+          "box": {
+            "x": 303.058837890625,
+            "y": 174.44117736816406,
+            "width": 520,
+            "height": 340,
+            "top": 174.44117736816406,
+            "right": 823.058837890625,
+            "bottom": 514.4411773681641,
+            "left": 303.058837890625
+          },
+          "panels": [
+            "build",
+            "console",
+            "debug",
+            "editor",
+            "problems",
+            "project",
+            "terminal"
+          ]
+        },
+        "after": {
+          "location": {
+            "type": "floating"
+          },
+          "box": {
+            "x": 303.058837890625,
+            "y": 174.43382263183594,
+            "width": 520,
+            "height": 340,
+            "top": 174.43382263183594,
+            "right": 823.058837890625,
+            "bottom": 514.4338226318359,
+            "left": 303.058837890625
+          },
+          "panels": [
+            "build",
+            "console",
+            "debug",
+            "editor",
+            "problems",
+            "project",
+            "terminal"
+          ]
+        }
+      }
+    },
+    {
+      "test": "Maximizing console hides native editor",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Closing and reopening retains floating mode",
+      "passed": true,
+      "evidence": {
+        "location": {
+          "type": "floating"
+        },
+        "text": ""
+      }
+    },
+    {
+      "test": "Focus mode leaves only code panel",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Focus mode restores entire window layout",
+      "passed": true,
+      "evidence": [
+        "build",
+        "console",
+        "debug",
+        "editor",
+        "problems",
+        "project",
+        "terminal"
+      ]
+    },
+    {
+      "test": "Independent tool windows can coexist in different positions",
+      "passed": true,
+      "evidence": {
+        "console": {
+          "type": "floating"
+        },
+        "terminal": {
+          "type": "grid"
+        },
+        "project": true
+      }
+    }
+  ],
+  "passed": 20,
+  "total": 20
+}

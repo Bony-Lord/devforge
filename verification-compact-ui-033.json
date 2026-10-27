@@ -8,10 +8,10 @@
       "evidence": {
         "header": 42,
         "toolbarInside": true,
-        "panelWidth": 1355.2940673828125,
-        "viewport": 1355,
-        "sidebarBottom": 541.0220642089844,
-        "panelTop": 547.0220336914062,
+        "panelWidth": 1315,
+        "viewport": 1315.2940673828125,
+        "sidebarBottom": 546,
+        "panelTop": 580,
         "icons": true
       }
     },
@@ -22,14 +22,14 @@
         "menu": true,
         "toolbar": true,
         "editor": {
-          "x": 267.41912841796875,
+          "x": 262,
           "y": 107,
-          "width": 1087.875,
-          "height": 434.0220642089844,
+          "width": 1093,
+          "height": 439,
           "top": 107,
-          "right": 1355.2941284179688,
-          "bottom": 541.0220642089844,
-          "left": 267.41912841796875
+          "right": 1355,
+          "bottom": 546,
+          "left": 262
         }
       }
     },
@@ -77,7 +77,7 @@
       "test": "Maximized bottom dock hides native editor and fills workspace",
       "passed": true,
       "evidence": {
-        "height": 735.8235473632812,
+        "height": 706,
         "available": 735.8235473632812
       }
     },
@@ -109,35 +109,18 @@
             "layoutFontPx": 29.75,
             "rowHeight": 39,
             "layoutRowHeight": 39,
-            "left": 568,
+            "left": 557,
             "top": 227,
             "viewScaleX": 1,
             "viewScaleY": 1,
             "maxX": 0,
-            "layoutWidth": 595,
+            "layoutWidth": 510,
             "visible": true,
-            "width": 2312,
-            "height": 922,
-            "innerWidth": 2312,
-            "innerHeight": 922,
-            "occlusions": [
-              {
-                "x": 254.4191131591797,
-                "y": 42,
-                "width": 20,
-                "height": 499.0220642089844,
-                "paint": false,
-                "touch": true
-              },
-              {
-                "x": 0,
-                "y": 534.0220336914062,
-                "width": 1355.2940673828125,
-                "height": 20,
-                "paint": false,
-                "touch": true
-              }
-            ]
+            "width": 2323,
+            "height": 933,
+            "innerWidth": 2323,
+            "innerHeight": 933,
+            "occlusions": []
           },
           "selection": {
             "startLineNumber": 3,
@@ -174,35 +157,18 @@
             "layoutFontPx": 29.75,
             "rowHeight": 39,
             "layoutRowHeight": 39,
-            "left": 568,
+            "left": 557,
             "top": 227,
             "viewScaleX": 1,
             "viewScaleY": 1,
             "maxX": 0,
-            "layoutWidth": 595,
+            "layoutWidth": 510,
             "visible": true,
-            "width": 2312,
+            "width": 2323,
             "height": 612,
-            "innerWidth": 2312,
+            "innerWidth": 2323,
             "innerHeight": 612,
-            "occlusions": [
-              {
-                "x": 254.4191131591797,
-                "y": 42,
-                "width": 20,
-                "height": 499.0220642089844,
-                "paint": false,
-                "touch": true
-              },
-              {
-                "x": 0,
-                "y": 534.0220336914062,
-                "width": 1355.2940673828125,
-                "height": 20,
-                "paint": false,
-                "touch": true
-              }
-            ]
+            "occlusions": []
           },
           "selection": {
             "startLineNumber": 3,
@@ -254,6 +220,14 @@
       "test": "Mouse hover on icon exposes action and shortcut",
       "passed": true,
       "evidence": "Собрать · F9"
+    },
+    {
+      "test": "Long touch reveals icon tooltip without starting a build",
+      "passed": true,
+      "evidence": {
+        "tip": "Собрать · F9",
+        "busy": false
+      }
     },
     {
       "test": "Actual native diagnostics and grey unused spans before formatting",
@@ -413,8 +387,8 @@
       "test": "Full-width dock and single header at UI scale 65%",
       "passed": true,
       "evidence": {
-        "panelWidth": 1355.2940673828125,
-        "width": 1355,
+        "panelWidth": 1329,
+        "width": 1329.2940673828125,
         "header": 27.294116973876953,
         "expected": 27.3,
         "overflow": false
@@ -424,8 +398,8 @@
       "test": "Full-width dock and single header at UI scale 100%",
       "passed": true,
       "evidence": {
-        "panelWidth": 1355.2940673828125,
-        "width": 1355,
+        "panelWidth": 1315,
+        "width": 1315.2940673828125,
         "header": 42,
         "expected": 42,
         "overflow": false
@@ -435,14 +409,14 @@
       "test": "Full-width dock and single header at UI scale 150%",
       "passed": true,
       "evidence": {
-        "panelWidth": 1355.2940673828125,
-        "width": 1355,
+        "panelWidth": 1295,
+        "width": 1295.2940673828125,
         "header": 63,
         "expected": 63,
         "overflow": false
       }
     }
   ],
-  "passed": 31,
-  "total": 31
+  "passed": 32,
+  "total": 32
 }

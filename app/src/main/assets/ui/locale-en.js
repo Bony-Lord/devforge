@@ -1,5 +1,6 @@
 'use strict';
 window.STUDIO_EN={
+  'Проект':'Project','Скрыть окно':'Hide window','Размещение окна':'Window placement','Плавающее окно':'Floating window','Привязать слева':'Dock left','Привязать справа':'Dock right','Привязать сверху':'Dock top','Привязать снизу':'Dock bottom','Плавающая клавиатура':'Floating keyboard','Системная клавиатура':'System keyboard',
   'Главное меню':'Main menu','Развернуть панель':'Maximize panel','Восстановить размер панели':'Restore panel size','Режим фокуса на коде':'Focus on code','Развернуть/восстановить нижнюю панель':'Maximize/restore bottom panel',
   'Файл':'File','Правка':'Edit','Код':'Code','Вид':'View','Настройки':'Settings','Сборка':'Build','Консоль':'Console','Терминал':'Terminal','Проблемы':'Problems','Отладка':'Debug','ПРОЕКТ':'PROJECT','ПОИСК ФАЙЛОВ':'FIND FILES','СТРУКТУРА':'STRUCTURE',
   'Создать проект':'New project','Создать файл':'New file','Создать папку':'New folder','Открыть файл':'Open file','Открыть':'Open','Сохранить все файлы':'Save all files','Сохранено':'Saved','Сохранение…':'Saving…','Не сохранено':'Unsaved','Открыть папку устройства':'Open folder on device','Обновить CMake':'Reload CMake','Добавить файл в CMake':'Add file to CMake','Настроить форматтер':'Code style settings','Открыть .clang-format':'Open .clang-format',

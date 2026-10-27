@@ -1,0 +1,21 @@
+{
+  "device": "Xiaomi Pad 6 / Android 14",
+  "checks": [
+    {
+      "test": "Actual GCC build and run retain floating console and correct output",
+      "passed": true,
+      "evidence": {
+        "output": "C++ Studio windows: 42\n\nПроцесс завершён · код 0\n",
+        "build": "/data/user/0/com.forgex/files/usr/bin/g++-15 -std=c++20 -Wall -Wextra -Wpedantic -Wshadow -Wunused -I/data/user/0/com.forgex/files/projects/input-check-compact-20261027 -I/data/user/0/com.forgex/files/usr/include/forge -nostdinc++ -isystem /data/user/0/com.forgex/files/usr/include/c++/v1 -O0 -g -fdiagnostics-color=never -Wl,-rpath,/data/user/0/com.forgex/files/usr/lib /data/user/0/com.forgex/files/projects/input-check-compact-20261027/main.cpp -o /data/user/0/com.forgex/files/projects/input-check-compact-20261027/.forge/bin/program\n\nСборка завершена · 2.31 с · код 0\n",
+        "running": false,
+        "busy": false,
+        "console": {
+          "type": "floating"
+        },
+        "visible": true
+      }
+    }
+  ],
+  "passed": 1,
+  "total": 1
+}

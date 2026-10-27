@@ -40,12 +40,14 @@ final class NativeEditorHost {
     Pane active;
     JSONObject settings=new JSONObject();
     HorizontalScrollView accessory;
+    View floatingKeyboardButton;
+    final FloatingCodeKeyboard floatingKeyboard;
     boolean visible=true,applying=false;
     int previousImeHeight;
     JSONArray occlusions=new JSONArray();
     final java.util.concurrent.atomic.AtomicLong requestSequence=new java.util.concurrent.atomic.AtomicLong();
     final int UNUSED=512,TYPE=513,STRING=514,NUMBER=515;
-    NativeEditorHost(MainActivity app){this.app=app;createAccessory();}
+    NativeEditorHost(MainActivity app){this.app=app;createAccessory();floatingKeyboard=new FloatingCodeKeyboard(this);}
     static final class RevisionStyles extends Styles {
         final Content owner;final long revision;final Object language;
         RevisionStyles(Spans spans,Content owner,long revision,Object language){super(spans);this.owner=owner;this.revision=revision;this.language=language;}
@@ -206,6 +208,7 @@ final class NativeEditorHost {
             // Some IMEs ignore NO_SUGGESTIONS on an ordinary text field. Visible-password
             // variation also suppresses autocorrection/capitalization, without hiding source.
             editor.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD|InputType.TYPE_TEXT_FLAG_MULTI_LINE|InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+            editor.setSoftKeyboardEnabled(!floatingKeyboard.enabled);
             // disallowSuggestions in Sora spoofs random selection offsets. Keep the full IME protocol.
             editor.getProps().disallowSuggestions=false;editor.getProps().allowFullscreen=false;
             editor.registerInlayHintRenderer(new TextInlayHintRenderer());
@@ -217,7 +220,7 @@ final class NativeEditorHost {
             ((StudioCodeEditor)editor).blockCompleted=edit->{if(buffer==null||!settings.optBoolean("smartFormatOnClose",true)||!Arrays.asList("c","cpp").contains(language.kind))return;flush(buffer);app.event("editorFormatOnType",object("id",id,"uri",buffer.uri,"revision",buffer.revision,"start",edit.blockStart,"end",edit.blockEnd+1));};
             editor.subscribeEvent(SelectionChangeEvent.class,(e,unsubscribe)->{if(!muted){active=this;emitSelection(this);reveal(this);}});
             editor.subscribeEvent(ScrollEvent.class,(e,unsubscribe)->{if(!viewportScheduled){viewportScheduled=true;app.ui.postDelayed(()->{viewportScheduled=false;if(buffer!=null)app.event("editorViewport",object("id",id,"uri",buffer.uri,"first",editor.getFirstVisibleLine(),"last",editor.getLastVisibleLine()));},80);}});
-            editor.subscribeEvent(ClickEvent.class,(e,unsubscribe)->{active=this;if(e.getMotionRegion()==EditorMotionEvent.REGION_LINE_NUMBER||e.getMotionRegion()==EditorMotionEvent.REGION_SIDE_ICON)app.event("editorGutter",object("id",id,"uri",buffer==null?"":buffer.uri,"line",e.getLine()+1));});
+            editor.subscribeEvent(ClickEvent.class,(e,unsubscribe)->{active=this;if(e.getMotionRegion()==EditorMotionEvent.REGION_LINE_NUMBER||e.getMotionRegion()==EditorMotionEvent.REGION_SIDE_ICON)app.event("editorGutter",object("id",id,"uri",buffer==null?"":buffer.uri,"line",e.getLine()+1));else if(floatingKeyboard.enabled)floatingKeyboard.show();});
             viewport=new FrameLayout(app);viewport.setClipChildren(true);viewport.setClipToPadding(true);viewport.addView(editor,new FrameLayout.LayoutParams(-1,-1));app.editorRoot.addView(viewport,new FrameLayout.LayoutParams(1,1));configure(this);
         }
     }
@@ -298,6 +301,8 @@ final class NativeEditorHost {
                 int paintedUnused=0;if(current)for(int i=0;i<p.language.unusedStyles.length();i++){int offset=p.language.unusedStyles.getJSONObject(i).optInt("start");if(offset<0||offset>=p.editor.getText().length())continue;var at=p.editor.getText().getIndexer().getCharPosition(offset);Span found=null;for(Span span:spans.spans.read().getSpansOnLine(at.line)){if(span.getColumn()>at.column)break;found=span;}if(found!=null&&found.getForegroundColorId()==UNUSED)paintedUnused++;}
                 return object("revision",p.buffer.revision,"analysisRevision",p.buffer.analysisRevision,"documentVersion",p.editor.getText().getDocumentVersion(),"stylesCurrent",current,"diagnostics",actual.size(),"unused",p.language.unusedStyles.length(),"paintedUnused",paintedUnused,"semantic",p.language.styles.length(),"length",p.editor.getText().length());
             }
+            case "editorFloatingKeyboard":{floatingKeyboard.setEnabled(d.optBoolean("enabled",!floatingKeyboard.enabled),d.optBoolean("system",false));if(d.optBoolean("show",true)&&floatingKeyboard.enabled)floatingKeyboard.show();return true;}
+            case "editorTestFloatingKeyboard":{if((app.getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0||!app.engine.currentProject.startsWith("input-check-"))return false;return floatingKeyboard.state();}
             case "editorCompletionResult":{CompletableFuture<JSONArray> future=completions.remove(d.optString("request"));if(future!=null)future.complete(d.optJSONArray("items"));return true;}
         }
         throw new IllegalArgumentException(op);
@@ -351,9 +356,10 @@ final class NativeEditorHost {
         c.setColor(EditorColorScheme.TEXT_ACTION_WINDOW_BACKGROUND,Color.parseColor(light?"#F7F8FA":"#393B40"));c.setColor(EditorColorScheme.TEXT_ACTION_WINDOW_ICON_COLOR,fg);
     }
     void geometry(){
+        if(floatingKeyboardButton!=null){String tip=floatingKeyboard.enabled?floatingKeyboard.label("Системная клавиатура","System keyboard"):floatingKeyboard.label("Плавающая клавиатура","Floating keyboard");if(!tip.contentEquals(floatingKeyboardButton.getContentDescription())){floatingKeyboardButton.setContentDescription(tip);floatingKeyboardButton.setTooltipText(tip);}}
         float scale=app.web.getScale();if(scale<=0)scale=app.getResources().getDisplayMetrics().density;
         boolean imeChanged=previousImeHeight!=app.imeHeight;previousImeHeight=app.imeHeight;
-        int bar=app.imeHeight>0&&visible&&active!=null&&active.editor.hasFocus()&&settings.optBoolean("keyboardExtraKeys",true)?Math.round(42*app.getResources().getDisplayMetrics().density):0;
+        int bar=!floatingKeyboard.enabled&&app.imeHeight>0&&visible&&active!=null&&active.editor.hasFocus()&&settings.optBoolean("keyboardExtraKeys",true)?Math.round(42*app.getResources().getDisplayMetrics().density):0;
         int bottom=app.editorRoot.getHeight()-app.imeHeight-bar;
         for(Pane p:panes.values()){
             int left=Math.round(p.x*scale),top=Math.round(p.y*scale),width=Math.round(p.w*scale),height=Math.round(p.h*scale);
@@ -365,22 +371,25 @@ final class NativeEditorHost {
             if(lp.leftMargin!=left||lp.topMargin!=top||lp.width!=width||lp.height!=height){lp.leftMargin=left;lp.topMargin=top;lp.width=Math.max(1,width);lp.height=Math.max(1,height);p.viewport.setLayoutParams(lp);}
             if(!((StudioCodeEditor)p.editor).zoomActive){FrameLayout.LayoutParams child=(FrameLayout.LayoutParams)p.editor.getLayoutParams();int cw=Math.max(1,Math.round(width/p.editor.getScaleX())),ch=Math.max(1,Math.round(height/p.editor.getScaleY()));if(child.width!=cw||child.height!=ch){child.width=cw;child.height=ch;p.editor.setLayoutParams(child);if(p.resizeAnchor!=null)p.editor.postOnAnimation(()->restoreResizeAnchor(p));}}
         }
-        boolean barCovered=false,popupOpen=!visible;for(int i=0;i<occlusions.length();i++){JSONObject r=occlusions.optJSONObject(i);if(r!=null&&r.optBoolean("paint",true)){popupOpen=true;float rt=(float)r.optDouble("y")*scale,rb=(float)(r.optDouble("y")+r.optDouble("height"))*scale;if(rt<bottom+bar&&rb>bottom)barCovered=true;}}
+        boolean barCovered=false,popupOpen=!visible;for(int i=0;i<occlusions.length();i++){JSONObject r=occlusions.optJSONObject(i);if(r!=null&&r.optBoolean("paint",true)){if(r.optBoolean("popup",true))popupOpen=true;float rt=(float)r.optDouble("y")*scale,rb=(float)(r.optDouble("y")+r.optDouble("height"))*scale;if(rt<bottom+bar&&rb>bottom)barCovered=true;}}
         if(popupOpen)for(Pane pane:panes.values()){pane.editor.getComponent(EditorAutoCompletion.class).hide();pane.editor.getComponent(io.github.rosemoe.sora.widget.component.EditorDiagnosticTooltipWindow.class).dismiss();pane.editor.getComponent(io.github.rosemoe.sora.widget.component.EditorTextActionWindow.class).dismiss();}
-        accessory.setVisibility(bar>0&&!barCovered?View.VISIBLE:View.GONE);
+        if(floatingKeyboard.enabled){floatingKeyboard.geometry(visible);if(imeChanged&&active!=null)reveal(active);return;}
+        floatingKeyboard.geometry(false);accessory.setVisibility(bar>0&&!barCovered?View.VISIBLE:View.GONE);
         if(bar>0){FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)accessory.getLayoutParams();lp.height=bar;lp.gravity=Gravity.TOP;lp.topMargin=Math.max(0,bottom);accessory.setLayoutParams(lp);accessory.bringToFront();}
         if(imeChanged&&active!=null)reveal(active);
     }
     void restoreResizeAnchor(Pane p){ViewState anchor=p.resizeAnchor;if(anchor==null||p.buffer!=p.resizeBuffer)return;int x=Math.min(anchor.x,p.editor.getScrollMaxX()),y=Math.min(anchor.y,p.editor.getScrollMaxY());p.editor.getScroller().startScroll(x,y,0,0,0);p.editor.getScroller().abortAnimation();p.editor.invalidate();}
     void reveal(Pane p){Buffer expected=p.buffer;if(p.resizeAnchor==null&&p.editor.hasFocus()&&app.imeHeight>0&&!((StudioCodeEditor)p.editor).zoomActive&&SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil)p.editor.post(()->{if(p.resizeAnchor==null&&p.buffer==expected&&expected!=null&&!((StudioCodeEditor)p.editor).zoomActive&&SystemClock.uptimeMillis()>((StudioCodeEditor)p.editor).fontGestureUntil)p.editor.ensureSelectionVisible();});}
-    void showKeyboard(){if(active==null)return;active.editor.requestFocus();((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(active.editor,InputMethodManager.SHOW_IMPLICIT);geometry();}
+    void showKeyboard(){if(active==null)return;active.editor.requestFocus();if(floatingKeyboard.enabled){floatingKeyboard.show();return;}((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(active.editor,InputMethodManager.SHOW_FORCED);geometry();}
     void createAccessory(){
         accessory=new HorizontalScrollView(app);accessory.setHorizontalScrollBarEnabled(false);accessory.setFillViewport(false);accessory.setBackgroundColor(Color.rgb(43,45,48));
         LinearLayout row=new LinearLayout(app);row.setOrientation(LinearLayout.HORIZONTAL);accessory.addView(row);app.editorRoot.addView(accessory,new FrameLayout.LayoutParams(-1,1));accessory.setVisibility(View.GONE);
-        String[][] keys={{"Tab","tab"},{"arrow_left","left"},{"arrow_down","down"},{"arrow_up","up"},{"arrow_right","right"},{"braces","{}"},{"parentheses","()"},{"brackets","[]"},{";",";"},{"\"","\""},{"&","&"},{"*","*"},{"undo_2","undo"},{"redo_2","redo"},{"copy","copy"},{"clipboard_paste","paste"}};
+        String[][] keys={{"keyboard_float","floatingKeyboard"},{"Tab","tab"},{"arrow_left","left"},{"arrow_down","down"},{"arrow_up","up"},{"arrow_right","right"},{"braces","{}"},{"parentheses","()"},{"brackets","[]"},{";",";"},{"\"","\""},{"&","&"},{"*","*"},{"undo_2","undo"},{"redo_2","redo"},{"copy","copy"},{"clipboard_paste","paste"}};
         for(String[] k:keys){View key;int icon=app.getResources().getIdentifier("ic_"+k[0],"drawable",app.getPackageName());
             if(icon!=0){ImageView image=new ImageView(app);image.setImageResource(icon);image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);int pad=Math.round(11*app.getResources().getDisplayMetrics().density);image.setPadding(pad,pad,pad,pad);key=image;}else{TextView text=new TextView(app);text.setText(k[0]);text.setTextColor(Color.rgb(188,190,196));text.setTextSize(16);text.setGravity(Gravity.CENTER);key=text;}
             key.setContentDescription(k[1]);
+            if(k[1].equals("floatingKeyboard"))floatingKeyboardButton=key;
+            key.setTag(k[1]);
             android.graphics.drawable.GradientDrawable mask=new android.graphics.drawable.GradientDrawable();mask.setColor(Color.WHITE);mask.setCornerRadius(6*app.getResources().getDisplayMetrics().density);
             key.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(Color.argb(30,135,154,185)),null,mask));
             key.setClickable(true);key.setOnClickListener(v->action(k[1]));int dp=Math.round(44*app.getResources().getDisplayMetrics().density);row.addView(key,new LinearLayout.LayoutParams(dp,-1));
@@ -401,6 +410,7 @@ final class NativeEditorHost {
         }
     }
     void action(String action){
+        if(action.equals("floatingKeyboard")){floatingKeyboard.setEnabled(!floatingKeyboard.enabled,true);return;}
         if(active==null||active.buffer==null)return;CodeEditor e=active.editor;e.requestFocus();
         int key=action.equals("left")?KeyEvent.KEYCODE_DPAD_LEFT:action.equals("right")?KeyEvent.KEYCODE_DPAD_RIGHT:action.equals("up")?KeyEvent.KEYCODE_DPAD_UP:action.equals("down")?KeyEvent.KEYCODE_DPAD_DOWN:action.equals("home")?KeyEvent.KEYCODE_MOVE_HOME:action.equals("end")?KeyEvent.KEYCODE_MOVE_END:0;
         if(key!=0){e.getComponent(EditorAutoCompletion.class).hide();e.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,key));e.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,key));return;}

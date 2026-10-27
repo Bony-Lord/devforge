@@ -23,4 +23,7 @@ for path in ['sora-editor-LICENSE','monaco-LICENSE','lucide-LICENSE','yaml-LICEN
     assert (ROOT/'licenses'/path).is_file(),path
 for entry in json.loads((ROOT/'fonts.lock.json').read_text(encoding='utf-8')):
     assert hashlib.sha256((ROOT/'app/src/main/assets/ui/fonts'/entry['file']).read_bytes()).hexdigest()==entry['sha256']
+dockview=json.loads((ROOT/'dockview.lock.json').read_text(encoding='utf-8'))
+assert dockview['license']=='MIT' and hashlib.sha256((ROOT/dockview['bundle']).read_bytes()).hexdigest()==dockview['sha256']
+assert 'MIT License' in (ROOT/'licenses/dockview-LICENSE').read_text(encoding='utf-8')
 print(json.dumps({'nativePackages':len(packages),'attributionFiles':sum(len(p['notices']) for p in inventory),'sharedNoticeMappings':shared,'copyleftSourceFamilies':len(copyleft),'sourceArchives':len(sources['archives']),'recipeSnapshots':len(sources['recipes']),'sourceArchiveBytesVerified':args.archives},indent=2))
