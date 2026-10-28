@@ -307,7 +307,16 @@
         "test": "Step over command completes in hosted program",
         "passed": true
       }
-    ]
+    ],
+    "finalState": {
+      "signedReleaseVersion": "0.5.0-alpha.2",
+      "originalProjectFilesVerified": 7,
+      "originalMetadataFilesRestoredAndVerified": 6,
+      "ownFixtureFoldersArchivedAndRemoved": 4,
+      "screenOff": true,
+      "appForceStopped": true,
+      "perAppInstallPermissionRestoredToDefault": true
+    }
   },
   "source": {
     "hostCommandGroups": 75,
@@ -331,5 +340,11 @@
     "Full IPython/Jupyter, Python language server/debugger, arbitrary executable third-party addons and online marketplace remain unfinished.",
     "Linux/macOS GUI and native installers are not validated by Windows/backend tests.",
     "Recommended prior Android preview remains 0.4.2."
-  ]
+  ],
+  "sourceCommit": "7a0d165cf17ed80e5c7ab0cfa461ad169d12a09c",
+  "ci": {
+    "source": "https://github.com/Bony-Lord/devforge/actions/runs/40701198493",
+    "portableWindowsLinuxMac": "https://github.com/Bony-Lord/devforge/actions/runs/40701198441",
+    "passed": true
+  }
 }
