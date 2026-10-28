@@ -4,8 +4,8 @@
   "status": "preview, not a stable release",
   "delivery": "one optional Android native engine APK plus pinned .studio-toolpack data; data-only third-party .studio-addon API remains 0.1.1",
   "artifacts": {
-    "coreBytes": 9272373,
-    "coreSha256": "cad863a07ab52ee98838dd9d2d8de353a86769bde2eda6d35e6b08bba871e296",
+    "coreBytes": 9272485,
+    "coreSha256": "d4b10d229cf6b63a7696831a3a471849db07a225c8f9af1f3b72f0cb7f8dee6d",
     "engineBytes": 178969339,
     "engineSha256": "e806c557d8e965d4f04af83b749c5149a2cd2813244158e4a44238ebcaabcaa7",
     "targetSdk": 36,
@@ -37,6 +37,14 @@
     },
     {
       "test": "One normal uninstall removes incompatible shared engine and all owned pack data",
+      "passed": true
+    },
+    {
+      "test": "Failed removal-manifest write cannot mark a component installed or damage another component",
+      "passed": true
+    },
+    {
+      "test": "Retry after a cache-write failure succeeds without a new APK confirmation",
       "passed": true
     }
   ],
@@ -339,12 +347,21 @@
     "Hosted C/C++ ASan is unavailable; UBSan and stdlib assertions are not a complete uninitialized-memory detector.",
     "Full IPython/Jupyter, Python language server/debugger, arbitrary executable third-party addons and online marketplace remain unfinished.",
     "Linux/macOS GUI and native installers are not validated by Windows/backend tests.",
-    "Recommended prior Android preview remains 0.4.2."
+    "Recommended prior Android preview remains 0.4.2.",
+    "UI/native bridge checks do not replace real Bluetooth typing, pinch/drag or long-running usability sessions.",
+    "A later API36 emulator System UI ANR interrupted a test attempt. Backend cache-write recovery checks passed after reconnecting; this is not evidence of touch responsiveness.",
+    "The x86 verification-only runtime is not published; an emulator attempt to fetch an x86 Python pack returned HTTP404. Public ARM64 Python bytes and hash were verified by a separate anonymous host download."
   ],
-  "sourceCommit": "7a0d165cf17ed80e5c7ab0cfa461ad169d12a09c",
+  "sourceCommit": "37fcd40a241048c48de3ba2a0b4cc41bbfb961d5",
   "ci": {
     "source": "https://github.com/Bony-Lord/devforge/actions/runs/40701198493",
     "portableWindowsLinuxMac": "https://github.com/Bony-Lord/devforge/actions/runs/40701198441",
     "passed": true
+  },
+  "publicDownload": {
+    "anonymousPublicArm64PythonDownload": true,
+    "bytes": 3477921,
+    "sha256": "ea75c34bf85e214749e84498397c62350608375a82ab36a10aa815553b2376d0",
+    "note": "Host HTTP download; x86-only emulator catalog is intentionally not published."
   }
 }
