@@ -78,7 +78,7 @@ const NativeEditing={
     const occlusions=overlays.filter(e=>!e.classList.contains('dv-resize-container')).map(mask);
     const windowHandles=[];for(const element of floating){const group=windows?.api.groups.find(g=>g.element.closest('.dv-resize-container')===element);if(!group)continue;for(const handle of element.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,element),direction=b.direction;if(!b.width||!b.height||direction.includes('top'))continue;if(floating.slice(floating.indexOf(element)+1).some(other=>{const r=other.getBoundingClientRect();return b.x+b.width/2>=r.left&&b.x+b.width/2<=r.right&&b.y+b.height/2>=r.top&&b.y+b.height/2<=r.bottom;}))continue;windowHandles.push({id:group.id+':'+direction,group:group.id,direction,x:b.x,y:b.y,width:b.width,height:b.height});}}
     const source=window.forge?.settings||{language:StudioI18n.locale},settings={};for(const key of ['language','theme','fontSize','codeScale','wordWrap','indentGuides','smartFormatOnClose','keyboardExtraKeys','keyboardPrimary','keyboardLayout','keyboardModifiers','keyboardNumpad','keyboardPcWidth','keyboardPcHeight','keyboardAndroidWidth','keyboardAndroidHeight'])if(source[key]!==undefined)settings[key]=source[key];
-    return native('editorLayout',{panes,visible,occlusions,windowHandles,settings}).catch(console.warn);
+    return native('editorLayout',{panes,visible,occlusions,windowHandles,settings,keyboardRevision:this.keyboardRevision||0}).catch(console.warn);
   },
   selection(e){
     const p=this.panes.get(e.id);if(!p||p.editor.getModel()?.uri.toString()!==e.uri)return;

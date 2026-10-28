@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "example.navigation",
+  "version": "1.0.0",
+  "api": {"min": "0.1.0", "maxExclusive": "0.2.0"},
+  "name": {"ru": "Навигация", "en": "Navigation"},
+  "license": "MIT",
+  "capabilities": ["ui.commands"],
+  "dependencies": {},
+  "conflicts": {}
+}

@@ -26,6 +26,7 @@ public final class MainActivity extends Activity {
     IdeEngine engine;
     final Handler ui = new Handler(Looper.getMainLooper());
     final ExecutorService workers = Executors.newCachedThreadPool();
+    final ExecutorService preferenceWrites = Executors.newSingleThreadExecutor();
     TextView progress;
     ServerSocket assets;
     volatile boolean closed;
@@ -39,6 +40,7 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        ((android.hardware.input.InputManager)getSystemService(INPUT_SERVICE)).registerInputDeviceListener(layoutDevices,ui);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setStatusBarColor(Color.rgb(43,45,48));
         getWindow().setNavigationBarColor(Color.rgb(43,45,48));
@@ -179,8 +181,9 @@ public final class MainActivity extends Activity {
     }
     void configureKeyboard(JSONObject settings) {
         final int value=Math.max(0,Math.min(100,settings.optInt("keyboardOverlap",100)));
+        final boolean layoutShortcut=settings.optBoolean("altShiftLayout",true);
         final String completion=settings.optString("completionShortcut","Ctrl+Alt+Space"),parameters=settings.optString("parameterShortcut","Ctrl+Alt+P");
-        ui.post(() -> {completionShortcut=completion;parameterShortcut=parameters;if(keyboardOverlap!=value){keyboardOverlap=value;imeReserved=-1;updateKeyboardGeometry(imeHeight);}});
+        ui.post(() -> {altShiftLayout=layoutShortcut;if(!altShiftLayout)hardwareLayouts.clear();completionShortcut=completion;parameterShortcut=parameters;if(keyboardOverlap!=value){keyboardOverlap=value;imeReserved=-1;updateKeyboardGeometry(imeHeight);}});
     }
     boolean matchesCompletionShortcut(KeyEvent event,String binding){
         if(!event.isCtrlPressed()||event.isMetaPressed()||event.isAltPressed()!=binding.contains("+Alt+")||event.isShiftPressed()!=binding.contains("+Shift+"))return false;
@@ -209,14 +212,16 @@ public final class MainActivity extends Activity {
     }
     final class Bridge {
         @JavascriptInterface public void request(String json) {
+            boolean preferenceRequest=false;
             try {
                 JSONObject r=new JSONObject(json);
                 if(r.optString("op").startsWith("editor")){
                     ui.post(()->{try{respond(r.optString("id"),nativeEditors.handle(r.optString("op"),r.optJSONObject("data")),null);}catch(Throwable e){android.util.Log.e("Studio","Native editor",e);respond(r.optString("id"),null,e.toString());}});
                     return;
                 }
+                preferenceRequest=Arrays.asList("settings","settingsCommit","session","sessionCommit","addonState","addonStateCommit").contains(r.optString("op"));
             }catch(JSONException ignored){}
-            workers.execute(() -> {
+            (preferenceRequest?preferenceWrites:workers).execute(() -> {
                 String id="";
                 try {
                     JSONObject r=new JSONObject(json); id=r.getString("id");
@@ -295,8 +300,25 @@ public final class MainActivity extends Activity {
         try(OutputStream o=out) {byte[] b=new byte[32768];int n;long total=0;while((n=in.read(b))>0){total+=n;if(total>max)throw new IOException("Файл слишком большой");o.write(b,0,n);}return total;}
     }
     @Override public void onBackPressed() {if(nativeEditors!=null&&nativeEditors.floatingKeyboard.frame.isShown()){nativeEditors.floatingKeyboard.hide();return;}emitScript("window.forgeBack && window.forgeBack()");}
-    @Override protected void onPause(){responsiveness.foreground(false);if(nativeEditors!=null)nativeEditors.pause();super.onPause();}
+    @Override protected void onPause(){responsiveness.foreground(false);for(HardwareLayout layout:hardwareLayouts.values())layout.resetChord();if(nativeEditors!=null)nativeEditors.pause();super.onPause();}
+    final java.util.Map<Integer,HardwareLayout> hardwareLayouts=new java.util.HashMap<>();
+    final android.hardware.input.InputManager.InputDeviceListener layoutDevices=new android.hardware.input.InputManager.InputDeviceListener(){public void onInputDeviceAdded(int id){}public void onInputDeviceChanged(int id){hardwareLayouts.remove(id);}public void onInputDeviceRemoved(int id){hardwareLayouts.remove(id);}};
+    boolean altShiftLayout=true;
+    boolean hardwareLayout(KeyEvent event){
+        if(!altShiftLayout||event.getDeviceId()<0||nativeEditors==null)return false;
+        int key=event.getKeyCode();boolean down=event.getAction()==KeyEvent.ACTION_DOWN,modifier=key==KeyEvent.KEYCODE_ALT_LEFT||key==KeyEvent.KEYCODE_ALT_RIGHT||key==KeyEvent.KEYCODE_SHIFT_LEFT||key==KeyEvent.KEYCODE_SHIFT_RIGHT;
+        HardwareLayout layout=hardwareLayouts.computeIfAbsent(event.getDeviceId(),id->{HardwareLayout value=new HardwareLayout();value.observe(event.getKeyCharacterMap().get(KeyEvent.KEYCODE_Q,0));return value;});
+        if(key==KeyEvent.KEYCODE_LANGUAGE_SWITCH||key==KeyEvent.KEYCODE_SPACE&&event.isCtrlPressed()&&!event.isAltPressed()){layout.systemSwitch();return false;}
+        if(down&&!event.isCtrlPressed()&&!event.isMetaPressed())layout.observe(event.getUnicodeChar(event.getMetaState()&~(KeyEvent.META_ALT_MASK|KeyEvent.META_CTRL_MASK|KeyEvent.META_META_MASK)));
+        if(layout.chord(down,modifier,event.isAltPressed()&&event.isShiftPressed(),event.isCtrlPressed()||event.isMetaPressed())){android.widget.Toast.makeText(this,Boolean.TRUE.equals(layout.russian)?"RU":"EN",android.widget.Toast.LENGTH_SHORT).show();return true;}
+        if(layout.russian==null||modifier||event.isAltPressed()||event.isCtrlPressed()||event.isMetaPressed())return false;
+        String text=layout.translate(key,event.isShiftPressed(),event.isCapsLockOn());if(text==null)return false;
+        if(nativeEditors.webFieldFocused){if(down)emitScript("window.StudioWebInput&&StudioWebInput("+JSONObject.quote(text)+")");return true;}
+        if(nativeEditors.active!=null&&nativeEditors.active.editor.hasFocus()){if(down)nativeEditors.active.editor.commitText(text);return true;}
+        return false;
+    }
     @Override public boolean dispatchKeyEvent(KeyEvent event){
+        if(hardwareLayout(event))return true;
         if(nativeEditors!=null&&nativeEditors.active!=null&&nativeEditors.active.editor.hasFocus()&&event.getAction()==KeyEvent.ACTION_DOWN){
             int key=event.getKeyCode();boolean ctrl=event.isCtrlPressed();
             boolean appKey=ctrl&&(key==KeyEvent.KEYCODE_F||key==KeyEvent.KEYCODE_H||key==KeyEvent.KEYCODE_S||key==KeyEvent.KEYCODE_P||key==KeyEvent.KEYCODE_N||key==KeyEvent.KEYCODE_COMMA||key==KeyEvent.KEYCODE_J||key==KeyEvent.KEYCODE_B||key==KeyEvent.KEYCODE_Q||key==KeyEvent.KEYCODE_G||key==KeyEvent.KEYCODE_W||key==KeyEvent.KEYCODE_TAB||key==KeyEvent.KEYCODE_EQUALS||key==KeyEvent.KEYCODE_MINUS||key==KeyEvent.KEYCODE_0||key==KeyEvent.KEYCODE_BACKSLASH||key==KeyEvent.KEYCODE_1||key==KeyEvent.KEYCODE_2||key==KeyEvent.KEYCODE_D||key==KeyEvent.KEYCODE_Y||key==KeyEvent.KEYCODE_L||key==KeyEvent.KEYCODE_O);
@@ -319,12 +341,14 @@ public final class MainActivity extends Activity {
         return super.onKeyDown(key,event);
     }
     @Override protected void onDestroy() {
+        ((android.hardware.input.InputManager)getSystemService(INPUT_SERVICE)).unregisterInputDeviceListener(layoutDevices);
         closed=true;responsiveness.close();
         if(nativeEditors!=null)nativeEditors.close();
         if(engine!=null)engine.close();
         try{if(assets!=null)assets.close();}catch(IOException ignored){}
         if(web!=null)web.destroy();
         workers.shutdownNow();
+        preferenceWrites.shutdown();
         super.onDestroy();
     }
 }

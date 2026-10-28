@@ -13,6 +13,15 @@ final class ToolPacks {
     final JSONObject catalog;
     final PackDownload download=new PackDownload();
     volatile boolean installing;
+    final java.util.concurrent.atomic.AtomicBoolean operationBusy=new java.util.concurrent.atomic.AtomicBoolean();
+    interface Operation {void run()throws Exception;}
+    AutoCloseable guardBuild()throws IOException{if(!operationBusy.compareAndSet(false,true))throw new IOException("Component operation is already running");return()->operationBusy.set(false);}
+    Object mutate(Operation operation)throws Exception{
+        if(!operationBusy.compareAndSet(false,true))throw new IOException("Component operation is already running");installing=true;
+        try{if(ide.closed||ide.building!=null&&ide.building.isAlive()||ide.execution!=null&&ide.execution.isAlive()||ide.tools.debuggerRunning())throw new IOException("Stop running tools first");operation.run();}
+        finally{installing=false;operationBusy.set(false);}
+        return state();
+    }
     ToolPacks(IdeEngine ide)throws Exception{
         this.ide=ide;try(InputStream in=ide.app.getAssets().open("tool-packs.json")){catalog=new JSONObject(IdeEngine.slurp(in,4*1024*1024));}
     }
@@ -45,13 +54,8 @@ final class ToolPacks {
     static String hash(File file)throws Exception{return PackDownload.hash(file);}
     void progress(String id,long done,long total,String phase){ide.app.event("toolPackProgress",NativeEditorHost.object("id",id,"done",done,"total",total,"phase",phase));}
     void cancel(){download.cancel();}
-    synchronized Object install(String id)throws Exception{
-        if(installing)throw new IOException("Component operation is already running");
-        if(ide.building!=null&&ide.building.isAlive()||ide.execution!=null&&ide.execution.isAlive()||ide.tools.debuggerRunning())throw new IOException("Stop running tools first");
-        pack(id);installing=true;download.reset();
-        try{installOne(id,new HashSet<>());return state();}
-        catch(Exception e){if(download.cancelled){progress(id,0,1,"cancelled");throw new InterruptedIOException("Загрузка отменена");}throw e;}
-        finally{installing=false;}
+    Object install(String id)throws Exception{
+        return mutate(()->{pack(id);download.reset();try{installOne(id,new HashSet<>());}catch(Exception e){if(download.cancelled){progress(id,0,1,"cancelled");throw new InterruptedIOException("Загрузка отменена");}throw e;}});
     }
     void installOne(String id,Set<String> visiting)throws Exception{
         download.check();JSONObject p=pack(id);if(!visiting.add(id))throw new IOException("Component dependency cycle");
@@ -68,15 +72,15 @@ final class ToolPacks {
         if(id.equals("gcc"))Files.deleteIfExists(new File(ide.usr,".gcc-removed").toPath());
         Files.deleteIfExists(archive.toPath());progress(id,total,total,"installed");
     }
-    synchronized Object remove(String id)throws Exception{
-        JSONObject p=pack(id);if(installing||ide.building!=null&&ide.building.isAlive()||ide.execution!=null&&ide.execution.isAlive()||ide.tools.debuggerRunning())throw new IOException("Stop running tools first");
+    Object remove(String id)throws Exception{return mutate(()->removeOne(id));}
+    void removeOne(String id)throws Exception{
+        JSONObject p=pack(id);
         JSONArray packs=catalog.getJSONArray("packs");for(int i=0;i<packs.length();i++){JSONObject other=packs.getJSONObject(i);JSONArray requires=other.getJSONArray("requires");for(int j=0;j<requires.length();j++)if(installed(other)&&requires.getString(j).equals(id))throw new IOException("Component is required by "+other.getString("id"));}
         Files.write(new File(ide.usr,".pack-"+id+"-removed").toPath(),new byte[0]);Files.deleteIfExists(new File(ide.usr,".pack-"+id+"-installed").toPath());
         if(id.equals("analysis")||id.equals("gcc"))ide.stopLsp();
         if(id.equals("gcc"))Files.write(new File(ide.usr,".gcc-removed").toPath(),new byte[0]);
         Set<String> keep=new HashSet<>();for(int i=0;i<packs.length();i++){JSONObject other=packs.getJSONObject(i);if(!id.equals(other.getString("id"))&&installed(other))addPaths(keep,other);}
         for(String key:new String[]{"files","links"}){JSONArray paths=p.getJSONArray(key);for(int i=0;i<paths.length();i++){String path=paths.getString(i);if(keep.contains(path))continue;File from=child(ide.usr,path);if(Files.exists(from.toPath(),LinkOption.NOFOLLOW_LINKS))Files.delete(from.toPath());}}
-        return state();
     }
     static void addPaths(Set<String> target,JSONObject p)throws Exception{for(String key:new String[]{"files","links"}){JSONArray values=p.getJSONArray(key);for(int i=0;i<values.length();i++)target.add(values.getString(i));}}
     static File child(File root,String path)throws Exception{

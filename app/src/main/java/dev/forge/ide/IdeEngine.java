@@ -46,8 +46,10 @@ final class IdeEngine {
             case "performanceReport":return app.responsiveness.report();
             case "performanceEvent":app.responsiveness.record("Web UI",Math.min(60000,d.optLong("delayMs")),"");return true;
             case "state":return state();
-            case "settings":prefs.edit().putString("settings",d.toString()).apply();app.configureKeyboard(d);return d;
-            case "session":prefs.edit().putString("session",d.toString()).apply();return true;
+            case "settings":case "settingsCommit":{var edit=prefs.edit().putString("settings",d.toString());if(op.equals("settingsCommit")){if(!edit.commit())throw new IOException("Cannot save settings");}else edit.apply();app.configureKeyboard(d);return d;}
+            case "session":case "sessionCommit":{var edit=prefs.edit().putString("session",d.toString());if(op.equals("sessionCommit")){if(!edit.commit())throw new IOException("Cannot save session");}else edit.apply();return true;}
+            case "addonState":return new JSONObject(prefs.getString("addons","{}"));
+            case "addonStateCommit":{if(d.toString().length()>65536||d.optInt("schemaVersion")!=1||d.optJSONArray("requested")==null||d.getJSONArray("requested").length()>128)throw new IOException("Invalid addon profile");if(!prefs.edit().putString("addons",d.toString()).commit())throw new IOException("Cannot save addon profile");return true;}
             case "project": {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
@@ -330,7 +332,7 @@ final class IdeEngine {
     }
     synchronized void stopLsp(){++lspGeneration;Process p=lsp;lsp=null;if(p!=null)p.destroy();}
     JSONObject build(JSONObject d)throws Exception {
-        synchronized(buildLock) {
+        synchronized(buildLock) {try(AutoCloseable guard=toolPacks.guardBuild()) {
             buildCancelled=false;JSONObject options=d.has("options")?d.getJSONObject("options"):settings();
             File root=project(currentProject),outDir=new File(workspace.data(),"bin");outDir.mkdirs();
             String mode=d.optString("mode","file"),id=d.optString("id",UUID.randomUUID().toString());
@@ -356,7 +358,7 @@ final class IdeEngine {
             cmd.add("-o");cmd.add(output.getAbsolutePath());
             int rc=buildCommand(cmd,root,id,environment);if(rc==0)output.setExecutable(true,true);
             return new JSONObject().put("code",rc).put("executable",output.getAbsolutePath()).put("exists",output.isFile()).put("id",id);
-        }
+        }}
     }
     int buildCommand(List<String> cmd,File cwd,String id)throws Exception {
         return buildCommand(cmd,cwd,id,Collections.emptyMap());
@@ -403,5 +405,5 @@ final class IdeEngine {
         }catch(Exception e){android.util.Log.d("Forge","Output stream closed",e);}
     }
     void stopExecution(){if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null)a.destroyForcibly();if(b!=null)b.destroyForcibly();}
-    void close(){closed=true;stopLsp();stopExecution();pool.shutdownNow();}
+    void close(){closed=true;toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
 }

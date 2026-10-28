@@ -24,7 +24,7 @@ class GdbClient{
   }
   async start(executable,args=[],options=this.ide.settings){
     this.session='debug-'+Date.now();this.active=true;this.paused=false;this.ide.consoleId=this.session;this.ide.running=true;RuntimeWarnings.begin(this.ide,this.session);
-    $('#consoleOutput').textContent='';$('#debugLogOutput').textContent='';
+    this.ide.clearOutput('console');$('#debugLogOutput').textContent='';
     try{
       const info=await native('gdbStart',{executable,options,id:this.session});
       for(const cmd of ['-gdb-set mi-async on','-gdb-set pagination off','-gdb-set confirm off','-gdb-set disable-randomization off','-enable-pretty-printing'])try{await this.command(cmd);}catch(e){this.ide.appendOutput('debugLog',e.message+'\n','meta');}

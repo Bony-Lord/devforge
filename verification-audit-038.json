@@ -1,0 +1,87 @@
+{
+  "version": "0.3.8",
+  "status": "preview",
+  "device": "Xiaomi Pad 6 / Android 14",
+  "suites": [
+    {
+      "suite": "addons-038",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "suite": "verification-analysis-035",
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "suite": "verification-docked-splitters-035",
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "suite": "verification-filesystem",
+      "passed": 6,
+      "total": 6
+    },
+    {
+      "suite": "verification-input-layout-035",
+      "passed": 24,
+      "total": 24
+    },
+    {
+      "suite": "verification-keyboard-size-036",
+      "passed": 16,
+      "total": 16
+    },
+    {
+      "suite": "verification-native-debugger",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "suite": "verification-native-features",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "suite": "verification-native-updates",
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "suite": "verification-profiles-035",
+      "passed": 7,
+      "total": 7
+    },
+    {
+      "suite": "verification-stability-032",
+      "passed": 18,
+      "total": 18
+    },
+    {
+      "suite": "verification-tab-placement-035",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "suite": "verification-viewport-031",
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "suite": "verification-window-gestures-035",
+      "passed": 19,
+      "total": 19
+    }
+  ],
+  "passed": 166,
+  "total": 166,
+  "coverageNote": "ADB gestures, guarded app APIs and synthetic key events on isolated projects; not exhaustive stability or a physical Bluetooth keyboard test.",
+  "outputBurstMilliseconds": {
+    "before": 28007,
+    "afterQueue": 2,
+    "afterFlush": 199
+  },
+  "addonKernelNodeCases": 8,
+  "hostHttpDownloadCases": 11
+}

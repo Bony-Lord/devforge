@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),Buffer=require('../app/src/main/assets/ui/output-buffer.js');
+const frames=[],node=()=>({childNodes:[],get firstChild(){return this.childNodes[0]||null;},get lastChild(){return this.childNodes.at(-1)||null;},append(...children){for(const child of children){if(child.fragment){this.append(...child.childNodes);continue;}child.parent=this;this.childNodes.push(child);}},replaceChildren(){this.childNodes=[];},remove(){this.parent.childNodes.splice(this.parent.childNodes.indexOf(this),1);},get textContent(){return this.childNodes.length?this.childNodes.map(n=>n.textContent).join(''):this.text||'';},set textContent(value){this.text=value;}});
+const el=node();let reads=0;Object.defineProperty(el,'scrollHeight',{get(){reads++;return el.childNodes.length*20;}});el.scrollTop=0;el.clientHeight=100;el.ownerDocument={createElement:node,createDocumentFragment:()=>Object.assign(node(),{fragment:true})};
+const out=new Buffer(()=>el,{limit:10000,frame:fn=>frames.push(fn),timer:()=>0,cancelTimer:()=>{}});
+for(let i=0;i<2000;i++)out.append('0123456789','stdout');assert.equal(frames.length,1);assert(out.pendingLength<=10000);assert.equal(reads,0);out.flush();assert.equal(el.textContent.length,10000);assert.equal(reads,2);console.log('PASS Output burst is bounded and rendered with one layout pass');
+out.append('STALE');out.clear();out.append('FRESH','success');frames.forEach(fn=>fn());assert.equal(el.textContent,'FRESH');console.log('PASS Clear discards queued old output and stale scheduled callbacks');
+out.append('ERR','stderr');out.flush();assert.equal(el.textContent,'FRESHERR');assert.equal(el.lastChild.className,'stderr');console.log('PASS Output order and stream style survive batching');
+el.replaceChildren();out.append('EXTERNAL CLEAR');out.flush();assert.equal(el.textContent,'EXTERNAL CLEAR');console.log('PASS External DOM clearing does not corrupt bounded accounting');
+
+out.clear();for(let i=0;i<10000;i++)out.append("x",i%2?"stderr":"stdout");assert(out.pending.length<=512);out.flush();assert(el.childNodes.length<=512);console.log("PASS Alternating tiny output chunks cannot create an unbounded DOM burst");

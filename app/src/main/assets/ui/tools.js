@@ -18,7 +18,7 @@ const toolsMethods={
   async debugBuild(){
     if(this.configurations?.error){this.configurations.edit();return;}const configured=this.configurations?.current(),options={...(configured?.options||this.settings),optimization:'debug',debugSession:true};if(!await this.requireToolPack('debugger')||!['custom','executable'].includes(options.buildMode)&&!await this.requireToolPack(options.compiler||'gcc'))return;if(options.buildMode==='cmake'&&!await this.requireToolPack('cmake'))return;
     if(this.busy||this.running){this.toast('Сначала остановите запущенный процесс');return;}if(!this.active&&!configured){this.toast('Откройте исходный файл');return;}
-    this.busy=true;this.updateRunButtons();this.showPanel('build');$('#buildOutput').textContent='';
+    this.busy=true;this.updateRunButtons();this.showPanel('build');this.clearOutput('build');
     try{await this.saveAll();let executable=options.executable;if(options.buildMode!=='executable'&&options.buildBeforeRun!==false){const r=await native('build',{path:configured?.path||this.active?.path,mode:options.buildMode,options,id:'debug-build-'+Date.now()});if(r.code!==0||!r.exists)throw new Error('Не удалось собрать программу для отладки. Подробности в панели сборки.');executable=r.executable;}if(!executable)throw new Error(tr('Укажите исполняемый файл в конфигурации'));await this.debugger.start(executable.startsWith('/')?executable:this.state.root+'/'+executable,options.args,options);}
     catch(e){safeError(e);}finally{this.busy=false;this.updateRunButtons();}
   },

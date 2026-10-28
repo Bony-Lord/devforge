@@ -8,7 +8,7 @@
   <a href="LICENSE"><img alt="App license: MIT" src="https://img.shields.io/badge/App-MIT-868A91"></a>
 </p>
 
-> **[Android 0.3.7 — preview](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.7):** небольшой APK без встроенных GCC/CMake. Компилятор и CMake скачиваются отдельно, общие библиотеки — один раз; старые инструменты сохраняются. Отмена/продолжение загрузки, 23 проверки на планшете и 11 HTTP-проверок загрузчика. [Подробности и ограничения](docs/DOWNLOADABLE-RUNTIME-0.3.7.md). Target SDK28 сохранён; [0.3.6](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.6) доступна для возврата. SDK модов и маркетплейс пока [в планах](docs/ADDONS-ROADMAP.md).
+> **[Android 0.3.8 — preview](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.8):** исправления зависаний вывода, сохранения окон и экранной клавиатуры; Alt+Shift для EN/RU внутри IDE. Начат [SDK аддонов](docs/ADDON-SDK.md): зависимости, lifecycle, восстановление и два включаемых примера. APK остаётся небольшим, GCC/CMake скачиваются отдельно. [Аудит и ограничения](docs/AUDIT-0.3.8.md). Target SDK28 сохранён; [0.3.7](https://github.com/Bony-Lord/gcc-cpp-studio/releases/tag/v0.3.7) доступна для возврата.
 
 | Плавающая PC-клавиатура | Конфигурации запуска и профили |
 |---|---|
@@ -32,7 +32,7 @@
 
 </details>
 
-План следующего архитектурного этапа: [минимальный APK, система аддонов и официальный маркетплейс](docs/ADDONS-ROADMAP.md). SDK аддонов и маркетплейс пока в плане; вынос GCC/CMake из APK в загружаемые пакеты уже реализован в 0.3.7.
+План следующего архитектурного этапа: [минимальный APK, система аддонов и официальный маркетплейс](docs/ADDONS-ROADMAP.md). Первая часть [SDK аддонов](docs/ADDON-SDK.md) работает в 0.3.8; маркетплейс и сторонние загрузчики ещё в плане. GCC/CMake вынесены из APK в загружаемые пакеты в 0.3.7.
 
 ### Зачем создаётся C++ Studio
 

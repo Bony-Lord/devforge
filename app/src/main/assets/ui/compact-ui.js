@@ -15,9 +15,10 @@ const compactMethods={
     onNative('editorDismissPopover',()=>{this.toggleMainMenu(false);$('#menu').classList.add('hidden');});
     $('#tabs').addEventListener('dblclick',event=>{if(event.target.closest('.tab')&&!event.target.closest('.tab-close'))this.toggleFocusMode();});
     $('.panel-heading').addEventListener('dblclick',event=>{if(!event.target.closest('button'))this.maximizePanel();});
-    onNative('floatingKeyboardModifiers',e=>{this.settings.keyboardModifiers=e.mode;this.saveWorkspaceSettings();});
-    onNative('floatingKeyboardMode',e=>{if(this.settings.keyboardPrimary===e.mode)return;this.settings.keyboardPrimary=e.mode;this.saveWorkspaceSettings();});
-    onNative('floatingKeyboardSize',e=>{const prefix=e.layout==='pc'?'keyboardPc':'keyboardAndroid';this.settings[prefix+'Width']=e.width;this.settings[prefix+'Height']=e.height;this.saveWorkspaceSettings();});
+    const keyboardRevision=e=>NativeEditing.keyboardRevision=Math.max(NativeEditing.keyboardRevision||0,e.revision||0);
+    onNative('floatingKeyboardModifiers',e=>{keyboardRevision(e);this.settings.keyboardModifiers=e.mode;this.saveWorkspaceSettings();});
+    onNative('floatingKeyboardMode',e=>{keyboardRevision(e);if(this.settings.keyboardPrimary===e.mode)return;this.settings.keyboardPrimary=e.mode;this.saveWorkspaceSettings();});
+    onNative('floatingKeyboardSize',e=>{keyboardRevision(e);const prefix=e.layout==='pc'?'keyboardPc':'keyboardAndroid';this.settings[prefix+'Width']=e.width;this.settings[prefix+'Height']=e.height;this.saveWorkspaceSettings();});
     this.initDialogDismiss();
     const webInput=()=>native('editorWebInput',{focused:!!document.activeElement?.matches('input,textarea,[contenteditable="true"]')}).catch(console.warn);document.addEventListener('focusin',webInput);document.addEventListener('focusout',()=>queueMicrotask(webInput));
     this.initTouchTips();

@@ -60,7 +60,7 @@ const workspaceMethods={
   },
   setUIScale(value,persist=true){this.settings.uiScale=Math.max(65,Math.min(180,Math.round(value)));this.applyUIScale();if(persist)this.saveWorkspaceSettings();},
   setCodeScale(value,persist=true){this.settings.codeScale=Math.max(50,Math.min(250,Number.isFinite(Number(value))?Number(value):100));const size=this.settings.fontSize*this.settings.codeScale/100;for(const editor of [...NativeEditing.panes.values()].map(p=>p.editor))editor?.updateOptions({fontSize:size,lineHeight:Math.round(size*1.6)});$('#fontStatus').textContent=Math.round(this.settings.codeScale)+'%';$('#fontStatus').title=`Код: ${Math.round(this.settings.codeScale)}% · ${size.toFixed(1)} px`;if(persist)this.saveWorkspaceSettings();},
-  saveWorkspaceSettings(immediate=false){clearTimeout(this.workspaceSaveTimer);if(immediate)return native('settings',this.settings);this.workspaceSaveTimer=setTimeout(()=>native('settings',this.settings).catch(safeError),220);},
+  saveWorkspaceSettings(immediate=false){clearTimeout(this.workspaceSaveTimer);if(immediate)return native('settingsCommit',this.settings);this.workspaceSaveTimer=setTimeout(()=>native('settings',this.settings).catch(safeError),220);},
   splitEditor(direction,persist=true){
     const model=this.editor.getModel();
     if(!this.secondaryEditor){this.secondaryEditor=attachNativeEditor(monaco.editor.create($('#secondaryEditor'),{...this.editorOptions(),automaticLayout:false,model:null}),'secondary');this.attachWorkspaceEditor(this.secondaryEditor);}
