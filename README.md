@@ -1,4 +1,4 @@
-<p align="center"><img src="https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/banner.svg" alt="DevForge — offline Android IDE" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/banner.svg" alt="DevForge — offline Android IDE" width="100%"></p>
 
 <p align="center">
   <a href="https://github.com/Bony-Lord/devforge/actions/workflows/checks.yml"><img alt="Source checks" src="https://github.com/Bony-Lord/devforge/actions/workflows/checks.yml/badge.svg"></a>
@@ -8,9 +8,9 @@
   <a href="LICENSE"><img alt="App license: MIT" src="https://img.shields.io/badge/App-MIT-868A91"></a>
 </p>
 
-> **[DevForge 0.4.1 — Android preview](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.1):** новый бренд, [менеджер паков и компонентов](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/DEVFORGE.md) с галочками полного/частичного состава, планом изменений и загрузок. Первый запуск на основе аддонов без вспышки клавиатуры; установка сторонних пакетов из файла/HTTPS с согласием и доверие папке проекта. GCC/CMake скачиваются отдельно. Исполняемые сторонние моды и Python/ipynb ещё не реализованы. Target SDK28 сохранён; [0.4.0](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.0) доступна для возврата.
+> **[DevForge 0.4.2 — Android preview](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.2):** [компактный первый запуск](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/ONBOARDING-0.4.2.md) с двумя вкладками «Паки» / «Компоненты и инструменты». Группы с тремя состояниями; выбор больше не сворачивает список и не сбрасывает прокрутку. Проводник на телефоне получил отдельный значок вместо второго меню. GCC/CMake скачиваются отдельно. Target SDK28 сохранён; [0.4.1](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.1) доступна для возврата.
 
-> Исходники текущего Android-выпуска: **[тег v0.4.1](https://github.com/Bony-Lord/devforge/tree/v0.4.1)**. Ветка `main` сохраняет прежние modern/desktop-изменения; для воспроизведения этого APK используйте тег выпуска.
+> Исходники текущего Android-выпуска: **[тег v0.4.2](https://github.com/Bony-Lord/devforge/tree/v0.4.2)**. Ветка `main` сохраняет прежние modern/desktop-изменения; для воспроизведения этого APK используйте тег выпуска.
 >
 > **Настольная [1.0.0-rc.1](https://github.com/Bony-Lord/devforge/releases/tag/v1.0.0-rc.1) нестабильна и не рекомендуется.** В ней обнаружены проблемы компоновки, ввода, CMake и конфигураций запуска. Доработка rc.2 сохранена в отдельной ветке и этим выпуском не публикуется. Проверенной стабильной настольной версии пока нет. [Сохранённый прогресс](https://github.com/Bony-Lord/devforge/blob/main/docs/RELEASE-1.0-WORK.md).
 
@@ -19,30 +19,30 @@ DevForge — модульная среда разработки для Android. 
 
 | Паки и частичный состав | Первый запуск из компонентов |
 |---|---|
-| ![Менеджер аддонов DevForge](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/0.4.1-addons.png) | ![Настройка DevForge](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/0.4.1-setup.png) |
+| ![Паки DevForge](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/0.4.2-setup-packs.png) | ![Группы компонентов DevForge](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/0.4.2-setup-components.png) |
 
 **Автономная IDE для C/C++ на Android, рассчитанная на планшет с клавиатурой.** GCC, Clang, clangd, CMake, GDB и Git работают прямо на устройстве. Инструменты скачиваются отдельно; после установки редактирование, анализ, компиляция и запуск работают без интернета.
 
 Интерфейс и привычные действия вдохновлены CLion Dark. Это самостоятельное приложение с открытым кодом; оно не связано с JetBrains и не использует закрытый код CLion.
 
-<p align="center"><a href="https://github.com/Bony-Lord/devforge/releases"><b>Скачать APK →</b></a> · <a href="https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/BUILDING.md">Сборка из исходников</a> · <a href="https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/VERIFICATION.md">Проверки</a> · <a href="THIRD_PARTY.md">Компоненты и лицензии</a></p>
+<p align="center"><a href="https://github.com/Bony-Lord/devforge/releases"><b>Скачать APK →</b></a> · <a href="https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/BUILDING.md">Сборка из исходников</a> · <a href="https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/VERIFICATION.md">Проверки</a> · <a href="THIRD_PARTY.md">Компоненты и лицензии</a></p>
 
-**0.4.1:** DevForge, установка из выбранных аддонов, частичные паки, согласие на сторонние пакеты и доверие проекту. [Изменения](https://github.com/Bony-Lord/devforge/blob/v0.4.1/CHANGELOG.md) · [Галерея](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/GALLERY.md) · [Готовые примеры](https://github.com/Bony-Lord/devforge/blob/v0.4.1/examples/README.md) · [Проверка лицензий](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/LICENSE-AUDIT.md) · [Приватность](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/PRIVACY.md).
+**0.4.2:** компактный выбор паков и компонентов, сохранение раскрытых групп и прокрутки, отдельный значок проводника. [Изменения](https://github.com/Bony-Lord/devforge/blob/v0.4.2/CHANGELOG.md) · [Галерея](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/GALLERY.md) · [Готовые примеры](https://github.com/Bony-Lord/devforge/blob/v0.4.2/examples/README.md) · [Проверка лицензий](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/LICENSE-AUDIT.md) · [Приватность](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/PRIVACY.md).
 
 <details><summary>Редактор, отладчик и клавиатура: предыдущие сборки C++ Studio</summary>
 
 | Плавающая PC-клавиатура | Конфигурации запуска и профили |
 |---|---|
-| ![PC-клавиатура с подписями Shift](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/0.3.5-keyboard.png) | ![Редактор конфигураций](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/0.3.5-configurations.png) |
+| ![PC-клавиатура с подписями Shift](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/0.3.5-keyboard.png) | ![Редактор конфигураций](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/0.3.5-configurations.png) |
 
-![Редактор предыдущей сборки](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/editor.png)
-![Структуры и контейнеры в GDB](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/debugger.png)
-![Два нативных редактора](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/split.png)
-![Мастер настройки](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.1/docs/screenshots/setup.png)
+![Редактор предыдущей сборки](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/editor.png)
+![Структуры и контейнеры в GDB](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/debugger.png)
+![Два нативных редактора](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/split.png)
+![Мастер настройки](https://raw.githubusercontent.com/Bony-Lord/devforge/v0.4.2/docs/screenshots/setup.png)
 
 </details>
 
-План следующего архитектурного этапа: [минимальный APK, система аддонов и официальный маркетплейс](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/ADDONS-ROADMAP.md). [SDK аддонов preview 2](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/ADDON-SDK.md) работает в 0.4.0; доступны локальные пакеты, зависимости и адаптеры функций. Удалённый маркетплейс и изолированные сторонние загрузчики ещё в плане. GCC/CMake вынесены из APK в загружаемые пакеты в 0.3.7.
+План следующего архитектурного этапа: [минимальный APK, система аддонов и официальный маркетплейс](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/ADDONS-ROADMAP.md). [SDK аддонов preview 2](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/ADDON-SDK.md) работает в 0.4.0; доступны локальные пакеты, зависимости и адаптеры функций. Удалённый маркетплейс и изолированные сторонние загрузчики ещё в плане. GCC/CMake вынесены из APK в загружаемые пакеты в 0.3.7.
 
 ### Зачем создаётся DevForge
 
@@ -75,7 +75,7 @@ CLion служит ориентиром по организации рабоче
 
 Выбор зависит от задачи: Cxxdroid предлагает готовую учебную среду и библиотеки, Coding C++ — простой старт, Termux — гибкость окружения. DevForge создаётся для тех, кому нужен единый графический рабочий процесс с GCC, CMake и отладчиком на планшете.
 
-**Текущее ограничение проекта — зрелость.** Это предварительная версия: поведение ввода, жестов и расположения панелей ещё дорабатывается. Первый разбор тяжёлых заголовков может занимать несколько секунд; предупреждение Android о старом target SDK сохраняется. Полного соответствия рефакторингам, анализу, интеграциям и надёжности CLion пока нет. Замеры и проверенные сценарии доступны в [отчёте](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/VERIFICATION.md), ограничения платформы — в [PLATFORMS.md](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/PLATFORMS.md).
+**Текущее ограничение проекта — зрелость.** Это предварительная версия: поведение ввода, жестов и расположения панелей ещё дорабатывается. Первый разбор тяжёлых заголовков может занимать несколько секунд; предупреждение Android о старом target SDK сохраняется. Полного соответствия рефакторингам, анализу, интеграциям и надёжности CLion пока нет. Замеры и проверенные сценарии доступны в [отчёте](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/VERIFICATION.md), ограничения платформы — в [PLATFORMS.md](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/PLATFORMS.md).
 
 Нашли проблему или хотите повлиять на развитие? [Сообщите об ошибке или предложите улучшение](https://github.com/Bony-Lord/devforge/issues/new/choose). Особенно полезны воспроизводимые примеры: модель устройства, версия Android, тип клавиатуры и короткий проект без личных данных.
 
@@ -94,9 +94,9 @@ CLion служит ориентиром по организации рабоче
 - Строки дерева компактные (28 px), вкладки файлов — 36 px. Полупрозрачные направляющие показывают вложенность сразу, без clangd; активный блок заметнее. Место точек останова постоянно, строка подсвечивается лёгким красным фоном.
 - clang-tidy вынесен в настройку расширенного анализа. На планшете повторные правки с `bits/stdc++.h` дали диагностику за 180–253 мс; первый разбор всё ещё занимает около 3 секунд. Это инструментальные замеры конкретного примера.
 
-Сценарии ввода, кодировок и умных отступов 0.2 сохранены. Новые проверки выполнены на Xiaomi Pad 6 / Android 14; подробности и границы — в [отчёте](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/VERIFICATION.md).
+Сценарии ввода, кодировок и умных отступов 0.2 сохранены. Новые проверки выполнены на Xiaomi Pad 6 / Android 14; подробности и границы — в [отчёте](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/VERIFICATION.md).
 
-**Предупреждение Android о старом target SDK пока остаётся.** Для его устранения нужен новый механизм запуска локальных программ; простая смена target SDK нарушит работу GCC. Состояние перехода и будущих Linux/Windows/macOS-портов описано в [PLATFORMS.md](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/PLATFORMS.md).
+**Предупреждение Android о старом target SDK пока остаётся.** Для его устранения нужен новый механизм запуска локальных программ; простая смена target SDK нарушит работу GCC. Состояние перехода и будущих Linux/Windows/macOS-портов описано в [PLATFORMS.md](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/PLATFORMS.md).
 
 ### Возможности
 
@@ -175,6 +175,6 @@ CLion служит ориентиром по организации рабоче
 
 Хост и нативный редактор используют Java и Sora Editor; оболочка — JavaScript/CSS. Скрытые модели Monaco служат для LSP, сравнения файлов и предпросмотра. Ввод текста и отрисовка кода не зависят от цикла JavaScript WebView. Нативное окружение собирается из зафиксированных пакетов Termux/TUR с проверкой SHA256, переносом путей и сохранением лицензий. Сам Termux устанавливать не нужно.
 
-Исходники приложения — **MIT**. Компиляторы, отладчик, Git и библиотеки сохраняют собственные лицензии. Рядом с APK в Releases находится архив соответствующих исходников GNU/copyleft-компонентов, патчей и рецептов сборки. Подробности — в [THIRD_PARTY.md](https://github.com/Bony-Lord/devforge/blob/v0.4.1/THIRD_PARTY.md).
+Исходники приложения — **MIT**. Компиляторы, отладчик, Git и библиотеки сохраняют собственные лицензии. Рядом с APK в Releases находится архив соответствующих исходников GNU/copyleft-компонентов, патчей и рецептов сборки. Подробности — в [THIRD_PARTY.md](https://github.com/Bony-Lord/devforge/blob/v0.4.2/THIRD_PARTY.md).
 
-В 0.2 клавиатуре задаётся режим видимого текста без автокоррекции и смены регистра. Проверено настоящими экранными клавишами Yandex Keyboard, включая `std `, удержание Backspace, выделение и Ctrl+C/V. Диагностика показывается независимо от семантических цветов и подсказок типов; изменения в clangd передаются инкрементально. Измерения и ограничения приведены в [отчёте проверок](https://github.com/Bony-Lord/devforge/blob/v0.4.1/docs/VERIFICATION.md).
+В 0.2 клавиатуре задаётся режим видимого текста без автокоррекции и смены регистра. Проверено настоящими экранными клавишами Yandex Keyboard, включая `std `, удержание Backspace, выделение и Ctrl+C/V. Диагностика показывается независимо от семантических цветов и подсказок типов; изменения в clangd передаются инкрементально. Измерения и ограничения приведены в [отчёте проверок](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/VERIFICATION.md).
