@@ -1,0 +1,387 @@
+{
+  "application": "DevForge",
+  "version": "0.4.2",
+  "versionCode": 16,
+  "status": "preview",
+  "device": "Owned Android API 36 x86_64 emulator devforge-ui-042",
+  "passed": 46,
+  "total": 46,
+  "scope": "Targeted WebView touch, keyboard Space, retained DOM/view state, cold-start, error retry, layout and header control checks. No physical device or native compiler tests.",
+  "fixture": {
+    "debugOnly": true,
+    "apkModification": "Only assets/runtime-info.json architecture field changed from aarch64 to x86_64 to pass the runtime architecture guard. All other non-META-INF payload bytes identical to ARM64 debug APK. Published release keeps ARM64 metadata.",
+    "nativeToolsDownloaded": false
+  },
+  "physicalTablet": {
+    "usedForTesting": false,
+    "woken": false,
+    "projectFilesOrSettingsChanged": false
+  },
+  "hostCommandGroupsPassed": 65,
+  "limits": [
+    "Not exhaustive stability testing",
+    "Native ARM64 GCC/CMake/GDB runtime unchanged and not executed in emulator",
+    "Target SDK28 and fresh-install warning remain",
+    "Third-party data packages only; executable mods, Python/ipynb and online marketplace not implemented"
+  ],
+  "driverCorrections": [
+    "Wait for synthesized touch-click and assert visible hit target; the earlier driver tapped hidden elements.",
+    "One CDP connection ended during capture after profile apply. Reconnected, verified persisted profile and completed capture and remaining scenarios."
+  ],
+  "checks": [
+    {
+      "test": "Fresh setup uses exactly two selection tabs",
+      "passed": true,
+      "evidence": [
+        "Паки",
+        "Компоненты и инструменты"
+      ]
+    },
+    {
+      "test": "Screen retention defaults off",
+      "passed": true,
+      "evidence": false
+    },
+    {
+      "test": "No painted floating keyboard before setup",
+      "passed": true,
+      "evidence": []
+    },
+    {
+      "test": "Russian wizard has localized tabs",
+      "passed": true,
+      "evidence": [
+        "Паки",
+        "Компоненты и инструменты"
+      ]
+    },
+    {
+      "test": "Recommended essentials is the first pack",
+      "passed": true,
+      "evidence": "studio.pack.essentials"
+    },
+    {
+      "test": "Group initially has empty checkbox",
+      "passed": true,
+      "evidence": {
+        "checked": false,
+        "partial": false,
+        "aria": "false"
+      }
+    },
+    {
+      "test": "Group select-all checks every member",
+      "passed": true,
+      "evidence": {
+        "checked": true,
+        "partial": false,
+        "aria": "true"
+      }
+    },
+    {
+      "test": "Group checkbox does not collapse its section",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Individual deselection gives group a dash",
+      "passed": true,
+      "evidence": {
+        "checked": false,
+        "partial": true,
+        "aria": "mixed"
+      }
+    },
+    {
+      "test": "Selection retains the same picker and group DOM nodes",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Other expanded sections stay open",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Clicking mixed state selects the complete group",
+      "passed": true,
+      "evidence": {
+        "checked": true,
+        "partial": false,
+        "aria": "true"
+      }
+    },
+    {
+      "test": "Second group click clears its components",
+      "passed": true,
+      "evidence": {
+        "checked": false,
+        "partial": false,
+        "aria": "false"
+      }
+    },
+    {
+      "test": "Filtered group selection only adds matching GCC and dependencies",
+      "passed": true,
+      "evidence": [
+        "studio.tool.platform",
+        "studio.tool.gcc"
+      ]
+    },
+    {
+      "test": "Clearing search restores previously expanded groups",
+      "passed": true,
+      "evidence": [
+        "editing",
+        "languages"
+      ]
+    },
+    {
+      "test": "Unfiltered tools group shows partial dependency state",
+      "passed": true,
+      "evidence": {
+        "checked": false,
+        "partial": true,
+        "aria": "mixed"
+      }
+    },
+    {
+      "test": "Switching tabs retains component scroll position",
+      "passed": true,
+      "evidence": {
+        "before": 169.81817626953125,
+        "after": 169.81817626953125
+      }
+    },
+    {
+      "test": "Cold restart restores tab, expanded groups and scroll",
+      "passed": true,
+      "evidence": {
+        "view": {
+          "tab": "components",
+          "expanded": [
+            "editing",
+            "languages",
+            "projects",
+            "analysis",
+            "workspace",
+            "tools",
+            "extensions"
+          ],
+          "search": "",
+          "selectedOnly": false,
+          "scroll": {
+            "packs": 0,
+            "components": 169.81817626953125
+          }
+        },
+        "scroll": 169.81817626953125
+      }
+    },
+    {
+      "test": "Preferences groups start compact and collapsed",
+      "passed": true,
+      "evidence": [
+        {
+          "open": false,
+          "title": "Клавиатура DevForge"
+        },
+        {
+          "open": false,
+          "title": "C / C++ · подсветка"
+        },
+        {
+          "open": false,
+          "title": "Парные скобки и умные отступы"
+        }
+      ]
+    },
+    {
+      "test": "Back from preferences retains selection view",
+      "passed": true,
+      "evidence": {
+        "tab": "components",
+        "width": 6
+      }
+    },
+    {
+      "test": "Reopening preferences retains expanded field group",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Review has no downloads for essentials",
+      "passed": true,
+      "evidence": {
+        "step": 2,
+        "bytes": 0
+      }
+    },
+    {
+      "test": "Failed preparation retains choices and allows retry",
+      "passed": true,
+      "evidence": {
+        "error": "Simulated preparation failure",
+        "draft": true
+      }
+    },
+    {
+      "test": "Essentials applies with saved fields",
+      "passed": true,
+      "evidence": {
+        "complete": true,
+        "version": 3,
+        "width": 6
+      }
+    },
+    {
+      "test": "Addon manager also updates without replacing its picker",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Staged manager checkbox does not disable live feature before Apply",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Explicit discard retains expanded component groups",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Main menu and project controls have different SVG glyphs",
+      "passed": true,
+      "evidence": {
+        "menu": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" aria-hidden=\"true\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <path d=\"M4 5h16\"></path>\n  <path d=\"M4 12h16\"></path>\n  <path d=\"M4 19h16\"></path>\n</svg>\n",
+        "project": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"1\"></rect><path d=\"M9 4v16M5 8h2m-2 4h2m-2 4h2\"></path></svg>"
+      }
+    },
+    {
+      "test": "Project-panel button still toggles the file drawer",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Main-menu button opens the menu independently",
+      "passed": true,
+      "evidence": "true"
+    },
+    {
+      "test": "Setup controls fit 320x640 at 100%",
+      "passed": true,
+      "evidence": {
+        "w": 320,
+        "h": 640,
+        "left": 185.27273559570312,
+        "right": 295.2727355957031,
+        "top": 567.6704711914062,
+        "bottom": 601.6704711914062,
+        "scrollWidth": 295,
+        "clientWidth": 295
+      }
+    },
+    {
+      "test": "Setup controls fit 390x740 at 150%",
+      "passed": true,
+      "evidence": {
+        "w": 390,
+        "h": 740,
+        "left": 187.72727966308594,
+        "right": 352.72727966308594,
+        "top": 640.3068237304688,
+        "bottom": 690.943187713623,
+        "scrollWidth": 351,
+        "clientWidth": 351
+      }
+    },
+    {
+      "test": "Setup controls fit 740x360 at 100%",
+      "passed": true,
+      "evidence": {
+        "w": 740,
+        "h": 360,
+        "left": 573.2727661132812,
+        "right": 683.2727661132812,
+        "top": 294.86932373046875,
+        "bottom": 328.86932373046875,
+        "scrollWidth": 659,
+        "clientWidth": 659
+      }
+    },
+    {
+      "test": "Setup controls fit 960x640 at 125%",
+      "passed": true,
+      "evidence": {
+        "w": 960,
+        "h": 640,
+        "left": 733.9091186523438,
+        "right": 871.4091186523438,
+        "top": 551.1704711914062,
+        "bottom": 593.3068351745605,
+        "scrollWidth": 823,
+        "clientWidth": 823
+      }
+    },
+    {
+      "test": "Group checkbox works with Space without collapsing the group",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Space selects the group and retains its expansion",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Search preserves chosen component roots",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Restored search expands matching groups after recreating the view",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Selected-only filter hides unselected rows",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Full C++ pack previews native downloads without downloading",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Visible selection viewport 320 at 100%",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Visible selection viewport 390 at 150%",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Visible selection viewport 740 at 100%",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Visible selection viewport 960 at 125%",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Package catalog remains reachable",
+      "passed": true,
+      "evidence": true
+    },
+    {
+      "test": "Project drawer control has its own accessible label",
+      "passed": true,
+      "evidence": true
+    }
+  ]
+}

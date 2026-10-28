@@ -22,7 +22,8 @@
       ],
       "dependencies": {},
       "conflicts": {},
-      "kind": "feature"
+      "kind": "feature",
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -58,7 +59,8 @@
       ],
       "dependencies": {},
       "conflicts": {},
-      "kind": "feature"
+      "kind": "feature",
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -185,7 +187,8 @@
         }
       },
       "conflicts": {},
-      "kind": "feature"
+      "kind": "feature",
+      "installationGroup": "editing"
     },
     "contributions": [
       {
@@ -225,7 +228,8 @@
         }
       },
       "conflicts": {},
-      "kind": "feature"
+      "kind": "feature",
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -266,7 +270,8 @@
         }
       },
       "conflicts": {},
-      "kind": "feature"
+      "kind": "feature",
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -336,7 +341,8 @@
         }
       },
       "conflicts": {},
-      "kind": "feature"
+      "kind": "feature",
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -1068,8 +1074,8 @@
         "maxExclusive": "0.2.0"
       },
       "name": {
-        "ru": "C / C++ pack",
-        "en": "C / C++ pack"
+        "ru": "Поддержка C/C++",
+        "en": "C/C++ support"
       },
       "description": {
         "ru": "Подсветка и типы проектов C/C++. Компилятор выбирается отдельно.",
@@ -1102,8 +1108,8 @@
         "maxExclusive": "0.2.0"
       },
       "name": {
-        "ru": "CMake project pack",
-        "en": "CMake project pack"
+        "ru": "Проекты CMake",
+        "en": "CMake projects"
       },
       "description": {
         "ru": "CMake-проекты, подсветка и загружаемые CMake/Ninja.",
@@ -1132,12 +1138,12 @@
         "maxExclusive": "0.2.0"
       },
       "name": {
-        "ru": "Полная C++ IDE · пак",
-        "en": "Full C++ IDE pack"
+        "ru": "Полная C++ IDE",
+        "en": "Full C++ IDE"
       },
       "description": {
-        "ru": "Полная C++ IDE · пак",
-        "en": "Full C++ IDE pack"
+        "ru": "Компилятор, CMake, анализ, форматтер, отладка и Git.",
+        "en": "Compiler, CMake, analysis, formatter, debugger and Git."
       },
       "license": "MIT",
       "capabilities": [],
@@ -1312,7 +1318,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -1348,7 +1355,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -1385,7 +1393,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "editing"
     },
     "contributions": [
       {
@@ -1472,7 +1481,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "editing"
     },
     "contributions": [
       {
@@ -1508,7 +1518,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "editing"
     },
     "contributions": [
       {
@@ -1544,7 +1555,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "editing"
     },
     "contributions": [
       {
@@ -1580,7 +1592,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "editing"
     },
     "contributions": [
       {
@@ -1616,7 +1629,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -1652,7 +1666,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -1688,7 +1703,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "editing"
     },
     "contributions": [
       {
@@ -1729,7 +1745,8 @@
       },
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -1765,7 +1782,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -1801,7 +1819,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "workspace"
     },
     "contributions": [
       {
@@ -1837,7 +1856,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "projects"
     },
     "contributions": [
       {
@@ -1873,7 +1893,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "projects"
     },
     "contributions": [
       {
@@ -1914,7 +1935,8 @@
       },
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -1955,7 +1977,8 @@
       },
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -1996,7 +2019,8 @@
       },
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -2037,7 +2061,8 @@
       },
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -2078,7 +2103,8 @@
       },
       "conflicts": {},
       "kind": "feature",
-      "introduced": 2
+      "introduced": 2,
+      "installationGroup": "analysis"
     },
     "contributions": [
       {
@@ -2104,8 +2130,8 @@
         "en": "Comfortable essentials"
       },
       "description": {
-        "ru": "Простой интерфейс, файлы и подсветки, умный ввод, поиск, история, шаблоны, автосохранение и клавиатура. Без загрузки GCC/CMake, Git или clangd.",
-        "en": "Simple layout, files and syntax, smart typing, search, history, templates, autosave and keyboard. No GCC/CMake, Git or clangd downloads."
+        "ru": "Редактор, подсветки, поиск и клавиатура. Без загрузки инструментов.",
+        "en": "Editing, syntax, search and keyboard. No tool downloads."
       },
       "license": "MIT",
       "kind": "pack",

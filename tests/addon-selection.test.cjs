@@ -18,3 +18,16 @@ test('disabling a workload retains independent roots and dependencies still requ
 test('preview reports changes without mutating the active profile',()=>{
  const before=['example.editor'],after=selection.toggle(catalog,before,get('example.full'),true),changes=selection.changes(catalog,before,after);assert.deepEqual(before,['example.editor']);assert(changes.added.some(m=>m.id==='example.analysis'));assert.equal(changes.removed.length,0);
 });
+
+test('component groups have unchecked, mixed and checked states',()=>{
+ const members=[get('example.editor'),get('example.analysis')];assert.deepEqual(selection.groupState(members,[]),{checked:false,partial:false,count:0,total:2});assert(selection.groupState(members,core.resolve(catalog,['example.editor'])).partial);assert(selection.groupState(members,core.resolve(catalog,['example.full'])).checked);assert.equal(selection.groupState([],[]).checked,false);
+});
+test('checking a group adds missing dependencies once; unchecking preserves independent groups',()=>{
+ const members=[get('example.editor'),get('example.analysis')],next=selection.toggleGroup(catalog,['example.other'],members,true);assert.deepEqual(new Set(ids(next)),new Set(['example.base','example.editor','example.analysis','example.other']));assert.deepEqual(ids(selection.toggleGroup(catalog,next,members,false)),['example.other']);assert.deepEqual(ids(selection.toggleGroup(catalog,['example.full','example.other'],[get('example.analysis')],false)),['example.base','example.editor','example.other']);assert.deepEqual(selection.toggleGroup(catalog,['example.other'],[],false),['example.other']);
+});
+test('component grouping deduplicates versions and keeps native tools separate',()=>{
+ const groups=selection.groups([...catalog,{...get('example.editor'),version:'2.0.0',installationGroup:'workspace'},{...get('example.other'),id:'example.compiler',nativePack:'compiler',kind:'runtime'}]);assert(groups.find(g=>g.id==='workspace').members.some(m=>m.version==='2.0.0'));assert(groups.find(g=>g.id==='tools').members.some(m=>m.id==='example.compiler'));assert(!groups.flatMap(g=>g.members).some(m=>m.kind==='pack'));assert.equal(groups.flatMap(g=>g.members).filter(m=>m.id==='example.editor').length,1);
+});
+test('saved picker view retains expanded groups and scroll while sanitizing invalid values',()=>{
+ const value=selection.view({tab:'components',expanded:['tools','editing'],search:'gcc',selectedOnly:true,scroll:{components:240,packs:80}});assert.deepEqual(value,{tab:'components',expanded:['tools','editing'],search:'gcc',selectedOnly:true,scroll:{packs:80,components:240}});assert.equal(selection.view(null).tab,'packs');assert.equal(selection.view({scroll:{packs:-4}}).scroll.packs,0);
+});

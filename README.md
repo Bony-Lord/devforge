@@ -8,14 +8,14 @@
   <a href="LICENSE"><img alt="App license: MIT" src="https://img.shields.io/badge/App-MIT-868A91"></a>
 </p>
 
-> **[DevForge 0.4.1 — Android preview](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.1):** новый бренд, [менеджер паков и компонентов](docs/DEVFORGE.md) с галочками полного/частичного состава, планом изменений и загрузок. Первый запуск на основе аддонов без вспышки клавиатуры; установка сторонних пакетов из файла/HTTPS с согласием и доверие папке проекта. GCC/CMake скачиваются отдельно. Исполняемые сторонние моды и Python/ipynb ещё не реализованы. Target SDK28 сохранён; [0.4.0](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.0) доступна для возврата.
+> **[DevForge 0.4.2 — Android preview](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.2):** [компактный первый запуск](docs/ONBOARDING-0.4.2.md) с двумя вкладками «Паки» / «Компоненты и инструменты». Группы с тремя состояниями; выбор больше не сворачивает список и не сбрасывает прокрутку. Проводник на телефоне получил отдельный значок вместо второго меню. GCC/CMake скачиваются отдельно. Target SDK28 сохранён; [0.4.1](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.1) доступна для возврата.
 
 DevForge — модульная среда разработки для Android. Сейчас доступны C/C++-паки; другие языки и notebook планируются через общие контракты аддонов. Прежнее имя — C++ Studio.
 
 
 | Паки и частичный состав | Первый запуск из компонентов |
 |---|---|
-| ![Менеджер аддонов DevForge](docs/screenshots/0.4.1-addons.png) | ![Настройка DevForge](docs/screenshots/0.4.1-setup.png) |
+| ![Паки DevForge](docs/screenshots/0.4.2-setup-packs.png) | ![Группы компонентов DevForge](docs/screenshots/0.4.2-setup-components.png) |
 
 **Автономная IDE для C/C++ на Android, рассчитанная на планшет с клавиатурой.** GCC, Clang, clangd, CMake, GDB и Git работают прямо на устройстве. Инструменты скачиваются отдельно; после установки редактирование, анализ, компиляция и запуск работают без интернета.
 
@@ -23,7 +23,7 @@ DevForge — модульная среда разработки для Android. 
 
 <p align="center"><a href="https://github.com/Bony-Lord/devforge/releases"><b>Скачать APK →</b></a> · <a href="docs/BUILDING.md">Сборка из исходников</a> · <a href="docs/VERIFICATION.md">Проверки</a> · <a href="THIRD_PARTY.md">Компоненты и лицензии</a></p>
 
-**0.4.1:** DevForge, установка из выбранных аддонов, частичные паки, согласие на сторонние пакеты и доверие проекту. [Изменения](CHANGELOG.md) · [Галерея](docs/GALLERY.md) · [Готовые примеры](examples/README.md) · [Проверка лицензий](docs/LICENSE-AUDIT.md) · [Приватность](docs/PRIVACY.md).
+**0.4.2:** компактный выбор паков и компонентов, сохранение раскрытых групп и прокрутки, отдельный значок проводника. [Изменения](CHANGELOG.md) · [Галерея](docs/GALLERY.md) · [Готовые примеры](examples/README.md) · [Проверка лицензий](docs/LICENSE-AUDIT.md) · [Приватность](docs/PRIVACY.md).
 
 <details><summary>Редактор, отладчик и клавиатура: предыдущие сборки C++ Studio</summary>
 
