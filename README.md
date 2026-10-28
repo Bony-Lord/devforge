@@ -10,7 +10,9 @@
 
 > **[DevForge 0.4.2 — Android preview](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.2):** [компактный первый запуск](https://github.com/Bony-Lord/devforge/blob/v0.4.2/docs/ONBOARDING-0.4.2.md) с двумя вкладками «Паки» / «Компоненты и инструменты». Группы с тремя состояниями; выбор больше не сворачивает список и не сбрасывает прокрутку. Проводник на телефоне получил отдельный значок вместо второго меню. GCC/CMake скачиваются отдельно. Target SDK28 сохранён; [0.4.1](https://github.com/Bony-Lord/devforge/releases/tag/v0.4.1) доступна для возврата.
 
-> Исходники текущего Android-выпуска: **[тег v0.4.2](https://github.com/Bony-Lord/devforge/tree/v0.4.2)**. Ветка `main` сохраняет прежние modern/desktop-изменения; для воспроизведения этого APK используйте тег выпуска.
+> **Экспериментальная [0.5.0-alpha.2](https://github.com/Bony-Lord/devforge/releases/tag/v0.5.0-alpha.2):** основной APK **9,3 МБ**, target SDK36, одно отдельное нативное окружение около **179 МБ** и паки без APK-запроса на каждый инструмент. Python и `.ipynb` как документы редактора; 32 проверки выполнены на Xiaomi Pad 6 / Android14. **Версия остаётся предварительной; рекомендуемая предыдущая — 0.4.2.** [Проверки и ограничения](https://github.com/Bony-Lord/devforge/blob/v0.5.0-alpha.2/docs/verification-modular-runtime-0.5.json) · [Исходники alpha.2](https://github.com/Bony-Lord/devforge/tree/v0.5.0-alpha.2).
+
+> Исходники рекомендуемого предыдущего Android-выпуска: **[тег v0.4.2](https://github.com/Bony-Lord/devforge/tree/v0.4.2)**. Ветка `main` сохраняет прежние modern/desktop-изменения; для воспроизведения этого APK используйте тег выпуска.
 >
 > **Настольная [1.0.0-rc.1](https://github.com/Bony-Lord/devforge/releases/tag/v1.0.0-rc.1) нестабильна и не рекомендуется.** В ней обнаружены проблемы компоновки, ввода, CMake и конфигураций запуска. Доработка rc.2 сохранена в отдельной ветке и этим выпуском не публикуется. Проверенной стабильной настольной версии пока нет. [Сохранённый прогресс](https://github.com/Bony-Lord/devforge/blob/main/docs/RELEASE-1.0-WORK.md).
 
