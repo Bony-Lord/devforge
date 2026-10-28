@@ -39,6 +39,17 @@ test('serialized changes, safe mode, abort and cleanup survive disposal errors',
 test('activation timeout closes scope and blocks late registration',async()=>{
   let ctx;const {manager,registry}=setup([m('test.one')],context=>{ctx=context;return new Promise(()=>{});},{timeout:10});await assert.rejects(manager.setProfile(['test.one']),/timed out/);assert(ctx.signal.aborted);assert.throws(()=>ctx.contribute('commands','test.one/late',{}));assert.equal(registry.entries.size,0);
 });
-test('unsupported loader and active version replacement fail without damaging live addon',async()=>{
-  const {manager}=setup([m('test.one'),m('test.one',{version:'2.0.0'})],()=>{});await manager.setProfile([{id:'test.one',version:'1.0.0'}]);await assert.rejects(manager.setProfile(['test.one']),/requires restart/);assert.equal(manager.status().active[0].version,'1.0.0');await manager.dispose();manager.factories.clear();await assert.rejects(manager.setProfile(['test.one']),/trusted loader/);
+test('active version upgrades publish once; old disposer cannot remove new contributions',async()=>{
+  let notifications=0,oldContext,newContext;const registry=new sdk.Registry({commands:'ui.commands'},()=>notifications++),catalog=[m('test.one'),m('test.one',{version:'2.0.0'})];
+  const manager=new sdk.Manager({catalog,registry,factories:new Map(catalog.map(manifest=>[manifest.id+'@'+manifest.version,ctx=>{if(ctx.manifest.version==='1.0.0')oldContext=ctx;else newContext=ctx;ctx.contribute('commands','test.one/x',{version:ctx.manifest.version});}]))});
+  await manager.setProfile([{id:'test.one',version:'1.0.0'}]);const before=notifications;await manager.setProfile(['test.one']);assert.equal(notifications,before+1);assert(oldContext.signal.aborted);assert.equal(registry.list('commands')[0].value.version,'2.0.0');newContext.contribute('commands','test.one/late',{});assert.equal(registry.entries.size,2);await manager.dispose();assert.equal(registry.entries.size,0);
+});
+test('failed upgrade keeps the original version and registry unchanged',async()=>{
+  const {manager,registry}=setup([m('test.one'),m('test.one',{version:'2.0.0'})],ctx=>{ctx.contribute('commands','test.one/x',{version:ctx.manifest.version});if(ctx.manifest.version==='2.0.0')throw Error('broken version');});
+  await manager.setProfile([{id:'test.one',version:'1.0.0'}]);const before=registry.revision;await assert.rejects(manager.setProfile(['test.one']));assert.equal(registry.revision,before);assert.equal(registry.list('commands')[0].value.version,'1.0.0');assert.equal(manager.status().active[0].version,'1.0.0');
+  await manager.dispose();manager.factories.clear();await assert.rejects(manager.setProfile(['test.one']),/trusted loader/);
+});
+test('late live contributions during asynchronous activation are preserved and abort stale transaction',async()=>{
+  let first;const {manager,registry}=setup([m('test.one'),m('test.two')],async ctx=>{if(ctx.manifest.id==='test.one')first=ctx;else{first.contribute('commands','test.one/late',{});await Promise.resolve();}ctx.contribute('commands',ctx.manifest.id+'/x',{});});
+  await manager.setProfile(['test.one']);await assert.rejects(manager.setProfile(['test.one','test.two']),/changed during activation/);assert.equal(registry.list('commands').length,2);assert.equal(manager.status().active.length,1);await manager.dispose();assert.equal(registry.entries.size,0);
 });

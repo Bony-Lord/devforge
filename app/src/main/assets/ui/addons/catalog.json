@@ -1,0 +1,105 @@
+[
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.ocean-ui",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Океан · интерфейс",
+        "en": "Ocean UI"
+      },
+      "description": {
+        "ru": "Спокойные синие акценты и границы. Цвета редактора не меняет.",
+        "en": "Calm blue accents and borders. Editor colors stay unchanged."
+      },
+      "author": "C++ Studio contributors",
+      "license": "MIT",
+      "capabilities": [
+        "ui.theme"
+      ],
+      "dependencies": {},
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "themes",
+        "id": "studio.ocean-ui/colors",
+        "value": {
+          "dark": {
+            "--accent": "#76b8df",
+            "--accent-bg": "#254656",
+            "--line": "#456473"
+          },
+          "light": {
+            "--accent": "#21678e",
+            "--accent-bg": "#d6edf5",
+            "--line": "#85a8ba"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.focus-tools",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Команды рабочего пространства",
+        "en": "Workspace commands"
+      },
+      "description": {
+        "ru": "Режим фокусировки и настройки через палитру команд.",
+        "en": "Focus mode and settings from the command palette."
+      },
+      "author": "C++ Studio contributors",
+      "license": "MIT",
+      "capabilities": [
+        "ui.commands"
+      ],
+      "dependencies": {
+        "studio.navigation": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "commands",
+        "id": "studio.focus-tools/focus",
+        "value": {
+          "label": {
+            "ru": "Аддон: режим фокусировки",
+            "en": "Addon: focus mode"
+          },
+          "action": "ui.focusMode"
+        }
+      },
+      {
+        "point": "commands",
+        "id": "studio.focus-tools/settings",
+        "value": {
+          "label": {
+            "ru": "Аддон: настройки",
+            "en": "Addon: settings"
+          },
+          "action": "ui.settings"
+        }
+      }
+    ]
+  }
+]

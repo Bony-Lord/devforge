@@ -1,0 +1,44 @@
+{
+  "format": "cppstudio.addon",
+  "formatVersion": 1,
+  "manifest": {
+    "schemaVersion": 1,
+    "id": "example.forest",
+    "version": "1.0.0",
+    "api": {
+      "min": "0.1.1",
+      "maxExclusive": "0.2.0"
+    },
+    "name": {
+      "ru": "Лес · интерфейс",
+      "en": "Forest UI"
+    },
+    "description": {
+      "ru": "Пример локального пакета: зелёные акценты.",
+      "en": "Local package example: green accents."
+    },
+    "author": "Example author (local file)",
+    "license": "MIT",
+    "capabilities": [
+      "ui.theme"
+    ],
+    "dependencies": {},
+    "conflicts": {}
+  },
+  "contributions": [
+    {
+      "point": "themes",
+      "id": "example.forest/colors",
+      "value": {
+        "dark": {
+          "--accent": "#9bc48d",
+          "--accent-bg": "#30452c"
+        },
+        "light": {
+          "--accent": "#3e7131",
+          "--accent-bg": "#e0efda"
+        }
+      }
+    }
+  ]
+}

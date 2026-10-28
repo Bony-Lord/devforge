@@ -219,7 +219,7 @@ public final class MainActivity extends Activity {
                     ui.post(()->{try{respond(r.optString("id"),nativeEditors.handle(r.optString("op"),r.optJSONObject("data")),null);}catch(Throwable e){android.util.Log.e("Studio","Native editor",e);respond(r.optString("id"),null,e.toString());}});
                     return;
                 }
-                preferenceRequest=Arrays.asList("settings","settingsCommit","session","sessionCommit","addonState","addonStateCommit").contains(r.optString("op"));
+                preferenceRequest=Arrays.asList("settings","settingsCommit","session","sessionCommit","addonState","addonStateCommit","addonLibrary","addonCatalog","addonBegin","addonFinish").contains(r.optString("op"));
             }catch(JSONException ignored){}
             (preferenceRequest?preferenceWrites:workers).execute(() -> {
                 String id="";
@@ -253,13 +253,16 @@ public final class MainActivity extends Activity {
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==92)try{event("storageAccess",new JSONObject().put("permission",engine.workspace.permission()));}catch(Exception ignored){}}
     void exportProject(String name) { ui.post(() -> { pendingExport=name; Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT); i.setType("application/zip"); i.addCategory(Intent.CATEGORY_OPENABLE); i.putExtra(Intent.EXTRA_TITLE,name+".zip"); startActivityForResult(i,13); }); }
     void importFile() { ui.post(() -> { Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT); i.setType("*/*"); i.addCategory(Intent.CATEGORY_OPENABLE); i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); startActivityForResult(i,14); }); }
+    void importAddon(){ui.post(()->{Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.setType("*/*");intent.addCategory(Intent.CATEGORY_OPENABLE);intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);startActivityForResult(intent,15);});}
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);
         if(result!=RESULT_OK||data==null||data.getData()==null)return;
         Uri uri=data.getData();
         workers.execute(() -> {
             try {
-                if(request==12) {
+                if(request==15){
+                    try(InputStream in=getContentResolver().openInputStream(uri)){if(in==null)throw new IOException("Cannot read addon document");String content=IdeEngine.slurp(in,262144);event("addonImported",new JSONObject().put("text",content));}
+                } else if(request==12) {
                     File dest=engine.newProjectDir("import-"+System.currentTimeMillis());
                     copyDocumentTree(uri,DocumentsContract.getTreeDocumentId(uri),dest,new long[]{0,0});
                     event("imported",new JSONObject().put("project",dest.getName()));

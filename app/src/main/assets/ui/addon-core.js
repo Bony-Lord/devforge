@@ -1,7 +1,7 @@
 /* Portable addon kernel. No DOM, Android bridge, filesystem or network access. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.StudioAddonCore=api;})(globalThis,()=>{
   'use strict';
-  const API_VERSION='0.1.0',ID=/^[a-z][a-z0-9-]*\.[a-z][a-z0-9.-]*$/;
+  const API_VERSION='0.1.1',ID=/^[a-z][a-z0-9-]*\.[a-z][a-z0-9.-]*$/;
   const fail=message=>{throw Error(message);};
   function version(value){if(typeof value!=='string'||! /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value))fail('Invalid version: '+value);const parts=value.split('.').map(Number);if(parts.some(n=>!Number.isSafeInteger(n)))fail('Version is too large');return parts;}
   function compare(a,b){const x=version(a),y=version(b);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]<y[i]?-1:1;return 0;}
@@ -17,9 +17,9 @@
     return frozen(m); // Unknown fields survive for future schemas and author tooling.
   }
   function order(selected){const result=[],visiting=new Set(),done=new Set();function visit(id){if(visiting.has(id))fail('Dependency cycle: '+id);if(done.has(id))return;visiting.add(id);for(const dep of Object.keys(selected.get(id).dependencies))visit(dep);visiting.delete(id);done.add(id);result.push(selected.get(id));}for(const id of selected.keys())visit(id);return result;}
-  function resolve(catalog,requested,{apiVersion=API_VERSION,platform='android',maxSteps=10000}={}){
+  function resolve(catalog,requested,{apiVersion=API_VERSION,platform='android',maxSteps=10000,prefer={}}={}){
     version(apiVersion);if(!Array.isArray(catalog)||catalog.length>512||!Array.isArray(requested)||requested.length>128)fail('Addon resolver limit exceeded');
-    const groups=new Map(),seen=new Set();for(const input of catalog){const m=manifest(input),key=m.id+'@'+m.version;if(seen.has(key))fail('Duplicate addon version: '+key);seen.add(key);if(!satisfies(apiVersion,m.api)||m.platforms&&!m.platforms.includes(platform))continue;if(!groups.has(m.id))groups.set(m.id,[]);groups.get(m.id).push(m);}for(const list of groups.values())list.sort((a,b)=>compare(b.version,a.version));
+    const groups=new Map(),seen=new Set();for(const input of catalog){const m=manifest(input),key=m.id+'@'+m.version;if(seen.has(key))fail('Duplicate addon version: '+key);seen.add(key);if(!satisfies(apiVersion,m.api)||m.platforms&&!m.platforms.includes(platform))continue;if(!groups.has(m.id))groups.set(m.id,[]);groups.get(m.id).push(m);}for(const list of groups.values())list.sort((a,b)=>Number(b.version===prefer[b.id])-Number(a.version===prefer[a.id])||compare(b.version,a.version));
     const constraints=new Map();function require(map,id,r){if(!ID.test(id))fail('Invalid addon id');range(r);if(!map.has(id))map.set(id,[]);map.get(id).push(r);}
     for(const item of requested)require(constraints,typeof item==='string'?item:item.id,typeof item==='string'?{}:item.version??{});
     let steps=0;
@@ -33,10 +33,12 @@
     return search(new Map(),constraints)||fail('Cannot resolve addons: missing, incompatible, conflicting or cyclic dependencies');
   }
   class Registry {
-    constructor(points,onChange=()=>{}){this.points=new Map(Object.entries(points));this.entries=new Map();this.onChange=onChange;}
-    add(owner,point,id,value){if(!this.points.has(point))fail('Unknown extension point: '+point);const key=point+':'+id;if(this.entries.has(key))fail('Duplicate contribution: '+key);const entry=Object.freeze({owner,point,id,value});this.entries.set(key,entry);this.changed();let removed=false;return()=>{if(!removed){removed=true;this.entries.delete(key);this.changed();}};}
-    changed(){try{this.onChange();}catch{/* Host observers cannot break registry cleanup. */}}
-    list(point){return [...this.entries.values()].filter(e=>e.point===point);}
+    constructor(points,onChange=()=>{}){this.points=new Map(Object.entries(points));this.entries=new Map();this.onChange=onChange;this.revision=0;this.forward=null;}
+    add(owner,point,id,value){if(this.forward)return this.forward.add(owner,point,id,value);if(!this.points.has(point))fail('Unknown extension point: '+point);const key=point+':'+id;if(this.entries.has(key))fail('Duplicate contribution: '+key);const entry=Object.freeze({owner,point,id,value});this.entries.set(key,entry);this.changed();return()=>this.remove(entry);}
+    remove(entry){if(this.forward)return this.forward.remove(entry);const key=entry.point+':'+entry.id;if(this.entries.get(key)===entry){this.entries.delete(key);this.changed();}}
+    changed(){this.revision++;try{this.onChange();}catch{/* Host observers cannot break registry cleanup. */}}
+    list(point){return this.forward?this.forward.list(point):[...this.entries.values()].filter(e=>e.point===point);}
+    transaction(exclude){const parent=this,revision=parent.revision,stage=new Registry(Object.fromEntries(this.points));stage.entries=new Map([...this.entries].filter(([,e])=>!exclude.has(e.owner)));stage.commit=()=>{if(parent.revision!==revision)fail('Addon contributions changed during activation; retry');parent.entries.clear();for(const [key,entry]of stage.entries)parent.entries.set(key,entry);stage.forward=parent;parent.changed();};return stage;}
   }
   class Scope {
     constructor(m,registry,report){this.manifest=m;this.registry=registry;this.report=report;this.disposers=[];this.closed=false;this.abort=new AbortController();}
@@ -51,11 +53,12 @@
     enqueue(work){const next=this.tail.then(work);this.tail=next.catch(()=>{});return next;}
     setProfile(requested,{safeMode=false}={}){const input=JSON.parse(JSON.stringify(requested));return this.enqueue(()=>this.reconcile(input,safeMode));}
     async reconcile(requested,safeMode){
-      const target=safeMode?[]:resolve(this.catalog,requested,{platform:this.platform,apiVersion:this.apiVersion}),wanted=new Map(target.map(m=>[m.id,m]));
-      for(const [id,entry]of this.active)if(wanted.has(id)&&wanted.get(id).version!==entry.manifest.version)fail('Active addon version change requires restart: '+id);
-      const added=[];try{for(const m of target){if(this.active.has(m.id))continue;const activate=this.factories.get(m.id+'@'+m.version);if(typeof activate!=='function')fail('No trusted loader: '+m.id);const scope=new Scope(m,this.registry,(e,id)=>this.report(e,id));added.push({manifest:m,scope});let timer;try{const result=await Promise.race([Promise.resolve().then(()=>activate(scope.context())),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Addon activation timed out: '+m.id)),this.timeout);})]);if(result)scope.use(result);}finally{clearTimeout(timer);}}}
+      const roots=new Set(requested.map(r=>typeof r==='string'?r:r.id)),prefer=Object.fromEntries([...this.active].filter(([id])=>!roots.has(id)).map(([id,e])=>[id,e.manifest.version]));
+      const target=safeMode?[]:resolve(this.catalog,requested,{platform:this.platform,apiVersion:this.apiVersion,prefer}),wanted=new Map(target.map(m=>[m.id,m]));
+      const retiring=new Set([...this.active].filter(([id,e])=>!wanted.has(id)||wanted.get(id).version!==e.manifest.version).map(([id])=>id)),stage=this.registry.transaction(retiring);
+      const added=[];try{for(const m of target){if(this.active.get(m.id)?.manifest.version===m.version)continue;const activate=this.factories.get(m.id+'@'+m.version);if(typeof activate!=='function')fail('No trusted loader: '+m.id);const scope=new Scope(m,stage,(e,id)=>this.report(e,id));added.push({manifest:m,scope});let timer;try{const result=await Promise.race([Promise.resolve().then(()=>activate(scope.context())),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Addon activation timed out: '+m.id)),this.timeout);})]);if(result)scope.use(result);}finally{clearTimeout(timer);}}stage.commit();}
       catch(error){for(const entry of added.reverse())await entry.scope.dispose();try{this.report(error,added[0]?.manifest.id);}catch{}throw error;}
-      for(const [id,entry]of [...this.active].reverse())if(!wanted.has(id)){await entry.scope.dispose();this.active.delete(id);}
+      for(const [id,entry]of [...this.active].reverse())if(retiring.has(id)){await entry.scope.dispose();this.active.delete(id);}
       for(const entry of added)this.active.set(entry.manifest.id,entry);this.requested=requested;this.safeMode=safeMode;return this.status();
     }
     status(){return {requested:JSON.parse(JSON.stringify(this.requested)),safeMode:this.safeMode,active:[...this.active.values()].map(e=>({id:e.manifest.id,version:e.manifest.version}))};}

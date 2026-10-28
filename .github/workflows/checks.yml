@@ -29,6 +29,7 @@ jobs:
           node tests/run-profiles.test.cjs
           node tests/output-buffer.test.cjs
           node tests/addon-core.test.cjs
+          node tests/addon-packages.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
       - name: License inventory and notices
@@ -40,12 +41,13 @@ jobs:
       - name: Smart typing and lossless file encoding
         run: |
           mkdir -p build/core-checks
-          javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{SmartTyping,FileCodec,FileTemplates,IndentGuides,HardwareLayout}.java tests/java/dev/forge/ide/{SmartTypingTest,FileCodecTest,FileTemplatesTest,IndentGuidesTest,HardwareLayoutTest}.java
+          javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{SmartTyping,FileCodec,FileTemplates,IndentGuides,HardwareLayout,SnapshotFile}.java tests/java/dev/forge/ide/{SmartTypingTest,FileCodecTest,FileTemplatesTest,IndentGuidesTest,HardwareLayoutTest,SnapshotFileTest}.java
           java -cp build/core-checks dev.forge.ide.SmartTypingTest
           java -cp build/core-checks dev.forge.ide.FileCodecTest
           java -cp build/core-checks dev.forge.ide.FileTemplatesTest
           java -cp build/core-checks dev.forge.ide.IndentGuidesTest
           java -cp build/core-checks dev.forge.ide.HardwareLayoutTest
+          java -cp build/core-checks dev.forge.ide.SnapshotFileTest
           javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/PackDownload.java tests/java/dev/forge/ide/PackDownloadTest.java
           java -cp build/core-checks dev.forge.ide.PackDownloadTest
       - name: Compile Android Java host

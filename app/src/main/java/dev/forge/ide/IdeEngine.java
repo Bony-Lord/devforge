@@ -13,6 +13,7 @@ final class IdeEngine {
     final MainActivity app;
     final ToolsEngine tools;
     final ToolPacks toolPacks;
+    final AddonPackages addons;
     final WorkspaceFiles workspace;
     final LanguageTools languages;
     final File projects,usr,tmp;
@@ -36,7 +37,7 @@ final class IdeEngine {
         if(!new File(projects,"hello-cpp").exists()) createProject("hello-cpp","cpp");
         currentProject=prefs.getString("project","hello-cpp");
         if(!project(currentProject).isDirectory())currentProject="hello-cpp";
-        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);
+        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
         JSONObject d=data==null?new JSONObject():data;
@@ -48,8 +49,13 @@ final class IdeEngine {
             case "state":return state();
             case "settings":case "settingsCommit":{var edit=prefs.edit().putString("settings",d.toString());if(op.equals("settingsCommit")){if(!edit.commit())throw new IOException("Cannot save settings");}else edit.apply();app.configureKeyboard(d);return d;}
             case "session":case "sessionCommit":{var edit=prefs.edit().putString("session",d.toString());if(op.equals("sessionCommit")){if(!edit.commit())throw new IOException("Cannot save session");}else edit.apply();return true;}
-            case "addonState":return new JSONObject(prefs.getString("addons","{}"));
-            case "addonStateCommit":{if(d.toString().length()>65536||d.optInt("schemaVersion")!=1||d.optJSONArray("requested")==null||d.getJSONArray("requested").length()>128)throw new IOException("Invalid addon profile");if(!prefs.edit().putString("addons",d.toString()).commit())throw new IOException("Cannot save addon profile");return true;}
+            case "addonState":return addons.stateProfile();
+            case "addonStateCommit":return addons.saveProfile(d);
+            case "addonLibrary":return addons.state();
+            case "addonCatalog":return addons.catalog();
+            case "addonBegin":return addons.begin(d);
+            case "addonFinish":return addons.finish(d.getString("token"),d.getBoolean("commit"));
+            case "addonImport":app.importAddon();return true;
             case "project": {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
