@@ -41,6 +41,14 @@ final class IdeEngine {
     }
     Object handle(String op,JSONObject data)throws Exception {
         JSONObject d=data==null?new JSONObject():data;
+        if(op.equals("history"))addons.require("studio.local-history");
+        if(op.equals("git"))addons.require("studio.git");
+        if(op.startsWith("gdb")&&!op.equals("gdbStop"))addons.require("studio.debugger");
+        if(op.equals("lspStart")||op.equals("lspSend"))addons.require("studio.clangd");
+        if(op.equals("cmakeConfigure")||op.equals("cmakeCommands")||op.equals("cmakeHelp"))addons.require("studio.tool.cmake");
+        if(op.equals("shell"))addons.require("studio.terminal");
+        if(op.equals("formatDocument")||op.equals("formatterRange"))addons.require("studio.formatter");
+        if(op.equals("build")){JSONObject options=d.optJSONObject("options");String mode=d.optString("mode","file");if(!mode.equals("custom")&&!mode.equals("executable"))addons.require("studio.tool."+(options==null?"gcc":options.optString("compiler","gcc")));if(mode.equals("cmake"))addons.require("studio.tool.cmake");}
         if(op.startsWith("gdb")||op.equals("git"))return tools.handle(op,d);
         if(op.startsWith("formatter")||op.equals("formatDocument")||op.equals("cmakeSources")||op.equals("cmakeCommands")||op.equals("cmakeHelp"))return languages.handle(op,d);
         switch(op) {
@@ -56,6 +64,7 @@ final class IdeEngine {
             case "addonBegin":return addons.begin(d);
             case "addonFinish":return addons.finish(d.getString("token"),d.getBoolean("commit"));
             case "addonImport":app.importAddon();return true;
+            case "addonExport":app.exportAddon(d.getJSONObject("package"));return true;
             case "project": {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
@@ -217,7 +226,7 @@ final class IdeEngine {
         String encoding=requested.equals("auto")?decoded.encoding:requested;byte[] bytes=FileCodec.encode(text,encoding);
         if(f.exists()&&Arrays.equals(old,bytes)){prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return true;}
         if(f.exists()){
-            File hist=historyDir(f);hist.mkdirs();Files.write(new File(hist,System.currentTimeMillis()+".txt").toPath(),decoded.text.getBytes(StandardCharsets.UTF_8));
+            File hist=historyDir(f);if(addons.enabled("studio.local-history")){hist.mkdirs();Files.write(new File(hist,System.currentTimeMillis()+".txt").toPath(),decoded.text.getBytes(StandardCharsets.UTF_8));}
             File[] versions=hist.listFiles();if(versions!=null&&versions.length>30){Arrays.sort(versions,Comparator.comparing(File::getName));for(int i=0;i<versions.length-30;i++)versions[i].delete();}
         }
         f.getParentFile().mkdirs();File temporary=new File(f.getParentFile(),".forge-write-"+UUID.randomUUID());

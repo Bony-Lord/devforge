@@ -1,0 +1,67 @@
+'use strict';
+const StudioMotion={enabled(){return (!window.forge?.addons?.host.lastFeatures||forge.addons.host.enabled('animations'))&&!matchMedia('(prefers-reduced-motion: reduce)').matches;}};
+/* First-party adapters for host services. Definitions come only from APK assets. */
+class StudioAddonHost {
+  constructor(addons){this.addons=addons;this.app=addons.app;this.toolState={packs:[]};this.definitions=[];this.lastFeatures=null;this.bootWindows=null;this.installGuards();}
+  installGuards(){
+    const app=this.app,guard=(name,feature)=>{const original=app[name];if(typeof original!=='function')return;app[name]=(...args)=>{if(this.lastFeatures&&!this.enabled(feature)){app.toast(this.addons.text('Включите аддон: ','Enable addon: ')+feature);return;}return original.apply(app,args);};};
+    for(const [method,mapping]of Object.entries({showSide:{git:'git',outline:'outline',search:'projectSearch'},showPanel:{terminal:'terminal',console:'console',debug:'debugger',problems:'diagnostics'}})){const original=app[method];if(typeof original==='function')app[method]=(...args)=>{const feature=mapping[args[0]];if(feature&&this.lastFeatures&&!this.enabled(feature))return;return original.apply(app,args);};}
+    for(const [feature,names]of Object.entries({git:['showGit','refreshGit','openCommit','gitCommit','gitBranches','gitLog','gitClone','gitDiff'],debugger:['debugBuild'],formatter:['formatCurrentDocument','openFormatterSettings'],history:['history'],find:['openNativeFind'],palette:['quick'],projectSearch:['searchFiles'],outline:['updateOutline'],split:['splitEditor'],terminal:['shell'],fileTemplates:['offerCreatedSource']}))for(const name of names)guard(name,feature);
+  }
+  async load(){const [response,tools]=await Promise.all([fetch('addons/modules.json'),native('toolPacks')]);if(!response.ok)throw Error('Cannot load host addon definitions');this.definitions=await response.json();this.toolState=tools;const entries=this.definitions.map(d=>({manifest:StudioAddonCore.manifest(d.manifest),activate:ctx=>{for(const c of d.contributions)ctx.contribute(c.point,c.id,c.value);}}));
+    for(const pack of tools.packs){const id='studio.tool.'+pack.id,cap='tools.runtime';entries.push({manifest:{schemaVersion:1,id,version:'1.0.0',api:{min:'0.1.1',maxExclusive:'0.2.0'},name:{ru:pack.name,en:({analysis:'Clangd and clang-format',platform:'C/C++ platform libraries',cmake:'CMake and Ninja',debugger:'GDB debugger',clang:'Clang compiler'})[pack.id]||pack.name},description:{ru:pack.description,en:pack.id+' native runtime'},license:'See tool licenses',capabilities:[cap],dependencies:Object.fromEntries(pack.requires.map(id=>['studio.tool.'+id,{min:'1.0.0',maxExclusive:'2.0.0'}])),conflicts:{},kind:'runtime',nativePack:pack.id},activate:ctx=>{if(!this.toolState.packs.find(p=>p.id===pack.id)?.installed)throw Error(this.addons.text('Сначала скачайте инструмент: ','Download the tool first: ')+pack.name);ctx.contribute('runtimes',id+'/provider',{id:pack.id});}});}
+    return entries;
+  }
+  enabled(feature){return this.addons.registry.list('features').some(e=>e.value.id===feature);}
+  runtimeEnabled(id){return this.addons.registry.list('runtimes').some(e=>e.value.id===id);}
+  language(path){const name=path.split('/').pop();for(const e of [...this.addons.registry.list('languages')].reverse()){const rule=e.value;if(rule.filenames.includes(name)||rule.extensions.some(ext=>name.endsWith(ext)))return rule.language;}return 'plaintext';}
+  types(){return [{id:'empty',base:'empty',name:{ru:'Пустой / вручную',en:'Empty / manual'},settings:{buildMode:'custom'}},...this.addons.registry.list('projectTypes').map(e=>e.value)];}
+  async prepare(resolved){
+    this.addons.cancelRequested=false;this.toolState=await native('toolPacks');const required=resolved.map(m=>m.nativePack).filter(Boolean),missing=required.filter(id=>!this.toolState.packs.find(p=>p.id===id)?.installed);
+    for(const id of missing){if(this.addons.cancelRequested)throw Error(this.addons.text('Загрузка отменена','Download cancelled'));await this.app.setToolPack(id,true);if(this.addons.cancelRequested)throw Error(this.addons.text('Загрузка отменена','Download cancelled'));this.toolState=await native('toolPacks');}
+  }
+  missing(resolved){return this.toolState.packs.filter(p=>resolved.some(m=>m.nativePack===p.id)&&!p.installed);}
+  migrate(requested,previousVersion){
+    if(previousVersion>=2)return requested;const result=[...requested],seen=new Set(result.map(r=>typeof r==='string'?r:r.id));
+    for(const manifest of this.addons.catalog){if(manifest.kind==='pack'||['studio.navigation','studio.contrast'].includes(manifest.id)||previousVersion&&manifest.introduced!==2||seen.has(manifest.id))continue;const resolved=StudioAddonCore.resolve(this.addons.catalog,[{id:manifest.id,version:manifest.version}]);if(this.missing(resolved).length)continue;result.push({id:manifest.id,version:manifest.version});seen.add(manifest.id);}return result;
+  }
+  async removeRuntime(id){
+    const addon='studio.tool.'+id,requested=this.addons.profile.filter(r=>(typeof r==='string'?r:r.id)!==addon),resolved=StudioAddonCore.resolve(this.addons.catalog,requested);
+    if(resolved.some(m=>m.id===addon))throw Error(this.addons.text('Инструмент требуется включённым аддонам. Сначала отключите зависимые паки.','Enabled addons require this tool. Disable the dependent packs first.'));
+    const old=[...this.addons.profile];await this.addons.applyNow(requested,this.addons.safeMode);try{await this.app.setToolPack(id,false);}catch(error){await this.addons.applyNow(old,this.addons.safeMode);throw error;}finally{this.toolState=await native('toolPacks');}
+  }
+  allow(name){return !this.lastFeatures||this.enabled(name);}
+  async sync(){
+    const flags=Object.fromEntries(this.addons.registry.list('features').map(e=>[e.value.id,true])),previous=this.lastFeatures;this.lastFeatures=flags;
+    if(this.bootWindows===null)this.bootWindows=!!flags.windows;
+    this.needsReload=!!flags.windows!==this.bootWindows;
+    document.body.classList.toggle('studio-no-motion',!flags.animations);if(!flags.animations){for(const animation of document.getAnimations())animation.cancel();this.app.windows?.stopLayoutAnimation();}
+    if(!flags.tooltips)StudioHover.hide();
+    for(const [selector,flag]of [['#gitButton','git'],['#debugButton,[data-tool=debug]','debugger'],['#formatButton,#formatterSettingsButton','formatter']])for(const el of document.querySelectorAll(selector))el.hidden=!flags[flag];
+    for(const [selector,flag]of [['#paletteButton','palette'],['#keyboardButton','keyboard'],['[data-side=search],[data-tool=search]','projectSearch'],['[data-side=outline],[data-tool=outline]','outline'],['[data-tool=terminal]','terminal'],['#runConfigurationChoice,#cmakeProfileChoice','runConfigurations'],['[data-tool=console]','console']])for(const el of document.querySelectorAll(selector))el.hidden=!flags[flag];
+    if(this.app.windows){for(const [name,flag]of [['terminal','terminal'],['debug','debugger'],['git','git'],['outline','outline'],['search','projectSearch']]){if(!flags[flag]&&(this.app.windows.outputMode===name||this.app.windows.sideMode===name))this.app.windows.hide(name);}}
+    const outputAvailable=flags.console||flags.terminal||flags.debugger||flags.diagnostics||this.runtimeEnabled('gcc')||this.runtimeEnabled('clang');if(!outputAvailable){if(this.app.windows)this.app.windows.hide(this.app.windows.outputMode);else this.app.togglePanel(false);}
+    if(!flags.autosave)for(const doc of this.app.docs.values())clearTimeout(doc.saveTimer);
+    for(const model of monaco.editor.getModels()){model.__analysisCancel?.cancel();if(!flags.runtimeDiagnostics)monaco.editor.setModelMarkers(model,'runtime-warning',[]);if(!flags.diagnostics){monaco.editor.setModelMarkers(model,'clangd',[]);this.app.diagnosticMap.delete(model.uri.toString());}}
+    for(const doc of this.app.docs.values()){const lang=this.language(doc.path);if(doc.model.getLanguageId()!==lang){this.app.lsp.close(doc.model);const uri=doc.model.uri.toString();monaco.editor.setModelMarkers(doc.model,'clangd',[]);await native('editorAnalysis',{uri,revision:NativeEditing.revisions.get(uri),diagnostics:[],styles:[],unusedStyles:[],hints:[]});monaco.editor.setModelLanguage(doc.model,lang);NativeEditing.invalidate(doc.model);}}
+    NativeEditing.queueLayout();this.app.registerCommands();
+    if(previous&&previous.clangd!==flags.clangd){if(flags.clangd)await this.app.lsp.start();else await this.suspendAnalysis();}
+    else if(previous){for(const doc of this.app.docs.values()){await NativeEditing.publishDiagnostics(doc.model);await NativeEditing.analysis(doc.model);}if(!flags.runtimeDiagnostics){this.app.runtimeWarnings=[];this.app.renderProblems();}}
+    this.app.configurations?.render();this.updateViewButton();
+  }
+  async suspendAnalysis(){
+    const app=this.app;app.lsp.ready=false;app.lsp.epoch++;for(const dispose of app.lsp.disposables)dispose.dispose();app.lsp.disposables=[];await native('lspStop');app.diagnosticMap.clear();
+    for(const doc of app.docs.values()){const uri=doc.model.uri.toString();monaco.editor.setModelMarkers(doc.model,'clangd',[]);await native('editorAnalysis',{uri,revision:NativeEditing.revisions.get(uri),diagnostics:[],styles:[],unusedStyles:[],hints:[]});}app.lspStatus(this.addons.text('Анализ отключён аддоном','Analysis disabled by addon'),'pending');
+  }
+  filterCommands(commands){const features={'Локальная история файла':'history','Конфигурации запуска':'runConfigurations','Поиск в файле':'find','Заменить в файле':'find','Открыть файл':'projectSearch','Разделить редактор по вертикали':'split','Разделить редактор по горизонтали':'split','Показать ошибки':'diagnostics'};return commands.filter(c=>this.enabled('git')||!c.label.startsWith('Git:')).filter(c=>this.enabled('debugger')||!c.label.startsWith('Отладка:')).filter(c=>this.enabled('formatter')||c.label!=='Форматировать код').filter(c=>!features[c.label]||this.enabled(features[c.label]));}
+  async reload(){await this.app.saveAll();await this.app.windows?.persist(true);await this.app.persistSession(true);location.reload();}
+  updateViewButton(){let button=document.querySelector('#addonViewButton');if(!button){button=document.createElement('button');button.id='addonViewButton';button.className='icon-button small';button.dataset.icon='file-search';button.title=this.addons.text('Представление файла','File view');button.onclick=()=>this.openView();document.querySelector('#formatButton').before(button);}const lang=this.app.active?.model.getLanguageId();button.hidden=!this.addons.registry.list('views').some(e=>e.value.languages.includes(lang));}
+  previewText(doc){const text=doc.model.getValue();if(text.length>500000)throw Error('Preview size limit');return text;}
+  openView(){
+    const doc=this.app.active;if(!doc)return;const entry=this.addons.registry.list('views').find(e=>e.value.languages.includes(doc.model.getLanguageId()));if(!entry)return;
+    let dialog=document.querySelector('#addonFileView');if(!dialog){dialog=document.createElement('dialog');dialog.id='addonFileView';dialog.className='addon-file-view';document.body.append(dialog);}dialog.replaceChildren();const heading=document.createElement('div');heading.className='dialog-heading';const title=document.createElement('h2');title.textContent=doc.path.split('/').pop()+' · '+this.addons.local(entry.value.name);const close=this.addons.button('',()=>dialog.close(),{className:'close-button',ariaLabel:this.addons.text('Закрыть','Close')});close.dataset.icon='x';heading.append(title,close);dialog.append(heading);
+    try{if(entry.value.id==='json-tree'){let nodes=0;const walk=(key,value,depth)=>{if(++nodes>5000||depth>40)throw Error(this.addons.text('Дерево слишком большое для просмотра','Tree is too large to display'));if(value&&typeof value==='object'){const details=document.createElement('details');details.open=depth<2;const summary=document.createElement('summary');summary.textContent=key+' '+(Array.isArray(value)?'['+value.length+']':'{'+Object.keys(value).length+'}');details.append(summary);for(const [name,child]of Object.entries(value))details.append(walk(name,child,depth+1));return details;}const line=document.createElement('div');line.className='addon-json-leaf';line.textContent=key+': '+JSON.stringify(value);return line;};dialog.append(walk('$',JSON.parse(this.previewText(doc)),0));}
+      else{const text=doc.model.getValue();if(text.length>500000)throw Error('Preview size limit');for(const line of text.split('\n').slice(0,5000)){const match=line.match(/^(#{1,6})\s+(.*)/),node=document.createElement(match?'h'+match[1].length:'p');node.textContent=match?match[2]:line;dialog.append(node);}}
+    }catch(error){const message=document.createElement('p');message.textContent=error.message;dialog.append(message);}if(!dialog.open)dialog.showModal();
+  }
+}

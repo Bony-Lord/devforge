@@ -20,10 +20,11 @@ final class SmartTyping {
     }
     static final int CODE=0,LINE_COMMENT=1,BLOCK_COMMENT=2,QUOTE=3,RAW=4,HEADER=5;
     static String repeat(char c,int count){char[] chars=new char[Math.max(0,count)];Arrays.fill(chars,c);return new String(chars);}
+    boolean enabled=true;
     final String kind;final Options options=new Options();final TreeMap<Integer,State> lines=new TreeMap<>();
     SmartTyping(String kind){this.kind=kind;lines.put(0,new State());}
     boolean cpp(){return kind.equals("c")||kind.equals("cpp");}
-    boolean supported(){return cpp()||kind.equals("cmake")||kind.equals("yaml");}
+    boolean supported(){return enabled&&(cpp()||kind.equals("cmake")||kind.equals("yaml"));}
     void changed(int start){lines.tailMap(Math.max(1,start),true).clear();if(start==0){lines.clear();lines.put(0,new State());}}
     static boolean at(CharSequence s,int i,String token,int limit){if(i<0||i+token.length()>limit)return false;for(int n=0;n<token.length();n++)if(s.charAt(i+n)!=token.charAt(n))return false;return true;}
     static char closing(char c){return c=='('?')':c=='['?']':c=='{'?'}':c=='<'?'>':c;}

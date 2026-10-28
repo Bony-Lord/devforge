@@ -43,7 +43,7 @@ class StudioDockTargets{
     this.highlight(target);
   }
   renderLive(c){
-    if(!c.live||!c.pointer)return;const w=this.windows,panel=w.api.getPanel(c.ids[0]);if(!panel)return;const progress=matchMedia('(prefers-reduced-motion: reduce)').matches?1:Math.min(1,(performance.now()-c.floatStarted)/180),ease=1-Math.pow(1-progress,3),width=c.sourceBox.width+(c.floatSize.width-c.sourceBox.width)*ease,height=c.sourceBox.height+(c.floatSize.height-c.sourceBox.height)*ease,anchorX=Math.max(0,Math.min(1,((c.start?.x??c.pointer.x)-c.sourceBox.x)/c.sourceBox.width)),anchorY=Math.max(8,Math.min(34,(c.start?.y??c.pointer.y)-c.sourceBox.y));w.setFloatingBounds(panel.group,{left:c.pointer.x-c.rect.x-width*anchorX,top:c.pointer.y-c.rect.y-anchorY,width,height});NativeEditing.queueLayout();
+    if(!c.live||!c.pointer)return;const w=this.windows,panel=w.api.getPanel(c.ids[0]);if(!panel)return;const progress=!StudioMotion.enabled()?1:Math.min(1,(performance.now()-c.floatStarted)/180),ease=1-Math.pow(1-progress,3),width=c.sourceBox.width+(c.floatSize.width-c.sourceBox.width)*ease,height=c.sourceBox.height+(c.floatSize.height-c.sourceBox.height)*ease,anchorX=Math.max(0,Math.min(1,((c.start?.x??c.pointer.x)-c.sourceBox.x)/c.sourceBox.width)),anchorY=Math.max(8,Math.min(34,(c.start?.y??c.pointer.y)-c.sourceBox.y));w.setFloatingBounds(panel.group,{left:c.pointer.x-c.rect.x-width*anchorX,top:c.pointer.y-c.rect.y-anchorY,width,height});NativeEditing.queueLayout();
     const dismiss=this.visibleRatio(c.live.getBoundingClientRect(),c.rect)<.3;if(dismiss&&this.layer&&!this.dismissHint){this.dismissHint=document.createElement('div');this.dismissHint.className='studio-dock-dismiss';this.dismissHint.textContent=tr('Скрыть окно');this.layer.append(this.dismissHint);}if(this.dismissHint)this.dismissHint.hidden=!dismiss;
   }
   visibleRatio(box,host){return Math.max(0,Math.min(box.right,host.right)-Math.max(box.left,host.left))*Math.max(0,Math.min(box.bottom,host.bottom)-Math.max(box.top,host.top))/(box.width*box.height);}
@@ -64,7 +64,7 @@ class StudioDockTargets{
   }
 
   inertia(c){
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches||c.samples.length<2)return;const first=c.samples[0],last=c.samples.at(-1),elapsed=last.time-first.time;if(elapsed<10||performance.now()-last.time>110)return;
+    if(!StudioMotion.enabled()||c.samples.length<2)return;const first=c.samples[0],last=c.samples.at(-1),elapsed=last.time-first.time;if(elapsed<10||performance.now()-last.time>110)return;
     let vx=Math.max(-1.5,Math.min(1.5,(last.x-first.x)/elapsed)),vy=Math.max(-1.5,Math.min(1.5,(last.y-first.y)/elapsed));if(Math.hypot(vx,vy)<.12)return;
     const w=this.windows,panel=w.api.getPanel(c.ids[0]),element=panel?.group.element.closest('.dv-resize-container');if(!element)return;const host=w.host.getBoundingClientRect(),box=element.getBoundingClientRect();let x=box.x-host.x,y=box.y-host.y,previous=performance.now(),active=true;
     const stop=()=>{if(!active)return;active=false;this.stopInertia=null;w.endDrag();w.remember(panel);w.changed();};this.stopInertia=stop;w.beginDrag();

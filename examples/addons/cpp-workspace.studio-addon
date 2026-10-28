@@ -1,0 +1,33 @@
+{
+  "format": "cppstudio.addon",
+  "formatVersion": 1,
+  "manifest": {
+    "schemaVersion": 1,
+    "id": "example.cpp-workspace",
+    "version": "1.0.0",
+    "api": {
+      "min": "0.1.1",
+      "maxExclusive": "0.2.0"
+    },
+    "name": {
+      "ru": "Моя C++ IDE · составной пак",
+      "en": "My C++ IDE bundle"
+    },
+    "description": {
+      "ru": "Пример пака аддонов: C++, CMake, GCC, оконник, клавиатура, Git и clangd. Зависимости и загрузки показаны до установки.",
+      "en": "Bundle example: C++, CMake, GCC, windows, keyboard, Git and clangd. Dependencies and downloads are shown before installation."
+    },
+    "author": "Example author (local file)",
+    "license": "MIT",
+    "capabilities": [],
+    "dependencies": {
+      "studio.pack.cpp-full": {
+        "min": "1.0.0",
+        "maxExclusive": "2.0.0"
+      }
+    },
+    "conflicts": {},
+    "kind": "pack"
+  },
+  "contributions": []
+}

@@ -74,6 +74,7 @@ final class ToolPacks {
     }
     Object remove(String id)throws Exception{return mutate(()->removeOne(id));}
     void removeOne(String id)throws Exception{
+        if(ide.addons.enabled("studio.tool."+id))throw new IOException("Disable dependent addons before removing this tool");
         JSONObject p=pack(id);
         JSONArray packs=catalog.getJSONArray("packs");for(int i=0;i<packs.length();i++){JSONObject other=packs.getJSONObject(i);JSONArray requires=other.getJSONArray("requires");for(int j=0;j<requires.length();j++)if(installed(other)&&requires.getString(j).equals(id))throw new IOException("Component is required by "+other.getString("id"));}
         Files.write(new File(ide.usr,".pack-"+id+"-removed").toPath(),new byte[0]);Files.deleteIfExists(new File(ide.usr,".pack-"+id+"-installed").toPath());

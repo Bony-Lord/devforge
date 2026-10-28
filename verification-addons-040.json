@@ -1,0 +1,588 @@
+{
+  "version": "0.4.0",
+  "status": "preview",
+  "addonApi": "0.1.1",
+  "hostModules": 47,
+  "device": "Xiaomi Pad 6 / Android 14",
+  "passed": 119,
+  "total": 119,
+  "suites": [
+    {
+      "suite": "device-packages-040",
+      "passed": 16,
+      "total": 16,
+      "checks": [
+        {
+          "test": "Local data package installs and activates",
+          "passed": true
+        },
+        {
+          "test": "Installed package and activation survive cold start",
+          "passed": true
+        },
+        {
+          "test": "Disable restores theme without deleting package",
+          "passed": true
+        },
+        {
+          "test": "Live update retains both versions and publishes new colors",
+          "passed": true
+        },
+        {
+          "test": "Switch back to an installed version without restart",
+          "passed": true
+        },
+        {
+          "test": "Same version with different content is rejected without damage",
+          "passed": true
+        },
+        {
+          "test": "Activation fault rolls back stored packages and live state",
+          "passed": true
+        },
+        {
+          "test": "Process interruption before commit restores previous library and profile",
+          "passed": true
+        },
+        {
+          "test": "Official catalog installs with its builtin dependency",
+          "passed": true
+        },
+        {
+          "test": "Catalog manager is compact and shows offline source",
+          "passed": true
+        },
+        {
+          "test": "Install review lists package and interface permissions",
+          "passed": true
+        },
+        {
+          "test": "Required dependency cannot be removed",
+          "passed": true
+        },
+        {
+          "test": "Installing an inactive newer dependency keeps working version",
+          "passed": true
+        },
+        {
+          "test": "Removing dependent releases and permits removing dependency",
+          "passed": true
+        },
+        {
+          "test": "Stale installation requests are rejected",
+          "passed": true
+        },
+        {
+          "test": "Disabling all leaves no contributions",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "device-modules-040",
+      "passed": 17,
+      "total": 17,
+      "checks": [
+        {
+          "test": "Existing workspace migrates to enabled host modules",
+          "passed": true
+        },
+        {
+          "test": "Disabling Git hides UI and blocks native service",
+          "passed": true
+        },
+        {
+          "test": "Clangd module stops analysis and blocks restarting its native provider",
+          "passed": true
+        },
+        {
+          "test": "Clangd restarts after enabling",
+          "passed": true
+        },
+        {
+          "test": "Formatter has an independently enforced module",
+          "passed": true
+        },
+        {
+          "test": "Keyboard addon falls back to system without overwriting preference",
+          "passed": true
+        },
+        {
+          "test": "Enabling keyboard restores the native keyboard",
+          "passed": true
+        },
+        {
+          "test": "Window manager changes request a controlled restart",
+          "passed": true
+        },
+        {
+          "test": "Disabled window manager uses the classic layout",
+          "passed": true
+        },
+        {
+          "test": "Window manager and documents restore after enabling",
+          "passed": true
+        },
+        {
+          "test": "Disabling syntax actually changes both model and native highlighter",
+          "passed": true
+        },
+        {
+          "test": "Project types come from project addons",
+          "passed": true
+        },
+        {
+          "test": "JSON view addon renders nested data with safe DOM",
+          "passed": true
+        },
+        {
+          "test": "Disabling a file view removes its UI entry",
+          "passed": true
+        },
+        {
+          "test": "Composite packs retain required features after a direct root is disabled",
+          "passed": true
+        },
+        {
+          "test": "Native tool files cannot be removed while a pack requires them",
+          "passed": true
+        },
+        {
+          "test": "Compilers and tools appear in the unified addon manager",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "device-constructor-040",
+      "passed": 14,
+      "total": 14,
+      "checks": [
+        {
+          "test": "Full composition exposes 47 host/runtime modules",
+          "passed": true
+        },
+        {
+          "test": "Animation addon controls CSS and window motion",
+          "passed": true
+        },
+        {
+          "test": "Animations can be enabled again",
+          "passed": true
+        },
+        {
+          "test": "Smart-typing addon disables automatic pair insertion",
+          "passed": true
+        },
+        {
+          "test": "Smart typing restores pair insertion",
+          "passed": true
+        },
+        {
+          "test": "Autosave addon stops automatic writes",
+          "passed": true
+        },
+        {
+          "test": "Dependent disable review includes completion and diagnostics",
+          "passed": true
+        },
+        {
+          "test": "Core-only composition survives cold restart without IDE providers",
+          "passed": true
+        },
+        {
+          "test": "Minimal core still edits, saves and changes basic settings",
+          "passed": true
+        },
+        {
+          "test": "Core-only mode disables optional history backend",
+          "passed": true
+        },
+        {
+          "test": "Addon manager remains available with every addon disabled",
+          "passed": true
+        },
+        {
+          "test": "Restoring composition returns windows, syntax and analysis",
+          "passed": true
+        },
+        {
+          "test": "Essentials preset replaces composition with one dependency pack and no downloads",
+          "passed": true
+        },
+        {
+          "test": "Comfortable minimum boots into a compact editing workspace",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "device-workspace-040-final",
+      "passed": 7,
+      "total": 7,
+      "checks": [
+        {
+          "test": "Disabling compiler addon blocks native compilation",
+          "passed": true
+        },
+        {
+          "test": "Markdown viewer displays headings and never executes HTML",
+          "passed": true
+        },
+        {
+          "test": "Local addon bundle activates a transitive C++ workspace",
+          "passed": true
+        },
+        {
+          "test": "New Project UI offers addon-provided CMake and empty types",
+          "passed": true
+        },
+        {
+          "test": "CMake project type creates files and selects CMake configuration",
+          "passed": true
+        },
+        {
+          "test": "Created CMake addon project compiles with the runtime provider",
+          "passed": true
+        },
+        {
+          "test": "Setup bridge enables selected runtime and host providers",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "native-git",
+      "passed": 3,
+      "total": 3,
+      "checks": [
+        {
+          "test": "Addon manager removes actual Git runtime files",
+          "passed": true
+        },
+        {
+          "test": "Git addon downloads, verifies and executes the reinstalled runtime",
+          "passed": true
+        },
+        {
+          "test": "Original Git files, links, modes and timestamps restored exactly",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "saf-import",
+      "passed": 2,
+      "total": 2,
+      "checks": [
+        {
+          "test": "Android SAF import from Downloads opens package review",
+          "passed": true
+        },
+        {
+          "test": "Finger tap on Install activates imported package",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "composition-export",
+      "passed": 1,
+      "total": 1,
+      "checks": [
+        {
+          "test": "Current composition exports as a dependency pack through Android SAF",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "report",
+      "passed": 15,
+      "total": 15,
+      "checks": [
+        {
+          "test": "Android completely uninstalls the package",
+          "passed": true
+        },
+        {
+          "test": "Signed release starts after a complete uninstall",
+          "passed": true
+        },
+        {
+          "test": "Fresh install contains no old projects or downloaded runtimes",
+          "passed": true
+        },
+        {
+          "test": "First-run setup appears on the clean release data",
+          "passed": true
+        },
+        {
+          "test": "Comfortable essentials edits and saves before any tool download",
+          "passed": true
+        },
+        {
+          "test": "Full C++ pack downloads all its dependencies from zero",
+          "passed": true
+        },
+        {
+          "test": "Complete optional installation includes both compiler providers",
+          "passed": true
+        },
+        {
+          "test": "Fresh downloaded GCC builds a C++ source",
+          "passed": true
+        },
+        {
+          "test": "Clean application executes the generated program",
+          "passed": true
+        },
+        {
+          "test": "Fresh CMake configures and builds the new project",
+          "passed": true
+        },
+        {
+          "test": "Fresh Clang compiler builds the same source",
+          "passed": true
+        },
+        {
+          "test": "Downloaded clangd initializes on the clean project",
+          "passed": true
+        },
+        {
+          "test": "Fresh Git provider initializes a repository",
+          "passed": true
+        },
+        {
+          "test": "Fresh GDB stops the downloaded-toolchain program",
+          "passed": true
+        },
+        {
+          "test": "Complete clean installation persists after cold restart",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "verification-keyboard-size-036",
+      "passed": 16,
+      "total": 16,
+      "checks": [
+        {
+          "test": "Own keyboard dismisses the system IME",
+          "passed": true
+        },
+        {
+          "test": "Finger drag resize-right resizes and keeps opposite edge fixed",
+          "passed": true
+        },
+        {
+          "test": "Finger drag resize-left resizes and keeps opposite edge fixed",
+          "passed": true
+        },
+        {
+          "test": "Finger drag resize-top resizes and keeps opposite edge fixed",
+          "passed": true
+        },
+        {
+          "test": "Finger drag resize-bottom resizes and keeps opposite edge fixed",
+          "passed": true
+        },
+        {
+          "test": "Finger drag resize changes both dimensions",
+          "passed": true
+        },
+        {
+          "test": "Finger drag resize-bottomleft changes both dimensions",
+          "passed": true
+        },
+        {
+          "test": "Canceled edge gesture restores keyboard bounds",
+          "passed": true
+        },
+        {
+          "test": "Second finger neither types nor takes over edge resize",
+          "passed": true
+        },
+        {
+          "test": "No resize button is added to the keyboard header",
+          "passed": true
+        },
+        {
+          "test": "Key input still works after edge resizing",
+          "passed": true
+        },
+        {
+          "test": "Android keyboard resizes independently of PC layout",
+          "passed": true
+        },
+        {
+          "test": "Scroll past EOF keeps final row partly visible: 12 lines / 100%",
+          "passed": true
+        },
+        {
+          "test": "Scroll past EOF keeps final row partly visible: 60 lines / 100%",
+          "passed": true
+        },
+        {
+          "test": "Scroll past EOF keeps final row partly visible: 12 lines / 175%",
+          "passed": true
+        },
+        {
+          "test": "Resized keyboard dimensions survive restart",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "verification-docked-splitters-035",
+      "passed": 12,
+      "total": 12,
+      "checks": [
+        {
+          "test": "Real finger project splitter 85",
+          "passed": true
+        },
+        {
+          "test": "Real finger project splitter -45",
+          "passed": true
+        },
+        {
+          "test": "Real finger console splitter -75",
+          "passed": true
+        },
+        {
+          "test": "Real finger console splitter 40",
+          "passed": true
+        },
+        {
+          "test": "Grid sizes remain stable after delayed forced layout",
+          "passed": true
+        },
+        {
+          "test": "Mouse release preserves the size reached during the drag",
+          "passed": true
+        },
+        {
+          "test": "User-dragged grid sizes survive hide and reopen",
+          "passed": true
+        },
+        {
+          "test": "Nested side-by-side code splitter works by real finger",
+          "passed": true
+        },
+        {
+          "test": "Nested stacked code splitter works by real finger",
+          "passed": true
+        },
+        {
+          "test": "Second finger cannot move or finish another grid splitter gesture",
+          "passed": true
+        },
+        {
+          "test": "All native code viewports align after real grid resizing",
+          "passed": true
+        },
+        {
+          "test": "Cold start retains resized grid and nested code sizes after immediate save",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "verification-analysis-035",
+      "passed": 11,
+      "total": 11,
+      "checks": [
+        {
+          "test": "Actual native diagnostics and grey unused spans before formatting",
+          "passed": true
+        },
+        {
+          "test": "Whole-document formatting retains actual native underlines and grey spans",
+          "passed": true
+        },
+        {
+          "test": "Formatting cursor stays near original code instead of document end",
+          "passed": true
+        },
+        {
+          "test": "Native undo restores current diagnostic spans",
+          "passed": true
+        },
+        {
+          "test": "Native redo refreshes current diagnostic spans",
+          "passed": true
+        },
+        {
+          "test": "Repeated CMake/C++ tab changes retain diagnostics and actual grey paint",
+          "passed": true
+        },
+        {
+          "test": "A new unknown function is diagnosed after formatting and previous tab changes",
+          "passed": true
+        },
+        {
+          "test": "Fixing an error after formatting clears obsolete native diagnostics",
+          "passed": true
+        },
+        {
+          "test": "Formatting an already formatted document avoids a no-op revision",
+          "passed": true
+        },
+        {
+          "test": "Late formatting of previous tab preserves current CMake focus and formatted buffer",
+          "passed": true
+        },
+        {
+          "test": "Returning to a background-formatted file restores grey spans",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "suite": "verification-native-debugger",
+      "passed": 5,
+      "total": 5,
+      "checks": [
+        {
+          "test": "GCC builds an isolated source with debug symbols",
+          "passed": true
+        },
+        {
+          "test": "GDB stops at main with native execution decoration",
+          "passed": true
+        },
+        {
+          "test": "Native breakpoint stops at source line and reads value",
+          "passed": true
+        },
+        {
+          "test": "Step over updates the actual inferior and native execution line",
+          "passed": true
+        },
+        {
+          "test": "Stopping debugger clears obsolete stack, locals and execution marker",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "sdkNodeCases": 19,
+  "fullCleanInstall": {
+    "completeUninstall": true,
+    "signedReleaseFirstLaunch": true,
+    "deepChecksOnDebuggableSameSource": true,
+    "allSevenNativePacksDownloadedFromZero": true,
+    "originalAppDataBackedUpAndRestored": true,
+    "PlayProtectOldTargetWarning": true,
+    "physicalConfirmationRequired": true,
+    "temporaryFilesInstallerPermissionRestored": "deny"
+  },
+  "limits": [
+    "Target SDK28 remains; fresh installs require approval of Play Protect old-target warning.",
+    "Host feature adapters are still shipped in the APK; arbitrary third-party scripts/native modules and online marketplace are not implemented.",
+    "Native tool extraction is not an atomic multi-package rollback transaction.",
+    "Targeted ADB touch/API/synthetic-key checks do not prove exhaustive bug absence."
+  ]
+}

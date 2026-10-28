@@ -253,6 +253,8 @@ public final class MainActivity extends Activity {
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==92)try{event("storageAccess",new JSONObject().put("permission",engine.workspace.permission()));}catch(Exception ignored){}}
     void exportProject(String name) { ui.post(() -> { pendingExport=name; Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT); i.setType("application/zip"); i.addCategory(Intent.CATEGORY_OPENABLE); i.putExtra(Intent.EXTRA_TITLE,name+".zip"); startActivityForResult(i,13); }); }
     void importFile() { ui.post(() -> { Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT); i.setType("*/*"); i.addCategory(Intent.CATEGORY_OPENABLE); i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); startActivityForResult(i,14); }); }
+    String pendingAddonExport;
+    void exportAddon(JSONObject pkg)throws Exception{AddonPackages.pack(pkg);String text=pkg.toString(2);if(text.getBytes(StandardCharsets.UTF_8).length>262144)throw new IOException("Addon export exceeds size limit");ui.post(()->{pendingAddonExport=text;Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.setType("application/octet-stream");intent.addCategory(Intent.CATEGORY_OPENABLE);intent.putExtra(Intent.EXTRA_TITLE,"workspace.studio-addon");startActivityForResult(intent,16);});}
     void importAddon(){ui.post(()->{Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.setType("*/*");intent.addCategory(Intent.CATEGORY_OPENABLE);intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);startActivityForResult(intent,15);});}
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);
@@ -260,7 +262,9 @@ public final class MainActivity extends Activity {
         Uri uri=data.getData();
         workers.execute(() -> {
             try {
-                if(request==15){
+                if(request==16){
+                    String content=pendingAddonExport;pendingAddonExport=null;if(content==null)throw new IOException("Addon export expired; retry");try(OutputStream out=getContentResolver().openOutputStream(uri,"w")){if(out==null)throw new IOException("Cannot save addon package");out.write(content.getBytes(StandardCharsets.UTF_8));}event("toast",JSONObject.quote(interfaceLanguage().equals("ru")?"Пак состава сохранён":"Composition pack saved"));
+                } else if(request==15){
                     try(InputStream in=getContentResolver().openInputStream(uri)){if(in==null)throw new IOException("Cannot read addon document");String content=IdeEngine.slurp(in,262144);event("addonImported",new JSONObject().put("text",content));}
                 } else if(request==12) {
                     File dest=engine.newProjectDir("import-"+System.currentTimeMillis());

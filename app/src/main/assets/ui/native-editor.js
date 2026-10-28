@@ -19,6 +19,7 @@ const NativeEditing={
         if(r?.uri){this.snapshot(r);this.decorations(model);this.publishDiagnostics(model);this.scheduleAnalysis(model);}
       });
     };
+    editor.onDidChangeModelLanguage(()=>{if(editor.getModel())editor.setModel(editor.getModel());});
     editor.focus=async()=>{this.requestedFocus=id;window.forge?.windows?.activateEditor(id);await this.layout();return send('editorFocus');};
     editor.hasTextFocus=editor.hasWidgetFocus=()=>this.focused===id&&!document.querySelector('dialog[open]');
     editor.onDidFocusEditorWidget=fn=>{api.focusListeners.add(fn);return{dispose:()=>api.focusListeners.delete(fn)};};
@@ -78,6 +79,7 @@ const NativeEditing={
     const occlusions=overlays.filter(e=>!e.classList.contains('dv-resize-container')).map(mask);
     const windowHandles=[];for(const element of floating){const group=windows?.api.groups.find(g=>g.element.closest('.dv-resize-container')===element);if(!group)continue;for(const handle of element.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,element),direction=b.direction;if(!b.width||!b.height||direction.includes('top'))continue;if(floating.slice(floating.indexOf(element)+1).some(other=>{const r=other.getBoundingClientRect();return b.x+b.width/2>=r.left&&b.x+b.width/2<=r.right&&b.y+b.height/2>=r.top&&b.y+b.height/2<=r.bottom;}))continue;windowHandles.push({id:group.id+':'+direction,group:group.id,direction,x:b.x,y:b.y,width:b.width,height:b.height});}}
     const source=window.forge?.settings||{language:StudioI18n.locale},settings={};for(const key of ['language','theme','fontSize','codeScale','wordWrap','indentGuides','smartFormatOnClose','keyboardExtraKeys','keyboardPrimary','keyboardLayout','keyboardModifiers','keyboardNumpad','keyboardPcWidth','keyboardPcHeight','keyboardAndroidWidth','keyboardAndroidHeight'])if(source[key]!==undefined)settings[key]=source[key];
+    if(window.forge?.addons?.host.lastFeatures){const host=forge.addons.host;if(!host.enabled('keyboard'))settings.keyboardPrimary='system';settings.smartTyping=host.enabled('smartTyping');settings.completionEnabled=host.enabled('completion');if(!host.enabled('indentGuides'))settings.indentGuides=false;}
     return native('editorLayout',{panes,visible,occlusions,windowHandles,settings,keyboardRevision:this.keyboardRevision||0}).catch(console.warn);
   },
   selection(e){
@@ -87,7 +89,7 @@ const NativeEditing={
   },
   invalidate(model){model.__analysisCancel?.cancel();for(const task of this.completionTasks.values())if(task.uri===model.uri.toString())task.cancel.cancel();this.scheduleAnalysis(model);const job=this.formatJobs.get(model.uri.toString());if(job&&!job.applying)this.scheduleFormat(job);},
   async typingOptions(model){
-    if(['c','cpp'].includes(model.getLanguageId()))return native('formatterTypingConfig',{path:model.uri.fsPath}).catch(()=>({indent:4,tab:4,continuation:4,tabs:false}));
+    if(['c','cpp'].includes(model.getLanguageId())&&(!window.forge?.addons?.host.lastFeatures||forge.addons.host.enabled('formatter')))return native('formatterTypingConfig',{path:model.uri.fsPath}).catch(()=>({indent:4,tab:4,continuation:4,tabs:false}));
     const settings=window.forge?.settings||{},custom=settings.indentMode&&settings.indentMode!=='formatter',indent=custom?settings.indentWidth||4:model.getLanguageId()==='cmake'?settings.indentWidth||4:['yaml','json'].includes(model.getLanguageId())?2:4;
     return{indent,tab:custom?settings.tabWidth||4:indent,continuation:indent,tabs:settings.indentMode==='tabs'};
   },
@@ -104,7 +106,7 @@ const NativeEditing={
   async formatBlock(job){
     if(job.running){job.again=true;return;}job.running=true;job.again=false;
     try{
-      const ide=window.forge,model=job.model;if(model.isDisposed()||ide.settings.smartFormatOnClose===false){this.discardFormat(job);return;}
+      const ide=window.forge,model=job.model;if(model.isDisposed()||ide.settings.smartFormatOnClose===false||ide.addons?.host.lastFeatures&&!ide.addons.host.enabled('formatter')){this.discardFormat(job);return;}
       await this.sync(job.uri);const pane=this.panes.get(job.id),range=model.getDecorationRange(job.decoration);if(!range||pane?.editor.getModel()!==model){this.discardFormat(job);return;}
       const text=model.getValue(),end=model.getOffsetAt(range.getEndPosition());if(text[end-1]!=='}'){this.discardFormat(job);return;}
       const sequence=job.sequence,revision=this.revisions.get(job.uri),version=model.getVersionId(),selection=pane.editor.getSelection(),expectedStart=model.getOffsetAt(selection.getStartPosition()),expectedEnd=model.getOffsetAt(selection.getEndPosition());
@@ -129,9 +131,9 @@ const NativeEditing={
   async publishDiagnostics(model){
     await this.waitEdits(model.uri.toString());
     const ide=window.forge;if(!ide||model.isDisposed())return;const uri=model.uri.toString(),revision=this.revisions.get(uri);if(revision===undefined)return;
-    const diagnostics=[],unusedStyles=[];
-    for(const d of ((ide.diagnosticMap.get(uri)?.version===undefined||ide.diagnosticMap.get(uri)?.version===model.getVersionId())?ide.diagnosticMap.get(uri)?.diagnostics||[]:[])){const start=model.getOffsetAt({lineNumber:d.range.start.line+1,column:d.range.start.character+1}),end=model.getOffsetAt({lineNumber:d.range.end.line+1,column:d.range.end.character+1});diagnostics.push({start,end:Math.max(start+1,end),severity:d.severity,message:d.message});if(d.tags?.includes(1)||/unused|unneeded-internal|unreachable/.test(String(d.code||'')))unusedStyles.push({start,end,type:'unused'});}
-    for(const marker of monaco.editor.getModelMarkers({resource:model.uri}).filter(m=>m.owner!=='clangd'))diagnostics.push({start:model.getOffsetAt({lineNumber:marker.startLineNumber,column:marker.startColumn}),end:model.getOffsetAt({lineNumber:marker.endLineNumber,column:marker.endColumn}),severity:marker.severity===8?1:marker.severity===4?2:3,message:marker.message});
+    const diagnostics=[],unusedStyles=[];const enabled=!ide.addons?.host.lastFeatures||ide.addons.host.enabled('diagnostics');
+    for(const d of (enabled?((ide.diagnosticMap.get(uri)?.version===undefined||ide.diagnosticMap.get(uri)?.version===model.getVersionId())?ide.diagnosticMap.get(uri)?.diagnostics||[]:[]):[])){const start=model.getOffsetAt({lineNumber:d.range.start.line+1,column:d.range.start.character+1}),end=model.getOffsetAt({lineNumber:d.range.end.line+1,column:d.range.end.character+1});diagnostics.push({start,end:Math.max(start+1,end),severity:d.severity,message:d.message});if(d.tags?.includes(1)||/unused|unneeded-internal|unreachable/.test(String(d.code||'')))unusedStyles.push({start,end,type:'unused'});}
+    for(const marker of monaco.editor.getModelMarkers({resource:model.uri}).filter(m=>m.owner!=='clangd'&&(m.owner!=='runtime-warning'||!ide.addons?.host.lastFeatures||ide.addons.host.enabled('runtimeDiagnostics'))))diagnostics.push({start:model.getOffsetAt({lineNumber:marker.startLineNumber,column:marker.startColumn}),end:model.getOffsetAt({lineNumber:marker.endLineNumber,column:marker.endColumn}),severity:marker.severity===8?1:marker.severity===4?2:3,message:marker.message});
     return native('editorAnalysis',{uri,revision,diagnostics,unusedStyles}).catch(console.warn);
   },
   decorations(model){if(!model||model.isDisposed())return;const debug=window.forge?.debugger;if(!debug)return;native('editorDecorations',{uri:model.uri.toString(),breakpoints:[...(debug.breakpoints.get(model.uri.fsPath)?.keys()||[])],execution:debug.nativeExecution?.uri===model.uri.toString()?debug.nativeExecution.line:0}).catch(console.warn);},
@@ -141,17 +143,18 @@ const NativeEditing={
     model.__analysisCancel?.cancel();const token=model.__analysisCancel=this.cancellation(),current=()=>!token.isCancellationRequested&&!model.isDisposed()&&revision===this.revisions.get(uri);
     if(!ide.lsp.ready||!['c','cpp'].includes(model.getLanguageId()))return;
     const textDocument=ide.lsp.doc(model),tasks=[];
-    if(ide.settings.semanticHighlighting)tasks.push((async()=>{try{
+    if(ide.settings.semanticHighlighting&&(!ide.addons?.host.lastFeatures||ide.addons.host.enabled('semantic')))tasks.push((async()=>{try{
       const r=await ide.lsp.request('textDocument/semanticTokens/full',{textDocument},token);if(!current()||!r)return;
       const styles=[],types=ide.lsp.capabilities.semanticTokensProvider?.legend?.tokenTypes||[];let line=0,col=0;
       for(let i=0;i<(r.data?.length||0);i+=5){line+=r.data[i];col=r.data[i]===0?col+r.data[i+1]:r.data[i+1];const type=types[r.data[i+3]];if(['type','class','struct','enum','typeParameter','function','method','keyword','string','number'].includes(type)){const start=model.getOffsetAt({lineNumber:line+1,column:col+1});styles.push({start,end:start+r.data[i+2],type});}}
       await native('editorAnalysis',{uri,revision,styles});
     }catch{}})());else tasks.push(native('editorAnalysis',{uri,revision,styles:[]}));
-    if(ide.settings.inlayHints)tasks.push(this.inlayHints(model,token,revision));else tasks.push(native('editorAnalysis',{uri,revision,hints:[]}));
+    if(ide.settings.inlayHints&&(!ide.addons?.host.lastFeatures||ide.addons.host.enabled('inlayHints')))tasks.push(this.inlayHints(model,token,revision));else tasks.push(native('editorAnalysis',{uri,revision,hints:[]}));
     await Promise.allSettled(tasks);
   },
   async inlayHints(model,token=model.__analysisCancel,revision=this.revisions.get(model.uri.toString())){
-    const ide=window.forge;if(!ide?.lsp.ready||!ide.settings.inlayHints||model.isDisposed()||!['c','cpp'].includes(model.getLanguageId()))return;
+    const ide=window.forge;if(ide?.addons?.host.lastFeatures&&!ide.addons.host.enabled('inlayHints'))return;
+    if(!ide?.lsp.ready||!ide.settings.inlayHints||model.isDisposed()||!['c','cpp'].includes(model.getLanguageId()))return;
     const uri=model.uri.toString(),views=[...this.viewports.values()].filter(v=>v.uri===uri),last=model.getLineCount()-1;
     const first=Math.max(0,views.length?Math.min(...views.map(v=>v.first))-30:0),end=Math.min(last,views.length?Math.max(...views.map(v=>v.last))+30:150);
     try{const r=await ide.lsp.request('textDocument/inlayHint',{textDocument:ide.lsp.doc(model),range:{start:{line:first,character:0},end:{line:end,character:model.getLineMaxColumn(end+1)-1}}},token);
@@ -163,7 +166,7 @@ const NativeEditing={
     const ide=window.forge,model=monaco.editor.getModel(monaco.Uri.parse(e.uri));let items=[];
     for(const task of this.completionTasks.values())if(task.uri===e.uri)task.cancel.cancel();
     const cancel=this.cancellation();this.completionTasks.set(e.request,{uri:e.uri,cancel});
-    if(model&&e.revision===this.revisions.get(e.uri))try{
+    if((!ide.addons?.host.lastFeatures||ide.addons.host.enabled('completion'))&&model&&e.revision===this.revisions.get(e.uri))try{
       const position={lineNumber:e.line+1,column:e.column+1};let list;
       if(['c','cpp'].includes(model.getLanguageId())){const r=await ide.lsp.request('textDocument/completion',{...ide.lsp.at(model,position),context:{triggerKind:1}},cancel);list=Array.isArray(r)?r:r?.items||[];}
       else list=await nativeBuildCompletions(model,position);
@@ -187,7 +190,7 @@ const NativeEditing={
     if(id==='editor.action.formatDocument')return ide.formatCurrentDocument();
     if(id==='editor.action.quickOutline')return ide.showSide('outline');
     if(id==='editor.action.gotoLine'){const n=await this.input('Перейти к строке','',String(pos.lineNumber));if(n){editor.setPosition({lineNumber:Math.max(1,Math.min(model.getLineCount(),Number(n)||1)),column:1});editor.focus();}return;}
-    if(id==='actions.find'||id==='editor.action.startFindReplaceAction'){
+    if(id==='actions.find'||id==='editor.action.startFindReplaceAction'){if(ide.addons?.host.lastFeatures&&!ide.addons.host.enabled('find')){ide.addons.open();return;}
       const query=await this.input('Найти текст','','');if(!query)return;const matches=model.findMatches(query,false,false,false,null,true);if(!matches.length){ide.toast('Совпадений нет');return;}
       if(id==='editor.action.startFindReplaceAction'){const text=await this.input('Заменить на','',query);if(text!==null){model.pushEditOperations([],matches.map(m=>({range:m.range,text})),()=>null);await ide.saveAll();}}else{ide.quickItems=matches.map(m=>({label:`${m.range.startLineNumber}: ${model.getLineContent(m.range.startLineNumber).trim()}`,noTranslate:true,run:()=>{editor.setSelection(m.range);editor.focus();}}));ide.openQuick('Найти текст');}return;
     }

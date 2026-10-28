@@ -26,6 +26,7 @@ class ClangdClient {
     }
   }
   async start(){
+    if(this.ide.addons?.host.lastFeatures&&!this.ide.addons.host.enabled('clangd')){this.ready=false;this.ide.lspStatus(this.ide.addons.text('Анализ отключён аддоном','Analysis disabled by addon'),'pending');return;}
     if(window.forge?.requireToolPack){const state=await native('toolPacks');if(!state.packs.find(p=>p.id==='analysis')?.installed){this.ready=false;this.ide.lspStatus('Анализ не установлен','pending');return;}}
     const epoch=++this.epoch;
     this.ready=false;this.ide.lspStatus('Запуск clangd…','pending');

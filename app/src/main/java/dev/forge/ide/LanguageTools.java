@@ -46,7 +46,7 @@ final class LanguageTools {
         }
     }
     JSONObject typingConfig(String path)throws Exception {
-        if(!new File(ide.bin("clang-format")).isFile())return typingOverrides(new JSONObject().put("indent",4).put("tab",4).put("continuation",4).put("tabs",false));
+        if(!ide.addons.enabled("studio.formatter")||!new File(ide.bin("clang-format")).isFile())return typingOverrides(new JSONObject().put("indent",4).put("tab",4).put("continuation",4).put("tabs",false));
         File file=ide.readable(path);config();StringBuilder key=new StringBuilder(file.getAbsolutePath());
         for(File dir=file.getParentFile();dir!=null;dir=dir.getParentFile())for(String name:new String[]{".clang-format","_clang-format"}){File f=new File(dir,name);key.append('|').append(f.getPath()).append(':').append(f.lastModified()).append(':').append(f.length());}
         String cacheKey=key.toString();JSONObject cached=typingCache.get(cacheKey);if(cached!=null)return typingOverrides(new JSONObject(cached.toString()));

@@ -30,6 +30,7 @@ jobs:
           node tests/output-buffer.test.cjs
           node tests/addon-core.test.cjs
           node tests/addon-packages.test.cjs
+          node tests/addon-host.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
       - name: License inventory and notices

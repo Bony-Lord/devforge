@@ -1,0 +1,1866 @@
+[
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.window-manager",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Оконник",
+        "en": "Window manager"
+      },
+      "description": {
+        "ru": "Оконник",
+        "en": "Window manager"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.window-manager/0",
+        "value": {
+          "id": "windows"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.keyboard",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Клавиатура C++ Studio",
+        "en": "C++ Studio keyboard"
+      },
+      "description": {
+        "ru": "Клавиатура C++ Studio",
+        "en": "C++ Studio keyboard"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.keyboard/0",
+        "value": {
+          "id": "keyboard"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.git",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Интеграция Git",
+        "en": "Git integration"
+      },
+      "description": {
+        "ru": "Интеграция Git",
+        "en": "Git integration"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.tool.git": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.git/0",
+        "value": {
+          "id": "git"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.clangd",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Анализ и дополнение clangd",
+        "en": "Clangd analysis and completion"
+      },
+      "description": {
+        "ru": "Анализ и дополнение clangd",
+        "en": "Clangd analysis and completion"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.tool.analysis": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.clangd/0",
+        "value": {
+          "id": "clangd"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.formatter",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Форматирование C/C++",
+        "en": "C/C++ formatting"
+      },
+      "description": {
+        "ru": "Форматирование C/C++",
+        "en": "C/C++ formatting"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.tool.analysis": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.formatter/0",
+        "value": {
+          "id": "formatter"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.debugger",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Интеграция GDB",
+        "en": "GDB integration"
+      },
+      "description": {
+        "ru": "Интеграция GDB",
+        "en": "GDB integration"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.tool.debugger": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.debugger/0",
+        "value": {
+          "id": "debugger"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.cpp",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "C / C++ · подсветка",
+        "en": "C / C++ syntax"
+      },
+      "description": {
+        "ru": "C / C++ · подсветка",
+        "en": "C / C++ syntax"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/0",
+        "value": {
+          "language": "c",
+          "extensions": [
+            ".c"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/1",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".C"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/2",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".cpp"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/3",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".cc"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/4",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".cxx"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/5",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".h"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/6",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".hpp"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/7",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".hh"
+          ],
+          "filenames": []
+        }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.cpp/8",
+        "value": {
+          "language": "cpp",
+          "extensions": [
+            ".hxx"
+          ],
+          "filenames": []
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.cmake",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "CMake · подсветка",
+        "en": "CMake syntax"
+      },
+      "description": {
+        "ru": "CMake · подсветка",
+        "en": "CMake syntax"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.cmake/0",
+        "value": {
+          "language": "cmake",
+          "extensions": [
+            ".cmake"
+          ],
+          "filenames": [
+            "CMakeLists.txt"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.json",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "JSON · подсветка",
+        "en": "JSON syntax"
+      },
+      "description": {
+        "ru": "JSON · подсветка",
+        "en": "JSON syntax"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.json/0",
+        "value": {
+          "language": "json",
+          "extensions": [
+            ".json",
+            ".ipynb"
+          ],
+          "filenames": []
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.yaml",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "YAML · подсветка",
+        "en": "YAML syntax"
+      },
+      "description": {
+        "ru": "YAML · подсветка",
+        "en": "YAML syntax"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.yaml/0",
+        "value": {
+          "language": "yaml",
+          "extensions": [
+            ".yml",
+            ".yaml"
+          ],
+          "filenames": [
+            ".clang-format",
+            "_clang-format",
+            ".clangd",
+            ".clang-tidy"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.markdown",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Markdown · подсветка",
+        "en": "Markdown syntax"
+      },
+      "description": {
+        "ru": "Markdown · подсветка",
+        "en": "Markdown syntax"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.markdown/0",
+        "value": {
+          "language": "markdown",
+          "extensions": [
+            ".md",
+            ".markdown"
+          ],
+          "filenames": []
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.shell",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Shell · подсветка",
+        "en": "Shell syntax"
+      },
+      "description": {
+        "ru": "Shell · подсветка",
+        "en": "Shell syntax"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.shell/0",
+        "value": {
+          "language": "shell",
+          "extensions": [
+            ".sh"
+          ],
+          "filenames": []
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.views.json",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "JSON · дерево",
+        "en": "JSON tree"
+      },
+      "description": {
+        "ru": "JSON · дерево",
+        "en": "JSON tree"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.views"
+      ],
+      "dependencies": {
+        "studio.language.json": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "view"
+    },
+    "contributions": [
+      {
+        "point": "views",
+        "id": "studio.views.json/0",
+        "value": {
+          "id": "json-tree",
+          "languages": [
+            "json"
+          ],
+          "name": {
+            "ru": "Дерево JSON",
+            "en": "JSON tree"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.views.markdown",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Markdown · просмотр",
+        "en": "Markdown preview"
+      },
+      "description": {
+        "ru": "Markdown · просмотр",
+        "en": "Markdown preview"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.views"
+      ],
+      "dependencies": {
+        "studio.language.markdown": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "view"
+    },
+    "contributions": [
+      {
+        "point": "views",
+        "id": "studio.views.markdown/0",
+        "value": {
+          "id": "markdown",
+          "languages": [
+            "markdown"
+          ],
+          "name": {
+            "ru": "Просмотр Markdown",
+            "en": "Markdown preview"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.project.cpp",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Проекты C / C++",
+        "en": "C / C++ projects"
+      },
+      "description": {
+        "ru": "Проекты C / C++",
+        "en": "C / C++ projects"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "projects.types"
+      ],
+      "dependencies": {
+        "studio.language.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "project"
+    },
+    "contributions": [
+      {
+        "point": "projectTypes",
+        "id": "studio.project.cpp/0",
+        "value": {
+          "id": "cpp",
+          "base": "cpp",
+          "name": {
+            "ru": "C++ · файл",
+            "en": "C++ file"
+          },
+          "settings": {
+            "buildMode": "file"
+          }
+        }
+      },
+      {
+        "point": "projectTypes",
+        "id": "studio.project.cpp/1",
+        "value": {
+          "id": "c",
+          "base": "c",
+          "name": {
+            "ru": "C · файл",
+            "en": "C file"
+          },
+          "settings": {
+            "buildMode": "file"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.project.cmake",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Проекты CMake",
+        "en": "CMake projects"
+      },
+      "description": {
+        "ru": "Проекты CMake",
+        "en": "CMake projects"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "projects.types"
+      ],
+      "dependencies": {
+        "studio.language.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.cmake": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tool.cmake": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "project"
+    },
+    "contributions": [
+      {
+        "point": "projectTypes",
+        "id": "studio.project.cmake/0",
+        "value": {
+          "id": "cmake-cpp",
+          "base": "cpp",
+          "name": {
+            "ru": "CMake · C++",
+            "en": "CMake C++"
+          },
+          "settings": {
+            "buildMode": "cmake"
+          }
+        }
+      },
+      {
+        "point": "projectTypes",
+        "id": "studio.project.cmake/1",
+        "value": {
+          "id": "cmake-c",
+          "base": "c",
+          "name": {
+            "ru": "CMake · C",
+            "en": "CMake C"
+          },
+          "settings": {
+            "buildMode": "cmake"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.cpp",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "C / C++ pack",
+        "en": "C / C++ pack"
+      },
+      "description": {
+        "ru": "Подсветка и типы проектов C/C++. Компилятор выбирается отдельно.",
+        "en": "C/C++ syntax and project types. Choose a compiler separately."
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.language.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.project.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.cmake",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "CMake project pack",
+        "en": "CMake project pack"
+      },
+      "description": {
+        "ru": "CMake-проекты, подсветка и загружаемые CMake/Ninja.",
+        "en": "CMake projects, syntax and downloadable CMake/Ninja."
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.project.cmake": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.cpp-full",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Полная C++ IDE · пак",
+        "en": "Full C++ IDE pack"
+      },
+      "description": {
+        "ru": "Полная C++ IDE · пак",
+        "en": "Full C++ IDE pack"
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.pack.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.pack.cmake": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tool.gcc": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.clangd": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.formatter": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.debugger": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.git": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.window-manager": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.keyboard": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.json": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.yaml": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.markdown": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.shell": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.views.json": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.views.markdown": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.animations": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tooltips": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.smart-typing": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.indent-guides": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.autosave": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.local-history": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.find-replace": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.split-editors": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.palette": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.project-search": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.outline": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.console": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.terminal": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.run-configurations": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.file-templates": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.runtime-diagnostics": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.completion": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.diagnostics": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.semantic": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.inlay-hints": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.animations",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Анимации и инерция",
+        "en": "Animations and inertia"
+      },
+      "description": {
+        "ru": "Анимации и инерция",
+        "en": "Animations and inertia"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.animations/service",
+        "value": {
+          "id": "animations"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.tooltips",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Подсказки интерфейса",
+        "en": "Interface tooltips"
+      },
+      "description": {
+        "ru": "Подсказки интерфейса",
+        "en": "Interface tooltips"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.tooltips/service",
+        "value": {
+          "id": "tooltips"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.smart-typing",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Парные скобки и умные отступы",
+        "en": "Paired brackets and smart indentation"
+      },
+      "description": {
+        "ru": "Парные скобки и умные отступы",
+        "en": "Paired brackets and smart indentation"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.smart-typing/service",
+        "value": {
+          "id": "smartTyping"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.indent-guides",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Направляющие отступов",
+        "en": "Indent guides"
+      },
+      "description": {
+        "ru": "Направляющие отступов",
+        "en": "Indent guides"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.indent-guides/service",
+        "value": {
+          "id": "indentGuides"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.autosave",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Автосохранение",
+        "en": "Autosave"
+      },
+      "description": {
+        "ru": "Автосохранение",
+        "en": "Autosave"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.autosave/service",
+        "value": {
+          "id": "autosave"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.local-history",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Локальная история",
+        "en": "Local history"
+      },
+      "description": {
+        "ru": "Локальная история",
+        "en": "Local history"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.local-history/service",
+        "value": {
+          "id": "history"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.find-replace",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Поиск и замена в тексте",
+        "en": "Find and replace"
+      },
+      "description": {
+        "ru": "Поиск и замена в тексте",
+        "en": "Find and replace"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.find-replace/service",
+        "value": {
+          "id": "find"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.split-editors",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Несколько редакторов",
+        "en": "Multiple editors"
+      },
+      "description": {
+        "ru": "Несколько редакторов",
+        "en": "Multiple editors"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.split-editors/service",
+        "value": {
+          "id": "split"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.palette",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Палитра команд",
+        "en": "Command palette"
+      },
+      "description": {
+        "ru": "Палитра команд",
+        "en": "Command palette"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.palette/service",
+        "value": {
+          "id": "palette"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.project-search",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Поиск файлов проекта",
+        "en": "Project file search"
+      },
+      "description": {
+        "ru": "Поиск файлов проекта",
+        "en": "Project file search"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.project-search/service",
+        "value": {
+          "id": "projectSearch"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.outline",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Структура файла",
+        "en": "File outline"
+      },
+      "description": {
+        "ru": "Структура файла",
+        "en": "File outline"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.clangd": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.outline/service",
+        "value": {
+          "id": "outline"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.console",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Консоль программы",
+        "en": "Program console"
+      },
+      "description": {
+        "ru": "Консоль программы",
+        "en": "Program console"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.console/service",
+        "value": {
+          "id": "console"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.terminal",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Командная строка",
+        "en": "Command terminal"
+      },
+      "description": {
+        "ru": "Командная строка",
+        "en": "Command terminal"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.terminal/service",
+        "value": {
+          "id": "terminal"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.run-configurations",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Профили сборки и запуска",
+        "en": "Build and run configurations"
+      },
+      "description": {
+        "ru": "Профили сборки и запуска",
+        "en": "Build and run configurations"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.run-configurations/service",
+        "value": {
+          "id": "runConfigurations"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.file-templates",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Шаблоны файлов и классов",
+        "en": "File and class templates"
+      },
+      "description": {
+        "ru": "Шаблоны файлов и классов",
+        "en": "File and class templates"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.file-templates/service",
+        "value": {
+          "id": "fileTemplates"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.runtime-diagnostics",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Предупреждения runtime",
+        "en": "Runtime warnings"
+      },
+      "description": {
+        "ru": "Предупреждения runtime",
+        "en": "Runtime warnings"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.debugger": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.runtime-diagnostics/service",
+        "value": {
+          "id": "runtimeDiagnostics"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.completion",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Дополнение кода",
+        "en": "Code completion"
+      },
+      "description": {
+        "ru": "Дополнение кода",
+        "en": "Code completion"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.clangd": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.completion/service",
+        "value": {
+          "id": "completion"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.diagnostics",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Ошибки и предупреждения",
+        "en": "Errors and warnings"
+      },
+      "description": {
+        "ru": "Ошибки и предупреждения",
+        "en": "Errors and warnings"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.clangd": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.diagnostics/service",
+        "value": {
+          "id": "diagnostics"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.semantic",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Семантические цвета",
+        "en": "Semantic colors"
+      },
+      "description": {
+        "ru": "Семантические цвета",
+        "en": "Semantic colors"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.clangd": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.semantic/service",
+        "value": {
+          "id": "semantic"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.inlay-hints",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Подсказки типов и параметров",
+        "en": "Type and parameter hints"
+      },
+      "description": {
+        "ru": "Подсказки типов и параметров",
+        "en": "Type and parameter hints"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.clangd": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "introduced": 2
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.inlay-hints/service",
+        "value": {
+          "id": "inlayHints"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.essentials",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Удобный минимум",
+        "en": "Comfortable essentials"
+      },
+      "description": {
+        "ru": "Простой интерфейс, файлы и подсветки, умный ввод, поиск, история, шаблоны, автосохранение и клавиатура. Без загрузки GCC/CMake, Git или clangd.",
+        "en": "Simple layout, files and syntax, smart typing, search, history, templates, autosave and keyboard. No GCC/CMake, Git or clangd downloads."
+      },
+      "license": "MIT",
+      "kind": "pack",
+      "capabilities": [],
+      "dependencies": {
+        "studio.language.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.json": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.yaml": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.markdown": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.shell": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.project.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.keyboard": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.smart-typing": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.indent-guides": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.autosave": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.local-history": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.find-replace": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.project-search": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tooltips": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.animations": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.palette": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.file-templates": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {}
+    },
+    "contributions": []
+  }
+]

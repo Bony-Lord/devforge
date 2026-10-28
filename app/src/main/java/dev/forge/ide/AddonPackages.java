@@ -43,6 +43,8 @@ final class AddonPackages {
     }
     synchronized JSONObject state()throws Exception{load();JSONObject result=copy(data);result.remove("pending");result.put("pending",data.has("pending"));result.put("recovered",transactionRecovered||file.recovered);return result;}
     synchronized JSONObject stateProfile()throws Exception{load();return copy(data.getJSONObject("profile"));}
+    synchronized boolean enabled(String id)throws Exception{load();JSONObject p=data.getJSONObject("profile");if(p.optInt("modulesVersion")<1)return true;JSONArray resolved=p.optJSONArray("resolved");if(resolved!=null)for(int i=0;i<resolved.length();i++)if(id.equals(resolved.optString(i)))return true;return false;}
+    void require(String id)throws Exception{if(!enabled(id))throw new IOException("Enable addon: "+id);}
     synchronized Object saveProfile(JSONObject p)throws Exception{load();profile(p);JSONObject next=copy(data);next.put("profile",copy(p)).put("revision",data.getLong("revision")+1);write(next);return true;}
     synchronized JSONArray catalog()throws Exception{try(InputStream in=ide.app.getAssets().open("ui/addons/catalog.json")){return new JSONArray(IdeEngine.slurp(in,1024*1024));}}
     static String hash(JSONObject p)throws Exception{byte[] bytes=MessageDigest.getInstance("SHA-256").digest(p.toString().getBytes(StandardCharsets.UTF_8));StringBuilder result=new StringBuilder();for(byte b:bytes)result.append(String.format(Locale.ROOT,"%02x",b&255));return result.toString();}
