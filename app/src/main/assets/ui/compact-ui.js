@@ -1,5 +1,5 @@
 'use strict';
-window.StudioWebInput=text=>{const field=StudioWebKeyboard.field();if(!field)return false;const start=field.selectionStart??field.value.length,end=field.selectionEnd??start;try{field.setRangeText(text,start,end,'end');}catch{field.value=field.value.slice(0,start)+text+field.value.slice(end);}field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));return true;};
+window.StudioWebInput=text=>{const field=StudioWebKeyboard.field();if(!field)return false;const cell=typeof StudioNotebookCellInput!=='undefined'&&StudioNotebookCellInput.fields.get(field);if(cell)return cell.insert(text);const start=field.selectionStart??field.value.length,end=field.selectionEnd??start;try{field.setRangeText(text,start,end,'end');}catch{field.value=field.value.slice(0,start)+text+field.value.slice(end);}field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));return true;};
 const compactMethods={
   initCompactUI(){
     for(const id of ['buildButton','runButton','debugButton']){

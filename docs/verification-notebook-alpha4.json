@@ -1,0 +1,529 @@
+{
+  "version": "0.5.0-alpha.4",
+  "versionCode": 20,
+  "date": "2026-10-29",
+  "status": "preview, not a stable release",
+  "artifacts": {
+    "modern": {
+      "bytes": 9279651,
+      "sha256": "fd4e2f47290fb3903844e43072c92836a4bb933f2e89665c63f1c6a204b1d30b",
+      "targetSdk": 36,
+      "signed": true,
+      "debuggable": false
+    },
+    "compat": {
+      "bytes": 9404128,
+      "sha256": "ddc7422f830d788f32c5dd7686c5b8451d5fe7c2f8105e8fa1f87d2fab2e85bb",
+      "targetSdk": 28,
+      "signed": true,
+      "debuggable": false
+    },
+    "windowsInstaller": {
+      "bytes": 125048954,
+      "sha256": "96e89e74e0175e482e07cd32417b2ac8c8e93a602d6d8c142d97db1a31cda9af",
+      "publisherSigned": false,
+      "systemInstallationTested": false,
+      "packagedPayloadGuiChecksPassed": 37
+    }
+  },
+  "physicalAndroid": {
+    "device": "Xiaomi Pad 6, Android 14, arm64",
+    "checks": [
+      {
+        "test": "A real touch on custom Enter inserts Python block indentation",
+        "passed": true
+      },
+      {
+        "test": "Python syntax tokens are visible in the Android notebook cell",
+        "passed": true
+      },
+      {
+        "test": "Custom Tab indents every selected line",
+        "passed": true
+      },
+      {
+        "test": "Android Shift+Tab outdents the selected lines",
+        "passed": true
+      },
+      {
+        "test": "Android Ctrl+Z undoes one cell editing transaction",
+        "passed": true
+      },
+      {
+        "test": "Android Ctrl+Shift+Z restores the transaction",
+        "passed": true
+      },
+      {
+        "test": "Adding and moving cells retain Android focus and selected text",
+        "passed": true
+      },
+      {
+        "test": "A floating letter key updates both the retained field and notebook model",
+        "passed": true
+      },
+      {
+        "test": "Floating character input participates in cell undo",
+        "passed": true
+      },
+      {
+        "test": "Android highlighted code follows scroll on both axes",
+        "passed": true
+      },
+      {
+        "test": "Notebook indentation follows the two-space preference on Android",
+        "passed": true
+      },
+      {
+        "test": "Notebook indentation supports actual tabs on Android",
+        "passed": true
+      },
+      {
+        "test": "Android Ctrl+Enter executes Python in the packaged runtime",
+        "passed": true
+      },
+      {
+        "test": "Android Shift+Enter executes and focuses the next notebook cell",
+        "passed": true
+      },
+      {
+        "test": "Console hides the notebook and its input even with highlighted cells",
+        "passed": true
+      },
+      {
+        "test": "Touch returns from the console without losing the notebook field",
+        "passed": true
+      },
+      {
+        "test": "Custom notebook editing never opens a second system keyboard",
+        "passed": true
+      },
+      {
+        "test": "Switching to the system keyboard restores normal editable fields",
+        "passed": true
+      },
+      {
+        "test": "C++ to notebook return preserves highlighted cell outputs and identity",
+        "passed": true
+      },
+      {
+        "test": "Android large notebooks tokenize the viewport instead of all 350 cells",
+        "passed": true
+      }
+    ],
+    "lastChange": "20 checks exercised the new cell implementation. A subsequent shared zoom refresh hook was checked in the final packaged Windows UI, followed by Android release background cold startup."
+  },
+  "chromiumBrowserChecks": [
+    {
+      "test": "Real Chromium Enter increases Python block indentation",
+      "passed": true
+    },
+    {
+      "test": "Python tokenizer colors keywords and strings inside the editable cell",
+      "passed": true
+    },
+    {
+      "test": "Ctrl+Z undoes the latest native typing transaction",
+      "passed": true
+    },
+    {
+      "test": "Ctrl+Shift+Z restores the cell edit",
+      "passed": true
+    },
+    {
+      "test": "Tab indents all selected source lines",
+      "passed": true
+    },
+    {
+      "test": "Shift+Tab restores indentation without moving focus out of the cell",
+      "passed": true
+    },
+    {
+      "test": "Adding another cell retains the existing textarea, focus, and selected range",
+      "passed": true
+    },
+    {
+      "test": "Moving a cell retains its DOM input and selection",
+      "passed": true
+    },
+    {
+      "test": "Deleting another cell does not rebuild the active editor or erase undo history",
+      "passed": true
+    },
+    {
+      "test": "A short cell edit changes only a short JSON model range",
+      "passed": true
+    },
+    {
+      "test": "External notebook undo updates the retained input without replacing it",
+      "passed": true
+    },
+    {
+      "test": "Highlighted layer follows horizontal and vertical code scrolling",
+      "passed": true
+    },
+    {
+      "test": "Notebook source markup stays text and cannot create an HTML element",
+      "passed": true
+    },
+    {
+      "test": "Cell font and theme follow IDE settings without losing the input element",
+      "passed": true
+    },
+    {
+      "test": "Notebook Tab follows configured two-space indentation",
+      "passed": true
+    },
+    {
+      "test": "Notebook Tab supports actual tab characters",
+      "passed": true
+    },
+    {
+      "test": "Ctrl+Enter executes the cell in the real Python process",
+      "passed": true
+    },
+    {
+      "test": "Shift+Enter executes and focuses the next cell without recreating the previous one",
+      "passed": true
+    },
+    {
+      "test": "Returning from another file keeps the notebook input and outputs intact",
+      "passed": true
+    },
+    {
+      "test": "A stale highlighting reply cannot repaint an older cell revision",
+      "passed": true
+    },
+    {
+      "test": "Large notebooks retain all cells while tokenizing only the viewport neighborhood",
+      "passed": true
+    }
+  ],
+  "windowsSourceUiChecks": [
+    {
+      "test": "Current modular frontend boots with desktop Monaco",
+      "passed": true
+    },
+    {
+      "test": "Python and notebooks activate through addon dependencies",
+      "passed": true
+    },
+    {
+      "test": "Python runs from current renderer",
+      "passed": true
+    },
+    {
+      "test": "Notebook cell view opens without native editor overlay",
+      "passed": true
+    },
+    {
+      "test": "Notebook cell occupies visible document space",
+      "passed": true
+    },
+    {
+      "test": "Notebook belongs to a document tab and creates no modal dialog",
+      "passed": true
+    },
+    {
+      "test": "Notebook kernel preserves variables between cells",
+      "passed": true
+    },
+    {
+      "test": "Executed notebook saves standard outputs and metadata",
+      "passed": true
+    },
+    {
+      "test": "Notebook Enter inserts the Python block indentation",
+      "passed": true
+    },
+    {
+      "test": "Notebook selected lines support Tab and Shift+Tab",
+      "passed": true
+    },
+    {
+      "test": "Notebook undo restores the previous cell transaction",
+      "passed": true
+    },
+    {
+      "test": "Notebook redo restores the cell transaction",
+      "passed": true
+    },
+    {
+      "test": "Notebook Python syntax uses existing Monaco tokens",
+      "passed": true
+    },
+    {
+      "test": "Notebook structural changes retain the textarea and selection",
+      "passed": true
+    },
+    {
+      "test": "Notebook typing sends a short JSON edit rather than replacing the entire file",
+      "passed": true
+    },
+    {
+      "test": "Notebook raw-model undo preserves the field and updates its source",
+      "passed": true
+    },
+    {
+      "test": "Notebook token rendering follows horizontal and vertical scroll",
+      "passed": true
+    },
+    {
+      "test": "Notebook source cannot inject HTML elements",
+      "passed": true
+    },
+    {
+      "test": "Rejected oversized cell input preserves the saved model and visible text",
+      "passed": true
+    },
+    {
+      "test": "Read-only notebooks reject editing and structural changes",
+      "passed": true
+    },
+    {
+      "test": "Addon manager uses retained shared picker on desktop",
+      "passed": true
+    },
+    {
+      "test": "Notebook configuration hides unsupported Build and Debug buttons",
+      "passed": true
+    },
+    {
+      "test": "Adding an action exposes its button and executes the selected provider",
+      "passed": true
+    },
+    {
+      "test": "Interpreter configuration has action choices and no CMake compiler fields",
+      "passed": true
+    },
+    {
+      "test": "Configuration editor saves action removal without recreating defaults",
+      "passed": true
+    },
+    {
+      "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+      "passed": true
+    },
+    {
+      "test": "Project addon profile changes available actions without overwriting defaults",
+      "passed": true
+    },
+    {
+      "test": "Another project inherits the default addon composition",
+      "passed": true
+    },
+    {
+      "test": "Empty project has generic profile and no invented build or run actions",
+      "passed": true
+    },
+    {
+      "test": "Returning to the first project restores its own addons and action visibility",
+      "passed": true
+    },
+    {
+      "test": "Project sidebar layout is restored separately",
+      "passed": true
+    },
+    {
+      "test": "Cold reload restores project scope and layout without changing global defaults",
+      "passed": true
+    },
+    {
+      "test": "C++ Run builds and launches the artifact through configured addon actions",
+      "passed": true
+    },
+    {
+      "test": "Project selects its addon-provided window interface after reload",
+      "passed": true
+    },
+    {
+      "test": "Creating another language project completes before changing interface mode",
+      "passed": true
+    },
+    {
+      "test": "Switching back restores the original project window workspace",
+      "passed": true
+    }
+  ],
+  "windowsPackagedUiChecks": [
+    {
+      "test": "Current modular frontend boots with desktop Monaco",
+      "passed": true
+    },
+    {
+      "test": "Python and notebooks activate through addon dependencies",
+      "passed": true
+    },
+    {
+      "test": "Python runs from current renderer",
+      "passed": true
+    },
+    {
+      "test": "Notebook cell view opens without native editor overlay",
+      "passed": true
+    },
+    {
+      "test": "Notebook cell occupies visible document space",
+      "passed": true
+    },
+    {
+      "test": "Notebook belongs to a document tab and creates no modal dialog",
+      "passed": true
+    },
+    {
+      "test": "Notebook kernel preserves variables between cells",
+      "passed": true
+    },
+    {
+      "test": "Executed notebook saves standard outputs and metadata",
+      "passed": true
+    },
+    {
+      "test": "Notebook Enter inserts the Python block indentation",
+      "passed": true
+    },
+    {
+      "test": "Notebook selected lines support Tab and Shift+Tab",
+      "passed": true
+    },
+    {
+      "test": "Notebook undo restores the previous cell transaction",
+      "passed": true
+    },
+    {
+      "test": "Notebook redo restores the cell transaction",
+      "passed": true
+    },
+    {
+      "test": "Notebook Python syntax uses existing Monaco tokens",
+      "passed": true
+    },
+    {
+      "test": "Code zoom updates the notebook input and colored layer together",
+      "passed": true
+    },
+    {
+      "test": "Notebook structural changes retain the textarea and selection",
+      "passed": true
+    },
+    {
+      "test": "Notebook typing sends a short JSON edit rather than replacing the entire file",
+      "passed": true
+    },
+    {
+      "test": "Notebook raw-model undo preserves the field and updates its source",
+      "passed": true
+    },
+    {
+      "test": "Notebook token rendering follows horizontal and vertical scroll",
+      "passed": true
+    },
+    {
+      "test": "Notebook source cannot inject HTML elements",
+      "passed": true
+    },
+    {
+      "test": "Rejected oversized cell input preserves the saved model and visible text",
+      "passed": true
+    },
+    {
+      "test": "Read-only notebooks reject editing and structural changes",
+      "passed": true
+    },
+    {
+      "test": "Addon manager uses retained shared picker on desktop",
+      "passed": true
+    },
+    {
+      "test": "Notebook configuration hides unsupported Build and Debug buttons",
+      "passed": true
+    },
+    {
+      "test": "Adding an action exposes its button and executes the selected provider",
+      "passed": true
+    },
+    {
+      "test": "Interpreter configuration has action choices and no CMake compiler fields",
+      "passed": true
+    },
+    {
+      "test": "Configuration editor saves action removal without recreating defaults",
+      "passed": true
+    },
+    {
+      "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+      "passed": true
+    },
+    {
+      "test": "Project addon profile changes available actions without overwriting defaults",
+      "passed": true
+    },
+    {
+      "test": "Another project inherits the default addon composition",
+      "passed": true
+    },
+    {
+      "test": "Empty project has generic profile and no invented build or run actions",
+      "passed": true
+    },
+    {
+      "test": "Returning to the first project restores its own addons and action visibility",
+      "passed": true
+    },
+    {
+      "test": "Project sidebar layout is restored separately",
+      "passed": true
+    },
+    {
+      "test": "Cold reload restores project scope and layout without changing global defaults",
+      "passed": true
+    },
+    {
+      "test": "C++ Run builds and launches the artifact through configured addon actions",
+      "passed": true
+    },
+    {
+      "test": "Project selects its addon-provided window interface after reload",
+      "passed": true
+    },
+    {
+      "test": "Creating another language project completes before changing interface mode",
+      "passed": true
+    },
+    {
+      "test": "Switching back restores the original project window workspace",
+      "passed": true
+    }
+  ],
+  "hostCommandGroupsPassed": 80,
+  "cellEditingUnitCases": 9,
+  "androidUnitTestsPerFlavor": 8,
+  "androidReleaseLintErrorsPerFlavor": 0,
+  "pythonKernelCases": 4,
+  "componentOwnershipCases": 2,
+  "desktopBackendTests": {
+    "passed": 15,
+    "skipped": 1,
+    "skip": "LLDB DAP not configured on this Windows host"
+  },
+  "restoration": {
+    "originalProjectFilesVerified": 13,
+    "metadataFilesRestoredAndVerifiedBeforeColdStart": 6,
+    "ownFixturesArchived": 1,
+    "normalReleaseInstalled": true,
+    "installedBytes": 9279651,
+    "installedSha256": "fd4e2f47290fb3903844e43072c92836a4bb933f2e89665c63f1c6a204b1d30b",
+    "coldStartWithoutFatalOrJsErrors": true,
+    "screenOff": true,
+    "adbForwardRemoved": true,
+    "nativeEngineAndToolDataUnchanged": true,
+    "finalBackgroundUpdateAfterZoomHook": true
+  },
+  "nativeAndroidRuntime": "unchanged v0.5.0-runtime2",
+  "limits": [
+    "A preview, not a completed stable CLion replacement.",
+    "No new physical Bluetooth keyboard, other OEM, full gesture or extended typing soak test.",
+    "No new full Linux/macOS GUI or installer test. Portable CI tests are distinct.",
+    "Windows NSIS installer built from the tested payload; its system installation was not separately tested and it has no publisher signature.",
+    "Full Jupyter/IPython, Pyright, Python debugger, executable third-party addons and marketplace remain unfinished."
+  ]
+}

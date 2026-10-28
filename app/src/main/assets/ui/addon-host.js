@@ -47,7 +47,7 @@ class StudioAddonHost {
     if(!flags.autosave)for(const doc of this.app.docs.values())clearTimeout(doc.saveTimer);
     for(const model of monaco.editor.getModels()){model.__analysisCancel?.cancel();if(!flags.runtimeDiagnostics)monaco.editor.setModelMarkers(model,'runtime-warning',[]);if(!flags.diagnostics){monaco.editor.setModelMarkers(model,'clangd',[]);this.app.diagnosticMap.delete(model.uri.toString());}}
     for(const doc of this.app.docs.values()){const lang=this.language(doc.path);if(doc.model.getLanguageId()!==lang){this.app.lsp.close(doc.model);const uri=doc.model.uri.toString();monaco.editor.setModelMarkers(doc.model,'clangd',[]);await native('editorAnalysis',{uri,revision:NativeEditing.revisions.get(uri),diagnostics:[],styles:[],unusedStyles:[],hints:[]});monaco.editor.setModelLanguage(doc.model,lang);NativeEditing.invalidate(doc.model);}}
-    NativeEditing.queueLayout();this.app.registerCommands();
+    StudioDocumentViews.optionsChanged();NativeEditing.queueLayout();this.app.registerCommands();
     if(previous&&previous.clangd!==flags.clangd){if(flags.clangd)await this.app.lsp.start();else await this.suspendAnalysis();}
     else if(previous){for(const doc of this.app.docs.values()){await NativeEditing.publishDiagnostics(doc.model);await NativeEditing.analysis(doc.model);}if(!flags.runtimeDiagnostics){this.app.runtimeWarnings=[];this.app.renderProblems();}}
     this.app.configurations?.render();this.app.updateRunButtons();this.app.renderTree?.();this.updateViewButton();

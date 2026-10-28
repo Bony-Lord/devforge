@@ -28,4 +28,5 @@ jobs:
       - name: Notebook format and kernel checks
         run: |
           node tests/notebook-model.test.cjs
+          node tests/cell-editing.test.cjs
           python tests/python_kernel_test.py

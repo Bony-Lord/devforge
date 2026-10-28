@@ -22,19 +22,32 @@ class StudioNotebookEditor {
     // focus navigation can replace the textarea with the first toolbar button.
     if(window.StudioDesktop)focus();else native('editorWebFocus').then(focus).catch(safeError);
   }
-  dispose(){this.unsubscribe?.();this.change?.dispose();this.disposeListener?.dispose();if(this.session)this.stop().catch(console.warn);this.dialog.remove();for(const pane of NativeEditing.panes.values()){if(pane.documentViews?.get(this.doc.model)===this)pane.documentViews.delete(this.doc.model);if(pane.documentView===this)pane.documentView=null;}}
-  commit(){if(this.external||this.doc.readonly)throw Error(this.t('Изменение файла недоступно','File cannot be modified'));const text=StudioNotebook.serialize(this.value);this.writing=true;try{this.doc.model.pushEditOperations([],[{range:this.doc.model.getFullModelRange(),text}],()=>null);}finally{this.writing=false;}}
-  add(type){if(this.busy)return;const c=StudioNotebook.cell(type);this.value.cells.push(c);this.commit();this.render();this.rows.get(c).input.focus();}
+  dispose(){this.unsubscribe?.();this.change?.dispose();this.disposeListener?.dispose();for(const row of this.rows.values())row.source.dispose();this.cellObserver?.disconnect();if(this.session)this.stop().catch(console.warn);this.dialog.remove();for(const pane of NativeEditing.panes.values()){if(pane.documentViews?.get(this.doc.model)===this)pane.documentViews.delete(this.doc.model);if(pane.documentView===this)pane.documentView=null;}}
+  commit(){if(this.external||this.doc.readonly)throw Error(this.t('Изменение файла недоступно','File cannot be modified'));const model=this.doc.model,edit=StudioCellEditing.delta(model.getValue(),StudioNotebook.serialize(this.value));if(!edit)return;const start=model.getPositionAt(edit.start),end=model.getPositionAt(edit.end);this.writing=true;try{model.pushStackElement();model.pushEditOperations([],[{range:{startLineNumber:start.lineNumber,startColumn:start.column,endLineNumber:end.lineNumber,endColumn:end.column},text:edit.text}],()=>null);model.pushStackElement();}finally{this.writing=false;}}
+  add(type){if(this.busy||this.external||this.doc.readonly)return;const c=StudioNotebook.cell(type);this.value.cells.push(c);this.commit();this.render();this.rows.get(c).input.focus();}
   render(){
-    this.body.replaceChildren();this.rows.clear();for(const [index,c]of this.value.cells.entries()){
-      const row=this.element('section',undefined,'notebook-cell'),bar=this.element('div',undefined,'notebook-cell-bar'),label=this.element('span',(c.cell_type==='code'?'In ['+(c.execution_count??' ')+']':c.cell_type)+' · '+(index+1));
-      bar.append(label);if(c.cell_type==='code')bar.append(this.button('play',this.t('Выполнить ячейку','Run cell'),()=>this.run(c)));bar.append(this.button('arrow-up',this.t('Выше','Move up'),()=>this.move(c,-1)),this.button('down',this.t('Ниже','Move down'),()=>this.move(c,1)),this.button('trash',this.t('Удалить ячейку','Delete cell'),()=>{if(this.busy)return;this.value.cells.splice(this.value.cells.indexOf(c),1);this.commit();this.render();}));row.append(bar);
-      const input=this.element('textarea');input.value=StudioNotebook.lines(c.source);input.spellcheck=false;input.autocomplete='off';input.autocapitalize='off';input.setAttribute('autocorrect','off');input.ariaLabel=this.t('Исходник ячейки ','Cell source ')+(index+1);input.readOnly=this.doc.readonly||this.external;input.rows=Math.max(3,Math.min(16,input.value.split('\n').length+1));input.oninput=()=>{c.source=input.value;this.commit();};input.onkeydown=e=>{if(e.key==='Enter'&&e.shiftKey){e.preventDefault();if(c.cell_type==='code')this.run(c,true).catch(error=>this.status.textContent=error.message);}else if(e.key==='Tab'){e.preventDefault();const start=input.selectionStart,end=input.selectionEnd;input.setRangeText('    ',start,end,'end');input.dispatchEvent(new Event('input'));}};row.append(input);
-      const output=this.element('pre',undefined,'notebook-output');row.append(output);this.rows.set(c,{row,input,output,label});this.renderOutput(c);this.body.append(row);
-    }this.runAllButton.disabled=this.busy||this.external||this.doc.readonly;
+    const previous=this.rows,prior=[...previous.values()],byId=new Map([...previous].filter(([c])=>c.id).map(([c,r])=>[c.id,r])),next=new Map(),used=new Set(),active=document.activeElement,selection=active?.matches('textarea')?{start:active.selectionStart,end:active.selectionEnd,top:active.scrollTop,left:active.scrollLeft}:null;
+    for(const [index,c]of this.value.cells.entries()){
+      let r=previous.get(c)||(c.id&&byId.get(c.id))||(!c.id&&!prior[index]?.cell.id&&prior[index]);if(r&&(used.has(r)||r.cell.cell_type!==c.cell_type))r=null;
+      if(!r){
+        const row=this.element('section',undefined,'notebook-cell'),bar=this.element('div',undefined,'notebook-cell-bar'),label=this.element('span');r={row,label,cell:c,buttons:[]};bar.append(label);
+        const button=(icon,ru,en,work)=>{const b=this.button(icon,this.t(ru,en),work);r.buttons.push(b);bar.append(b);};
+        if(c.cell_type==='code')button('play','Выполнить ячейку','Run cell',()=>this.run(r.cell));
+        button('arrow-up','Выше','Move up',()=>this.move(r.cell,-1));button('down','Ниже','Move down',()=>this.move(r.cell,1));button('trash','Удалить ячейку','Delete cell',()=>this.remove(r.cell));row.append(bar);
+        r.source=new StudioNotebookCellInput(this,r);r.input=r.source.input;r.output=this.element('pre',undefined,'notebook-output');r.output.hidden=true;r.lastOutputs=null;row.append(r.source.element,r.output);
+      }
+      r.cell=c;next.set(c,r);used.add(r);r.source.sync();for(const button of r.buttons)button.disabled=this.busy||this.external||this.doc.readonly;
+      const reference=this.body.children[index]||null;if(reference!==r.row){if(this.body.moveBefore&&r.row.parentElement===this.body)this.body.moveBefore(r.row,reference);else this.body.insertBefore(r.row,reference);}
+    }
+    for(const r of previous.values())if(!used.has(r)){r.source.dispose();r.row.remove();}
+    this.rows=next;for(const c of this.value.cells)this.renderOutput(c,false);
+    if(selection&&active.isConnected&&this.body.contains(active)){if(document.activeElement!==active)active.focus({preventScroll:true});active.setSelectionRange(Math.min(selection.start,active.value.length),Math.min(selection.end,active.value.length));active.scrollTop=selection.top;active.scrollLeft=selection.left;}
+    this.runAllButton.disabled=this.busy||this.external||this.doc.readonly;
   }
-  move(c,by){if(this.busy)return;const i=this.value.cells.indexOf(c),j=i+by;if(j<0||j>=this.value.cells.length)return;this.value.cells.splice(i,1);this.value.cells.splice(j,0,c);this.commit();this.render();}
-  renderOutput(c){const r=this.rows.get(c);if(!r)return;r.output.textContent=(c.outputs||[]).map(StudioNotebook.textOutput).join('\n').slice(0,1024*1024);r.output.hidden=!r.output.textContent;r.label.textContent=(c.cell_type==='code'?'In ['+(c.execution_count??' ')+']':c.cell_type)+' · '+(this.value.cells.indexOf(c)+1);}
+  remove(c){if(this.busy||this.external||this.doc.readonly)return;const index=this.value.cells.indexOf(c);if(index<0)return;const focused=this.rows.get(c)?.row.contains(document.activeElement);this.value.cells.splice(index,1);this.commit();this.render();if(focused)this.rows.get(this.value.cells[Math.min(index,this.value.cells.length-1)])?.input.focus();}
+  move(c,by){if(this.busy||this.external||this.doc.readonly)return;const i=this.value.cells.indexOf(c),j=i+by;if(i<0||j<0||j>=this.value.cells.length)return;this.value.cells.splice(i,1);this.value.cells.splice(j,0,c);this.commit();this.render();}
+  renderOutput(c,force=true){const r=this.rows.get(c);if(!r)return;if(force||r.lastOutputs!==c.outputs||r.lastCount!==c.execution_count){r.output.textContent=(c.outputs||[]).map(StudioNotebook.textOutput).join('\n').slice(0,1024*1024);r.output.hidden=!r.output.textContent;r.lastOutputs=c.outputs;r.lastCount=c.execution_count;}r.label.textContent=(c.cell_type==='code'?'In ['+(c.execution_count??' ')+']':c.cell_type)+' · '+(this.value.cells.indexOf(c)+1);}
+  optionsChanged(){for(const r of this.rows.values())r.source.refresh();}
   async run(c,next=false){
     if(this.busy)throw Error(this.t('Ядро занято','Kernel is busy'));if(this.external||this.doc.readonly)throw Error(this.t('Выполнение недоступно','Execution unavailable'));
     if(!this.ide.addons.host.enabled('notebooks')||!this.ide.addons.host.enabled('python')){this.ide.addons.open();return;}
@@ -57,6 +70,7 @@ class StudioNotebookEditor {
   async stop(){for(const p of this.pending.values())p.reject(Error(this.t('Ядро перезапущено','Kernel restarted')));this.pending.clear();const session=this.session;this.session=null;await native('notebookStop',session===null?{}:{session});this.status.textContent=this.t('Ядро остановлено · переменные сброшены','Kernel stopped · variables cleared');}
 }
 const StudioDocumentViews={
+  optionsChanged(){for(const pane of NativeEditing.panes.values())for(const view of pane.documentViews?.values()||[])view.optionsChanged();},
   attach(editor,id){
     const pane=NativeEditing.panes.get(id);pane.documentViews=new Map();pane.rawModels=new WeakSet();pane.sourceVisibility=pane.container.style.visibility;
     const set=editor.setModel.bind(editor),focus=editor.focus.bind(editor),dispose=editor.dispose.bind(editor);

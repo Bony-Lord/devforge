@@ -26,6 +26,7 @@ jobs:
           node tests/native-editor-state.test.cjs
           node tests/interaction.test.cjs
           node tests/web-keyboard.test.cjs
+          node tests/cell-editing.test.cjs
           node tests/completion-keys.test.cjs
           node tests/dock-layout.test.cjs
           node tests/run-profiles.test.cjs
