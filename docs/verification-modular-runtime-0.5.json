@@ -1,0 +1,335 @@
+{
+  "version": "0.5.0-alpha.2",
+  "date": "2026-10-28",
+  "status": "preview, not a stable release",
+  "delivery": "one optional Android native engine APK plus pinned .studio-toolpack data; data-only third-party .studio-addon API remains 0.1.1",
+  "artifacts": {
+    "coreBytes": 9272373,
+    "coreSha256": "cad863a07ab52ee98838dd9d2d8de353a86769bde2eda6d35e6b08bba871e296",
+    "engineBytes": 178969339,
+    "engineSha256": "e806c557d8e965d4f04af83b749c5149a2cd2813244158e4a44238ebcaabcaa7",
+    "targetSdk": 36,
+    "arm64ELF16kChecked": 223,
+    "packHashesAndDescriptorsVerified": 8,
+    "signaturesVerified": true,
+    "releaseNotDebuggable": true
+  },
+  "installer": [
+    {
+      "test": "Cancelling the single engine installation leaves no engine and releases the operation guard",
+      "passed": true
+    },
+    {
+      "test": "One engine APK confirmation installs all eight selected data packs; no separate component APKs exist",
+      "passed": true
+    },
+    {
+      "test": "Removing and adding Git data works without any system installation or uninstall dialog",
+      "passed": true
+    },
+    {
+      "test": "All selected tool packs survive a real cold restart",
+      "passed": true
+    },
+    {
+      "test": "Incompatible native engine is isolated from core cold startup and exposed for repair",
+      "passed": true
+    },
+    {
+      "test": "One normal uninstall removes incompatible shared engine and all owned pack data",
+      "passed": true
+    }
+  ],
+  "emulator": {
+    "os": "Android16 / API36 x86_64",
+    "fixtureOnly4kNativeImages": true,
+    "checks": [
+      {
+        "test": "Modern target API 36 and current addon UI boot",
+        "passed": true
+      },
+      {
+        "test": "Python and notebooks are real enabled addon dependencies",
+        "passed": true
+      },
+      {
+        "test": "Packaged Python interpreter is available",
+        "passed": true
+      },
+      {
+        "test": "Actual Python prints result and project-root cwd on Android 16",
+        "passed": true
+      },
+      {
+        "test": "Notebook view opens inside running Android application",
+        "passed": true
+      },
+      {
+        "test": "Notebook variables persist across cell executions",
+        "passed": true
+      },
+      {
+        "test": "Notebook result is saved as standard nbformat output",
+        "passed": true
+      },
+      {
+        "test": "Notebook cell occupies a visible, hit-testable area",
+        "passed": true
+      },
+      {
+        "test": "Runtime exception produces a traceback in the cell",
+        "passed": true
+      },
+      {
+        "test": "Native trust enforcement rejects Python execution",
+        "passed": true
+      },
+      {
+        "test": "Actual modern gcc compilation",
+        "passed": true
+      },
+      {
+        "test": "Packaged host loads and executes gcc shared program",
+        "passed": true
+      },
+      {
+        "test": "Actual modern clang compilation",
+        "passed": true
+      },
+      {
+        "test": "Packaged host loads and executes clang shared program",
+        "passed": true
+      },
+      {
+        "test": "Actual CMake and Ninja build on target36",
+        "passed": true
+      },
+      {
+        "test": "Python syntax check does not execute the script",
+        "passed": true
+      },
+      {
+        "test": "Notebook opens automatically in the editor without an open dialog",
+        "passed": true
+      },
+      {
+        "test": "Native code pane is hidden while notebook document is visible",
+        "passed": true
+      },
+      {
+        "test": "Switching files retains notebook view and cursor selection",
+        "passed": true
+      },
+      {
+        "test": "Source JSON mode stays in the same file pane",
+        "passed": true
+      },
+      {
+        "test": "System Back dispatch closes UI instead of terminating modern Activity",
+        "passed": true
+      },
+      {
+        "test": "Notebook uses profile environment and working directory",
+        "passed": true
+      },
+      {
+        "test": "Android toolbar hides actions absent from the current configuration",
+        "passed": true
+      },
+      {
+        "test": "Project addon composition disables Python and hides its Run action",
+        "passed": true
+      },
+      {
+        "test": "Another Android project inherits defaults and has no fabricated C++ actions",
+        "passed": true
+      },
+      {
+        "test": "Android restores the project addon profile and sidebar layout",
+        "passed": true
+      },
+      {
+        "test": "Native addon snapshot keeps defaults separate across UI restart",
+        "passed": true
+      },
+      {
+        "test": "gcc recoverable overflow warning",
+        "passed": true
+      },
+      {
+        "test": "clang recoverable overflow warning",
+        "passed": true
+      },
+      {
+        "test": "Separate GDB APK stops inside user main in a hosted program",
+        "passed": true
+      },
+      {
+        "test": "Breakpoint and structured C++ local values work across runtime APKs",
+        "passed": true
+      },
+      {
+        "test": "Step over command completes in hosted program",
+        "passed": true
+      }
+    ]
+  },
+  "physical": {
+    "device": "Xiaomi Pad 6",
+    "os": "Android14 / API34 ARM64",
+    "singleEngineInstalledWithOneConfirmation": true,
+    "checks": [
+      {
+        "test": "Modern target API 36 and current addon UI boot",
+        "passed": true
+      },
+      {
+        "test": "Python and notebooks are real enabled addon dependencies",
+        "passed": true
+      },
+      {
+        "test": "Packaged Python interpreter is available",
+        "passed": true
+      },
+      {
+        "test": "Actual Python prints result and project-root cwd on Android 14",
+        "passed": true
+      },
+      {
+        "test": "Notebook view opens inside running Android application",
+        "passed": true
+      },
+      {
+        "test": "Notebook variables persist across cell executions",
+        "passed": true
+      },
+      {
+        "test": "Notebook result is saved as standard nbformat output",
+        "passed": true
+      },
+      {
+        "test": "Notebook cell occupies a visible, hit-testable area",
+        "passed": true
+      },
+      {
+        "test": "Runtime exception produces a traceback in the cell",
+        "passed": true
+      },
+      {
+        "test": "Native trust enforcement rejects Python execution",
+        "passed": true
+      },
+      {
+        "test": "Actual modern gcc compilation",
+        "passed": true
+      },
+      {
+        "test": "Packaged host loads and executes gcc shared program",
+        "passed": true
+      },
+      {
+        "test": "Actual modern clang compilation",
+        "passed": true
+      },
+      {
+        "test": "Packaged host loads and executes clang shared program",
+        "passed": true
+      },
+      {
+        "test": "Actual CMake and Ninja build on target36",
+        "passed": true
+      },
+      {
+        "test": "Python syntax check does not execute the script",
+        "passed": true
+      },
+      {
+        "test": "Notebook opens automatically in the editor without an open dialog",
+        "passed": true
+      },
+      {
+        "test": "Native code pane is hidden while notebook document is visible",
+        "passed": true
+      },
+      {
+        "test": "Switching files retains notebook view and cursor selection",
+        "passed": true
+      },
+      {
+        "test": "Source JSON mode stays in the same file pane",
+        "passed": true
+      },
+      {
+        "test": "System Back dispatch closes UI instead of terminating modern Activity",
+        "passed": true
+      },
+      {
+        "test": "Notebook uses profile environment and working directory",
+        "passed": true
+      },
+      {
+        "test": "Android toolbar hides actions absent from the current configuration",
+        "passed": true
+      },
+      {
+        "test": "Project addon composition disables Python and hides its Run action",
+        "passed": true
+      },
+      {
+        "test": "Another Android project inherits defaults and has no fabricated C++ actions",
+        "passed": true
+      },
+      {
+        "test": "Android restores the project addon profile and sidebar layout",
+        "passed": true
+      },
+      {
+        "test": "Native addon snapshot keeps defaults separate across UI restart",
+        "passed": true
+      },
+      {
+        "test": "gcc recoverable overflow warning",
+        "passed": true
+      },
+      {
+        "test": "clang recoverable overflow warning",
+        "passed": true
+      },
+      {
+        "test": "Separate GDB APK stops inside user main in a hosted program",
+        "passed": true
+      },
+      {
+        "test": "Breakpoint and structured C++ local values work across runtime APKs",
+        "passed": true
+      },
+      {
+        "test": "Step over command completes in hosted program",
+        "passed": true
+      }
+    ]
+  },
+  "source": {
+    "hostCommandGroups": 75,
+    "componentOwnershipUnitTests": 2,
+    "pythonKernelTests": 4,
+    "bothAndroidFlavorJvmTestsPassed": true,
+    "bothAndroidReleaseLintPassed": true
+  },
+  "windowsDesktop": {
+    "backendPassed": 15,
+    "lldbSkippedOnWindows": 1,
+    "pythonProcessCaseRunSeparatelyWithExplicitInterpreter": true,
+    "newDesktopGuiOrInstallerNotRetestedThisIteration": true
+  },
+  "limits": [
+    "No exhaustive crash-free or performance guarantee; soak testing remains necessary.",
+    "No physical 16 KB-page device test; all 223 ARM64 ELF images checked statically.",
+    "All native tools share a 179 MB engine even for a small selected workload.",
+    "Android still requires confirmation when installing or updating the engine; Play Protect checks remain possible.",
+    "Hosted C/C++ ASan is unavailable; UBSan and stdlib assertions are not a complete uninitialized-memory detector.",
+    "Full IPython/Jupyter, Python language server/debugger, arbitrary executable third-party addons and online marketplace remain unfinished.",
+    "Linux/macOS GUI and native installers are not validated by Windows/backend tests.",
+    "Recommended prior Android preview remains 0.4.2."
+  ]
+}

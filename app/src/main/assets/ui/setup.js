@@ -2,7 +2,7 @@
 const setupMethods={
   setupText(ru,en){return (this.setupDraft?.values.language||this.settings.language)==='ru'?ru:en;},
   setupLocal(value){return typeof value==='string'?value:value?.[this.setupDraft?.values.language||this.settings.language]||value?.en||'';},
-  async maybeSetup(){if(StudioSetupModel.required(this.settings))await this.openSetup();},
+  async maybeSetup(){if(this.state.capabilities.toolDelivery==='engine-and-packs'&&this.settings.runtimeDeliveryVersion!==2){if(this.settings.setupComplete||this.settings.setupDismissed)this.settings.setupDraft=StudioSetupModel.initial({profile:this.addons.baseProfile,settings:this.settings,presets:this.addons.host.compositions});this.settings.runtimeDeliveryVersion=2;await native('settingsCommit',this.settings);}if(StudioSetupModel.required(this.settings))await this.openSetup();},
   setupPlan(){return StudioSetupModel.plan(this.addons.catalog,this.setupDraft.requested,this.addons.host.toolState.packs,this.addons.host.definitions);},
   async openSetup(){
     if(this.setupInstalling)return;this.setupOpen=true;await NativeEditing.layout();await this.addons.ready;document.querySelector('#settingsDialog').close();this.addons.host.toolState=await native('toolPacks');
@@ -24,7 +24,7 @@ const setupMethods={
   renderSetup(){
     const dialog=document.querySelector('#setupDialog');if(!dialog)return;dialog.dataset.dismissLocked=String(!!this.setupInstalling);dialog.replaceChildren();this.setupFields=new Map();this.setupPicker=null;const t=(ru,en)=>this.setupText(ru,en);
     const heading=this.setupElement('div',undefined,'dialog-heading'),title=this.setupElement('h2',[t('Настройка DevForge','Set up DevForge'),t('Настройки','Preferences'),t('Готово к установке','Ready to install')][this.setupStep]),close=this.setupButton('×',()=>this.skipSetup(),{className:'close-button',ariaLabel:t('Закрыть','Close')});close.dataset.icon='x';heading.append(title,close);dialog.append(heading,this.setupElement('p',t('Шаг ','Step ')+(this.setupStep+1)+' / 3','setup-step'));
-    const body=this.setupElement('div');body.id='setupBody';dialog.append(body);let plan;try{plan=this.setupPlan();}catch(error){this.setupError=error.message;}
+    if(this.state.capabilities.toolDelivery==='engine-and-packs')dialog.append(this.setupElement('p',t('Android один раз установит общее нативное окружение. Выбранные паки инструментов загружаются в формате DevForge без отдельных системных подтверждений. Обновление самого окружения снова потребует подтверждения Android.','Android installs one shared native engine. Selected DevForge tool packs need no separate system confirmations. Updating the engine itself requires Android confirmation again.')));const body=this.setupElement('div');body.id='setupBody';dialog.append(body);let plan;try{plan=this.setupPlan();}catch(error){this.setupError=error.message;}
     if(this.setupStep===0&&plan)this.renderSetupSelection(body);
     if(this.setupStep===1&&plan)this.renderSetupFields(body,plan);
     if(this.setupStep===2&&plan)this.renderSetupReview(body,plan);

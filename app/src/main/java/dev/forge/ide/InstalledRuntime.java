@@ -10,13 +10,14 @@ import java.util.zip.*;
 
 /** Native images are immutable APK code, installed by PackageManager. */
 final class InstalledRuntime {
-    final Context app;final File usr,libraries;final JSONObject manifest;
+    final Context app;final File usr,libraries;final JSONObject manifest;final RuntimeComponents components;
     InstalledRuntime(Context context)throws Exception {
         app=context;usr=new File(app.getFilesDir(),"usr");libraries=new File(app.getApplicationInfo().nativeLibraryDir);
-        try(InputStream in=app.getAssets().open("modern-runtime.json")){manifest=new JSONObject(IdeEngine.slurp(in,8*1024*1024));}
+        try(InputStream in=app.getAssets().open("modern-runtime.json")){manifest=new JSONObject(IdeEngine.slurp(in,8*1024*1024));}components=Arrays.asList("component-apks","engine-and-packs").contains(manifest.optString("delivery"))?new RuntimeComponents(this):null;
     }
     File runner(){return new File(libraries,manifest.optString("runner","libstudio_runner.so"));}
     void install()throws Exception {
+        if(components!=null){usr.mkdirs();components.refresh();if(!runner().canExecute())throw new IOException("Installed program host unavailable");return;}
         usr.mkdirs();File marker=new File(usr,".studio-installed-runtime-v1");boolean current=marker.isFile()&&IdeEngine.read(marker).equals(manifest.getString("identity"));
         if(!current){
             Map<String,JSONObject> expected=new HashMap<>();JSONArray files=manifest.getJSONArray("files");for(int i=0;i<files.length();i++)expected.put(files.getJSONObject(i).getString("path"),files.getJSONObject(i));
@@ -36,7 +37,8 @@ final class InstalledRuntime {
         for(String id:new String[]{"analysis","clang","debugger","git"}){File disabled=new File(usr,".studio-disabled-"+id);if(!disabled.exists())Files.deleteIfExists(new File(usr,".pack-"+id+"-incomplete").toPath());}
     }
     void link(String path,Path target)throws Exception {File destination=ToolPacks.child(usr,path);destination.getParentFile().mkdirs();if(Files.isSymbolicLink(destination.toPath())&&Files.readSymbolicLink(destination.toPath()).equals(target))return;Files.deleteIfExists(destination.toPath());Files.createSymbolicLink(destination.toPath(),target);}
-    boolean enabled(String id){return !new File(usr,".studio-disabled-"+id).exists();}
+    boolean locallyEnabled(String id){return !new File(usr,".studio-disabled-"+id).exists();}
+    boolean enabled(String id){return components==null?locallyEnabled(id):components.available(id);}
     void enabled(String id,boolean enabled)throws Exception {if(!Arrays.asList("platform","cmake","gcc","analysis","clang","debugger","git","python").contains(id))throw new IOException("Unknown tool");File marker=new File(usr,".studio-disabled-"+id);if(enabled)Files.deleteIfExists(marker.toPath());else Files.write(marker.toPath(),new byte[0]);}
     List<String> command(File program,List<String> args){List<String> command=new ArrayList<>();command.add(runner().getAbsolutePath());command.add(program.getAbsolutePath());command.addAll(args);return command;}
 }

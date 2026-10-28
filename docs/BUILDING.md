@@ -8,13 +8,18 @@
 python tools/prepare_modern_runtime.py --help
 # Укажите полный locked runtime из prepare_runtime.py и каталог Android NDK:
 python tools/prepare_modern_runtime.py --input work/runtime-full.zip --ndk /path/to/android-ndk-r28 --arch aarch64
+# Подпишите компоненты тем же ключом, которым будет подписан хост.
+# GCC_STUDIO_KEY_PASSWORD задаётся через окружение, alias ключа — forge.
+python tools/prepare_component_runtime.py --prepared-runtime app/src/modern --output app/src/bundle-components --sdk /path/to/android-sdk --keystore /private/host-key.jks
 # Отдельный lock desktop-sources.lock.json используется для FFmpeg-исходников desktop.
 ./gradlew :app:assembleCompatDebug :app:lintCompatRelease
-# После подготовки app/src/modern/assets и jniLibs:
+# После подготовки app/src/bundle-components/assets и jniLibs:
 ./gradlew :app:assembleModernDebug :app:lintModernRelease
 ```
 
 `build.ps1 -Runtime modern` или `-Runtime compat` выбирает вариант. Для установки обязательны `-Install -DeviceSerial SERIAL`, чтобы не устанавливать сборку на случайное подключённое устройство. Генерируемые runtime и `desktop/node_modules` не входят в Git. Исходники desktop находятся в `desktop/`: `npm ci`, `npm test`, затем `npm run package`; соответствующие FFmpeg-исходники сначала готовятся через `tools/prepare_desktop_sources.py`. Команда `npm run installers` оборачивает готовый пакет в NSIS / deb / pkg на соответствующей ОС.
+
+Modern по умолчанию использует небольшой `app/src/bundle-components`: только программный хост в `jniLibs`, каталог компонентов в `assets`, одно общее нативное окружение APK и пакеты `.studio-toolpack` в `components`. `app/src/modern` остаётся промежуточным полным runtime для генератора. `-PstudioRuntimeDir=/absolute/prepared/path` выбирает другую подготовку, например отдельную тестовую ABI. Перед распространением хоста опубликуйте точные APK и соответствующие исходники по зафиксированному адресу: `--release` генератора задаёт тег GitHub. Каталог содержит контрольные суммы; перепаковка уже опубликованного файла недопустима. Собственный ключ требует пересборки хоста и всех компонентов вместе. [Устройство модульной доставки](MODULAR-RUNTIME-0.5.md).
 
 ## Прежний compat runtime
 
@@ -90,7 +95,7 @@ python tools/prepare_sources.py
 
 Для пересборки самих GCC, GDB и библиотек следуйте включённым рецептам Termux/TUR на поддерживаемом Linux-хосте. Скрипт `prepare_runtime.py` выполняет документированное изменение префикса, корректировку порядка заголовков GCC и упаковку runtime.
 
-Приложение намеренно использует `targetSdk 28`: Android ограничивает непосредственный запуск сгенерированных программ из приватной папки при target SDK 29+. См. [Android: removed execute permission](https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission). Это APK для установки напрямую, а не готовая конфигурация публикации Google Play.
+Вариант `compat` намеренно использует `targetSdk 28`: Android ограничивает непосредственный запуск сгенерированных программ из приватной папки при target SDK 29+. Вариант `modern` имеет target36 и другой механизм выполнения. См. [Android: removed execute permission](https://developer.android.com/about/versions/10/behavior-changes-10#execute-permission). Эти APK предназначены для установки напрямую; готовность к публикации Google Play не заявляется.
 
 
 ## Локальные проверки редактора

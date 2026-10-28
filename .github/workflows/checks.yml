@@ -22,6 +22,7 @@ jobs:
         run: |
           for f in app/src/main/assets/ui/*.js; do node --check "$f"; done
           node tests/protocol.test.cjs
+          node tests/debugger-start.test.cjs
           node tests/native-editor-state.test.cjs
           node tests/interaction.test.cjs
           node tests/completion-keys.test.cjs
@@ -37,6 +38,7 @@ jobs:
           node tests/project-policy.test.cjs
           node tests/project-actions.test.cjs
           python tests/python_kernel_test.py
+          python tests/component-runtime.test.py
       - name: Python syntax
         run: python -m compileall -q tools tests
       - name: License inventory and notices

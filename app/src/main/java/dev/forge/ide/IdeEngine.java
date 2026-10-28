@@ -44,7 +44,7 @@ final class IdeEngine {
         tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
-        boolean executes=WorkspaceTrustPolicy.executesProject(op);if(executes)requireWorkspaceTrust();projectExecution.set(executes);
+        boolean executes=WorkspaceTrustPolicy.executesProject(op);if(executes){requireWorkspaceTrust();if(toolPacks.installing)throw new IOException("Finish the component operation before running project tools");}projectExecution.set(executes);
         try{return handleOperation(op,data);}finally{projectExecution.remove();}
     }
     Object handleOperation(String op,JSONObject data)throws Exception {
@@ -153,8 +153,11 @@ final class IdeEngine {
             }
             case "history":return history(d.getString("path"));
             case "toolPacks":return toolPacks.state();
+            case "toolPackImport":app.importRuntimeComponent();return true;
+            case "toolPackInstallMany":return toolPacks.installMany(d.getJSONArray("ids"));
             case "toolPackInstall":return toolPacks.install(d.getString("id"));
             case "toolPackRemove":return toolPacks.remove(d.getString("id"));
+            case "toolEngineRemove":return toolPacks.removeEngine();
             case "toolPackCancel":toolPacks.cancel();return true;
             case "showInFiles":{File root=project(currentProject),selected=new File(d.optString("path",root.getAbsolutePath())).getCanonicalFile();if(!inside(selected,root)||!selected.exists())throw new IOException("Project path unavailable");File directory=selected.isDirectory()?selected:selected.getParentFile();android.net.Uri uri=ProjectDocumentsProvider.directoryUri(currentProject,root,directory);app.ui.post(()->{try{android.content.Intent intent=new android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(uri,android.provider.DocumentsContract.Document.MIME_TYPE_DIR).addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);app.startActivity(intent);}catch(android.content.ActivityNotFoundException e){app.event("toast",JSONObject.quote("File manager unavailable"));}});return true;}
             case "probe":return probes();
@@ -187,7 +190,7 @@ final class IdeEngine {
         JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
         return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",workspace.isExternal()).put("cache",workspace.data().getAbsolutePath()).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
             .put("usr",usr.getAbsolutePath()).put("tree",tree(project(currentProject),0)).put("settings",new JSONObject(prefs.getString("settings","{}")))
-            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version).put("trust",workspaceTrust()).put("capabilities",new JSONObject().put("platform","android").put("editor","sora").put("targetSdk",app.getApplicationInfo().targetSdkVersion).put("toolDelivery",app.installedRuntime==null?"download":"bundled").put("localExecution",app.installedRuntime==null?"native-process":"installed-program-host"));
+            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version).put("trust",workspaceTrust()).put("capabilities",new JSONObject().put("platform","android").put("editor","sora").put("targetSdk",app.getApplicationInfo().targetSdkVersion).put("toolDelivery",app.installedRuntime==null?"download":app.installedRuntime.components==null?"bundled":app.installedRuntime.manifest.optString("delivery")).put("localExecution",app.installedRuntime==null?"native-process":"installed-program-host"));
     }
     String trustKey()throws IOException{return "trustedWorkspace:"+project(currentProject).getCanonicalPath();}
     boolean workspaceTrusted()throws IOException{return prefs.getBoolean(trustKey(),false);}

@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.forgex'
     compileSdk 36
-    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 17; versionName '0.5.0-alpha.1'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 18; versionName '0.5.0-alpha.2'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
     buildFeatures { buildConfig true }
     flavorDimensions += 'runtime'
     productFlavors {
@@ -12,7 +12,7 @@ android {
     sourceSets {
         main { assets.srcDirs = [layout.buildDirectory.dir('studio-assets')] }
         compat { assets.srcDirs = ['src/compat/assets'] }
-        modern { assets.srcDirs = [providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern') + '/assets']; jniLibs.srcDirs = [providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern') + '/jniLibs'] }
+        modern { assets.srcDirs = [providers.gradleProperty('studioRuntimeDir').getOrElse('src/bundle-components') + '/assets']; jniLibs.srcDirs = [providers.gradleProperty('studioRuntimeDir').getOrElse('src/bundle-components') + '/jniLibs'] }
     }
     packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += ['**/*.so'] } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
@@ -52,9 +52,9 @@ dependencies {
 
 tasks.register('checkModernRuntime') {
     doLast {
-        def runtime = file(providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern'))
+        def runtime = file(providers.gradleProperty('studioRuntimeDir').getOrElse('src/bundle-components'))
         if (!new File(runtime, 'assets/modern-runtime.json').isFile() || !new File(runtime, 'jniLibs').isDirectory())
-            throw new GradleException('Prepare the verified modern runtime with tools/prepare_modern_runtime.py first')
+            throw new GradleException('Prepare native images with tools/prepare_modern_runtime.py, then signed components with tools/prepare_component_runtime.py (see docs/BUILDING.md)')
     }
 }
 tasks.configureEach { if (name == 'packageModernDebug' || name == 'packageModernRelease') dependsOn 'checkModernRuntime' }

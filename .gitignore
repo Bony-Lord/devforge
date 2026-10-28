@@ -28,3 +28,7 @@ desktop/node_modules/
 desktop/dist/
 desktop/ui/
 desktop/.cache/
+
+app/src/components/
+
+app/src/bundle-components/

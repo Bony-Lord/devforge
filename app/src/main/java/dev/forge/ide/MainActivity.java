@@ -25,6 +25,7 @@ public final class MainActivity extends Activity {
     final ResponsivenessWatch responsiveness=new ResponsivenessWatch();
     IdeEngine engine;
     InstalledRuntime installedRuntime;
+    final ComponentInstaller componentInstaller=new ComponentInstaller(this);
     final Handler ui = new Handler(Looper.getMainLooper());
     final ExecutorService workers = Executors.newCachedThreadPool();
     final ExecutorService preferenceWrites = Executors.newSingleThreadExecutor();
@@ -55,7 +56,7 @@ public final class MainActivity extends Activity {
         progress.setTextSize(18);
         progress.setPadding(32,32,32,32);
         setContentView(progress);
-        status(interfaceLanguage().equals("ru")?"C++ STUDIO\n\nПодготовка редактора…":"C++ STUDIO\n\nPreparing editor…");
+        status(interfaceLanguage().equals("ru")?"DEVFORGE\n\nПодготовка редактора…":"DEVFORGE\n\nPreparing editor…");
         workers.execute(() -> {
             try {
                 if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0)StabilityDiagnostics.captureExitHistory(this);
@@ -260,13 +261,15 @@ public final class MainActivity extends Activity {
     String pendingAddonExport;
     void exportAddon(JSONObject pkg)throws Exception{AddonPackages.pack(pkg);String text=pkg.toString(2);if(text.getBytes(StandardCharsets.UTF_8).length>262144)throw new IOException("Addon export exceeds size limit");ui.post(()->{pendingAddonExport=text;Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.setType("application/octet-stream");intent.addCategory(Intent.CATEGORY_OPENABLE);intent.putExtra(Intent.EXTRA_TITLE,"workspace.studio-addon");startActivityForResult(intent,16);});}
     void importAddon(){ui.post(()->{Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.setType("*/*");intent.addCategory(Intent.CATEGORY_OPENABLE);intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);startActivityForResult(intent,15);});}
+    void importRuntimeComponent(){ui.post(()->{Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.setType("*/*");intent.addCategory(Intent.CATEGORY_OPENABLE);intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);startActivityForResult(intent,17);});}
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);
         if(result!=RESULT_OK||data==null||data.getData()==null)return;
         Uri uri=data.getData();
         workers.execute(() -> {
             try {
-                if(request==16){
+                if(request==17){engine.toolPacks.importComponent(uri);event("toolPackImported",new JSONObject());event("toast",JSONObject.quote(interfaceLanguage().equals("ru")?"Компонент установлен. Выберите нужный пак аддонов и примените состав.":"Component installed. Select the addon pack and apply your composition."));}
+                else if(request==16){
                     String content=pendingAddonExport;pendingAddonExport=null;if(content==null)throw new IOException("Addon export expired; retry");try(OutputStream out=getContentResolver().openOutputStream(uri,"w")){if(out==null)throw new IOException("Cannot save addon package");out.write(content.getBytes(StandardCharsets.UTF_8));}event("toast",JSONObject.quote(interfaceLanguage().equals("ru")?"Пак состава сохранён":"Composition pack saved"));
                 } else if(request==15){
                     try(InputStream in=getContentResolver().openInputStream(uri)){if(in==null)throw new IOException("Cannot read addon document");String content=new String(AddonDownload.readBounded(in),java.nio.charset.StandardCharsets.UTF_8);event("addonImported",new JSONObject().put("text",content));}

@@ -19,6 +19,7 @@ class StudioAddonHost {
   types(){return [{id:'empty',base:'empty',name:{ru:'Пустой / вручную',en:'Empty / manual'},settings:{buildMode:'custom'}},...this.addons.registry.list('projectTypes').map(e=>e.value)];}
   async prepare(resolved){
     this.addons.cancelRequested=false;this.toolState=await native('toolPacks');const required=resolved.map(m=>m.nativePack).filter(Boolean),missing=required.filter(id=>!this.toolState.packs.find(p=>p.id===id)?.installed);
+    if(['component-apks','engine-and-packs'].includes(this.toolState.delivery)&&missing.length){await this.app.setToolPacks(missing);this.toolState=await native('toolPacks');return;}
     for(const id of missing){if(this.addons.cancelRequested)throw Error(this.addons.text('Загрузка отменена','Download cancelled'));await this.app.setToolPack(id,true);if(this.addons.cancelRequested)throw Error(this.addons.text('Загрузка отменена','Download cancelled'));this.toolState=await native('toolPacks');}
   }
   missing(resolved){return this.toolState.packs.filter(p=>resolved.some(m=>m.nativePack===p.id)&&!p.installed);}
@@ -39,7 +40,7 @@ class StudioAddonHost {
     document.body.classList.toggle('studio-no-motion',!flags.animations);if(!flags.animations){for(const animation of document.getAnimations())animation.cancel();this.app.windows?.stopLayoutAnimation();}
     if(!flags.tooltips)StudioHover.hide();
     for(const [selector,flag]of [['#gitButton','git'],['#debugButton,[data-tool=debug]','debugger'],['#formatButton,#formatterSettingsButton','formatter']])for(const el of document.querySelectorAll(selector))el.hidden=!flags[flag];
-    for(const [selector,flag]of [['#paletteButton','palette'],['#keyboardButton','keyboard'],['[data-side=search],[data-tool=search]','projectSearch'],['[data-side=outline],[data-tool=outline]','outline'],['[data-tool=terminal]','terminal'],['#runConfigurationChoice,#cmakeProfileChoice','runConfigurations'],['[data-tool=console]','console']])for(const el of document.querySelectorAll(selector))el.hidden=!flags[flag];
+    for(const [selector,flag]of [['#paletteButton','palette'],['#keyboardButton','keyboard'],['[data-side=search],[data-tool=search]','projectSearch'],['[data-side=outline],[data-tool=outline]','outline'],['[data-tool=terminal]','terminal'],['#runConfigurationChoice,#cmakeProfileChoice,#editRunConfigurations','runConfigurations'],['[data-tool=console]','console']])for(const el of document.querySelectorAll(selector))el.hidden=!flags[flag];
     if(this.app.windows){for(const [name,flag]of [['terminal','terminal'],['debug','debugger'],['git','git'],['outline','outline'],['search','projectSearch']]){if(!flags[flag]&&(this.app.windows.outputMode===name||this.app.windows.sideMode===name))this.app.windows.hide(name);}}
     const outputAvailable=flags.python||flags.console||flags.terminal||flags.debugger||flags.diagnostics||this.runtimeEnabled('gcc')||this.runtimeEnabled('clang');if(!outputAvailable){if(this.app.windows)this.app.windows.hide(this.app.windows.outputMode);else this.app.togglePanel(false);}
     if(previous&&previous.notebooks&&!flags.notebooks)for(const pane of NativeEditing.panes.values())for(const view of pane.documentViews?.values()||[])await view.stop();
