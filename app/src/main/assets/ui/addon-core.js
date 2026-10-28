@@ -17,7 +17,8 @@
     return frozen(m); // Unknown fields survive for future schemas and author tooling.
   }
   function order(selected){const result=[],visiting=new Set(),done=new Set();function visit(id){if(visiting.has(id))fail('Dependency cycle: '+id);if(done.has(id))return;visiting.add(id);for(const dep of Object.keys(selected.get(id).dependencies))visit(dep);visiting.delete(id);done.add(id);result.push(selected.get(id));}for(const id of selected.keys())visit(id);return result;}
-  function resolve(catalog,requested,{apiVersion=API_VERSION,platform='android',maxSteps=10000,prefer={}}={}){
+  function currentPlatform(){return globalThis.StudioDesktop?.platform||'android';}
+  function resolve(catalog,requested,{apiVersion=API_VERSION,platform=currentPlatform(),maxSteps=10000,prefer={}}={}){
     version(apiVersion);if(!Array.isArray(catalog)||catalog.length>512||!Array.isArray(requested)||requested.length>128)fail('Addon resolver limit exceeded');
     const groups=new Map(),seen=new Set();for(const input of catalog){const m=manifest(input),key=m.id+'@'+m.version;if(seen.has(key))fail('Duplicate addon version: '+key);seen.add(key);if(!satisfies(apiVersion,m.api)||m.platforms&&!m.platforms.includes(platform))continue;if(!groups.has(m.id))groups.set(m.id,[]);groups.get(m.id).push(m);}for(const list of groups.values())list.sort((a,b)=>Number(b.version===prefer[b.id])-Number(a.version===prefer[a.id])||compare(b.version,a.version));
     const constraints=new Map();function require(map,id,r){if(!ID.test(id))fail('Invalid addon id');range(r);if(!map.has(id))map.set(id,[]);map.get(id).push(r);}
@@ -49,7 +50,7 @@
     async dispose(){if(this.closed)return;this.closed=true;this.abort.abort();for(const dispose of this.disposers.reverse())try{await dispose();}catch(e){try{this.report(e,this.manifest.id);}catch{}}this.disposers=[];}
   }
   class Manager {
-    constructor({catalog,factories,registry,platform='android',apiVersion=API_VERSION,report=()=>{},timeout=5000}){this.catalog=catalog.map(manifest);this.factories=factories;this.registry=registry;this.platform=platform;this.apiVersion=apiVersion;this.report=report;this.timeout=timeout;this.active=new Map();this.requested=[];this.safeMode=false;this.tail=Promise.resolve();}
+    constructor({catalog,factories,registry,platform=currentPlatform(),apiVersion=API_VERSION,report=()=>{},timeout=5000}){this.catalog=catalog.map(manifest);this.factories=factories;this.registry=registry;this.platform=platform;this.apiVersion=apiVersion;this.report=report;this.timeout=timeout;this.active=new Map();this.requested=[];this.safeMode=false;this.tail=Promise.resolve();}
     enqueue(work){const next=this.tail.then(work);this.tail=next.catch(()=>{});return next;}
     setProfile(requested,{safeMode=false}={}){const input=JSON.parse(JSON.stringify(requested));return this.enqueue(()=>this.reconcile(input,safeMode));}
     async reconcile(requested,safeMode){
@@ -64,5 +65,5 @@
     status(){return {requested:JSON.parse(JSON.stringify(this.requested)),safeMode:this.safeMode,active:[...this.active.values()].map(e=>({id:e.manifest.id,version:e.manifest.version}))};}
     dispose(){return this.setProfile([]);}
   }
-  return Object.freeze({API_VERSION,version,compare,satisfies,manifest,resolve,Registry,Manager});
+  return Object.freeze({API_VERSION,currentPlatform,version,compare,satisfies,manifest,resolve,Registry,Manager});
 });

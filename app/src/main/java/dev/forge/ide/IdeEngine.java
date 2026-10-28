@@ -14,6 +14,7 @@ final class IdeEngine {
     final ToolsEngine tools;
     final ToolPacks toolPacks;
     final AddonPackages addons;
+    final PythonEngine python;
     final WorkspaceFiles workspace;
     final LanguageTools languages;
     final File projects,usr,tmp;
@@ -40,7 +41,7 @@ final class IdeEngine {
         if(!new File(projects,"hello-cpp").exists()){createProject("hello-cpp","cpp");prefs.edit().putBoolean("trustedWorkspace:"+project("hello-cpp").getCanonicalPath(),true).commit();}
         currentProject=prefs.getString("project","hello-cpp");
         if(!project(currentProject).isDirectory())currentProject="hello-cpp";
-        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);
+        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
         boolean executes=WorkspaceTrustPolicy.executesProject(op);if(executes)requireWorkspaceTrust();projectExecution.set(executes);
@@ -61,6 +62,12 @@ final class IdeEngine {
         switch(op) {
             case "performanceReport":return app.responsiveness.report();
             case "performanceEvent":app.responsiveness.record("Web UI",Math.min(60000,d.optLong("delayMs")),"");return true;
+            case "pythonInfo":return python.info();
+            case "pythonRun":return python.run(d);
+            case "pythonCheck":return python.check(d);
+            case "notebookStart":addons.require("studio.notebooks");return python.start(d);
+            case "notebookExecute":addons.require("studio.notebooks");return python.execute(d);
+            case "notebookStop":if(d.has("session"))return python.stopSession(d.getLong("session"));python.stop();return true;
             case "state":return state();
             case "settings":case "settingsCommit":{var edit=prefs.edit().putString("settings",d.toString());if(op.equals("settingsCommit")){if(!edit.commit())throw new IOException("Cannot save settings");}else edit.apply();app.configureKeyboard(d);return d;}
             case "session":case "sessionCommit":{var edit=prefs.edit().putString("session",d.toString());if(op.equals("sessionCommit")){if(!edit.commit())throw new IOException("Cannot save session");}else edit.apply();return true;}
@@ -74,13 +81,13 @@ final class IdeEngine {
             case "addonDownload":{AddonDownload.Result result=AddonDownload.fetch(d.getString("url"),d.optString("sha256"));AddonPackages.pack(new JSONObject(result.text));return new JSONObject().put("text",result.text).put("sha256",result.sha256).put("url",result.url);}
             case "addonExport":app.exportAddon(d.getJSONObject("package"));return true;
             case "workspaceTrust":return workspaceTrust();
-            case "workspaceTrustSet":{boolean trusted=d.getBoolean("trusted");synchronized(workspaceTrustLock){if(!prefs.edit().putBoolean(trustKey(),trusted).commit())throw new IOException("Cannot save workspace trust");if(!trusted){for(Process p:projectProcesses)if(p.isAlive())p.destroyForcibly();projectProcesses.clear();}}if(!trusted){stopLsp();stopExecution();}return workspaceTrust();}
-            case "project": {
+            case "workspaceTrustSet":{boolean trusted=d.getBoolean("trusted");synchronized(workspaceTrustLock){if(!prefs.edit().putBoolean(trustKey(),trusted).commit())throw new IOException("Cannot save workspace trust");if(!trusted){for(Process p:projectProcesses)if(p.isAlive())p.destroyForcibly();projectProcesses.clear();}}if(!trusted){python.stop();stopLsp();stopExecution();}return workspaceTrust();}
+            case "project":python.stop(); {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
                 stopLsp();currentProject=name;prefs.edit().putString("project",name).apply();return state();
             }
-            case "newProject":{String name=d.getString("name");createProject(name,d.optString("language","cpp"));prefs.edit().putBoolean("trustedWorkspace:"+project(name).getCanonicalPath(),true).commit();return state();}
+            case "newProject":{String name=d.getString("name");createProject(name,d.optString("language","cpp"));prefs.edit().putBoolean("trustedWorkspace:"+project(name).getCanonicalPath(),true).commit();return state().put("createdProject",name);}
             case "tree":return tree(project(currentProject),0);
             case "browseFilesystem":return workspace.browse(d);
             case "openFolder":return workspace.open(d);
@@ -119,7 +126,7 @@ final class IdeEngine {
             case "newFile": {
                 File f=writable(d.getString("path"));
                 if(f.exists())throw new IOException("Файл уже существует");
-                String encoding=settings().optString("defaultEncoding","UTF-8");byte[] bytes=FileCodec.encode(d.optString("text",""),encoding);f.getParentFile().mkdirs();Files.write(f.toPath(),bytes,StandardOpenOption.CREATE_NEW);prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return f.getAbsolutePath();
+                String encoding=d.optString("encoding",settings().optString("defaultEncoding","UTF-8"));byte[] bytes=FileCodec.encode(d.optString("text",""),encoding);f.getParentFile().mkdirs();Files.write(f.toPath(),bytes,StandardOpenOption.CREATE_NEW);prefs.edit().putString("fileEncoding:"+f.getAbsolutePath(),encoding).apply();return f.getAbsolutePath();
             }
             case "moveProjectItem":{
                 File from=writablePath(d.getString("path")),to=writablePath(d.getString("to")),dataDir=workspace.data();
@@ -180,7 +187,7 @@ final class IdeEngine {
         JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
         return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",workspace.isExternal()).put("cache",workspace.data().getAbsolutePath()).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
             .put("usr",usr.getAbsolutePath()).put("tree",tree(project(currentProject),0)).put("settings",new JSONObject(prefs.getString("settings","{}")))
-            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version).put("trust",workspaceTrust());
+            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version).put("trust",workspaceTrust()).put("capabilities",new JSONObject().put("platform","android").put("editor","sora").put("targetSdk",app.getApplicationInfo().targetSdkVersion).put("toolDelivery",app.installedRuntime==null?"download":"bundled").put("localExecution",app.installedRuntime==null?"native-process":"installed-program-host"));
     }
     String trustKey()throws IOException{return "trustedWorkspace:"+project(currentProject).getCanonicalPath();}
     boolean workspaceTrusted()throws IOException{return prefs.getBoolean(trustKey(),false);}
@@ -194,7 +201,7 @@ final class IdeEngine {
     File newProjectDir(String name)throws Exception {File p=project(name);if(p.exists())throw new IOException("Проект уже существует");p.mkdirs();return p;}
     void createProject(String name,String lang)throws Exception {
         File p=newProjectDir(name);
-        if(lang.equals("empty")){JSONObject config=BuildProfiles.defaults(false);JSONObject manual=config.getJSONArray("configurations").getJSONObject(0);manual.put("id","manual").put("name","Manual").put("type","custom").put("source","").put("target","").put("runCommand",new JSONArray()).put("buildCommands",new JSONArray());config.put("active","manual").put("configurations",new JSONArray().put(manual)).put("projectType","empty");File settings=new File(p,".cpp-studio/configurations.json");settings.getParentFile().mkdirs();Files.write(settings.toPath(),config.toString(2).getBytes(StandardCharsets.UTF_8));return;}
+        if(lang.equals("empty")){JSONObject manual=new JSONObject().put("id","manual").put("name","Manual").put("type","custom").put("profile","manual").put("source","").put("target","").put("workingDirectory",".").put("executable","").put("args",new JSONArray()).put("environment",new JSONObject()).put("buildBeforeRun",false).put("actions",new JSONObject()).put("runCommand",new JSONArray()).put("buildCommands",new JSONArray());JSONObject profile=new JSONObject().put("id","manual").put("name","Manual").put("kind","generic").put("environment",new JSONObject());JSONObject config=new JSONObject().put("version",1).put("active","manual").put("projectType","empty").put("profiles",new JSONArray().put(profile)).put("configurations",new JSONArray().put(manual));File settings=new File(p,".devforge/project.json");settings.getParentFile().mkdirs();Files.write(settings.toPath(),config.toString(2).getBytes(StandardCharsets.UTF_8));return;}
         boolean c=lang.equals("c");
         String source=c?"#include <stdio.h>\n\nint main(void) {\n    printf(\"Hello from DevForge!\\n\");\n    return 0;\n}\n":"#include <iostream>\n#include <vector>\n#include <numeric>\n\nint main() {\n    std::vector<int> numbers{1, 2, 3, 4, 5};\n    const auto sum = std::accumulate(numbers.begin(), numbers.end(), 0);\n    std::cout << \"Hello from DevForge!\\n\";\n    std::cout << \"Sum = \" << sum << '\\n';\n    return 0;\n}\n";
         Files.write(new File(p,c?"main.c":"main.cpp").toPath(),source.getBytes(StandardCharsets.UTF_8));
@@ -269,10 +276,12 @@ final class IdeEngine {
         return spawn(command,cwd,merge,Collections.emptyMap());
     }
     Process spawn(List<String> command,File cwd,boolean merge,Map<String,String> customEnvironment)throws IOException {
-        ProcessBuilder pb=new ProcessBuilder(command);pb.directory(cwd);pb.redirectErrorStream(merge);
+        List<String> actual=new ArrayList<>();if(app.installedRuntime!=null&&!command.get(0).equals(app.installedRuntime.runner().getAbsolutePath()))actual.addAll(Arrays.asList(app.installedRuntime.runner().getAbsolutePath(),"--command"));actual.addAll(command);
+        ProcessBuilder pb=new ProcessBuilder(actual);pb.directory(cwd);pb.redirectErrorStream(merge);
         Map<String,String> env=pb.environment();
         env.put("HOME",app.getFilesDir().getAbsolutePath());env.put("PREFIX",usr.getAbsolutePath());env.put("TMPDIR",tmp.getAbsolutePath());
         env.put("PATH",new File(usr,"bin").getAbsolutePath()+":/system/bin:/system/xbin");env.put("LD_LIBRARY_PATH",new File(usr,"lib").getAbsolutePath()+":"+new File(usr,"lib/clang/21/lib/linux").getAbsolutePath());
+        if(app.installedRuntime!=null){env.put("GCC_EXEC_PREFIX",new File(usr,"lib/gcc").getAbsolutePath()+"/");env.put("COMPILER_PATH",new File(usr,"libexec/gcc/"+triple+"/15.2.0").getAbsolutePath()+":"+new File(usr,"bin").getAbsolutePath());}
         env.put("PYTHONHOME",usr.getAbsolutePath());env.put("GUILE_AUTO_COMPILE","0");env.put("GIT_TERMINAL_PROMPT","0");env.put("GIT_CONFIG_NOSYSTEM","1");env.put("GIT_PAGER","cat");env.put("LANG","C.UTF-8");env.put("LC_ALL","C.UTF-8");env.put("TERM","dumb");env.put("CMAKE_ROOT",new File(usr,"share/cmake-4.4").getAbsolutePath());
         // Compiler subprocesses inherit our library path and TMPDIR. No global device changes.
         env.putAll(customEnvironment);
@@ -307,7 +316,7 @@ final class IdeEngine {
     }
     static String quoteShellArgument(String value){return value.matches("[A-Za-z0-9_./:+,=@%-]+")?value:"'"+value.replace("'","'\\''")+"'";}
     String cmakeFlags(JSONObject options,boolean c)throws Exception {
-        StringBuilder out=new StringBuilder();for(String flag:flags(options,c,false)){if(out.length()>0)out.append(' ');out.append(quoteShellArgument(flag));}return out.toString();
+        StringBuilder out=new StringBuilder();for(String flag:flags(options,c,false)){if(out.length()>0)out.append(' ');out.append(quoteShellArgument(flag).replace("$","$$"));}return out.toString();
     }
     List<String> flags(JSONObject options,boolean c,boolean analysis)throws Exception {
         List<String> out=new ArrayList<>();
@@ -316,10 +325,11 @@ final class IdeEngine {
         if(analysis){out.add("-isystem");out.add(new File(usr,"include").getAbsolutePath());out.add("-isystem");out.add(new File(usr,"include/"+triple).getAbsolutePath());out.add("-resource-dir="+new File(usr,"lib/clang/21").getAbsolutePath());out.add("-Wunused-function");out.add("-Wunused-private-field");out.add("-Wunused-parameter");out.add("-Wunreachable-code");}
         else {out.add(options.optString("optimization","debug").equals("release")?"-O2":"-O0");out.add("-g");out.add("-fdiagnostics-color=never");out.add("-Wl,-rpath,"+new File(usr,"lib").getAbsolutePath());}
         if(!analysis&&options.optBoolean("debugSession")&&!options.optString("runtimeChecks","undefined").equals("off")){
-            out.add("-Wuninitialized");out.add("-Wno-error=uninitialized");out.add("-Warray-bounds");out.add("-Wno-error=array-bounds");out.add("-fno-omit-frame-pointer");
-            if(options.optString("compiler","gcc").equals("clang")){out.add(options.optString("runtimeChecks").equals("address")?"-fsanitize=address,undefined":"-fsanitize=undefined");out.add("-fsanitize-recover=all");}
-            else {File support=new File(workspace.data(),"sanitizers");support.mkdirs();File library=new File(usr,"lib/clang/21/lib/linux/libclang_rt.ubsan_standalone-aarch64-android.a"),local=new File(support,"libubsan.a");if(!library.isFile())throw new IOException("UBSan runtime is unavailable; install the Clang tool pack or disable runtime checks in the profile");if(!local.isFile()||local.length()!=library.length())Files.copy(library.toPath(),local.toPath(),StandardCopyOption.REPLACE_EXISTING);Files.write(new File(support,"libsanitizer.spec").toPath(),"*link_libubsan:\n-ldl\n\n".getBytes(StandardCharsets.UTF_8));out.add("-B"+support.getAbsolutePath()+"/");out.add("-fsanitize=bounds,signed-integer-overflow,shift,null,alignment");out.add("-fsanitize-recover=all");out.add("-L"+support.getAbsolutePath());out.add("-static-libubsan");out.add("-ldl");}
+            if(app.installedRuntime!=null&&options.optString("runtimeChecks").equals("address"))throw new IOException("ASan is not available for hosted programs yet; select UBSan in this profile");out.add("-Wuninitialized");out.add("-Wno-error=uninitialized");out.add("-Warray-bounds");out.add("-Wno-error=array-bounds");out.add("-fno-omit-frame-pointer");
+            if(options.optString("compiler","gcc").equals("clang")){out.add(options.optString("runtimeChecks").equals("address")?"-fsanitize=address,undefined":"-fsanitize=undefined");out.add("-fsanitize-recover=all");if(app.installedRuntime!=null){File library=new File(usr,"lib/clang/21/lib/linux/libclang_rt.ubsan_standalone-"+(triple.startsWith("x86_64")?"x86_64":"aarch64")+"-android.a");if(!library.isFile())throw new IOException("UBSan runtime is unavailable; enable the Clang tool pack");out.addAll(Arrays.asList("-Wl,--whole-archive",library.getAbsolutePath(),"-Wl,--no-whole-archive","-ldl"));}}
+            else {File support=new File(workspace.data(),"sanitizers");support.mkdirs();File library=new File(usr,"lib/clang/21/lib/linux/libclang_rt.ubsan_standalone-"+(triple.startsWith("x86_64")?"x86_64":"aarch64")+"-android.a"),local=new File(support,"libubsan.a");if(!library.isFile())throw new IOException("UBSan runtime is unavailable; install the Clang tool pack or disable runtime checks in the profile");if(!local.isFile()||local.length()!=library.length())Files.copy(library.toPath(),local.toPath(),StandardCopyOption.REPLACE_EXISTING);Files.write(new File(support,"libsanitizer.spec").toPath(),"*link_libubsan:\n-ldl\n\n".getBytes(StandardCharsets.UTF_8));out.add("-B"+support.getAbsolutePath()+"/");out.add("-fsanitize=bounds,signed-integer-overflow,shift,null,alignment");out.add("-fsanitize-recover=all");out.add("-L"+support.getAbsolutePath());out.add("-static-libubsan");out.add("-ldl");}
         }
+        if(!analysis&&app.installedRuntime!=null){out.addAll(Arrays.asList("-fPIC","-shared","-Wl,-z,max-page-size=16384"));if(options.optString("compiler","gcc").equals("clang"))out.addAll(Arrays.asList("-resource-dir="+new File(usr,"lib/clang/21").getAbsolutePath(),"-isystem",new File(usr,"include").getAbsolutePath(),"-isystem",new File(usr,"include/"+triple).getAbsolutePath(),"-B"+new File(usr,"bin").getAbsolutePath(),"-L"+new File(usr,"lib").getAbsolutePath()));}
         JSONArray extra=options.optJSONArray("flags");if(extra!=null)for(int i=0;i<Math.min(extra.length(),100);i++){String f=extra.getString(i);if(!f.isEmpty())out.add(f);}
         return out;
     }
@@ -373,6 +383,7 @@ final class IdeEngine {
             if(mode.equals("cmake")) {
                 File cmakeDir=BuildProfiles.cmakeDirectory(this,options);if(options.optBoolean("debugSession"))cmakeDir=new File(cmakeDir.getPath()+"-debug-checks-"+options.optString("runtimeChecks","undefined"));BuildProfiles.query(cmakeDir);
                 cmd.addAll(Arrays.asList(bin("cmake"),"-S",root.getAbsolutePath(),"-B",cmakeDir.getAbsolutePath(),"-G","Ninja","-DCMAKE_MAKE_PROGRAM="+bin("ninja"),"-DCMAKE_C_COMPILER="+compiler(options,true),"-DCMAKE_CXX_COMPILER="+compiler(options,false),"-DCMAKE_BUILD_TYPE="+(options.optString("optimization","debug").equals("release")?"Release":"Debug"),"-DCMAKE_EXPORT_COMPILE_COMMANDS=ON","-DCMAKE_C_STANDARD="+cmakeStandard(options,true),"-DCMAKE_CXX_STANDARD="+cmakeStandard(options,false),"-DCMAKE_C_EXTENSIONS="+(standard(options,true).startsWith("gnu")?"ON":"OFF"),"-DCMAKE_CXX_EXTENSIONS="+(standard(options,false).startsWith("gnu")?"ON":"OFF"),"-DCMAKE_C_FLAGS="+cmakeFlags(options,true),"-DCMAKE_CXX_FLAGS="+cmakeFlags(options,false)));
+                if(app.installedRuntime!=null)cmd.addAll(Arrays.asList("-DCMAKE_C_LINK_EXECUTABLE=<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>","-DCMAKE_CXX_LINK_EXECUTABLE=<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>"));
                 JSONArray cmakeOptions=options.optJSONArray("cmakeOptions");if(cmakeOptions!=null)for(int i=0;i<cmakeOptions.length();i++){String flag=cmakeOptions.getString(i);if(!flag.startsWith("-D")&&!flag.startsWith("-U"))throw new IOException("CMake profile options must use -D or -U");cmd.add(flag);}
                 int rc=buildCommand(cmd,root,id,environment);
                 if(rc!=0||d.optBoolean("configureOnly"))return new JSONObject().put("code",rc).put("id",id).put("configured",rc==0);
@@ -410,7 +421,7 @@ final class IdeEngine {
         File executable=new File(d.getString("executable")).getCanonicalFile();
         if(!workspace.canExecute(executable)||!executable.isFile())throw new IOException("Исполняемый файл не найден");
         executable.setExecutable(true,true);
-        List<String> cmd=new ArrayList<>();cmd.add(executable.getAbsolutePath());
+        List<String> cmd=new ArrayList<>();if(app.installedRuntime!=null)cmd.add(app.installedRuntime.runner().getAbsolutePath());cmd.add(executable.getAbsolutePath());
         JSONArray args=d.optJSONArray("args");if(args!=null)for(int i=0;i<args.length();i++)cmd.add(args.getString(i));
         String id=d.optString("id",UUID.randomUUID().toString());
         JSONObject options=d.optJSONObject("options");if(options==null)options=settings();Process p=spawn(cmd,BuildProfiles.workingDirectory(this,options),false,BuildProfiles.environment(options));attachExecution(p,id);
@@ -434,6 +445,6 @@ final class IdeEngine {
             while((n=r.read(b))>0){total+=n;if(total<=2*1024*1024)app.event("output",new JSONObject().put("id",id).put("stream",stream).put("text",new String(b,0,n)));else if(total-n<=2*1024*1024)app.event("output",new JSONObject().put("id",id).put("stream",stream).put("text","\n[Вывод ограничен 2 МБ; программа продолжает работать]\n"));}
         }catch(Exception e){android.util.Log.d("Forge","Output stream closed",e);}
     }
-    void stopExecution(){if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null)a.destroyForcibly();if(b!=null)b.destroyForcibly();}
-    void close(){closed=true;toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
+    void stopExecution(){if(python!=null)python.stop();if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null)a.destroyForcibly();if(b!=null)b.destroyForcibly();}
+    void close(){closed=true;python.stop();toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
 }

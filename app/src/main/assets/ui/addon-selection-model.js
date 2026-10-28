@@ -30,7 +30,7 @@
     return roots.filter(r=>!depends(id(r)));
   }
   function groups(catalog){
-    const latest=new Map();for(const m of catalog){if(m.kind==='pack'||!core.satisfies(core.API_VERSION,m.api)||m.platforms&&!m.platforms.includes('android'))continue;const old=latest.get(m.id);if(!old||core.compare(m.version,old.version)>0)latest.set(m.id,m);}
+    const latest=new Map();for(const m of catalog){if(m.kind==='pack'||!core.satisfies(core.API_VERSION,m.api)||m.platforms&&!m.platforms.includes(core.currentPlatform()))continue;const old=latest.get(m.id);if(!old||core.compare(m.version,old.version)>0)latest.set(m.id,m);}
     const order=['languages','projects','editing','analysis','workspace','tools','extensions'],result=new Map(order.map(id=>[id,[]]));
     for(const m of latest.values()){const group=m.nativePack?'tools':m.kind==='language'?'languages':m.kind==='project'?'projects':m.installationGroup||((m.kind==='feature'||m.kind==='view')?'editing':'extensions');(result.get(group)||result.get('extensions')).push(m);}return [...result].filter(([,members])=>members.length).map(([id,members])=>({id,members}));
   }

@@ -15,8 +15,17 @@ const NativeEditing={
         if(editor.getModel()!==model)return;
         const typing=model?await this.typingOptions(model):null;
         if(editor.getModel()!==model)return;
-        const r=await native('editorOpen',{id,uri:model?.uri.toString()||'',path:model?.uri.fsPath||'',text:model&&!this.revisions.has(model.uri.toString())?model.getValue():'',language:model?.getLanguageId(),readonly:window.forge?.docs.get(model?.uri.toString())?.readonly||false,typing});
-        if(r?.uri){this.snapshot(r);this.decorations(model);this.publishDiagnostics(model);this.scheduleAnalysis(model);}
+        const initial=model&&!this.revisions.has(model.uri.toString()),version=model?.getVersionId();
+        const r=await native('editorOpen',{id,uri:model?.uri.toString()||'',path:model?.uri.fsPath||'',text:initial?model.getValue():'',language:model?.getLanguageId(),readonly:window.forge?.docs.get(model?.uri.toString())?.readonly||false,typing});
+        if(r?.uri&&model&&!model.isDisposed()){
+          // A document view can edit before Android has acknowledged its first open.
+          // Seed the native revision, then send those edits instead of restoring stale text.
+          if(initial&&!this.revisions.has(r.uri)&&model.getVersionId()!==version&&model.getValue()!==r.text){
+            this.revisions.set(r.uri,r.revision+1);const generation=this.generations.get(r.uri)||0;
+            const task=native('editorEdits',{uri:r.uri,revision:r.revision,edits:[{start:0,end:r.text.length,text:model.getValue()}]}).then(accepted=>{if(accepted!==false&&generation===(this.generations.get(r.uri)||0))this.documentSettled(model);return accepted!==false;});this.editTasks.set(r.uri,task);await task;
+          }else this.snapshot(r);
+          this.decorations(model);this.publishDiagnostics(model);this.scheduleAnalysis(model);
+        }
       });
     };
     editor.onDidChangeModelLanguage(()=>{if(editor.getModel())editor.setModel(editor.getModel());});
@@ -74,7 +83,7 @@ const NativeEditing={
       const occlusions=overlays.filter(e=>!e.classList.contains('dv-resize-container')||e!==ownFloat&&floating.indexOf(e)>rank).map(mask);
       if(ownFloat)for(const handle of ownFloat.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,ownFloat);occlusions.push({x:b.x,y:b.y,width:b.width,height:b.height,paint:false,touch:true,popup:false});}
       const bounds=panel?.group.element.getBoundingClientRect(),x=bounds?Math.max(box.x,bounds.x+1):box.x,y=bounds?Math.max(box.y,bounds.y+1):box.y,right=bounds?Math.min(box.right,bounds.right-1):box.right,bottom=bounds?Math.min(box.bottom,bounds.bottom-1):box.bottom;
-      return{id:p.id,x,y,width:Math.max(0,right-x),height:Math.max(0,bottom-y),visible:windows?!!panel?.api.isVisible:!!p.container.getClientRects().length,occlusions,z:rank+1};
+      return{id:p.id,x,y,width:Math.max(0,right-x),height:Math.max(0,bottom-y),visible:!p.documentView&&(windows?!!panel?.api.isVisible:!!p.container.getClientRects().length),occlusions,z:rank+1};
     });
     const occlusions=overlays.filter(e=>!e.classList.contains('dv-resize-container')).map(mask);
     const windowHandles=[];for(const element of floating){const group=windows?.api.groups.find(g=>g.element.closest('.dv-resize-container')===element);if(!group)continue;for(const handle of element.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,element),direction=b.direction;if(!b.width||!b.height||direction.includes('top'))continue;if(floating.slice(floating.indexOf(element)+1).some(other=>{const r=other.getBoundingClientRect();return b.x+b.width/2>=r.left&&b.x+b.width/2<=r.right&&b.y+b.height/2>=r.top&&b.y+b.height/2<=r.bottom;}))continue;windowHandles.push({id:group.id+':'+direction,group:group.id,direction,x:b.x,y:b.y,width:b.width,height:b.height});}}
@@ -213,7 +222,7 @@ const NativeEditing={
     }
   }
 };
-function attachNativeEditor(editor,id,container){return NativeEditing.attach(editor,id,container);}
+function attachNativeEditor(editor,id,container){const result=NativeEditing.attach(editor,id,container);StudioDocumentViews.attach(result,id);return result;}
 async function nativeBuildCompletions(model,pos){
   const ide=window.forge,before=model.getLineContent(pos.lineNumber).slice(0,pos.column-1);
   if(model.getLanguageId()==='cmake'){

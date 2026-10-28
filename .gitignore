@@ -22,3 +22,9 @@ native-sources/**/*.patch
 
 app/src/main/assets/ui/licenses/
 CONTINUE-NATIVE.md
+app/src/modern/
+runtime-data/src/main/assets/
+desktop/node_modules/
+desktop/dist/
+desktop/ui/
+desktop/.cache/

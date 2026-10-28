@@ -76,5 +76,16 @@ async function formatterRace(kind){
     version=2;e.revisions.set(uri,5);forge.diagnosticMap.set(uri,{version:2,diagnostics:[{range:{start:{line:0,character:2},end:{line:0,character:4}},severity:1,message:'fresh error'}]});
     pending.resolve(true);await publishing;assert.equal(calls.at(-1).data.revision,5);assert.equal(calls.at(-1).data.diagnostics[0].message,'fresh error');checks++;
   }
+  {
+    const{editing:e,context,calls,forge}=environment(),entered=deferred(),reply=deferred(),uri='file:///notebook.ipynb';let text='old',version=1,current=null,changed;forge.docs=new Map();
+    const model={uri:{toString:()=>uri,fsPath:'/notebook.ipynb'},getValue:()=>text,getVersionId:()=>version,getLanguageId:()=>'notebook',isDisposed:()=>false,onDidChangeContent:fn=>{changed=fn;},onWillDispose(){}};
+    const editor={getModel:()=>current,onDidChangeModelLanguage(){},setModel:m=>{current=m;}};
+    for(const name of ['setSelection','setPosition','focus','layout','updateOptions','dispose','onDidFocusEditorWidget','hasTextFocus','hasWidgetFocus','saveViewState','restoreViewState','getAction','trigger'])editor[name]=()=>{};
+    e.layout=()=>Promise.resolve();e.typingOptions=async()=>({});e.decorations=e.publishDiagnostics=e.scheduleAnalysis=e.documentSettled=()=>{};
+    context.native=async(op,data)=>{calls.push({op,data});if(op==='editorOpen'){entered.resolve();return reply.promise;}return true;};
+    e.attach(editor,'primary',{style:{}});editor.setModel(model);await entered.promise;
+    text='locally edited cell';version++;changed({changes:[{rangeOffset:0,rangeLength:3,text}]});reply.resolve({uri,text:'old',revision:0});await e.panes.get('primary').opening;
+    assert.equal(text,'locally edited cell');assert.equal(e.revisions.get(uri),1);assert.equal(calls.find(c=>c.op==='editorEdits').data.edits[0].text,text);checks++;
+  }
   console.log(checks+' editor state and asynchronous formatting checks passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

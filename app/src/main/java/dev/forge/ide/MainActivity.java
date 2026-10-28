@@ -24,6 +24,7 @@ public final class MainActivity extends Activity {
     WebView web;
     final ResponsivenessWatch responsiveness=new ResponsivenessWatch();
     IdeEngine engine;
+    InstalledRuntime installedRuntime;
     final Handler ui = new Handler(Looper.getMainLooper());
     final ExecutorService workers = Executors.newCachedThreadPool();
     final ExecutorService preferenceWrites = Executors.newSingleThreadExecutor();
@@ -40,8 +41,9 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        if(Build.VERSION.SDK_INT>=33)getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,this::handleBack);
         ((android.hardware.input.InputManager)getSystemService(INPUT_SERVICE)).registerInputDeviceListener(layoutDevices,ui);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setStatusBarColor(Color.rgb(43,45,48));
         getWindow().setNavigationBarColor(Color.rgb(43,45,48));
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
@@ -70,6 +72,7 @@ public final class MainActivity extends Activity {
     void status(String s) { ui.post(() -> progress.setText(s)); }
     String interfaceLanguage(){try{String value=new JSONObject(getSharedPreferences("forge",0).getString("settings","{}")).optString("language",Locale.getDefault().getLanguage());return value.equals("ru")?"ru":"en";}catch(JSONException e){return "ru";}}
     void installRuntime() throws Exception {
+        if(com.forgex.BuildConfig.PACKAGED_RUNTIME){installedRuntime=new InstalledRuntime(this);installedRuntime.install();new File(getFilesDir(),"tmp").mkdirs();ensureShell(new File(getFilesDir(),"usr"));return;}
         String abi = Build.SUPPORTED_ABIS[0];
         String expected;
         try(InputStream in=getAssets().open("runtime-info.json")){expected=new JSONObject(IdeEngine.slurp(in,1024)).getString("arch");}
@@ -165,6 +168,7 @@ public final class MainActivity extends Activity {
         nativeEditors=new NativeEditorHost(this);
         getWindow().getDecorView().setOnApplyWindowInsetsListener((view,insets) -> {
             if(Build.VERSION.SDK_INT>=30) {
+                if(getApplicationInfo().targetSdkVersion>=35){android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());editorRoot.setPadding(bars.left,bars.top,bars.right,bars.bottom);}
                 int bottom=insets.isVisible(WindowInsets.Type.ime())?insets.getInsets(WindowInsets.Type.ime()).bottom-insets.getInsets(WindowInsets.Type.navigationBars()).bottom:0;
                 updateKeyboardGeometry(Math.max(0,bottom));
             }
@@ -306,7 +310,9 @@ public final class MainActivity extends Activity {
     static long copyLimited(InputStream in,OutputStream out,long max)throws IOException {
         try(OutputStream o=out) {byte[] b=new byte[32768];int n;long total=0;while((n=in.read(b))>0){total+=n;if(total>max)throw new IOException("Файл слишком большой");o.write(b,0,n);}return total;}
     }
-    @Override public void onBackPressed() {if(nativeEditors!=null&&nativeEditors.floatingKeyboard.frame.isShown()){nativeEditors.floatingKeyboard.hide();return;}emitScript("window.forgeBack && window.forgeBack()");}
+    // Android 13+ uses the dispatcher registered in onCreate; this is the API 28–32 fallback.
+    @android.annotation.SuppressLint("GestureBackNavigation") @Override public void onBackPressed(){handleBack();}
+    void handleBack(){if(nativeEditors!=null&&nativeEditors.floatingKeyboard.frame.isShown()){nativeEditors.floatingKeyboard.hide();return;}emitScript("window.forgeBack && window.forgeBack()");}
     @Override protected void onPause(){responsiveness.foreground(false);for(HardwareLayout layout:hardwareLayouts.values())layout.resetChord();if(nativeEditors!=null)nativeEditors.pause();super.onPause();}
     final java.util.Map<Integer,HardwareLayout> hardwareLayouts=new java.util.HashMap<>();
     final android.hardware.input.InputManager.InputDeviceListener layoutDevices=new android.hardware.input.InputManager.InputDeviceListener(){public void onInputDeviceAdded(int id){}public void onInputDeviceChanged(int id){hardwareLayouts.remove(id);}public void onInputDeviceRemoved(int id){hardwareLayouts.remove(id);}};

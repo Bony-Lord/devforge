@@ -949,7 +949,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "projects.types"
+        "projects.types",
+        "projects.actions"
       ],
       "dependencies": {
         "studio.language.cpp": {
@@ -989,6 +990,70 @@
           "settings": {
             "buildMode": "file"
           }
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.project.cpp/cpp.build",
+        "value": {
+          "id": "cpp.build",
+          "handler": "cpp.build",
+          "kind": "build",
+          "label": {
+            "ru": "Собрать",
+            "en": "Build"
+          },
+          "icon": "build",
+          "feature": null,
+          "compiler": true
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.project.cpp/cpp.run",
+        "value": {
+          "id": "cpp.run",
+          "handler": "cpp.run",
+          "kind": "run",
+          "label": {
+            "ru": "Запустить",
+            "en": "Run"
+          },
+          "icon": "play",
+          "feature": null,
+          "compiler": true
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.project.cpp/cpp.debug",
+        "value": {
+          "id": "cpp.debug",
+          "handler": "cpp.debug",
+          "kind": "debug",
+          "label": {
+            "ru": "Отладка",
+            "en": "Debug"
+          },
+          "icon": "debug",
+          "feature": "debugger",
+          "compiler": true
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.project.cpp/cpp.executable",
+        "value": {
+          "id": "cpp.executable",
+          "handler": "cpp.executable",
+          "kind": "run",
+          "label": {
+            "ru": "Запустить программу",
+            "en": "Run executable"
+          },
+          "icon": "play",
+          "feature": null,
+          "compiler": false
         }
       }
     ]
@@ -1851,7 +1916,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "projects.actions"
       ],
       "dependencies": {},
       "conflicts": {},
@@ -1865,6 +1931,38 @@
         "id": "studio.run-configurations/service",
         "value": {
           "id": "runConfigurations"
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.run-configurations/process.build",
+        "value": {
+          "id": "process.build",
+          "handler": "process.build",
+          "kind": "build",
+          "label": {
+            "ru": "Выполнить команду сборки",
+            "en": "Run build command"
+          },
+          "icon": "build",
+          "feature": null,
+          "compiler": false
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.run-configurations/process.run",
+        "value": {
+          "id": "process.run",
+          "handler": "process.run",
+          "kind": "run",
+          "label": {
+            "ru": "Выполнить команду",
+            "en": "Run command"
+          },
+          "icon": "play",
+          "feature": null,
+          "compiler": false
         }
       }
     ]
@@ -2207,6 +2305,386 @@
         }
       },
       "conflicts": {}
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.python",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Подсветка Python",
+        "en": "Python syntax"
+      },
+      "description": {
+        "ru": "Синтаксис .py и .pyi.",
+        "en": "Syntax for .py and .pyi."
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language",
+      "installationGroup": "languages"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.python/provider",
+        "value": {
+          "language": "python",
+          "extensions": [
+            ".py",
+            ".pyi"
+          ],
+          "filenames": [],
+          "entryFiles": [
+            "main.py"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.language.notebook",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Формат Jupyter Notebook",
+        "en": "Jupyter Notebook format"
+      },
+      "description": {
+        "ru": "Файлы .ipynb и представление ячеек.",
+        "en": "Notebook files and cell view."
+      },
+      "license": "MIT",
+      "capabilities": [
+        "editor.languages"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "language",
+      "installationGroup": "languages"
+    },
+    "contributions": [
+      {
+        "point": "languages",
+        "id": "studio.language.notebook/provider",
+        "value": {
+          "language": "notebook",
+          "extensions": [
+            ".ipynb"
+          ],
+          "filenames": [],
+          "entryFiles": [
+            "notebook.ipynb"
+          ],
+          "priority": 10
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.python",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Запуск Python",
+        "en": "Python runner"
+      },
+      "description": {
+        "ru": "Локальный Python, аргументы и рабочая папка проекта.",
+        "en": "Local Python with arguments and project working directory."
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features",
+        "settings.fields",
+        "projects.actions"
+      ],
+      "dependencies": {
+        "studio.language.python": {},
+        "studio.tool.python": {}
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "installationGroup": "analysis"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.python/provider",
+        "value": {
+          "id": "python"
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.python/interpreter",
+        "value": {
+          "key": "pythonExecutable",
+          "type": "text",
+          "default": "",
+          "maxLength": 4096,
+          "label": {
+            "ru": "Python на компьютере (путь, пусто — автоматически)",
+            "en": "Desktop Python path (empty = auto detect)"
+          }
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.python/python.run",
+        "value": {
+          "id": "python.run",
+          "handler": "python.run",
+          "kind": "run",
+          "label": {
+            "ru": "Запустить Python",
+            "en": "Run Python"
+          },
+          "icon": "play",
+          "feature": "python",
+          "compiler": false
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.python/python.check",
+        "value": {
+          "id": "python.check",
+          "handler": "python.check",
+          "kind": "build",
+          "label": {
+            "ru": "Проверить синтаксис Python",
+            "en": "Check Python syntax"
+          },
+          "icon": "check",
+          "feature": "python",
+          "compiler": false
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.notebooks",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Редактор ноутбуков",
+        "en": "Notebook editor"
+      },
+      "description": {
+        "ru": "Ячейки кода/Markdown, вывод, постоянное Python-ядро.",
+        "en": "Code/Markdown cells, output and persistent Python kernel."
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features",
+        "projects.actions"
+      ],
+      "dependencies": {
+        "studio.python": {},
+        "studio.language.notebook": {}
+      },
+      "conflicts": {},
+      "kind": "view",
+      "installationGroup": "analysis"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.notebooks/provider",
+        "value": {
+          "id": "notebooks"
+        }
+      },
+      {
+        "point": "actionProviders",
+        "id": "studio.notebooks/notebook.runAll",
+        "value": {
+          "id": "notebook.runAll",
+          "handler": "notebook.runAll",
+          "kind": "run",
+          "label": {
+            "ru": "Выполнить все ячейки",
+            "en": "Run all cells"
+          },
+          "icon": "play",
+          "feature": "notebooks",
+          "compiler": false
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.project.python",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Проект Python",
+        "en": "Python project"
+      },
+      "description": {
+        "ru": "main.py и конфигурация запуска Python.",
+        "en": "main.py and a Python run configuration."
+      },
+      "license": "MIT",
+      "capabilities": [
+        "projects.types"
+      ],
+      "dependencies": {
+        "studio.python": {}
+      },
+      "conflicts": {},
+      "kind": "project",
+      "installationGroup": "projects"
+    },
+    "contributions": [
+      {
+        "point": "projectTypes",
+        "id": "studio.project.python/provider",
+        "value": {
+          "id": "python",
+          "base": "empty",
+          "name": {
+            "ru": "Python",
+            "en": "Python"
+          },
+          "settings": {
+            "buildMode": "python"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.project.notebook",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Проект с ноутбуком",
+        "en": "Notebook project"
+      },
+      "description": {
+        "ru": "Новый .ipynb с ядром Python.",
+        "en": "New .ipynb with a Python kernel."
+      },
+      "license": "MIT",
+      "capabilities": [
+        "projects.types"
+      ],
+      "dependencies": {
+        "studio.notebooks": {}
+      },
+      "conflicts": {},
+      "kind": "project",
+      "installationGroup": "projects"
+    },
+    "contributions": [
+      {
+        "point": "projectTypes",
+        "id": "studio.project.notebook/provider",
+        "value": {
+          "id": "notebook",
+          "base": "empty",
+          "name": {
+            "ru": "Python · Jupyter Notebook",
+            "en": "Python · Jupyter Notebook"
+          },
+          "settings": {
+            "buildMode": "python"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.python",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python",
+        "en": "Python"
+      },
+      "description": {
+        "ru": "Подсветка, проект и локальное выполнение Python.",
+        "en": "Syntax, projects and local Python execution."
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.project.python": {},
+        "studio.console": {},
+        "studio.run-configurations": {}
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.notebooks",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python и ноутбуки",
+        "en": "Python and notebooks"
+      },
+      "description": {
+        "ru": "Python и .ipynb: ячейки, вывод, общее состояние.",
+        "en": "Python and .ipynb cells, outputs and shared state."
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.pack.python": {},
+        "studio.project.notebook": {}
+      },
+      "conflicts": {},
+      "kind": "pack"
     },
     "contributions": []
   }

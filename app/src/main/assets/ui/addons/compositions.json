@@ -1,5 +1,75 @@
 [
-  {"id":"core","name":{"ru":"Только ядро","en":"Core only"},"description":{"ru":"Файлы и простой текстовый редактор. Без инструментов и дополнительных модулей.","en":"Files and a plain text editor. No tools or optional modules."},"requested":[]},
-  {"id":"essentials","recommended":true,"name":{"ru":"Удобный минимум","en":"Comfortable essentials"},"description":{"ru":"Подсветки, поиск, история, умный ввод и клавиатура. Без загрузки компиляторов.","en":"Syntax, search, history, smart typing and keyboard. No compiler downloads."},"requested":[{"id":"studio.pack.essentials","version":"1.0.0"}]},
-  {"id":"cpp-full","name":{"ru":"Полная C++ IDE","en":"Full C++ IDE"},"description":{"ru":"C/C++, CMake, GCC, clangd, форматтер, отладчик, Git и оконник. Нужна загрузка инструментов.","en":"C/C++, CMake, GCC, clangd, formatter, debugger, Git and windows. Requires tool downloads."},"requested":[{"id":"studio.pack.cpp-full","version":"1.0.0"}]}
+  {
+    "id": "core",
+    "name": {
+      "ru": "Только ядро",
+      "en": "Core only"
+    },
+    "description": {
+      "ru": "Файлы и простой текстовый редактор. Без инструментов и дополнительных модулей.",
+      "en": "Files and a plain text editor. No tools or optional modules."
+    },
+    "requested": []
+  },
+  {
+    "id": "essentials",
+    "recommended": true,
+    "name": {
+      "ru": "Удобный минимум",
+      "en": "Comfortable essentials"
+    },
+    "description": {
+      "ru": "Подсветки, поиск, история, умный ввод и клавиатура. Без загрузки компиляторов.",
+      "en": "Syntax, search, history, smart typing and keyboard. No compiler downloads."
+    },
+    "requested": [
+      {
+        "id": "studio.pack.essentials",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  {
+    "id": "cpp-full",
+    "name": {
+      "ru": "Полная C++ IDE",
+      "en": "Full C++ IDE"
+    },
+    "description": {
+      "ru": "C/C++, CMake, GCC, clangd, форматтер, отладчик, Git и оконник. Нужна загрузка инструментов.",
+      "en": "C/C++, CMake, GCC, clangd, formatter, debugger, Git and windows. Requires tool downloads."
+    },
+    "requested": [
+      {
+        "id": "studio.pack.cpp-full",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  {
+    "id": "python",
+    "name": {
+      "ru": "Python",
+      "en": "Python"
+    },
+    "requested": [
+      {
+        "id": "studio.pack.python",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  {
+    "id": "notebooks",
+    "name": {
+      "ru": "Python и ноутбуки",
+      "en": "Python and notebooks"
+    },
+    "requested": [
+      {
+        "id": "studio.pack.notebooks",
+        "version": "1.0.0"
+      }
+    ]
+  }
 ]

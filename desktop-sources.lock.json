@@ -1,0 +1,24 @@
+{
+  "electron": "44.9.1",
+  "chromium": "152.0.7977.167",
+  "ffmpegRevision": "2b68d2babae73714846961fb0ee47e3b3d2e39a9",
+  "archives": [
+    {
+      "name": "ffmpeg-2b68d2babae73714846961fb0ee47e3b3d2e39a9.tar.gz",
+      "url": "https://chromium.googlesource.com/chromium/third_party/ffmpeg/+archive/2b68d2babae73714846961fb0ee47e3b3d2e39a9.tar.gz",
+      "sha256": "7dadf62a28554568972a5fb488980c7085c09f254c70c745b1f94cbfc71b457b",
+      "treeSha256": "4611f6dc20aea37f22a1493eab6d4c78eb6f2798615dec04cdabb1699df9544b"
+    },
+    {
+      "name": "electron-44.9.1.tar.gz",
+      "url": "https://codeload.github.com/electron/electron/tar.gz/refs/tags/v44.9.1",
+      "sha256": "ce2f596fd3702186a5cca0192088fb9ddc14a926c2a4d37664b1caea56a36dcd"
+    }
+  ],
+  "chromiumDeps": {
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/DEPS",
+    "sha256": "c3cd8ae90218c260d5fadbe5d9095164693fe420812218a18dfcf65c3f1743b9",
+    "upstreamUrl": "https://chromium.googlesource.com/chromium/src/+/152.0.7977.167/DEPS?format=TEXT",
+    "encoding": "utf8"
+  }
+}

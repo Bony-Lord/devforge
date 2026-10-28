@@ -33,6 +33,8 @@ final class ToolPacks {
         try{File marker=new File(ide.usr,".studio-base-v2");return marker.isFile()&&IdeEngine.read(marker).equals(catalog.optString("legacyBaseSha256"));}catch(Exception e){return false;}
     }
     boolean installed(JSONObject p){
+        if(ide.app.installedRuntime!=null)return ide.app.installedRuntime.enabled(p.optString("id"));
+        if(p.has("aliasOf"))try{return installed(pack(p.getString("aliasOf")));}catch(Exception e){return false;}
         String id=p.optString("id");File probe=new File(ide.usr,p.optString("probePath","bin/"+p.optString("probe")));
         if(!probe.isFile()||new File(ide.usr,".pack-"+id+"-incomplete").exists()||new File(ide.usr,".pack-"+id+"-removed").exists()||id.equals("gcc")&&new File(ide.usr,".gcc-removed").exists())return false;
         try{
@@ -45,8 +47,8 @@ final class ToolPacks {
     static boolean gccPath(String path){return path.startsWith("lib/gcc/")||path.startsWith("libexec/gcc/")||path.startsWith("bin/")&&path.endsWith("-15");}
     static void removeGccFiles(File root,JSONObject base)throws Exception{Set<String> all=new HashSet<>();addPaths(all,base);for(String path:all)if(gccPath(path))Files.deleteIfExists(child(root,path).toPath());}
     JSONObject state()throws Exception{
-        JSONObject result=publicFields(catalog);JSONArray packs=new JSONArray(),source=catalog.getJSONArray("packs");
-        for(int i=0;i<source.length();i++){JSONObject p=source.getJSONObject(i);packs.put(publicFields(p).put("installed",installed(p)));}
+        JSONObject result=publicFields(catalog);if(ide.app.installedRuntime!=null)result.put("delivery","bundled");JSONArray packs=new JSONArray(),source=catalog.getJSONArray("packs");
+        for(int i=0;i<source.length();i++){JSONObject p=source.getJSONObject(i);packs.put(publicFields(p).put("installed",installed(p)).put("bundled",ide.app.installedRuntime!=null).put("bytes",ide.app.installedRuntime!=null||p.has("aliasOf")?0:p.optLong("bytes")));}
         result.put("packs",packs);result.put("base",publicFields(catalog.getJSONObject("base")));
         return result.put("installing",installing);
     }
@@ -55,10 +57,11 @@ final class ToolPacks {
     void progress(String id,long done,long total,String phase){ide.app.event("toolPackProgress",NativeEditorHost.object("id",id,"done",done,"total",total,"phase",phase));}
     void cancel(){download.cancel();}
     Object install(String id)throws Exception{
+        if(ide.app.installedRuntime!=null)return mutate(()->ide.app.installedRuntime.enabled(id,true));
         return mutate(()->{pack(id);download.reset();try{installOne(id,new HashSet<>());}catch(Exception e){if(download.cancelled){progress(id,0,1,"cancelled");throw new InterruptedIOException("Загрузка отменена");}throw e;}});
     }
     void installOne(String id,Set<String> visiting)throws Exception{
-        download.check();JSONObject p=pack(id);if(!visiting.add(id))throw new IOException("Component dependency cycle");
+        download.check();JSONObject p=pack(id);if(p.has("aliasOf")){installOne(p.getString("aliasOf"),visiting);return;}if(!visiting.add(id))throw new IOException("Component dependency cycle");
         JSONArray requires=p.getJSONArray("requires");for(int i=0;i<requires.length();i++)installOne(requires.getString(i),visiting);
         visiting.remove(id);if(installed(p))return;
         File archive=new File(ide.tmp,"pack-"+id+".zip");
@@ -72,11 +75,11 @@ final class ToolPacks {
         if(id.equals("gcc"))Files.deleteIfExists(new File(ide.usr,".gcc-removed").toPath());
         Files.deleteIfExists(archive.toPath());progress(id,total,total,"installed");
     }
-    Object remove(String id)throws Exception{return mutate(()->removeOne(id));}
+    Object remove(String id)throws Exception{return mutate(()->{if(ide.addons.enabled("studio.tool."+id))throw new IOException("Disable dependent addons first");if(ide.app.installedRuntime!=null){ide.app.installedRuntime.enabled(id,false);return;}removeOne(id);});}
     void removeOne(String id)throws Exception{
         if(ide.addons.enabled("studio.tool."+id))throw new IOException("Disable dependent addons before removing this tool");
         JSONObject p=pack(id);
-        JSONArray packs=catalog.getJSONArray("packs");for(int i=0;i<packs.length();i++){JSONObject other=packs.getJSONObject(i);JSONArray requires=other.getJSONArray("requires");for(int j=0;j<requires.length();j++)if(installed(other)&&requires.getString(j).equals(id))throw new IOException("Component is required by "+other.getString("id"));}
+        JSONArray packs=catalog.getJSONArray("packs");for(int i=0;i<packs.length();i++){JSONObject other=packs.getJSONObject(i);JSONArray requires=other.getJSONArray("requires");for(int j=0;j<requires.length();j++)if(!other.has("aliasOf")&&installed(other)&&requires.getString(j).equals(id))throw new IOException("Component is required by "+other.getString("id"));}
         Files.write(new File(ide.usr,".pack-"+id+"-removed").toPath(),new byte[0]);Files.deleteIfExists(new File(ide.usr,".pack-"+id+"-installed").toPath());
         if(id.equals("analysis")||id.equals("gcc"))ide.stopLsp();
         if(id.equals("gcc"))Files.write(new File(ide.usr,".gcc-removed").toPath(),new byte[0]);

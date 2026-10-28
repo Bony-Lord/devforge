@@ -1,0 +1,31 @@
+name: Portable host checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  host:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        id: python
+        with:
+          python-version: '3.13'
+      - name: Install pinned desktop dependencies
+        working-directory: desktop
+        run: npm ci
+      - name: Portable workspace, addon and Python process tests
+        env:
+          DEVFORGE_TEST_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: node --test desktop/tests/archive.test.cjs desktop/tests/workspace.test.cjs desktop/tests/python.test.cjs desktop/tests/custom-actions.test.cjs
+      - name: Notebook format and kernel checks
+        run: |
+          node tests/notebook-model.test.cjs
+          python tests/python_kernel_test.py

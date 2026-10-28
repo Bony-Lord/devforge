@@ -1,0 +1,23 @@
+{
+  "name": "devforge-desktop",
+  "version": "0.5.0-alpha.1",
+  "private": true,
+  "description": "DevForge modular IDE for Windows, Linux and macOS",
+  "license": "MIT",
+  "homepage": "https://github.com/Bony-Lord/devforge",
+  "author": "DevForge contributors",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "package": "node package.cjs",
+    "installers": "node installers.cjs"
+  },
+  "dependencies": {
+    "iconv-lite": "0.7.3"
+  },
+  "devDependencies": {
+    "electron": "44.9.1",
+    "electron-builder": "26.17.0"
+  }
+}

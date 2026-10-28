@@ -1,5 +1,7 @@
 'use strict';
 window.STUDIO_EN={
+'Действия конфигурации':'Configuration actions','Профиль':'Profile','Профили':'Profiles','Тип профиля':'Profile type','Интерпретатор':'Interpreter','Универсальный':'Generic','Изменить профиль…':'Edit profile…',
+  'Действия конфигурации':'Configuration actions','Профиль':'Profile',
   'Аддоны':'Addons',
   'Alt+Shift: переключать EN / RU внутри IDE':'Alt+Shift: switch EN / RU inside the IDE',
   'Место вставки вкладки':'Tab insertion position','Пустой / вручную':'Empty / manual','Ручная конфигурация':'Manual configuration','Команда запуска':'Run command','Команды сборки · JSON argv':'Build commands · JSON argv',

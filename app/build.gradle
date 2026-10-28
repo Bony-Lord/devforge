@@ -1,9 +1,20 @@
 plugins { id 'com.android.application' }
 android {
     namespace 'com.forgex'
-    compileSdk 35
-    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 28; versionCode 16; versionName '0.4.2'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
-    sourceSets { main { assets.srcDirs = [layout.buildDirectory.dir('studio-assets')] } }
+    compileSdk 36
+    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 17; versionName '0.5.0-alpha.1'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    buildFeatures { buildConfig true }
+    flavorDimensions += 'runtime'
+    productFlavors {
+        modern { dimension 'runtime'; buildConfigField 'boolean', 'PACKAGED_RUNTIME', 'true' }
+        compat { dimension 'runtime'; targetSdk 28; versionNameSuffix '-compat'; buildConfigField 'boolean', 'PACKAGED_RUNTIME', 'false' }
+    }
+    sourceSets {
+        main { assets.srcDirs = [layout.buildDirectory.dir('studio-assets')] }
+        compat { assets.srcDirs = ['src/compat/assets'] }
+        modern { assets.srcDirs = [providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern') + '/assets']; jniLibs.srcDirs = [providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern') + '/jniLibs'] }
+    }
+    packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += ['**/*.so'] } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     testOptions { unitTests.returnDefaultValues = true }
     signingConfigs {
@@ -18,9 +29,9 @@ android {
     }
     bundle { language { enableSplit = false } }
     androidResources { noCompress += ['zip'] }
-    // Directly installed compiler host: target 28 is required for executing generated
-    // binaries from app-private storage. This project is not published through Play.
-    // Keep all other release lint checks enabled; see docs/BUILDING.md.
+    // Only compat uses target 28 for its downloadable executable runtime.
+    // modern targets 36 and executes through PackageManager-installed native images.
+    // Keep the remaining release lint checks enabled; see docs/BUILDING.md.
     lint { disable 'ExpiredTargetSdkVersion' }
     buildTypes {
         debug { if (System.getenv('GCC_STUDIO_KEYSTORE')) signingConfig signingConfigs.local }
@@ -30,10 +41,20 @@ android {
 def studioAssets = tasks.register('prepareStudioAssets', Sync) {
     from 'src/main/assets'
     into layout.buildDirectory.dir('studio-assets')
-    exclude 'runtime.zip'
+    exclude 'runtime.zip', 'runtime-info.json', 'tool-packs.json'
+    exclude 'modern-runtime.json', 'runtime-modern-data.zip'
 }
 tasks.named('preBuild').configure { dependsOn studioAssets }
 dependencies {
     implementation 'io.github.rosemoe:editor:0.24.4'
     testImplementation 'junit:junit:4.13.2'
 }
+
+tasks.register('checkModernRuntime') {
+    doLast {
+        def runtime = file(providers.gradleProperty('studioRuntimeDir').getOrElse('src/modern'))
+        if (!new File(runtime, 'assets/modern-runtime.json').isFile() || !new File(runtime, 'jniLibs').isDirectory())
+            throw new GradleException('Prepare the verified modern runtime with tools/prepare_modern_runtime.py first')
+    }
+}
+tasks.configureEach { if (name == 'packageModernDebug' || name == 'packageModernRelease') dependsOn 'checkModernRuntime' }

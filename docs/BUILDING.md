@@ -1,5 +1,23 @@
 # Сборка
 
+## 0.5 alpha: два Android-варианта
+
+Нужны JDK 17, Python 3.10+, Android Platform 36, Build Tools 35.0.0 и ARM64-совместимый runtime. Общий frontend подготавливается прежними скриптами. `compat` использует каталоги `app/src/compat/assets`, target 28 и отдельную загрузку инструментов. `modern` использует target 36 и подготовленные устанавливаемые нативные библиотеки:
+
+```sh
+python tools/prepare_modern_runtime.py --help
+# Укажите полный locked runtime из prepare_runtime.py и каталог Android NDK:
+python tools/prepare_modern_runtime.py --input work/runtime-full.zip --ndk /path/to/android-ndk-r28 --arch aarch64
+# Отдельный lock desktop-sources.lock.json используется для FFmpeg-исходников desktop.
+./gradlew :app:assembleCompatDebug :app:lintCompatRelease
+# После подготовки app/src/modern/assets и jniLibs:
+./gradlew :app:assembleModernDebug :app:lintModernRelease
+```
+
+`build.ps1 -Runtime modern` или `-Runtime compat` выбирает вариант. Для установки обязательны `-Install -DeviceSerial SERIAL`, чтобы не устанавливать сборку на случайное подключённое устройство. Генерируемые runtime и `desktop/node_modules` не входят в Git. Исходники desktop находятся в `desktop/`: `npm ci`, `npm test`, затем `npm run package`; соответствующие FFmpeg-исходники сначала готовятся через `tools/prepare_desktop_sources.py`. Команда `npm run installers` оборачивает готовый пакет в NSIS / deb / pkg на соответствующей ОС.
+
+## Прежний compat runtime
+
 Нужны Python 3.10+, JDK 17 и Android SDK с Platform 35 и Build Tools 35.0.0. С0.3.7 для сборки самого редактора подготовка runtime не требуется: GCC, CMake и общие библиотеки загружаются отдельно через приложение. После установки инструментов работа автономна. [Упаковка, воспроизведение и проверка пакетов](DOWNLOADABLE-RUNTIME-0.3.7.md).
 
 Ниже сохранён процесс подготовки прежнего полного runtime для воспроизведения нативных пакетов. Он использует точные версии `native-packages.lock.json` и SHA256; полученный `runtime.zip` больше не включается в APK.
@@ -12,7 +30,7 @@ cp work/tool-packs/runtime-base.zip app/src/main/assets/runtime.zip
 python tools/prepare_frontend.py
 python tools/prepare_icons.py
 python tools/package_notices.py
-./gradlew :app:assembleDebug
+./gradlew :app:assembleCompatDebug
 ```
 
 На Windows используйте `gradlew.bat`. Для Android Studio сначала выполните подготовку runtime, затем откройте корневую папку проекта.
@@ -35,7 +53,7 @@ python tools/split_runtime.py --input app/src/main/assets/runtime.zip --output w
 Copy-Item app/src/main/assets/runtime.zip work/runtime-full.zip
 Copy-Item work/tool-packs/runtime-base.zip app/src/main/assets/runtime.zip -Force
 python tools/package_notices.py
-./build.ps1 -ToolsRoot 'C:\AndroidBuildTools' -Install
+./build.ps1 -ToolsRoot 'C:\AndroidBuildTools' -Runtime compat -Install -DeviceSerial SERIAL
 ./build.ps1 -ToolsRoot 'C:\AndroidBuildTools' -Release
 ```
 

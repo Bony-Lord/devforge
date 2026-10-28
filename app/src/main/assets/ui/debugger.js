@@ -26,14 +26,14 @@ class GdbClient{
     this.session='debug-'+Date.now();this.active=true;this.paused=false;this.ide.consoleId=this.session;this.ide.running=true;RuntimeWarnings.begin(this.ide,this.session);
     this.ide.clearOutput('console');$('#debugLogOutput').textContent='';
     try{
-      const info=await native('gdbStart',{executable,options,id:this.session});
+      const info=await native('gdbStart',{executable,args,options,id:this.session});
       for(const cmd of ['-gdb-set mi-async on','-gdb-set pagination off','-gdb-set confirm off','-gdb-set disable-randomization off','-enable-pretty-printing'])try{await this.command(cmd);}catch(e){this.ide.appendOutput('debugLog',e.message+'\n','meta');}
       if(info.printers)try{await this.command('-interpreter-exec console '+JSON.stringify('source '+info.printers));}catch(error){this.ide.appendOutput('debugLog',error.message+'\n','stderr');}
       for(const skip of ['skip -rfu ^std::.*','skip -rfu ^__gnu_cxx::.*','skip -gfi */include/c++/*'])try{await this.command('-interpreter-exec console '+JSON.stringify(skip));}catch{}
-      await this.command('-inferior-tty-set '+JSON.stringify(info.tty));await this.command('-file-exec-and-symbols '+JSON.stringify(executable));
-      if(args.length)await this.command('-exec-arguments '+args.map(s=>JSON.stringify(s)).join(' '));
+      if(info.tty)await this.command('-inferior-tty-set '+JSON.stringify(info.tty));await this.command('-gdb-set breakpoint pending on');await this.command('-file-exec-and-symbols '+JSON.stringify(info.executable||executable));
+      if(info.arguments?.length)args=[...info.arguments,...args];if(!info.argumentsApplied&&args.length)await this.command('-exec-arguments '+args.map(s=>JSON.stringify(s)).join(' '));
       for(const[path,lines]of [...this.breakpoints].filter(([path])=>path.startsWith(this.ide.state.root+'/')))for(const line of lines.keys())try{const r=await this.command('-break-insert '+JSON.stringify(path+':'+line));lines.set(line,r.bkpt?.number);}catch(e){this.ide.appendOutput('debugLog',e.message+'\n','stderr');}
-      await this.command('-break-insert -t main');this.ide.showPanel('debug');this.renderControls();await this.command('-exec-run');
+      await this.command('-break-insert -t main');this.ide.showPanel('debug');this.renderControls();if(info.remote){await this.command('-target-select remote '+info.remote);await this.command('-exec-continue');}else await this.command('-exec-run');
     }catch(e){await this.stop();throw e;}
   }
   async refresh(frame){

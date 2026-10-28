@@ -1,5 +1,7 @@
 # Сторонние компоненты
 
+Экспериментальная modern/desktop-ветка добавляет установленный нативный хост и Electron. Нативный хост — собственный MIT-код в `native/studio-runner.c`; notices NDK r28 находятся в `licenses/android-ndk-r28-*`. Сборщик modern runtime использует зафиксированные исходники/рецепт libandroid-spawn и сохраняет их provenance. Настольные [notices](desktop/THIRD_PARTY.md), Electron LICENSE/Chromium notices и архив соответствующих исходников FFmpeg поставляются с настольными пакетами. Ядро Python DevForge не включает IPython/Jupyter-библиотеки; Python runtime и его лицензии уже входят в учтённый native inventory.
+
 | Компонент | Лицензия / источник |
 |---|---|
 | Monaco Editor 0.52.2 | MIT, [Microsoft](https://github.com/microsoft/monaco-editor) |

@@ -16,7 +16,7 @@ jobs:
           node-version: '22'
       - uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-35'
+          packages: 'platforms;android-36'
           log-accepted-android-sdk-licenses: false
       - name: JavaScript syntax and protocol parser
         run: |
@@ -33,6 +33,10 @@ jobs:
           node tests/addon-host.test.cjs
           node tests/setup-model.test.cjs
           node tests/addon-selection.test.cjs
+          node tests/notebook-model.test.cjs
+          node tests/project-policy.test.cjs
+          node tests/project-actions.test.cjs
+          python tests/python_kernel_test.py
       - name: Python syntax
         run: python -m compileall -q tools tests
       - name: License inventory and notices
@@ -61,4 +65,4 @@ jobs:
       - name: Compile Android Java host
         run: |
           chmod +x gradlew
-          ./gradlew :app:compileDebugJavaWithJavac :app:testDebugUnitTest --console=plain
+          ./gradlew :app:compileCompatDebugJavaWithJavac :app:testCompatDebugUnitTest --console=plain

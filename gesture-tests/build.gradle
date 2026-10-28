@@ -3,7 +3,7 @@ android {
     namespace 'dev.forge.ide.gestures'
     compileSdk 35
     targetProjectPath ':app'
-    defaultConfig { minSdk 28; targetSdk 35; testApplicationId 'com.forgex.gesturetests'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    defaultConfig { missingDimensionStrategy 'runtime', 'modern'; minSdk 28; targetSdk 35; testApplicationId 'com.forgex.gesturetests'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
     sourceSets { main { java.srcDirs = ['../app/src/androidTest/java'] } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     signingConfigs {

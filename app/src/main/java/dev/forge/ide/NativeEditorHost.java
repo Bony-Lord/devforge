@@ -465,11 +465,12 @@ final class NativeEditorHost {
         final Pane pane;final String kind;final Lexer lexer=new Lexer();final SmartTyping typing;
         volatile List<DiagnosticRegion> diagnostics=Collections.emptyList();volatile JSONArray styles=new JSONArray(),unusedStyles=new JSONArray(),breakpoints=new JSONArray();volatile int execution=-1;
         final Set<String> keywords=new HashSet<>(Arrays.asList(("alignas alignof and asm auto bool break case catch char char8_t char16_t char32_t class concept const consteval constexpr constinit const_cast continue co_await co_return co_yield decltype default delete do double dynamic_cast else enum explicit export extern false float for friend goto if inline int long mutable namespace new noexcept nullptr operator private protected public register reinterpret_cast requires return short signed sizeof static static_assert static_cast struct switch template this thread_local throw true try typedef typeid typename union unsigned using virtual void volatile wchar_t while override final import module _Atomic _Bool _Complex _Generic _Noreturn _Static_assert _Thread_local if endif elseif else foreach endforeach function endfunction macro endmacro set unset option project cmake_minimum_required add_executable add_library target_sources target_link_libraries target_include_directories find_package include add_subdirectory message return while endwhile").split(" ")));
+        final Set<String> pythonKeywords=new HashSet<>(Arrays.asList("False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case type".split(" ")));
         StudioLanguage(Pane p,String kind){pane=p;this.kind=kind;typing=new SmartTyping(kind);typing.enabled=settings.optBoolean("smartTyping",true);}
         final io.github.rosemoe.sora.widget.SymbolPairMatch pairs=new io.github.rosemoe.sora.widget.SymbolPairMatch.DefaultSymbolPairs();
         @Override public io.github.rosemoe.sora.widget.SymbolPairMatch getSymbolPairs(){return pairs;}
         @Override public AnalyzeManager getAnalyzeManager(){return lexer;}
-        @Override public int getIndentAdvance(ContentReference content,int line,int column){String s=content.getLine(line).substring(0,column).trim();return s.endsWith("{")||s.endsWith("(")?typing.options.indent:0;}
+        @Override public int getIndentAdvance(ContentReference content,int line,int column){String s=content.getLine(line).substring(0,column).trim();return s.endsWith("{")||s.endsWith("(")||kind.equals("python")&&s.endsWith(":")?typing.options.indent:0;}
         void analysis(JSONObject d){
             JSONArray ds=d.optJSONArray("diagnostics");
             if(ds!=null){List<DiagnosticRegion> regions=new ArrayList<>();for(int i=0;i<ds.length();i++){JSONObject v=ds.optJSONObject(i);if(v==null)continue;regions.add(new DiagnosticRegion(v.optInt("start"),v.optInt("end"),(short)(v.optInt("severity")==1?3:v.optInt("severity")==2?2:1),i,new DiagnosticDetail(v.optString("message"),null,null,null)));}diagnostics=regions;DiagnosticsContainer container=new DiagnosticsContainer();container.addDiagnostics(regions);pane.editor.setDiagnostics(container);}
@@ -479,10 +480,10 @@ final class NativeEditorHost {
             JSONArray hs=d.optJSONArray("hints");if(hs!=null){InlayHintsContainer hints=new InlayHintsContainer();for(int i=0;i<hs.length();i++){JSONObject h=hs.optJSONObject(i);if(h!=null)hints.add(new TextInlayHint(h.optInt("line"),h.optInt("column"),h.optString("text")));}pane.editor.setInlayHints(hints);}
         }
         @Override public void requireAutoComplete(ContentReference content,CharPosition pos,CompletionPublisher publisher,Bundle args){
-            final Content expectedContent=pane.editor.getText();final long expectedVersion=expectedContent.getDocumentVersion();
+            final java.util.concurrent.atomic.AtomicReference<Content> expected=new java.util.concurrent.atomic.AtomicReference<>();final java.util.concurrent.atomic.AtomicLong version=new java.util.concurrent.atomic.AtomicLong();
             String request=String.valueOf(requestSequence.incrementAndGet());CompletableFuture<JSONArray> f=new CompletableFuture<>();completions.put(request,f);
-            app.ui.post(()->{if(pane.buffer!=null){flush(pane.buffer);app.event("editorCompletion",object("request",request,"uri",pane.buffer.uri,"revision",pane.buffer.revision,"line",pos.line,"column",pos.column));}});
-            try{JSONArray items=f.get(3000,TimeUnit.MILLISECONDS);publisher.setUpdateThreshold(101);if(items!=null)for(int i=0;i<items.length();i++){publisher.checkCancelled();JSONObject item=items.getJSONObject(i);final JSONObject value=item;
+            app.ui.post(()->{if(pane.buffer!=null){Content owner=pane.editor.getText();expected.set(owner);version.set(owner.getDocumentVersion());flush(pane.buffer);app.event("editorCompletion",object("request",request,"uri",pane.buffer.uri,"revision",pane.buffer.revision,"line",pos.line,"column",pos.column));}else f.complete(new JSONArray());});
+            try{JSONArray items=f.get(3000,TimeUnit.MILLISECONDS);final Content expectedContent=expected.get();final long expectedVersion=version.get();if(expectedContent==null)return;publisher.setUpdateThreshold(101);if(items!=null)for(int i=0;i<items.length();i++){publisher.checkCancelled();JSONObject item=items.getJSONObject(i);final JSONObject value=item;
                 CompletionItem completion=new CompletionItem(item.optString("label"),item.optString("detail")){
                     @Override public void performCompletion(CodeEditor editor,Content text,int line,int column){performCompletion(editor,text,text.getIndexer().getCharPosition(line,column));}
                     @Override public void performCompletion(CodeEditor editor,Content text,CharPosition position){
@@ -503,7 +504,7 @@ final class NativeEditorHost {
                     if(token.startsWith("//")||token.startsWith("/*")||(token.startsWith("#")&&!kind.equals("cpp")&&!kind.equals("c")))color=EditorColorScheme.COMMENT;
                     else if(token.startsWith("\"")||token.startsWith("'"))color=STRING;
                     else if(Character.isDigit(token.charAt(0)))color=NUMBER;
-                    else if(keywords.contains(token)||token.startsWith("#"))color=EditorColorScheme.KEYWORD;
+                    else if((kind.equals("python")?pythonKeywords:keywords).contains(token)||token.startsWith("#"))color=EditorColorScheme.KEYWORD;
                     else if(token.startsWith("${"))color=TYPE;
                     else{int i=m.end();while(i<text.length()&&Character.isWhitespace(text.charAt(i)))i++;if(i<text.length()&&text.charAt(i)=='(')color=EditorColorScheme.FUNCTION_NAME;}
                     Arrays.fill(colors,m.start(),m.end(),color);
