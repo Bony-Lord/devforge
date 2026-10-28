@@ -209,7 +209,7 @@ public final class MainActivity extends Activity {
     }
     void showKeyboard() {
         ui.post(() -> {
-            if(nativeEditors!=null&&nativeEditors.active!=null){nativeEditors.showKeyboard();return;}
+            if(nativeEditors!=null){nativeEditors.showKeyboard();return;}
             if(web==null)return;
             web.requestFocus();
             web.postDelayed(() -> ((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(web,android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT),80);

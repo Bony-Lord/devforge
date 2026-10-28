@@ -14,7 +14,14 @@ class StudioNotebookEditor {
     this.unsubscribe=onNative('notebook',e=>this.event(e));this.change=this.doc.model.onDidChangeContent(()=>{if(!this.writing){if(this.doc.model.getValue()===StudioNotebook.serialize(this.value))return;if(!this.busy){try{this.value=StudioNotebook.parse(this.doc.model.getValue());this.external=false;this.render();return;}catch{}}this.external=true;this.status.textContent=this.t('Исходник изменён. Переключитесь в JSON для проверки.','Source changed. Switch to JSON to review.');for(const input of this.body.querySelectorAll('textarea'))input.readOnly=true;}});
     this.disposeListener=this.doc.model.onWillDispose(()=>this.dispose());NativeEditing.queueLayout();
   }
-  focus(){if(!this.dialog.hidden)(this.lastFocused?.isConnected?this.lastFocused:this.body.querySelector("textarea"))?.focus();}
+  focus(){
+    const current=()=>{const pane=StudioDocumentViews.pane(this.editor),windows=this.ide.windows;return pane?.documentView===this&&!this.dialog.hidden&&(!windows||windows.api.activePanel===windows.editorPanel(pane.id));};
+    if(!current())return;
+    const focus=()=>requestAnimationFrame(()=>{if(current()&&getComputedStyle(this.dialog).visibility!=='hidden')(this.lastFocused?.isConnected?this.lastFocused:this.body.querySelector('textarea'))?.focus({preventScroll:true});});
+    // Android must focus the WebView before the DOM field. Otherwise its default
+    // focus navigation can replace the textarea with the first toolbar button.
+    if(window.StudioDesktop)focus();else native('editorWebFocus').then(focus).catch(safeError);
+  }
   dispose(){this.unsubscribe?.();this.change?.dispose();this.disposeListener?.dispose();if(this.session)this.stop().catch(console.warn);this.dialog.remove();for(const pane of NativeEditing.panes.values()){if(pane.documentViews?.get(this.doc.model)===this)pane.documentViews.delete(this.doc.model);if(pane.documentView===this)pane.documentView=null;}}
   commit(){if(this.external||this.doc.readonly)throw Error(this.t('Изменение файла недоступно','File cannot be modified'));const text=StudioNotebook.serialize(this.value);this.writing=true;try{this.doc.model.pushEditOperations([],[{range:this.doc.model.getFullModelRange(),text}],()=>null);}finally{this.writing=false;}}
   add(type){if(this.busy)return;const c=StudioNotebook.cell(type);this.value.cells.push(c);this.commit();this.render();this.rows.get(c).input.focus();}
@@ -60,6 +67,7 @@ const StudioDocumentViews={
   pane(editor){return [...NativeEditing.panes.values()].find(p=>p.editor===editor);},
   activate(editor,doc){const ide=window.forge;if(!ide)return;ide.editor=editor;ide.active=doc;const pane=this.pane(editor);ide.windows?.activateEditor(pane.id);ide.renderTabs();ide.updateFileOptions();document.querySelector('#breadcrumb').textContent=relative(doc.path,ide.state.root);},
   update(editor,model){
+    const current=this.pane(editor);if(model&&current?.documentView?.doc.model===model&&!current.rawModels.has(model)&&window.forge?.addons.host.enabled('notebooks')){NativeEditing.queueLayout();return;}
     const pane=this.pane(editor);if(!pane)return;for(const[model,view]of pane.documentViews)if(model.isDisposed()){view.dispose();pane.documentViews.delete(model);}else view.dialog.hidden=true;pane.documentView=null;pane.container.style.visibility=pane.sourceVisibility;pane.container.classList.remove('studio-document-host');
     const ide=window.forge,doc=model&&ide?.docs.get(model.uri.toString());
     if(doc?.path.endsWith('.ipynb')&&ide.addons.host.enabled('notebooks')&&!pane.rawModels.has(model))this.show(editor,doc);
@@ -68,7 +76,7 @@ const StudioDocumentViews={
   show(editor,doc){
     const pane=this.pane(editor);if(!pane)return;pane.rawModels.delete(doc.model);for(const view of pane.documentViews.values())view.dialog.hidden=true;let view=pane.documentViews.get(doc.model);
     if(!view){try{view=new StudioNotebookEditor(window.forge,doc);view.open(pane.container,editor);pane.documentViews.set(doc.model,view);}catch(error){safeError(error);return;}}
-    pane.documentView=view;pane.container.classList.add('studio-document-host');pane.container.style.visibility='visible';view.dialog.hidden=false;NativeEditing.queueLayout();return view;
+    pane.documentView=view;pane.container.classList.add('studio-document-host');pane.container.style.visibility='inherit';view.dialog.hidden=false;NativeEditing.queueLayout();return view;
   },
   raw(editor){const pane=this.pane(editor);if(!pane)return;const model=editor.getModel();if(model)pane.rawModels.add(model);this.update(editor,model);editor.focus();}
 };

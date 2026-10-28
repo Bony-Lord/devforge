@@ -1,5 +1,5 @@
 'use strict';
-window.StudioWebInput=text=>{const field=document.activeElement;if(!field?.matches('input:not([type=checkbox]),textarea')||field.disabled||field.readOnly)return false;const start=field.selectionStart??field.value.length,end=field.selectionEnd??start;try{field.setRangeText(text,start,end,'end');}catch{field.value=field.value.slice(0,start)+text+field.value.slice(end);}field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));return true;};
+window.StudioWebInput=text=>{const field=StudioWebKeyboard.field();if(!field)return false;const start=field.selectionStart??field.value.length,end=field.selectionEnd??start;try{field.setRangeText(text,start,end,'end');}catch{field.value=field.value.slice(0,start)+text+field.value.slice(end);}field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));return true;};
 const compactMethods={
   initCompactUI(){
     for(const id of ['buildButton','runButton','debugButton']){
@@ -20,7 +20,7 @@ const compactMethods={
     onNative('floatingKeyboardMode',e=>{keyboardRevision(e);if(this.addons?.host.lastFeatures&&!this.addons.host.enabled('keyboard'))return;if(this.settings.keyboardPrimary===e.mode)return;this.settings.keyboardPrimary=e.mode;this.saveWorkspaceSettings();});
     onNative('floatingKeyboardSize',e=>{keyboardRevision(e);const prefix=e.layout==='pc'?'keyboardPc':'keyboardAndroid';this.settings[prefix+'Width']=e.width;this.settings[prefix+'Height']=e.height;this.saveWorkspaceSettings();});
     this.initDialogDismiss();
-    const webInput=()=>native('editorWebInput',{focused:studioTextInput(document.activeElement)}).catch(console.warn);document.addEventListener('focusin',webInput);document.addEventListener('focusout',()=>queueMicrotask(webInput));
+    StudioWebKeyboard.init();
     this.initTouchTips();
   },
   toggleMainMenu(show=$('#mainMenus').classList.contains('hidden')){

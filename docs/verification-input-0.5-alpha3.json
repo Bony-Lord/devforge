@@ -1,0 +1,183 @@
+{
+  "version": "0.5.0-alpha.3",
+  "versionCode": 19,
+  "date": "2026-10-28",
+  "status": "preview, not a stable release",
+  "device": "Xiaomi Pad 6 / Android 14 / arm64",
+  "artifacts": {
+    "modern": {
+      "bytes": 9274356,
+      "sha256": "d1fe54a9f8ae5511ae62463c1de42157b6d0743ab7cebd45f66541fdf143454d",
+      "targetSdk": 36,
+      "signed": true,
+      "debuggable": false
+    },
+    "compat": {
+      "bytes": 9398833,
+      "sha256": "6ae55857d7cc02ea471238e0037d8862397d9f854325b702279dbd430b07bc40",
+      "targetSdk": 28,
+      "signed": true,
+      "debuggable": false
+    }
+  },
+  "physicalInputAndPanelChecks": [
+    {
+      "test": "Notebook fields declare inputmode none before own-keyboard input",
+      "passed": true
+    },
+    {
+      "test": "Grouped console hides notebook content and releases its input 1",
+      "passed": true
+    },
+    {
+      "test": "Touch switches back to the notebook tab 1",
+      "passed": true
+    },
+    {
+      "test": "Grouped console hides notebook content and releases its input 2",
+      "passed": true
+    },
+    {
+      "test": "Touch switches back to the notebook tab 2",
+      "passed": true
+    },
+    {
+      "test": "Grouped console hides notebook content and releases its input 3",
+      "passed": true
+    },
+    {
+      "test": "Touch switches back to the notebook tab 3",
+      "passed": true
+    },
+    {
+      "test": "Grouped console hides notebook content and releases its input 4",
+      "passed": true
+    },
+    {
+      "test": "Touch switches back to the notebook tab 4",
+      "passed": true
+    },
+    {
+      "test": "Grouped console hides notebook content and releases its input 5",
+      "passed": true
+    },
+    {
+      "test": "Touch switches back to the notebook tab 5",
+      "passed": true
+    },
+    {
+      "test": "Own keyboard transitions never display the Android IME",
+      "passed": true
+    },
+    {
+      "test": "Dynamically added cells suppress the system keyboard before typing",
+      "passed": true
+    },
+    {
+      "test": "Moving between cells keeps the floating keyboard continuously visible",
+      "passed": true
+    },
+    {
+      "test": "Android hardware key events still type into a notebook with custom IME policy",
+      "passed": true
+    },
+    {
+      "test": "Android hardware backspace still updates notebook contents",
+      "passed": true
+    },
+    {
+      "test": "A real touch on a floating keyboard key edits the notebook cell",
+      "passed": true
+    },
+    {
+      "test": "Choosing system keyboard restores ordinary input modes",
+      "passed": true
+    },
+    {
+      "test": "System keyboard stays visible while switching notebook cells",
+      "passed": true
+    },
+    {
+      "test": "Switching from system back to own keyboard settles without overlap",
+      "passed": true
+    },
+    {
+      "test": "Ordinary code receives native editor focus after a notebook",
+      "passed": true
+    },
+    {
+      "test": "Native C++ editor still receives Android hardware key events",
+      "passed": true
+    },
+    {
+      "test": "Returning to the notebook retains cell state and restores the correct input owner",
+      "passed": true
+    },
+    {
+      "test": "Side rail selects console without a hidden notebook covering it",
+      "passed": true
+    },
+    {
+      "test": "Side rail selects terminal without a hidden notebook covering it",
+      "passed": true
+    },
+    {
+      "test": "Side rail selects build without a hidden notebook covering it",
+      "passed": true
+    },
+    {
+      "test": "Side rail selects problems without a hidden notebook covering it",
+      "passed": true
+    },
+    {
+      "test": "Side rail selects debug without a hidden notebook covering it",
+      "passed": true
+    },
+    {
+      "test": "Side rail selects console without a hidden notebook covering it",
+      "passed": true
+    },
+    {
+      "test": "A second tap closes the active console panel",
+      "passed": true
+    },
+    {
+      "test": "Floating keyboard close button hides its native surface",
+      "passed": true
+    },
+    {
+      "test": "Touching the focused cell reopens a manually hidden keyboard",
+      "passed": true
+    },
+    {
+      "test": "Cold restart restores notebook contents and one floating input surface",
+      "passed": true
+    }
+  ],
+  "hostCommandGroupsPassed": 77,
+  "webKeyboardPolicyCases": 7,
+  "editorStateCases": 20,
+  "pythonKernelCases": 4,
+  "componentOwnershipCases": 2,
+  "androidUnitTestsPerFlavor": 8,
+  "androidReleaseLintErrorsPerFlavor": 0,
+  "restoration": {
+    "originalProjectFilesVerified": 13,
+    "metadataFilesRestoredAndVerifiedBeforeColdStart": 6,
+    "ownFixturesArchived": 1,
+    "normalReleaseInstalled": true,
+    "installedBytes": 9274356,
+    "installedSha256": "d1fe54a9f8ae5511ae62463c1de42157b6d0743ab7cebd45f66541fdf143454d",
+    "coldStartWithoutFatalOrJsErrors": true,
+    "screenOff": true,
+    "adbForwardRemoved": true,
+    "nativeEngineAndToolDataUnchanged": true
+  },
+  "nativeRuntime": "unchanged v0.5.0-runtime2",
+  "limits": [
+    "Actual Android key events and ADB touch gestures; no new physical Bluetooth keyboard test.",
+    "No new emulator, desktop GUI, other OEM or long typing/gesture soak checks for these changes.",
+    "The 0.5 series remains a preview; 0.4.2 is still the recommended previous Android preview.",
+    "Full Jupyter/IPython, Pyright, Python debugger, executable third-party addon SDK and online marketplace remain unfinished."
+  ]
+}

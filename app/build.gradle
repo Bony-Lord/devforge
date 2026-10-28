@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.forgex'
     compileSdk 36
-    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 18; versionName '0.5.0-alpha.2'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 19; versionName '0.5.0-alpha.3'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
     buildFeatures { buildConfig true }
     flavorDimensions += 'runtime'
     productFlavors {

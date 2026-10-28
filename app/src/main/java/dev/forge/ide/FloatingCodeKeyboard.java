@@ -34,7 +34,7 @@ final class FloatingCodeKeyboard {
     boolean gestureNavigation;
     FloatingCodeKeyboard(NativeEditorHost host){
         this.host=host;app=host.app;prefs=app.getSharedPreferences("floating-keyboard",Context.MODE_PRIVATE);
-        enabled=prefs.getBoolean("enabled",false);russian=prefs.getBoolean("russian",false);
+        enabled=prefs.getBoolean("enabled",false);russian=prefs.getBoolean("russian",false);configureInputMethod();
         frame=new FrameLayout(app);frame.setClipChildren(false);frame.setElevation(dp(12));frame.setZ(dp(100));frame.setVisibility(View.GONE);
         stack=new LinearLayout(app);stack.setOrientation(LinearLayout.VERTICAL);stack.setPadding(dp(6),dp(3),dp(6),dp(6));frame.addView(stack,new FrameLayout.LayoutParams(-1,-1));
         LinearLayout header=new LinearLayout(app);header.setGravity(Gravity.CENTER_VERTICAL);stack.addView(header,new LinearLayout.LayoutParams(-1,dp(32)));
@@ -77,12 +77,13 @@ final class FloatingCodeKeyboard {
     String label(String ru,String en){return host.settings.optString("language",Locale.getDefault().getLanguage()).startsWith("ru")?ru:en;}
     ImageView icon(int resource,String description,Runnable action){ImageView view=new ImageView(app);view.setImageResource(resource);view.setPadding(dp(7),dp(7),dp(7),dp(7));view.setContentDescription(description);view.setTooltipText(description);view.setOnClickListener(v->action.run());return view;}
     void setEnabled(boolean value,boolean showSystem){
-        enabled=value;shown=value;clearModifiers();caps=false;try{host.settings.put("keyboardPrimary",value?"floating":"system");}catch(JSONException ignored){}config=settingsSignature(host.settings);prefs.edit().putBoolean("enabled",value).apply();
+        enabled=value;shown=value;configureInputMethod();clearModifiers();caps=false;try{host.settings.put("keyboardPrimary",value?"floating":"system");}catch(JSONException ignored){}config=settingsSignature(host.settings);prefs.edit().putBoolean("enabled",value).apply();
         for(var pane:host.panes.values())pane.editor.setSoftKeyboardEnabled(!value&&host.inputReady);
         if(value){((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(app.web.getWindowToken(),0);attachStrip();rebuild();}
         else{detachStrip();frame.setVisibility(View.GONE);}
         app.event("floatingKeyboardMode",event("mode",value?"floating":"system"));host.geometry();if(!value&&showSystem)host.showKeyboard();
     }
+    void configureInputMethod(){app.getWindow().setFlags(enabled?WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM:0,WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);}
     void hideSystemKeyboard(){((InputMethodManager)app.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(app.editorRoot.getWindowToken(),0);}
     void show(){if(!enabled)return;hideSystemKeyboard();shown=true;attachStrip();host.geometry();}
     void hide(){shown=false;clearModifiers();refreshKeys();frame.setVisibility(View.GONE);}
@@ -90,7 +91,7 @@ final class FloatingCodeKeyboard {
     void detachStrip(){if(host.accessory.getParent()==app.editorRoot)return;if(host.accessory.getParent() instanceof android.view.ViewGroup)((android.view.ViewGroup)host.accessory.getParent()).removeView(host.accessory);app.editorRoot.addView(host.accessory,new FrameLayout.LayoutParams(-1,1));}
     void geometry(boolean allowed){
         if(!enabled){if(host.accessory.getParent()!=app.editorRoot)detachStrip();frame.setVisibility(View.GONE);return;}
-        attachStrip();theme();android.view.ViewGroup row=(android.view.ViewGroup)host.accessory.getChildAt(0);for(int i=0;i<row.getChildCount();i++){View button=row.getChildAt(i);boolean duplicate=Arrays.asList("tab","left","right","up","down").contains(String.valueOf(button.getTag()));button.setVisibility(duplicate?View.GONE:View.VISIBLE);}boolean show=shown&&(host.webFieldFocused||host.inputReady&&allowed&&host.active!=null&&host.active.buffer!=null);
+        attachStrip();theme();android.view.ViewGroup row=(android.view.ViewGroup)host.accessory.getChildAt(0);for(int i=0;i<row.getChildCount();i++){View button=row.getChildAt(i);boolean duplicate=Arrays.asList("tab","left","right","up","down").contains(String.valueOf(button.getTag()));button.setVisibility(duplicate?View.GONE:View.VISIBLE);}boolean show=shown&&(host.webFieldFocused||host.inputReady&&allowed&&host.active!=null&&host.active.layoutVisible&&host.active.buffer!=null&&host.active.editor.hasFocus());
         if(!show){frame.setVisibility(View.GONE);host.accessory.setVisibility(View.GONE);return;}
         int maxW=availableWidth(),maxH=Math.max(1,app.editorRoot.getHeight()-dp(12));
         if(width==0){String prefix=layout.equals("pc")?"keyboardPc":"keyboardAndroid";int wp=Math.max(15,Math.min(100,host.settings.optInt(prefix+"Width",layout.equals("pc")?95:65))),hp=Math.max(15,Math.min(95,host.settings.optInt(prefix+"Height",layout.equals("pc")?48:42)));width=Math.round(maxW*wp/100f);height=Math.round(maxH*hp/100f);x=leftMargin()+Math.round(prefs.getFloat("xRatio",.5f)*Math.max(0,maxW-width));y=Math.round(prefs.getFloat("yRatio",.95f)*Math.max(0,maxH-height));}
