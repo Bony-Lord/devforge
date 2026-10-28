@@ -20,7 +20,7 @@ const compactMethods={
     onNative('floatingKeyboardMode',e=>{keyboardRevision(e);if(this.addons?.host.lastFeatures&&!this.addons.host.enabled('keyboard'))return;if(this.settings.keyboardPrimary===e.mode)return;this.settings.keyboardPrimary=e.mode;this.saveWorkspaceSettings();});
     onNative('floatingKeyboardSize',e=>{keyboardRevision(e);const prefix=e.layout==='pc'?'keyboardPc':'keyboardAndroid';this.settings[prefix+'Width']=e.width;this.settings[prefix+'Height']=e.height;this.saveWorkspaceSettings();});
     this.initDialogDismiss();
-    const webInput=()=>native('editorWebInput',{focused:!!document.activeElement?.matches('input,textarea,[contenteditable="true"]')}).catch(console.warn);document.addEventListener('focusin',webInput);document.addEventListener('focusout',()=>queueMicrotask(webInput));
+    const webInput=()=>native('editorWebInput',{focused:studioTextInput(document.activeElement)}).catch(console.warn);document.addEventListener('focusin',webInput);document.addEventListener('focusout',()=>queueMicrotask(webInput));
     this.initTouchTips();
   },
   toggleMainMenu(show=$('#mainMenus').classList.contains('hidden')){
@@ -33,7 +33,7 @@ const compactMethods={
     let press=null;
     const outside=(dialog,event)=>{const b=dialog.getBoundingClientRect();return event.target===dialog&&(event.clientX<b.left||event.clientX>b.right||event.clientY<b.top||event.clientY>b.bottom);};
     document.addEventListener('pointerdown',event=>{const dialog=event.target.closest?.('dialog[open]');press=dialog&&event.button===0&&outside(dialog,event)?{dialog,id:event.pointerId,x:event.clientX,y:event.clientY}:null;},true);
-    document.addEventListener('pointerup',event=>{const p=press;press=null;if(p&&p.id===event.pointerId&&p.dialog.open&&outside(p.dialog,event)&&Math.hypot(event.clientX-p.x,event.clientY-p.y)<8){event.preventDefault();event.stopImmediatePropagation();p.dialog.close('cancel');}},true);
+    document.addEventListener('pointerup',event=>{const p=press;press=null;if(p&&p.id===event.pointerId&&p.dialog.open&&p.dialog.dataset.dismissLocked!=='true'&&outside(p.dialog,event)&&Math.hypot(event.clientX-p.x,event.clientY-p.y)<8){event.preventDefault();event.stopImmediatePropagation();p.dialog.close('cancel');}},true);
     document.addEventListener('pointercancel',()=>{press=null;},true);
   },
   initTouchTips(){

@@ -1,0 +1,2222 @@
+{
+  "application": "DevForge",
+  "version": "0.4.1",
+  "versionCode": 15,
+  "status": "preview",
+  "device": "Xiaomi Pad 6 / Android 14",
+  "passed": 117,
+  "total": 117,
+  "scope": "Targeted native API, WebView, touch and cold-start checks. Fresh setup simulated by replacing test metadata only; no new uninstall or native runtime download.",
+  "userData": {
+    "originalProjectFilesUnchanged": 887,
+    "originalMetadataFilesRestoredExactlyBeforeReleaseInstall": 6,
+    "originalAddonLibraryRestored": true,
+    "testProjectArchived": true,
+    "nativeRuntimeUntouched": true
+  },
+  "keyboardRegression": {
+    "before": "A native painted keyboard frame appeared about 251 ms before the first-run wizard hid it.",
+    "after": "No visible native keyboard frames in repeated simulated first-run cold starts."
+  },
+  "analysisHarnessNote": "Probe corrected to inspect the active native pane and a unique fixture revision instead of a hidden primary pane / identical replay text.",
+  "managerRenderObservationMs": {
+    "fullMs": 24.5,
+    "partialMs": 20.900000005960464
+  },
+  "limits": [
+    "Not exhaustive stability testing",
+    "Phone-width manager layout was emulated in the tablet WebView",
+    "Target SDK28 and Play Protect fresh-install warning remain",
+    "Third-party data packages only; arbitrary executable mods are not supported",
+    "Python and notebooks are not implemented"
+  ],
+  "suites": [
+    {
+      "suite": "device-onboarding.json",
+      "passed": 23,
+      "total": 23,
+      "checks": [
+        {
+          "test": "Fresh wizard has no painted keyboard flash",
+          "passed": true,
+          "evidence": []
+        },
+        {
+          "test": "Fresh default is essentials while active core stays empty",
+          "passed": true,
+          "evidence": {
+            "mode": "essentials",
+            "downloads": [],
+            "profile": []
+          }
+        },
+        {
+          "test": "Core exposes only host settings",
+          "passed": true,
+          "evidence": [
+            "uiScale",
+            "keepAwake"
+          ]
+        },
+        {
+          "test": "Checkbox focus does not invoke keyboard",
+          "passed": true,
+          "evidence": {
+            "shown": false,
+            "imeHeight": 0
+          }
+        },
+        {
+          "test": "Core selection applies without adding modules",
+          "passed": true,
+          "evidence": {
+            "complete": true,
+            "version": 2,
+            "profile": [],
+            "open": false
+          }
+        },
+        {
+          "test": "Core selection persists across cold start",
+          "passed": true,
+          "evidence": {
+            "open": false,
+            "profile": []
+          }
+        },
+        {
+          "test": "Essentials receives only selected addon fields",
+          "passed": true,
+          "evidence": [
+            "uiScale",
+            "keepAwake",
+            "keyboardPrimary",
+            "keyboardLayout",
+            "keyboardModifiers",
+            "cppStandard",
+            "cStandard",
+            "indentMode",
+            "indentWidth"
+          ]
+        },
+        {
+          "test": "Editable numeric field can invoke input during setup",
+          "passed": true,
+          "evidence": {
+            "shown": false,
+            "imeHeight": 728
+          }
+        },
+        {
+          "test": "Draft step and addon values resume on cold start",
+          "passed": true,
+          "evidence": {
+            "step": 3,
+            "width": 6
+          }
+        },
+        {
+          "test": "Resumed wizard has no keyboard flash",
+          "passed": true,
+          "evidence": []
+        },
+        {
+          "test": "Install error preserves draft and active composition",
+          "passed": true,
+          "evidence": {
+            "error": "Simulated download cancellation",
+            "draft": true,
+            "profile": [],
+            "locked": false
+          }
+        },
+        {
+          "test": "Retry applies selected addons and their settings",
+          "passed": true,
+          "evidence": {
+            "profile": [
+              {
+                "id": "studio.pack.essentials",
+                "version": "1.0.0"
+              }
+            ],
+            "width": 6,
+            "open": false
+          }
+        },
+        {
+          "test": "Own keyboard becomes usable after onboarding",
+          "passed": true,
+          "evidence": {
+            "shown": true,
+            "imeHeight": 0
+          }
+        },
+        {
+          "test": "Existing profile opens as manual composition",
+          "passed": true,
+          "evidence": "custom"
+        },
+        {
+          "test": "Closing setup keeps existing composition",
+          "passed": true,
+          "evidence": "[{\"id\":\"studio.pack.essentials\",\"version\":\"1.0.0\"}]"
+        },
+        {
+          "test": "Manual dependency toggle removes dependents",
+          "passed": true,
+          "evidence": [
+            "studio.language.cpp",
+            "studio.language.json",
+            "studio.language.yaml",
+            "studio.language.markdown",
+            "studio.language.shell",
+            "studio.project.cpp",
+            "studio.smart-typing",
+            "studio.indent-guides",
+            "studio.autosave",
+            "studio.local-history",
+            "studio.find-replace",
+            "studio.project-search",
+            "studio.tooltips",
+            "studio.animations",
+            "studio.palette",
+            "studio.file-templates"
+          ]
+        },
+        {
+          "test": "Language and manual draft survive restart",
+          "passed": true,
+          "evidence": {
+            "language": "en",
+            "mode": "custom",
+            "title": "Features and dependencies"
+          }
+        },
+        {
+          "test": "Skipping setup closes it and retains core",
+          "passed": true,
+          "evidence": {
+            "dismissed": true,
+            "open": false
+          }
+        },
+        {
+          "test": "C/C++ settings are contributed only by full language pack",
+          "passed": true,
+          "evidence": [
+            "uiScale",
+            "keepAwake",
+            "keyboardPrimary",
+            "keyboardLayout",
+            "keyboardModifiers",
+            "formatterPreset",
+            "cppStandard",
+            "cStandard",
+            "indentMode",
+            "indentWidth"
+          ]
+        },
+        {
+          "test": "Language version select does not trigger keyboard",
+          "passed": true,
+          "evidence": {
+            "shown": false,
+            "imeHeight": 0
+          }
+        },
+        {
+          "test": "Review reuses installed toolpacks without downloads",
+          "passed": true,
+          "evidence": {
+            "bytes": 0,
+            "downloads": []
+          }
+        },
+        {
+          "test": "Full composition applies and persists through window manager reload",
+          "passed": true,
+          "evidence": {
+            "open": false,
+            "version": 2,
+            "features": {
+              "clangd": true,
+              "formatter": true,
+              "debugger": true,
+              "git": true,
+              "windows": true,
+              "keyboard": true,
+              "animations": true,
+              "tooltips": true,
+              "smartTyping": true,
+              "indentGuides": true,
+              "autosave": true,
+              "history": true,
+              "find": true,
+              "split": true,
+              "palette": true,
+              "projectSearch": true,
+              "outline": true,
+              "console": true,
+              "terminal": true,
+              "runConfigurations": true,
+              "fileTemplates": true,
+              "runtimeDiagnostics": true,
+              "completion": true,
+              "diagnostics": true,
+              "semantic": true,
+              "inlayHints": true
+            }
+          }
+        },
+        {
+          "test": "Finished onboarding never reopens on cold start",
+          "passed": true,
+          "evidence": {
+            "open": false,
+            "ready": true
+          }
+        }
+      ]
+    },
+    {
+      "suite": "device-dialogs.json",
+      "passed": 4,
+      "total": 4,
+      "checks": [
+        {
+          "test": "Backdrop tap closes wizard without replacing existing composition",
+          "passed": true,
+          "evidence": {
+            "open": false,
+            "profile": [
+              {
+                "id": "studio.pack.cpp-full",
+                "version": "1.0.0"
+              }
+            ]
+          }
+        },
+        {
+          "test": "Backdrop tap cannot dismiss an applying composition",
+          "passed": true,
+          "evidence": {
+            "open": true,
+            "installing": true
+          }
+        },
+        {
+          "test": "Failed preparation unlocks controls and keeps retry state",
+          "passed": true,
+          "evidence": {
+            "installing": false,
+            "error": "Simulated preparation failure",
+            "draft": true
+          }
+        },
+        {
+          "test": "Backdrop closes again after failed preparation",
+          "passed": true,
+          "evidence": false
+        }
+      ]
+    },
+    {
+      "suite": "device-manager.json",
+      "passed": 18,
+      "total": 18,
+      "checks": [
+        {
+          "test": "Workload view shows complete nested C++ pack",
+          "passed": true,
+          "evidence": {
+            "checked": true,
+            "partial": false,
+            "aria": "true"
+          }
+        },
+        {
+          "test": "Removing a component marks its workload mixed",
+          "passed": true,
+          "evidence": {
+            "checked": false,
+            "partial": true,
+            "aria": "mixed"
+          }
+        },
+        {
+          "test": "Checkbox changes only the plan before Apply",
+          "passed": true,
+          "evidence": {
+            "active": true,
+            "planned": false
+          }
+        },
+        {
+          "test": "Change summary does not call intact C/C++ and CMake workloads disabled",
+          "passed": true,
+          "evidence": "Будут отключены · 6\n\nАнализ и дополнение clangd\n\nСтруктура файла\n\nДополнение кода\n\nОшибки и предупреждения\n\nСемантические цвета\n\nПодсказки типов и параметров"
+        },
+        {
+          "test": "Other workload features survive partial deselection",
+          "passed": true,
+          "evidence": [
+            "studio.language.cpp",
+            "studio.project.cpp",
+            "studio.language.cmake",
+            "studio.tool.platform",
+            "studio.tool.cmake",
+            "studio.project.cmake",
+            "studio.tool.gcc",
+            "studio.tool.analysis",
+            "studio.formatter",
+            "studio.tool.debugger",
+            "studio.debugger",
+            "studio.tool.git",
+            "studio.git",
+            "studio.window-manager",
+            "studio.language.json",
+            "studio.language.yaml",
+            "studio.language.markdown",
+            "studio.language.shell",
+            "studio.views.json",
+            "studio.views.markdown",
+            "studio.animations",
+            "studio.tooltips",
+            "studio.smart-typing",
+            "studio.indent-guides",
+            "studio.autosave",
+            "studio.local-history",
+            "studio.find-replace",
+            "studio.split-editors",
+            "studio.palette",
+            "studio.project-search",
+            "studio.console",
+            "studio.terminal",
+            "studio.run-configurations",
+            "studio.file-templates",
+            "studio.runtime-diagnostics",
+            "studio.keyboard"
+          ]
+        },
+        {
+          "test": "Discard restores the full active selection",
+          "passed": true,
+          "evidence": {
+            "checked": true,
+            "partial": false,
+            "aria": "true"
+          }
+        },
+        {
+          "test": "Expanded workload survives component checkbox update",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Search filters individual components",
+          "passed": true,
+          "evidence": [
+            "studio.keyboard"
+          ]
+        },
+        {
+          "test": "Pending removal appears in change summary",
+          "passed": true,
+          "evidence": "Выбранный состав\n\nКомпонентов: 41\n\nСкачать: 0.0 MB\n\nБудут включены · 0\nБудут отключены · 1\n\nКлавиатура DevForge\n\nИзменится состав паков\n\nПолная C++ IDE · пак · 41/42\n\nУдобный минимум · 16/17\n\nГалочки меняют план. Загрузка и включение начнутся после «Применить». Отключение функции сохраняет скачанные файлы инструментов.\n\nПрименить\nОтменить изменения\nВосстановление"
+        },
+        {
+          "test": "Apply activates the plan and disables own keyboard",
+          "passed": true,
+          "evidence": {
+            "enabled": false,
+            "dirty": true
+          }
+        },
+        {
+          "test": "Partial workload persists across cold restart",
+          "passed": true,
+          "evidence": {
+            "checked": false,
+            "partial": true,
+            "aria": "mixed"
+          }
+        },
+        {
+          "test": "Checking mixed workload restores missing components",
+          "passed": true,
+          "evidence": {
+            "checked": true,
+            "partial": false,
+            "aria": "true"
+          }
+        },
+        {
+          "test": "Applying locks component inputs and backdrop dismissal",
+          "passed": true,
+          "evidence": {
+            "locked": "true",
+            "disabled": true
+          }
+        },
+        {
+          "test": "Failed apply keeps active profile and editable retry plan",
+          "passed": true,
+          "evidence": {
+            "error": "Simulated offline failure",
+            "active": true,
+            "planned": false
+          }
+        },
+        {
+          "test": "Tools use the same staged addon checkboxes",
+          "passed": true,
+          "evidence": [
+            "studio.tool.platform",
+            "studio.tool.gcc",
+            "studio.tool.cmake",
+            "studio.tool.analysis",
+            "studio.tool.clang",
+            "studio.tool.debugger",
+            "studio.tool.git"
+          ]
+        },
+        {
+          "test": "Package catalog remains accessible with install review",
+          "passed": true,
+          "evidence": "Аддоны\n\nВыберите паки и отдельные компоненты, затем примените изменения.\n\nПаки\nКомпоненты\nИнструменты\nКаталог пакетов\nИз файла…\nПо ссылке…\nТолько ядро\nУдобный минимум\nПолная C++ IDE\nСохранить текущий состав…\nТолько выбранные\nОкеан · интерфейс\n\nСпокойные синие акценты и границы. Цвета редактора не меняет.\n\nУстановить пакет…\nКоманды рабочего пространства\n\nРежим фокусировки и настройки через палитру команд.\n\nУстановить пакет…\n\nОфициальные пакеты из этой сборки доступны без сети. Онлайн-маркетплейс ещё не подключён.\n\nВыбранный состав\n\nКомпонентов: 42\n\nСкачать: 0.0 MB\n\nБудут включены · 0\nБудут отключены · 0\n\nГалочки меняют план. Загрузка и включение начнутся после «Применить». Отключение функции сохраняет скачанные файлы инструментов.\n\nПрименить\nОтменить изменения\nВосстановление"
+        },
+        {
+          "test": "Phone layout has accessible Apply and no horizontal overflow",
+          "passed": true,
+          "evidence": {
+            "width": 390,
+            "left": 39.882354736328125,
+            "right": 350.23529052734375,
+            "scrollWidth": 360,
+            "clientWidth": 360
+          }
+        },
+        {
+          "test": "Invalid profile still exposes a recovery action",
+          "passed": true,
+          "evidence": true
+        }
+      ]
+    },
+    {
+      "suite": "device-security.json",
+      "passed": 16,
+      "total": 16,
+      "checks": [
+        {
+          "test": "Unknown pre-existing folder starts restricted",
+          "passed": true,
+          "evidence": {
+            "trusted": false,
+            "root": "/data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028"
+          }
+        },
+        {
+          "test": "Native bridge denies project execution before trust",
+          "passed": true,
+          "evidence": [
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools",
+            "WORKSPACE_UNTRUSTED: Trust this folder before executing project tools"
+          ]
+        },
+        {
+          "test": "Restricted workspace can still read source files",
+          "passed": true,
+          "evidence": 68
+        },
+        {
+          "test": "Explicit folder consent enables native project tools",
+          "passed": true,
+          "evidence": {
+            "trusted": true,
+            "root": "/data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028"
+          }
+        },
+        {
+          "test": "Revoking trust stops analysis and returns to restricted mode",
+          "passed": true,
+          "evidence": {
+            "trust": false,
+            "ready": false
+          }
+        },
+        {
+          "test": "Revoking trust stops an already running project shell",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Exact-folder trust survives cold restart",
+          "passed": true,
+          "evidence": {
+            "trusted": true,
+            "root": "/data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028"
+          }
+        },
+        {
+          "test": "HTTPS package is downloaded and hashed before installation",
+          "passed": true,
+          "evidence": {
+            "sha256": "d0e21db3d0b43339bf059191f26d1fb0d9621aaf4c93bc24da346f8fdf2068ac",
+            "bytes": 964
+          }
+        },
+        {
+          "test": "Native install rejects missing third-party consent",
+          "passed": true,
+          "evidence": "Review and accept the addon installation notice first"
+        },
+        {
+          "test": "Third-party review requires an unchecked consent checkbox",
+          "passed": true,
+          "evidence": {
+            "checked": false,
+            "disabled": true
+          }
+        },
+        {
+          "test": "Accepting notice enables installation",
+          "passed": true,
+          "evidence": false
+        },
+        {
+          "test": "Installed third-party package records origin, content hash and consent",
+          "passed": true,
+          "evidence": {
+            "source": "local",
+            "origin": "https://raw.githubusercontent.com/Bony-Lord/gcc-cpp-studio/codex/android-compact-ui/examples/addons/forest.studio-addon",
+            "consent": {
+              "noticeVersion": 1,
+              "acceptedAt": 1793170812876
+            }
+          }
+        },
+        {
+          "test": "Third-party package can be fully uninstalled",
+          "passed": true,
+          "evidence": false
+        },
+        {
+          "test": "Download rejects HTTP",
+          "passed": true,
+          "evidence": "Use an HTTPS package URL without credentials or a fragment"
+        },
+        {
+          "test": "Download rejects URL credentials",
+          "passed": true,
+          "evidence": "Use an HTTPS package URL without credentials or a fragment"
+        },
+        {
+          "test": "Expected checksum mismatch rejects package",
+          "passed": true,
+          "evidence": "Addon SHA-256 mismatch"
+        }
+      ]
+    },
+    {
+      "suite": "verification-keyboard-size-036.json",
+      "checks": [
+        {
+          "test": "Own keyboard dismisses the system IME",
+          "passed": true,
+          "evidence": 0
+        },
+        {
+          "test": "Finger drag resize-right resizes and keeps opposite edge fixed",
+          "passed": true,
+          "evidence": {
+            "before": {
+              "x": 1031,
+              "y": 253,
+              "width": 1772,
+              "height": 638
+            },
+            "after": {
+              "x": 1031,
+              "y": 253,
+              "width": 1661,
+              "height": 638
+            }
+          }
+        },
+        {
+          "test": "Finger drag resize-left resizes and keeps opposite edge fixed",
+          "passed": true,
+          "evidence": {
+            "before": {
+              "x": 1031,
+              "y": 253,
+              "width": 1661,
+              "height": 638
+            },
+            "after": {
+              "x": 1126,
+              "y": 253,
+              "width": 1566,
+              "height": 638
+            }
+          }
+        },
+        {
+          "test": "Finger drag resize-top resizes and keeps opposite edge fixed",
+          "passed": true,
+          "evidence": {
+            "before": {
+              "x": 1126,
+              "y": 253,
+              "width": 1566,
+              "height": 638
+            },
+            "after": {
+              "x": 1126,
+              "y": 183,
+              "width": 1566,
+              "height": 708
+            }
+          }
+        },
+        {
+          "test": "Finger drag resize-bottom resizes and keeps opposite edge fixed",
+          "passed": true,
+          "evidence": {
+            "before": {
+              "x": 1126,
+              "y": 183,
+              "width": 1566,
+              "height": 708
+            },
+            "after": {
+              "x": 1126,
+              "y": 183,
+              "width": 1566,
+              "height": 649
+            }
+          }
+        },
+        {
+          "test": "Finger drag resize changes both dimensions",
+          "passed": true,
+          "evidence": {
+            "before": [
+              1566,
+              649
+            ],
+            "after": [
+              1627,
+              695
+            ]
+          }
+        },
+        {
+          "test": "Finger drag resize-bottomleft changes both dimensions",
+          "passed": true,
+          "evidence": {
+            "before": [
+              1627,
+              695
+            ],
+            "after": [
+              1671,
+              729
+            ]
+          }
+        },
+        {
+          "test": "Canceled edge gesture restores keyboard bounds",
+          "passed": true,
+          "evidence": {
+            "before": [
+              1082,
+              183,
+              1671,
+              729
+            ],
+            "after": [
+              1082,
+              183,
+              1671,
+              729
+            ]
+          }
+        },
+        {
+          "test": "Second finger neither types nor takes over edge resize",
+          "passed": true,
+          "evidence": {
+            "before": [
+              1127,
+              1626
+            ],
+            "after": [
+              1127,
+              1626
+            ]
+          }
+        },
+        {
+          "test": "No resize button is added to the keyboard header",
+          "passed": true,
+          "evidence": [
+            "move",
+            "modifiers",
+            "system",
+            "close",
+            "resize",
+            "resize-left",
+            "resize-right",
+            "resize-top",
+            "resize-bottom",
+            "resize-bottomleft"
+          ]
+        },
+        {
+          "test": "Key input still works after edge resizing",
+          "passed": true,
+          "evidence": "a"
+        },
+        {
+          "test": "Android keyboard resizes independently of PC layout",
+          "passed": true,
+          "evidence": {
+            "before": 1499,
+            "after": 1429,
+            "pc": {
+              "width": 60,
+              "height": 43
+            }
+          }
+        },
+        {
+          "test": "Scroll past EOF keeps final row partly visible: 12 lines / 100%",
+          "passed": true,
+          "evidence": {
+            "offset": 449,
+            "max": 449,
+            "remaining": 19,
+            "rowHeight": 39,
+            "viewport": 1498
+          }
+        },
+        {
+          "test": "Scroll past EOF keeps final row partly visible: 60 lines / 100%",
+          "passed": true,
+          "evidence": {
+            "offset": 2321,
+            "max": 2321,
+            "remaining": 19,
+            "rowHeight": 39,
+            "viewport": 1498
+          }
+        },
+        {
+          "test": "Scroll past EOF keeps final row partly visible: 12 lines / 175%",
+          "passed": true,
+          "evidence": {
+            "offset": 785.75,
+            "max": 785.75,
+            "remaining": 33.25,
+            "rowHeight": 68.25,
+            "viewport": 1498
+          }
+        },
+        {
+          "test": "Resized keyboard dimensions survive restart",
+          "passed": true,
+          "evidence": {
+            "before": [
+              1636,
+              722
+            ],
+            "after": [
+              1636,
+              722
+            ]
+          }
+        }
+      ],
+      "passed": 16,
+      "total": 16
+    },
+    {
+      "suite": "verification-input-layout-035.json",
+      "device": "Xiaomi Pad 6 / Android 14",
+      "checks": [
+        {
+          "test": "PC keys expose small secondary Shift legends",
+          "passed": true,
+          "evidence": {
+            "`": "~",
+            "1": "!",
+            "2": "@",
+            "3": "#",
+            "4": "$",
+            "5": "%",
+            "6": "^",
+            "7": "&",
+            "8": "*",
+            "9": "(",
+            "0": ")",
+            "-": "_",
+            "=": "+",
+            "[": "{",
+            "]": "}",
+            "\\": "|",
+            ";": ":",
+            "'": "\"",
+            ",": "<",
+            ".": ">",
+            "/": "?"
+          }
+        },
+        {
+          "test": "Shift legend matches actual typed symbol",
+          "passed": true,
+          "evidence": "!"
+        },
+        {
+          "test": "Tap chord keeps Shift even when modifier finger lifts first and indices reorder",
+          "passed": true,
+          "evidence": {
+            "text": "A",
+            "state": {
+              "held": [],
+              "latched": [],
+              "activePointers": 0
+            }
+          }
+        },
+        {
+          "test": "Releasing one of two Shift fingers preserves the other",
+          "passed": true,
+          "evidence": "B"
+        },
+        {
+          "test": "Two ordinary touch keys type once each with changing pointer indices",
+          "passed": true,
+          "evidence": "qw"
+        },
+        {
+          "test": "Three-finger Ctrl Alt Space works when both modifiers release first",
+          "passed": true,
+          "evidence": {
+            "actions": [
+              "editor.action.triggerSuggest"
+            ],
+            "pointers": 0
+          }
+        },
+        {
+          "test": "Header mode button switches to Hold and persists preference",
+          "passed": true,
+          "evidence": "hold"
+        },
+        {
+          "test": "Holding a shortcut does not flood completion requests",
+          "passed": true,
+          "evidence": 1
+        },
+        {
+          "test": "Hold mode starts typing on pointer down",
+          "passed": true,
+          "evidence": "a"
+        },
+        {
+          "test": "Held printable key repeats and stops on release",
+          "passed": true,
+          "evidence": 5
+        },
+        {
+          "test": "No extra key after releasing repeated hold",
+          "passed": true,
+          "evidence": 5
+        },
+        {
+          "test": "Hold chord uses independent pointer IDs",
+          "passed": true,
+          "evidence": "A"
+        },
+        {
+          "test": "Held key repeat follows modifiers still physically down",
+          "passed": true,
+          "evidence": "Aaaa"
+        },
+        {
+          "test": "Cancel clears every held pointer and modifier",
+          "passed": true,
+          "evidence": 0
+        },
+        {
+          "test": "Input after canceled chord has no stuck Ctrl",
+          "passed": true,
+          "evidence": "b"
+        },
+        {
+          "test": "Header button also returns to Tap mode",
+          "passed": true,
+          "evidence": "sticky"
+        },
+        {
+          "test": "Keyboard drag does not jump to the remaining finger",
+          "passed": true,
+          "evidence": {
+            "before": [
+              729,
+              129
+            ],
+            "after": [
+              729,
+              129
+            ]
+          }
+        },
+        {
+          "test": "Floating file is aligned after animation without manual resize",
+          "passed": true,
+          "evidence": [
+            {
+              "id": "code-12",
+              "content": {
+                "x": 389.58087158203125,
+                "y": 114.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 114.94117736816406,
+                "right": 1237.5808715820312,
+                "bottom": 486.3896942138672,
+                "left": 389.58087158203125
+              },
+              "native": {
+                "language": "cpp",
+                "indent": 4,
+                "tabWidth": 4,
+                "sideIcons": false,
+                "breakpoints": [
+                  2
+                ],
+                "executionLine": -1,
+                "textOffset": 27.625,
+                "guides": 0,
+                "guideColor": 894325079,
+                "previewRatio": 1,
+                "preview": false,
+                "accessory": {
+                  "visible": false,
+                  "left": 13,
+                  "top": 74,
+                  "width": 2019,
+                  "height": 89
+                },
+                "diagnosticPopup": false,
+                "offsetX": 0,
+                "offsetY": 0,
+                "fontPx": 29.75,
+                "layoutFontPx": 29.75,
+                "rowHeight": 39,
+                "layoutRowHeight": 39,
+                "left": 830,
+                "top": 244,
+                "viewScaleX": 1,
+                "viewScaleY": 1,
+                "maxY": 20,
+                "layoutHeight": 39,
+                "maxX": 0,
+                "layoutWidth": 17,
+                "visible": true,
+                "width": 1798,
+                "height": 787,
+                "innerWidth": 1798,
+                "requestedWidth": 1798,
+                "measuredWidth": 1798,
+                "layoutRequested": false,
+                "innerHeight": 787,
+                "screenX": 830,
+                "screenY": 304,
+                "occlusions": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 413.58087158203125,
+                    "y": 486.33087158203125,
+                    "width": 800.11767578125,
+                    "height": 11,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 378.63970947265625,
+                    "y": 90.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1237.6397094726562,
+                    "y": 90.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 377.58087158203125,
+                    "y": 474.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1225.698486328125,
+                    "y": 474.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  }
+                ],
+                "paneVisible": true,
+                "z": 1
+              },
+              "overlay": {
+                "x": 389.58087158203125,
+                "y": 114.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 114.94117736816406,
+                "right": 1237.5808715820312,
+                "bottom": 486.3896942138672,
+                "left": 389.58087158203125
+              },
+              "scale": 2.125
+            }
+          ]
+        },
+        {
+          "test": "Second touch cannot hijack an active window drag",
+          "passed": true,
+          "evidence": {
+            "before": {
+              "left": 384.58087158203125,
+              "top": 67.94117736816406,
+              "width": 848,
+              "height": 401.4485168457031
+            },
+            "after": {
+              "left": 384.58087158203125,
+              "top": 67.94117736816406,
+              "width": 848,
+              "height": 401.4485168457031
+            }
+          }
+        },
+        {
+          "test": "Held docking preview keeps native code aligned",
+          "passed": true,
+          "evidence": [
+            {
+              "id": "code-12",
+              "content": {
+                "x": 1187.2132568359375,
+                "y": 403.83087158203125,
+                "width": 695,
+                "height": 295.6029357910156,
+                "top": 403.83087158203125,
+                "right": 1882.2132568359375,
+                "bottom": 699.4338073730469,
+                "left": 1187.2132568359375
+              },
+              "native": {
+                "language": "cpp",
+                "indent": 4,
+                "tabWidth": 4,
+                "sideIcons": false,
+                "breakpoints": [
+                  2
+                ],
+                "executionLine": -1,
+                "textOffset": 27.625,
+                "guides": 0,
+                "guideColor": 894325079,
+                "previewRatio": 1,
+                "preview": false,
+                "accessory": {
+                  "visible": false,
+                  "left": 13,
+                  "top": 74,
+                  "width": 2019,
+                  "height": 89
+                },
+                "diagnosticPopup": false,
+                "offsetX": 0,
+                "offsetY": 0,
+                "fontPx": 29.75,
+                "layoutFontPx": 29.75,
+                "rowHeight": 39,
+                "layoutRowHeight": 39,
+                "left": 2525,
+                "top": 858,
+                "viewScaleX": 1,
+                "viewScaleY": 1,
+                "maxY": 20,
+                "layoutHeight": 39,
+                "maxX": 0,
+                "layoutWidth": 17,
+                "visible": true,
+                "width": 1473,
+                "height": 626,
+                "innerWidth": 1473,
+                "requestedWidth": 1473,
+                "measuredWidth": 1473,
+                "layoutRequested": false,
+                "innerHeight": 626,
+                "screenX": 2525,
+                "screenY": 918,
+                "occlusions": [
+                  {
+                    "x": 987.0073852539062,
+                    "y": 42,
+                    "width": 368.2794189453125,
+                    "height": 735.8235473632812,
+                    "paint": true,
+                    "touch": false,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1211.2132568359375,
+                    "y": 699.375,
+                    "width": 647.11767578125,
+                    "height": 11,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1176.2720947265625,
+                    "y": 379.83087158203125,
+                    "width": 11,
+                    "height": 295.6029357910156,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1882.2720947265625,
+                    "y": 379.83087158203125,
+                    "width": 11,
+                    "height": 295.6029357910156,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1175.2132568359375,
+                    "y": 687.433837890625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1870.3309326171875,
+                    "y": 687.433837890625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  }
+                ],
+                "paneVisible": true,
+                "z": 2
+              },
+              "overlay": {
+                "x": 1187.2132568359375,
+                "y": 403.83087158203125,
+                "width": 695,
+                "height": 295.6029357910156,
+                "top": 403.83087158203125,
+                "right": 1882.2132568359375,
+                "bottom": 699.4338073730469,
+                "left": 1187.2132568359375
+              },
+              "scale": 2.125
+            },
+            {
+              "id": "code-13",
+              "content": {
+                "x": 424.58087158203125,
+                "y": 139.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 139.94117736816406,
+                "right": 1272.5808715820312,
+                "bottom": 511.3896942138672,
+                "left": 424.58087158203125
+              },
+              "native": {
+                "language": "cmake",
+                "indent": 4,
+                "tabWidth": 4,
+                "sideIcons": false,
+                "breakpoints": [],
+                "executionLine": -1,
+                "textOffset": 27.625,
+                "guides": 0,
+                "guideColor": 894325079,
+                "previewRatio": 1,
+                "preview": false,
+                "accessory": {
+                  "visible": false,
+                  "left": 13,
+                  "top": 74,
+                  "width": 2019,
+                  "height": 89
+                },
+                "diagnosticPopup": false,
+                "offsetX": 0,
+                "offsetY": 0,
+                "fontPx": 29.75,
+                "layoutFontPx": 29.75,
+                "rowHeight": 39,
+                "layoutRowHeight": 39,
+                "left": 904,
+                "top": 297,
+                "viewScaleX": 1,
+                "viewScaleY": 1,
+                "maxY": 137,
+                "layoutHeight": 156,
+                "maxX": 0,
+                "layoutWidth": 646,
+                "visible": true,
+                "width": 1798,
+                "height": 787,
+                "innerWidth": 1798,
+                "requestedWidth": 1798,
+                "measuredWidth": 1798,
+                "layoutRequested": false,
+                "innerHeight": 787,
+                "screenX": 904,
+                "screenY": 357,
+                "occlusions": [
+                  {
+                    "x": 1179.2720947265625,
+                    "y": 347.88970947265625,
+                    "width": 711,
+                    "height": 359.48529052734375,
+                    "paint": true,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 987.0073852539062,
+                    "y": 42,
+                    "width": 368.2794189453125,
+                    "height": 735.8235473632812,
+                    "paint": true,
+                    "touch": false,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 448.58087158203125,
+                    "y": 511.33087158203125,
+                    "width": 800.11767578125,
+                    "height": 11,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 413.63970947265625,
+                    "y": 115.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1272.6397094726562,
+                    "y": 115.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 412.58087158203125,
+                    "y": 499.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1260.698486328125,
+                    "y": 499.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  }
+                ],
+                "paneVisible": true,
+                "z": 1
+              },
+              "overlay": {
+                "x": 424.58087158203125,
+                "y": 139.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 139.94117736816406,
+                "right": 1272.5808715820312,
+                "bottom": 511.3896942138672,
+                "left": 424.58087158203125
+              },
+              "scale": 2.125
+            }
+          ]
+        },
+        {
+          "test": "Drop target rectangles track the new live layout",
+          "passed": true,
+          "evidence": [
+            {
+              "group": "4",
+              "dx": 0,
+              "dy": 0,
+              "dw": 0,
+              "dh": 0
+            },
+            {
+              "group": "5",
+              "dx": 0,
+              "dy": 0,
+              "dw": 0,
+              "dh": 0
+            },
+            {
+              "group": "6",
+              "dx": 0,
+              "dy": 0,
+              "dw": 0,
+              "dh": 0
+            }
+          ]
+        },
+        {
+          "test": "Released docked file needs no resize to repaint correctly",
+          "passed": true,
+          "evidence": [
+            {
+              "id": "code-12",
+              "content": {
+                "x": 699,
+                "y": 72,
+                "width": 656.2867431640625,
+                "height": 705.8235473632812,
+                "top": 72,
+                "right": 1355.2867431640625,
+                "bottom": 777.8235473632812,
+                "left": 699
+              },
+              "native": {
+                "language": "cpp",
+                "indent": 4,
+                "tabWidth": 4,
+                "sideIcons": false,
+                "breakpoints": [
+                  2
+                ],
+                "executionLine": -1,
+                "textOffset": 27.625,
+                "guides": 0,
+                "guideColor": 894325079,
+                "previewRatio": 1,
+                "preview": false,
+                "accessory": {
+                  "visible": false,
+                  "left": 13,
+                  "top": 74,
+                  "width": 2019,
+                  "height": 89
+                },
+                "diagnosticPopup": false,
+                "offsetX": 0,
+                "offsetY": 0,
+                "fontPx": 29.75,
+                "layoutFontPx": 29.75,
+                "rowHeight": 39,
+                "layoutRowHeight": 39,
+                "left": 1488,
+                "top": 153,
+                "viewScaleX": 1,
+                "viewScaleY": 1,
+                "maxY": 20,
+                "layoutHeight": 39,
+                "maxX": 0,
+                "layoutWidth": 17,
+                "visible": true,
+                "width": 1390,
+                "height": 1498,
+                "innerWidth": 1390,
+                "requestedWidth": 1390,
+                "measuredWidth": 1390,
+                "layoutRequested": false,
+                "innerHeight": 1498,
+                "screenX": 1488,
+                "screenY": 213,
+                "occlusions": [
+                  {
+                    "x": 416.63970947265625,
+                    "y": 84,
+                    "width": 864,
+                    "height": 435.33087158203125,
+                    "paint": true,
+                    "touch": true,
+                    "popup": false
+                  }
+                ],
+                "paneVisible": true,
+                "z": 0
+              },
+              "overlay": {
+                "x": 699,
+                "y": 72,
+                "width": 656.2867431640625,
+                "height": 705.8235473632812,
+                "top": 72,
+                "right": 1355.2867431640625,
+                "bottom": 777.8235473632812,
+                "left": 699
+              },
+              "scale": 2.125
+            },
+            {
+              "id": "code-13",
+              "content": {
+                "x": 424.58087158203125,
+                "y": 139.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 139.94117736816406,
+                "right": 1272.5808715820312,
+                "bottom": 511.3896942138672,
+                "left": 424.58087158203125
+              },
+              "native": {
+                "language": "cmake",
+                "indent": 4,
+                "tabWidth": 4,
+                "sideIcons": false,
+                "breakpoints": [],
+                "executionLine": -1,
+                "textOffset": 27.625,
+                "guides": 0,
+                "guideColor": 894325079,
+                "previewRatio": 1,
+                "preview": false,
+                "accessory": {
+                  "visible": false,
+                  "left": 13,
+                  "top": 74,
+                  "width": 2019,
+                  "height": 89
+                },
+                "diagnosticPopup": false,
+                "offsetX": 0,
+                "offsetY": 0,
+                "fontPx": 29.75,
+                "layoutFontPx": 29.75,
+                "rowHeight": 39,
+                "layoutRowHeight": 39,
+                "left": 904,
+                "top": 297,
+                "viewScaleX": 1,
+                "viewScaleY": 1,
+                "maxY": 137,
+                "layoutHeight": 156,
+                "maxX": 0,
+                "layoutWidth": 646,
+                "visible": true,
+                "width": 1798,
+                "height": 787,
+                "innerWidth": 1798,
+                "requestedWidth": 1798,
+                "measuredWidth": 1798,
+                "layoutRequested": false,
+                "innerHeight": 787,
+                "screenX": 904,
+                "screenY": 357,
+                "occlusions": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 448.58087158203125,
+                    "y": 511.33087158203125,
+                    "width": 800.11767578125,
+                    "height": 11,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 413.63970947265625,
+                    "y": 115.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1272.6397094726562,
+                    "y": 115.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 412.58087158203125,
+                    "y": 499.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1260.698486328125,
+                    "y": 499.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  }
+                ],
+                "paneVisible": true,
+                "z": 1
+              },
+              "overlay": {
+                "x": 424.58087158203125,
+                "y": 139.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 139.94117736816406,
+                "right": 1272.5808715820312,
+                "bottom": 511.3896942138672,
+                "left": 424.58087158203125
+              },
+              "scale": 2.125
+            }
+          ]
+        },
+        {
+          "test": "Next drag can join the newly relocated window at its current header",
+          "passed": true,
+          "evidence": [
+            "code-12",
+            "editor"
+          ]
+        },
+        {
+          "test": "Joining tabs settles all native viewports and overlays",
+          "passed": true,
+          "evidence": [
+            {
+              "id": "primary",
+              "content": {
+                "x": 699,
+                "y": 72,
+                "width": 656.2867431640625,
+                "height": 705.8235473632812,
+                "top": 72,
+                "right": 1355.2867431640625,
+                "bottom": 777.8235473632812,
+                "left": 699
+              },
+              "native": {
+                "language": "json",
+                "indent": 4,
+                "tabWidth": 4,
+                "sideIcons": false,
+                "breakpoints": [],
+                "executionLine": -1,
+                "textOffset": 44.625,
+                "guides": 8,
+                "guideColor": 894325079,
+                "previewRatio": 1,
+                "preview": false,
+                "accessory": {
+                  "visible": false,
+                  "left": 13,
+                  "top": 74,
+                  "width": 2019,
+                  "height": 89
+                },
+                "diagnosticPopup": false,
+                "offsetX": 0,
+                "offsetY": 0,
+                "fontPx": 29.75,
+                "layoutFontPx": 29.75,
+                "rowHeight": 39,
+                "layoutRowHeight": 39,
+                "left": 1488,
+                "top": 153,
+                "viewScaleX": 1,
+                "viewScaleY": 1,
+                "maxY": 2867,
+                "layoutHeight": 2886,
+                "maxX": 131,
+                "layoutWidth": 782,
+                "visible": true,
+                "width": 1390,
+                "height": 1498,
+                "innerWidth": 1390,
+                "requestedWidth": 1390,
+                "measuredWidth": 1390,
+                "layoutRequested": false,
+                "innerHeight": 1498,
+                "screenX": 1488,
+                "screenY": 213,
+                "occlusions": [
+                  {
+                    "x": 416.63970947265625,
+                    "y": 84,
+                    "width": 864,
+                    "height": 435.33087158203125,
+                    "paint": true,
+                    "touch": true,
+                    "popup": false
+                  }
+                ],
+                "paneVisible": true,
+                "z": 0
+              },
+              "overlay": {
+                "x": 699,
+                "y": 72,
+                "width": 656.2867431640625,
+                "height": 705.8235473632812,
+                "top": 72,
+                "right": 1355.2867431640625,
+                "bottom": 777.8235473632812,
+                "left": 699
+              },
+              "scale": 2.125
+            },
+            {
+              "id": "code-13",
+              "content": {
+                "x": 424.58087158203125,
+                "y": 139.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 139.94117736816406,
+                "right": 1272.5808715820312,
+                "bottom": 511.3896942138672,
+                "left": 424.58087158203125
+              },
+              "native": {
+                "language": "cmake",
+                "indent": 4,
+                "tabWidth": 4,
+                "sideIcons": false,
+                "breakpoints": [],
+                "executionLine": -1,
+                "textOffset": 27.625,
+                "guides": 0,
+                "guideColor": 894325079,
+                "previewRatio": 1,
+                "preview": false,
+                "accessory": {
+                  "visible": false,
+                  "left": 13,
+                  "top": 74,
+                  "width": 2019,
+                  "height": 89
+                },
+                "diagnosticPopup": false,
+                "offsetX": 0,
+                "offsetY": 0,
+                "fontPx": 29.75,
+                "layoutFontPx": 29.75,
+                "rowHeight": 39,
+                "layoutRowHeight": 39,
+                "left": 904,
+                "top": 297,
+                "viewScaleX": 1,
+                "viewScaleY": 1,
+                "maxY": 137,
+                "layoutHeight": 156,
+                "maxX": 0,
+                "layoutWidth": 646,
+                "visible": true,
+                "width": 1798,
+                "height": 787,
+                "innerWidth": 1798,
+                "requestedWidth": 1798,
+                "measuredWidth": 1798,
+                "layoutRequested": false,
+                "innerHeight": 787,
+                "screenX": 904,
+                "screenY": 357,
+                "occlusions": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 448.58087158203125,
+                    "y": 511.33087158203125,
+                    "width": 800.11767578125,
+                    "height": 11,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 413.63970947265625,
+                    "y": 115.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1272.6397094726562,
+                    "y": 115.94117736816406,
+                    "width": 11,
+                    "height": 371.4485168457031,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 412.58087158203125,
+                    "y": 499.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  },
+                  {
+                    "x": 1260.698486328125,
+                    "y": 499.38970947265625,
+                    "width": 24,
+                    "height": 24,
+                    "paint": false,
+                    "touch": true,
+                    "popup": false
+                  }
+                ],
+                "paneVisible": true,
+                "z": 1
+              },
+              "overlay": {
+                "x": 424.58087158203125,
+                "y": 139.94117736816406,
+                "width": 848,
+                "height": 371.4485168457031,
+                "top": 139.94117736816406,
+                "right": 1272.5808715820312,
+                "bottom": 511.3896942138672,
+                "left": 424.58087158203125
+              },
+              "scale": 2.125
+            }
+          ]
+        }
+      ],
+      "passed": 24,
+      "total": 24
+    },
+    {
+      "suite": "verification-analysis-035.json",
+      "checks": [
+        {
+          "test": "Actual native diagnostics and grey unused spans before formatting",
+          "passed": true,
+          "evidence": {
+            "revision": 1,
+            "analysisRevision": 1,
+            "documentVersion": 3,
+            "stylesCurrent": true,
+            "diagnostics": 2,
+            "unused": 2,
+            "paintedUnused": 2,
+            "semantic": 2,
+            "length": 115
+          }
+        },
+        {
+          "test": "Whole-document formatting retains actual native underlines and grey spans",
+          "passed": true,
+          "evidence": {
+            "revision": 2,
+            "analysisRevision": 2,
+            "documentVersion": 4,
+            "stylesCurrent": true,
+            "diagnostics": 2,
+            "unused": 2,
+            "paintedUnused": 2,
+            "semantic": 2,
+            "length": 136
+          }
+        },
+        {
+          "test": "Formatting cursor stays near original code instead of document end",
+          "passed": true,
+          "evidence": {
+            "position": {
+              "lineNumber": 7,
+              "column": 5
+            },
+            "line": "    return 0;",
+            "end": 9
+          }
+        },
+        {
+          "test": "Native undo restores current diagnostic spans",
+          "passed": true,
+          "evidence": {
+            "revision": 4,
+            "analysisRevision": 4,
+            "documentVersion": 6,
+            "stylesCurrent": true,
+            "diagnostics": 2,
+            "unused": 2,
+            "paintedUnused": 2,
+            "semantic": 2,
+            "length": 115
+          }
+        },
+        {
+          "test": "Native redo refreshes current diagnostic spans",
+          "passed": true,
+          "evidence": {
+            "revision": 6,
+            "analysisRevision": 6,
+            "documentVersion": 8,
+            "stylesCurrent": true,
+            "diagnostics": 2,
+            "unused": 2,
+            "paintedUnused": 2,
+            "semantic": 2,
+            "length": 136
+          }
+        },
+        {
+          "test": "Repeated CMake/C++ tab changes retain diagnostics and actual grey paint",
+          "passed": true,
+          "evidence": {
+            "revision": 6,
+            "analysisRevision": 6,
+            "documentVersion": 8,
+            "stylesCurrent": true,
+            "diagnostics": 2,
+            "unused": 2,
+            "paintedUnused": 2,
+            "semantic": 2,
+            "length": 136
+          }
+        },
+        {
+          "test": "A new unknown function is diagnosed after formatting and previous tab changes",
+          "passed": true,
+          "evidence": {
+            "native": {
+              "revision": 7,
+              "analysisRevision": 7,
+              "documentVersion": 9,
+              "stylesCurrent": true,
+              "diagnostics": 1,
+              "unused": 0,
+              "paintedUnused": 0,
+              "semantic": 2,
+              "length": 158
+            },
+            "errors": [
+              "Use of undeclared identifier 'missing_compact_probe'"
+            ]
+          }
+        },
+        {
+          "test": "Fixing an error after formatting clears obsolete native diagnostics",
+          "passed": true,
+          "evidence": {
+            "revision": 8,
+            "analysisRevision": 8,
+            "documentVersion": 10,
+            "stylesCurrent": true,
+            "diagnostics": 2,
+            "unused": 2,
+            "paintedUnused": 2,
+            "semantic": 2,
+            "length": 136
+          }
+        },
+        {
+          "test": "Formatting an already formatted document avoids a no-op revision",
+          "passed": true,
+          "evidence": {
+            "before": 9,
+            "after": 9
+          }
+        },
+        {
+          "test": "Late formatting of previous tab preserves current CMake focus and formatted buffer",
+          "passed": true,
+          "evidence": {
+            "retained": true,
+            "text": "static int unused_function() {\n    return 1;\n}\nint main() {\n    int unused_variable = 2;\n    return 0;\n}\n",
+            "native": "static int unused_function() {\n    return 1;\n}\nint main() {\n    int unused_variable = 2;\n    return 0;\n}\n"
+          }
+        },
+        {
+          "test": "Returning to a background-formatted file restores grey spans",
+          "passed": true,
+          "evidence": {
+            "revision": 10,
+            "analysisRevision": 10,
+            "documentVersion": 12,
+            "stylesCurrent": true,
+            "diagnostics": 2,
+            "unused": 2,
+            "paintedUnused": 2,
+            "semantic": 2,
+            "length": 105
+          }
+        }
+      ],
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "suite": "verification-native-debugger.json",
+      "results": [
+        {
+          "test": "GCC builds an isolated source with debug symbols",
+          "passed": true,
+          "evidence": {
+            "code": 0,
+            "executable": "/data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028/.forge/bin/program",
+            "exists": true,
+            "id": "native-debug-build"
+          }
+        },
+        {
+          "test": "GDB stops at main with native execution decoration",
+          "passed": true,
+          "evidence": {
+            "frame": {
+              "level": "0",
+              "addr": "0x00000062cc3726a4",
+              "func": "main",
+              "file": "/data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028/main.cpp",
+              "fullname": "/data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028/main.cpp",
+              "line": "2",
+              "arch": "aarch64"
+            },
+            "execution": {
+              "uri": "file:///data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028/main.cpp",
+              "line": 2
+            },
+            "breakpoints": [
+              3
+            ]
+          }
+        },
+        {
+          "test": "Native breakpoint stops at source line and reads value",
+          "passed": true,
+          "evidence": {
+            "value": "5",
+            "line": "3"
+          }
+        },
+        {
+          "test": "Step over updates the actual inferior and native execution line",
+          "passed": true,
+          "evidence": {
+            "value": "7",
+            "execution": {
+              "uri": "file:///data/user/0/com.forgex/files/projects/input-check-onboarding-041-20261028/main.cpp",
+              "line": 4
+            }
+          }
+        },
+        {
+          "test": "Stopping debugger clears obsolete stack, locals and execution marker",
+          "passed": true,
+          "evidence": {
+            "active": false,
+            "stack": 0,
+            "variables": 0,
+            "execution": null
+          }
+        }
+      ],
+      "passed": 5,
+      "total": 5
+    }
+  ]
+}

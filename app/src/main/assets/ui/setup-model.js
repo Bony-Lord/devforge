@@ -1,0 +1,18 @@
+/* Language-neutral onboarding planner. UI, native downloads and providers are adapters. */
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./addon-core.js'):root.StudioAddonCore,typeof module==="object"&&module.exports?require("./addon-selection-model.js"):root.StudioAddonSelection);if(typeof module==='object'&&module.exports)module.exports=api;else root.StudioSetupModel=api;})(globalThis,(core,selection)=>{
+  'use strict';
+  const reserved=new Set(['setupComplete','setupDismissed','setupDraft','setupVersion','language','uiScale','keepAwake','layout','dockWindows','addons','__proto__','prototype','constructor']);
+  function required(settings){return !!settings.setupDraft||!settings.setupComplete&&!settings.setupDismissed;}
+  function requestId(request){return typeof request==='string'?request:request.id;}
+  function fields(definitions,resolved){const selected=new Set(resolved.map(m=>m.id)),seen=new Set(),result=[];for(const definition of definitions){if(!selected.has(definition.manifest.id))continue;for(const contribution of definition.contributions){if(contribution.point!=='setupFields')continue;const f=contribution.value;if(!f||typeof f.key!=='string'||!/^[A-Za-z][A-Za-z0-9_.]{0,79}$/.test(f.key)||reserved.has(f.key)||seen.has(f.key)||!['choice','number','toggle','text'].includes(f.type))throw Error('Invalid setup field');seen.add(f.key);if(f.type==='choice'&&(!Array.isArray(f.options)||!f.options.length||f.options.length>100))throw Error('Invalid setup choices');result.push({...f,owner:definition.manifest.id});}}return result;}
+  function plan(catalog,requested,runtimes,definitions=[]){const resolved=core.resolve(catalog,requested),ids=new Set(resolved.map(m=>m.nativePack).filter(Boolean)),downloads=runtimes.filter(p=>ids.has(p.id)&&!p.installed);return{requested:requested.map(r=>typeof r==='string'?{id:r}:structuredClone(r)),resolved,downloads,bytes:downloads.reduce((n,p)=>n+p.bytes,0),fields:fields(definitions,resolved)};}
+  function toggle(catalog,requested,id,checked){const manifest=catalog.find(m=>m.id===id);if(!manifest)throw Error("Unknown addon");return selection.toggle(catalog,requested,manifest,checked);}
+  function manual(catalog,requested){return selection.manual(catalog,requested);}
+  function value(field,input){if(field.type==='toggle')return !!input;if(field.type==='number'){const n=Number(input);if(!Number.isFinite(n)||n<(field.min??-1e6)||n>(field.max??1e6))throw Error('Invalid value: '+field.key);return n;}if(field.type==='choice'){if(!field.options.some(o=>String(typeof o==='object'?o.value:o)===String(input)))throw Error('Invalid choice: '+field.key);return typeof field.default==='number'?Number(input):String(input);}if(typeof input!=='string'||input.length>(field.maxLength||256))throw Error('Invalid text: '+field.key);return input;}
+  function initial({saved,profile=[],settings={},presets=[]}){
+    const recommended=presets.find(p=>p.recommended)||presets[0]||{id:'core',requested:[]};
+    if(saved?.schemaVersion===2&&Array.isArray(saved.requested)&&saved.requested.length<=128&&saved.values&&typeof saved.values==='object'&&!Array.isArray(saved.values))return {...saved,requested:structuredClone(saved.requested),step:Math.max(0,Math.min(3,Number(saved.step)||0)),values:{...saved.values}};
+    const existing=profile.length>0||settings.setupComplete||settings.setupDismissed;return {schemaVersion:2,mode:existing?'custom':recommended.id,requested:existing?structuredClone(profile):structuredClone(recommended.requested),values:{language:settings.language||'en',uiScale:settings.uiScale||100,keepAwake:settings.keepAwake!==false},step:0};
+  }
+  return Object.freeze({required,plan,fields,toggle,manual,value,initial,requestId});
+});

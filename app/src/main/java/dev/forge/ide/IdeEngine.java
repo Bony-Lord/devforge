@@ -29,17 +29,24 @@ final class IdeEngine {
     volatile boolean buildCancelled;
     volatile String runId="";
     volatile boolean closed;
+    final Object workspaceTrustLock=new Object();
+    final ThreadLocal<Boolean> projectExecution=new ThreadLocal<>();
+    final Set<Process> projectProcesses=new HashSet<>();
 
     IdeEngine(MainActivity a)throws Exception {
         app=a;version=a.getPackageManager().getPackageInfo(a.getPackageName(),0).versionName;projects=new File(a.getFilesDir(),"projects");usr=new File(a.getFilesDir(),"usr");tmp=new File(a.getFilesDir(),"tmp");
         projects.mkdirs();tmp.mkdirs();
         prefs=a.getSharedPreferences("forge",0);workspace=new WorkspaceFiles(this);languages=new LanguageTools(this);
-        if(!new File(projects,"hello-cpp").exists()) createProject("hello-cpp","cpp");
+        if(!new File(projects,"hello-cpp").exists()){createProject("hello-cpp","cpp");prefs.edit().putBoolean("trustedWorkspace:"+project("hello-cpp").getCanonicalPath(),true).commit();}
         currentProject=prefs.getString("project","hello-cpp");
         if(!project(currentProject).isDirectory())currentProject="hello-cpp";
         tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
+        boolean executes=WorkspaceTrustPolicy.executesProject(op);if(executes)requireWorkspaceTrust();projectExecution.set(executes);
+        try{return handleOperation(op,data);}finally{projectExecution.remove();}
+    }
+    Object handleOperation(String op,JSONObject data)throws Exception {
         JSONObject d=data==null?new JSONObject():data;
         if(op.equals("history"))addons.require("studio.local-history");
         if(op.equals("git"))addons.require("studio.git");
@@ -64,13 +71,16 @@ final class IdeEngine {
             case "addonBegin":return addons.begin(d);
             case "addonFinish":return addons.finish(d.getString("token"),d.getBoolean("commit"));
             case "addonImport":app.importAddon();return true;
+            case "addonDownload":{AddonDownload.Result result=AddonDownload.fetch(d.getString("url"),d.optString("sha256"));AddonPackages.pack(new JSONObject(result.text));return new JSONObject().put("text",result.text).put("sha256",result.sha256).put("url",result.url);}
             case "addonExport":app.exportAddon(d.getJSONObject("package"));return true;
+            case "workspaceTrust":return workspaceTrust();
+            case "workspaceTrustSet":{boolean trusted=d.getBoolean("trusted");synchronized(workspaceTrustLock){if(!prefs.edit().putBoolean(trustKey(),trusted).commit())throw new IOException("Cannot save workspace trust");if(!trusted){for(Process p:projectProcesses)if(p.isAlive())p.destroyForcibly();projectProcesses.clear();}}if(!trusted){stopLsp();stopExecution();}return workspaceTrust();}
             case "project": {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
                 stopLsp();currentProject=name;prefs.edit().putString("project",name).apply();return state();
             }
-            case "newProject":createProject(d.getString("name"),d.optString("language","cpp"));return state();
+            case "newProject":{String name=d.getString("name");createProject(name,d.optString("language","cpp"));prefs.edit().putBoolean("trustedWorkspace:"+project(name).getCanonicalPath(),true).commit();return state();}
             case "tree":return tree(project(currentProject),0);
             case "browseFilesystem":return workspace.browse(d);
             case "openFolder":return workspace.open(d);
@@ -121,7 +131,7 @@ final class IdeEngine {
                 File histories=new File(dataDir,"history");File[] records=histories.listFiles();if(records!=null)for(File record:records)try{String oldPath=new String(android.util.Base64.decode(record.getName(),android.util.Base64.URL_SAFE),StandardCharsets.UTF_8);if(oldPath.equals(from.getAbsolutePath())||oldPath.startsWith(from.getAbsolutePath()+"/")){File target=historyDir(new File(to.getAbsolutePath()+oldPath.substring(from.getAbsolutePath().length())));target.mkdirs();File[] versions=record.listFiles();if(versions!=null)for(File version:versions){File moved=new File(target,version.getName());if(moved.exists())moved=new File(target,version.getName()+"-moved-"+UUID.randomUUID());Files.move(version.toPath(),moved.toPath());}Files.deleteIfExists(record.toPath());}}catch(Exception metadataError){android.util.Log.w("Studio","Retained previous history location",metadataError);}
                 return to.getAbsolutePath();
             }
-            case "reportBug":{android.net.Uri uri=android.net.Uri.parse("https://github.com/Bony-Lord/gcc-cpp-studio/issues/new").buildUpon().appendQueryParameter("template","bug_report.yml").appendQueryParameter("version",version).appendQueryParameter("device",Build.MANUFACTURER+" "+Build.MODEL).appendQueryParameter("android",Build.VERSION.RELEASE+" / API "+Build.VERSION.SDK_INT).build();app.ui.post(()->{try{app.startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,uri));}catch(android.content.ActivityNotFoundException e){app.event("toast",JSONObject.quote(uri.toString()));}});return uri.toString();}
+            case "reportBug":{android.net.Uri uri=android.net.Uri.parse("https://github.com/Bony-Lord/devforge/issues/new").buildUpon().appendQueryParameter("template","bug_report.yml").appendQueryParameter("version",version).appendQueryParameter("device",Build.MANUFACTURER+" "+Build.MODEL).appendQueryParameter("android",Build.VERSION.RELEASE+" / API "+Build.VERSION.SDK_INT).build();app.ui.post(()->{try{app.startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,uri));}catch(android.content.ActivityNotFoundException e){app.event("toast",JSONObject.quote(uri.toString()));}});return uri.toString();}
             case "renameFile": {
                 File from=writablePath(d.getString("path")),to=writablePath(d.getString("to"));
                 if(!inside(to,project(currentProject)))throw new IOException("Выберите путь внутри проекта");
@@ -170,8 +180,12 @@ final class IdeEngine {
         JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
         return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",workspace.isExternal()).put("cache",workspace.data().getAbsolutePath()).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
             .put("usr",usr.getAbsolutePath()).put("tree",tree(project(currentProject),0)).put("settings",new JSONObject(prefs.getString("settings","{}")))
-            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version);
+            .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version).put("trust",workspaceTrust());
     }
+    String trustKey()throws IOException{return "trustedWorkspace:"+project(currentProject).getCanonicalPath();}
+    boolean workspaceTrusted()throws IOException{return prefs.getBoolean(trustKey(),false);}
+    JSONObject workspaceTrust()throws Exception{return new JSONObject().put("trusted",workspaceTrusted()).put("root",project(currentProject).getCanonicalPath());}
+    void requireWorkspaceTrust()throws IOException{if(!workspaceTrusted())throw new IOException("WORKSPACE_UNTRUSTED: Trust this folder before executing project tools");}
     File project(String name)throws IOException {
         File external=workspace.external(name);if(external!=null)return external;
         if(!name.matches("[a-zA-Z0-9_ .()-]{1,80}")||name.equals(".")||name.equals(".."))throw new IOException("Имя проекта: латиница, цифры, пробел, дефис");
@@ -182,7 +196,7 @@ final class IdeEngine {
         File p=newProjectDir(name);
         if(lang.equals("empty")){JSONObject config=BuildProfiles.defaults(false);JSONObject manual=config.getJSONArray("configurations").getJSONObject(0);manual.put("id","manual").put("name","Manual").put("type","custom").put("source","").put("target","").put("runCommand",new JSONArray()).put("buildCommands",new JSONArray());config.put("active","manual").put("configurations",new JSONArray().put(manual)).put("projectType","empty");File settings=new File(p,".cpp-studio/configurations.json");settings.getParentFile().mkdirs();Files.write(settings.toPath(),config.toString(2).getBytes(StandardCharsets.UTF_8));return;}
         boolean c=lang.equals("c");
-        String source=c?"#include <stdio.h>\n\nint main(void) {\n    printf(\"Hello from C++ Studio!\\n\");\n    return 0;\n}\n":"#include <iostream>\n#include <vector>\n#include <numeric>\n\nint main() {\n    std::vector<int> numbers{1, 2, 3, 4, 5};\n    const auto sum = std::accumulate(numbers.begin(), numbers.end(), 0);\n    std::cout << \"Hello from C++ Studio!\\n\";\n    std::cout << \"Sum = \" << sum << '\\n';\n    return 0;\n}\n";
+        String source=c?"#include <stdio.h>\n\nint main(void) {\n    printf(\"Hello from DevForge!\\n\");\n    return 0;\n}\n":"#include <iostream>\n#include <vector>\n#include <numeric>\n\nint main() {\n    std::vector<int> numbers{1, 2, 3, 4, 5};\n    const auto sum = std::accumulate(numbers.begin(), numbers.end(), 0);\n    std::cout << \"Hello from DevForge!\\n\";\n    std::cout << \"Sum = \" << sum << '\\n';\n    return 0;\n}\n";
         Files.write(new File(p,c?"main.c":"main.cpp").toPath(),source.getBytes(StandardCharsets.UTF_8));
         String cmake="cmake_minimum_required(VERSION 3.16)\nproject(forge_project LANGUAGES "+(c?"C":"CXX")+")\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable(app "+(c?"main.c":"main.cpp")+")\n";
         Files.write(new File(p,"CMakeLists.txt").toPath(),cmake.getBytes(StandardCharsets.UTF_8));
@@ -262,7 +276,8 @@ final class IdeEngine {
         env.put("PYTHONHOME",usr.getAbsolutePath());env.put("GUILE_AUTO_COMPILE","0");env.put("GIT_TERMINAL_PROMPT","0");env.put("GIT_CONFIG_NOSYSTEM","1");env.put("GIT_PAGER","cat");env.put("LANG","C.UTF-8");env.put("LC_ALL","C.UTF-8");env.put("TERM","dumb");env.put("CMAKE_ROOT",new File(usr,"share/cmake-4.4").getAbsolutePath());
         // Compiler subprocesses inherit our library path and TMPDIR. No global device changes.
         env.putAll(customEnvironment);
-        return pb.start();
+        if(!Boolean.TRUE.equals(projectExecution.get()))return pb.start();
+        synchronized(workspaceTrustLock){requireWorkspaceTrust();projectProcesses.removeIf(p->!p.isAlive());Process process=pb.start();projectProcesses.add(process);return process;}
     }
     String bin(String name){return new File(usr,"bin/"+name).getAbsolutePath();}
     String version(String name)throws Exception {

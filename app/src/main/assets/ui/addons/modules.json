@@ -44,16 +44,17 @@
         "maxExclusive": "0.2.0"
       },
       "name": {
-        "ru": "Клавиатура C++ Studio",
-        "en": "C++ Studio keyboard"
+        "ru": "Клавиатура DevForge",
+        "en": "DevForge keyboard"
       },
       "description": {
-        "ru": "Клавиатура C++ Studio",
-        "en": "C++ Studio keyboard"
+        "ru": "Клавиатура DevForge",
+        "en": "DevForge keyboard"
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {},
       "conflicts": {},
@@ -65,6 +66,93 @@
         "id": "studio.keyboard/0",
         "value": {
           "id": "keyboard"
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.keyboard/setup/keyboardPrimary",
+        "value": {
+          "key": "keyboardPrimary",
+          "type": "choice",
+          "default": "floating",
+          "label": {
+            "ru": "Основная клавиатура",
+            "en": "Primary keyboard"
+          },
+          "options": [
+            {
+              "value": "floating",
+              "label": {
+                "ru": "Клавиатура DevForge",
+                "en": "DevForge keyboard"
+              }
+            },
+            {
+              "value": "system",
+              "label": {
+                "ru": "Системная",
+                "en": "System"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.keyboard/setup/keyboardLayout",
+        "value": {
+          "key": "keyboardLayout",
+          "type": "choice",
+          "default": "pc",
+          "label": {
+            "ru": "Раскладка клавиатуры",
+            "en": "Keyboard layout"
+          },
+          "options": [
+            {
+              "value": "pc",
+              "label": {
+                "ru": "Полная PC",
+                "en": "Full PC"
+              }
+            },
+            {
+              "value": "android",
+              "label": {
+                "ru": "Компактная",
+                "en": "Compact"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.keyboard/setup/keyboardModifiers",
+        "value": {
+          "key": "keyboardModifiers",
+          "type": "choice",
+          "default": "sticky",
+          "label": {
+            "ru": "Модификаторы",
+            "en": "Modifiers"
+          },
+          "options": [
+            {
+              "value": "sticky",
+              "label": {
+                "ru": "Закреплять на следующее нажатие",
+                "en": "Latch for next key"
+              }
+            },
+            {
+              "value": "hold",
+              "label": {
+                "ru": "Удерживать пальцем",
+                "en": "Hold"
+              }
+            }
+          ]
         }
       }
     ]
@@ -168,7 +256,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {
         "studio.tool.analysis": {
@@ -185,6 +274,36 @@
         "id": "studio.formatter/0",
         "value": {
           "id": "formatter"
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.formatter/setup/formatterPreset",
+        "value": {
+          "key": "formatterPreset",
+          "type": "choice",
+          "default": "studio",
+          "label": {
+            "ru": "Профиль форматтера",
+            "en": "Formatter preset"
+          },
+          "options": [
+            {
+              "value": "studio",
+              "label": "DevForge"
+            },
+            {
+              "value": "clion",
+              "label": "CLion"
+            },
+            "Google",
+            "LLVM",
+            "Chromium",
+            "Mozilla",
+            "WebKit",
+            "Microsoft",
+            "GNU"
+          ]
         }
       }
     ]
@@ -248,7 +367,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "editor.languages"
+        "editor.languages",
+        "settings.fields"
       ],
       "dependencies": {},
       "conflicts": {},
@@ -263,7 +383,10 @@
           "extensions": [
             ".c"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.c"
+          ]
         }
       },
       {
@@ -274,7 +397,12 @@
           "extensions": [
             ".C"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
         }
       },
       {
@@ -285,7 +413,12 @@
           "extensions": [
             ".cpp"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
         }
       },
       {
@@ -296,7 +429,12 @@
           "extensions": [
             ".cc"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
         }
       },
       {
@@ -307,7 +445,12 @@
           "extensions": [
             ".cxx"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
         }
       },
       {
@@ -318,7 +461,12 @@
           "extensions": [
             ".h"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
         }
       },
       {
@@ -329,7 +477,12 @@
           "extensions": [
             ".hpp"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
         }
       },
       {
@@ -340,7 +493,12 @@
           "extensions": [
             ".hh"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
         }
       },
       {
@@ -351,7 +509,118 @@
           "extensions": [
             ".hxx"
           ],
-          "filenames": []
+          "filenames": [],
+          "entryFiles": [
+            "main.cpp",
+            "main.cc",
+            "main.cxx"
+          ]
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.language.cpp/setup/cppStandard",
+        "value": {
+          "key": "cppStandard",
+          "type": "choice",
+          "default": "c++20",
+          "label": {
+            "ru": "Стандарт C++",
+            "en": "C++ standard"
+          },
+          "options": [
+            {
+              "value": "c++98",
+              "label": "C++98"
+            },
+            {
+              "value": "c++03",
+              "label": "C++03"
+            },
+            {
+              "value": "c++11",
+              "label": "C++11"
+            },
+            {
+              "value": "c++14",
+              "label": "C++14"
+            },
+            {
+              "value": "c++17",
+              "label": "C++17"
+            },
+            {
+              "value": "c++20",
+              "label": "C++20"
+            },
+            {
+              "value": "c++23",
+              "label": "C++23"
+            },
+            {
+              "value": "c++26",
+              "label": "C++26"
+            },
+            {
+              "value": "gnu++17",
+              "label": "GNU C++17"
+            },
+            {
+              "value": "gnu++20",
+              "label": "GNU C++20"
+            },
+            {
+              "value": "gnu++23",
+              "label": "GNU C++23"
+            }
+          ]
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.language.cpp/setup/cStandard",
+        "value": {
+          "key": "cStandard",
+          "type": "choice",
+          "default": "c17",
+          "label": {
+            "ru": "Стандарт C",
+            "en": "C standard"
+          },
+          "options": [
+            {
+              "value": "c89",
+              "label": "C89"
+            },
+            {
+              "value": "c99",
+              "label": "C99"
+            },
+            {
+              "value": "c11",
+              "label": "C11"
+            },
+            {
+              "value": "c17",
+              "label": "C17"
+            },
+            {
+              "value": "c23",
+              "label": "C23"
+            },
+            {
+              "value": "gnu11",
+              "label": "GNU C11"
+            },
+            {
+              "value": "gnu17",
+              "label": "GNU C17"
+            },
+            {
+              "value": "gnu23",
+              "label": "GNU C23"
+            }
+          ]
         }
       }
     ]
@@ -1110,7 +1379,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {},
       "conflicts": {},
@@ -1123,6 +1393,57 @@
         "id": "studio.smart-typing/service",
         "value": {
           "id": "smartTyping"
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.smart-typing/setup/indentMode",
+        "value": {
+          "key": "indentMode",
+          "type": "choice",
+          "default": "spaces",
+          "label": {
+            "ru": "Отступы",
+            "en": "Indentation"
+          },
+          "options": [
+            {
+              "value": "spaces",
+              "label": {
+                "ru": "Пробелы",
+                "en": "Spaces"
+              }
+            },
+            {
+              "value": "tabs",
+              "label": {
+                "ru": "Табы",
+                "en": "Tabs"
+              }
+            },
+            {
+              "value": "formatter",
+              "label": {
+                "ru": "Из форматтера",
+                "en": "From formatter"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "point": "setupFields",
+        "id": "studio.smart-typing/setup/indentWidth",
+        "value": {
+          "key": "indentWidth",
+          "type": "number",
+          "default": 4,
+          "min": 1,
+          "max": 16,
+          "label": {
+            "ru": "Размер отступа",
+            "en": "Indent size"
+          }
         }
       }
     ]

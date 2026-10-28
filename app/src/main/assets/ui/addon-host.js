@@ -8,13 +8,14 @@ class StudioAddonHost {
     for(const [method,mapping]of Object.entries({showSide:{git:'git',outline:'outline',search:'projectSearch'},showPanel:{terminal:'terminal',console:'console',debug:'debugger',problems:'diagnostics'}})){const original=app[method];if(typeof original==='function')app[method]=(...args)=>{const feature=mapping[args[0]];if(feature&&this.lastFeatures&&!this.enabled(feature))return;return original.apply(app,args);};}
     for(const [feature,names]of Object.entries({git:['showGit','refreshGit','openCommit','gitCommit','gitBranches','gitLog','gitClone','gitDiff'],debugger:['debugBuild'],formatter:['formatCurrentDocument','openFormatterSettings'],history:['history'],find:['openNativeFind'],palette:['quick'],projectSearch:['searchFiles'],outline:['updateOutline'],split:['splitEditor'],terminal:['shell'],fileTemplates:['offerCreatedSource']}))for(const name of names)guard(name,feature);
   }
-  async load(){const [response,tools]=await Promise.all([fetch('addons/modules.json'),native('toolPacks')]);if(!response.ok)throw Error('Cannot load host addon definitions');this.definitions=await response.json();this.toolState=tools;const entries=this.definitions.map(d=>({manifest:StudioAddonCore.manifest(d.manifest),activate:ctx=>{for(const c of d.contributions)ctx.contribute(c.point,c.id,c.value);}}));
+  async load(){const [response,tools,compositions]=await Promise.all([fetch('addons/modules.json'),native('toolPacks'),fetch('addons/compositions.json')]);if(!compositions.ok)throw Error('Cannot load compositions');this.compositions=await compositions.json();if(!response.ok)throw Error('Cannot load host addon definitions');this.definitions=await response.json();this.toolState=tools;const entries=this.definitions.map(d=>({manifest:StudioAddonCore.manifest(d.manifest),activate:ctx=>{for(const c of d.contributions)ctx.contribute(c.point,c.id,c.value);}}));
     for(const pack of tools.packs){const id='studio.tool.'+pack.id,cap='tools.runtime';entries.push({manifest:{schemaVersion:1,id,version:'1.0.0',api:{min:'0.1.1',maxExclusive:'0.2.0'},name:{ru:pack.name,en:({analysis:'Clangd and clang-format',platform:'C/C++ platform libraries',cmake:'CMake and Ninja',debugger:'GDB debugger',clang:'Clang compiler'})[pack.id]||pack.name},description:{ru:pack.description,en:pack.id+' native runtime'},license:'See tool licenses',capabilities:[cap],dependencies:Object.fromEntries(pack.requires.map(id=>['studio.tool.'+id,{min:'1.0.0',maxExclusive:'2.0.0'}])),conflicts:{},kind:'runtime',nativePack:pack.id},activate:ctx=>{if(!this.toolState.packs.find(p=>p.id===pack.id)?.installed)throw Error(this.addons.text('Сначала скачайте инструмент: ','Download the tool first: ')+pack.name);ctx.contribute('runtimes',id+'/provider',{id:pack.id});}});}
     return entries;
   }
   enabled(feature){return this.addons.registry.list('features').some(e=>e.value.id===feature);}
   runtimeEnabled(id){return this.addons.registry.list('runtimes').some(e=>e.value.id===id);}
   language(path){const name=path.split('/').pop();for(const e of [...this.addons.registry.list('languages')].reverse()){const rule=e.value;if(rule.filenames.includes(name)||rule.extensions.some(ext=>name.endsWith(ext)))return rule.language;}return 'plaintext';}
+  initialFile(files){const rules=[...this.addons.registry.list('languages')].reverse().map(e=>e.value);for(const rule of rules){const entry=files.find(f=>(rule.entryFiles||[]).includes(f.name));if(entry)return entry;}return files.find(f=>rules.some(rule=>rule.extensions.some(ext=>f.name.endsWith(ext))||rule.filenames.includes(f.name)))||files.find(f=>!f.name.startsWith('.'));}
   types(){return [{id:'empty',base:'empty',name:{ru:'Пустой / вручную',en:'Empty / manual'},settings:{buildMode:'custom'}},...this.addons.registry.list('projectTypes').map(e=>e.value)];}
   async prepare(resolved){
     this.addons.cancelRequested=false;this.toolState=await native('toolPacks');const required=resolved.map(m=>m.nativePack).filter(Boolean),missing=required.filter(id=>!this.toolState.packs.find(p=>p.id===id)?.installed);
@@ -47,7 +48,7 @@ class StudioAddonHost {
     NativeEditing.queueLayout();this.app.registerCommands();
     if(previous&&previous.clangd!==flags.clangd){if(flags.clangd)await this.app.lsp.start();else await this.suspendAnalysis();}
     else if(previous){for(const doc of this.app.docs.values()){await NativeEditing.publishDiagnostics(doc.model);await NativeEditing.analysis(doc.model);}if(!flags.runtimeDiagnostics){this.app.runtimeWarnings=[];this.app.renderProblems();}}
-    this.app.configurations?.render();this.updateViewButton();
+    this.app.configurations?.render();this.app.renderTree?.();this.updateViewButton();
   }
   async suspendAnalysis(){
     const app=this.app;app.lsp.ready=false;app.lsp.epoch++;for(const dispose of app.lsp.disposables)dispose.dispose();app.lsp.disposables=[];await native('lspStop');app.diagnosticMap.clear();

@@ -2,11 +2,10 @@
  <rect width="1280" height="280" rx="18" fill="#1e1f22"/>
  <path d="M0 234H1280M1025 0V280" stroke="#393b40"/>
  <rect x="52" y="61" width="99" height="99" rx="18" fill="#2b2d30" stroke="#43454a"/>
- <path d="M113 88H91L79 100v25l12 12h22v-12H96l-5-5v-15l5-5h17z" fill="#bcbec4"/>
- <path d="M119 116h20m-10-10v20" stroke="#548af7" stroke-width="4"/>
- <text x="182" y="108" fill="#dfe1e5" font-family="Inter,Segoe UI,sans-serif" font-size="44" font-weight="650">C++ Studio</text>
- <text x="183" y="151" fill="#868a91" font-family="Inter,Segoe UI,sans-serif" font-size="20">Your C/C++ workspace. On Android. Offline.</text>
- <text x="53" y="211" fill="#6aab73" font-family="monospace" font-size="16">GCC · clangd · CMake · GDB · Git</text>
+ <g transform="translate(52 61) scale(.9167)"><path d="M22 27h17l13 13v28L39 81H22zM33 39v30h2l6-6V45l-6-6z" fill="#62d8bc" fill-rule="evenodd"/><path d="M62 27h27v11H73v12h14v11H73v20H62z" fill="#78a5ff"/><path d="M59 13h9v9h-9z" fill="#f0af71"/></g>
+ <text x="182" y="108" fill="#dfe1e5" font-family="Inter,Segoe UI,sans-serif" font-size="44" font-weight="650">DevForge</text>
+ <text x="183" y="151" fill="#a0a7b4" font-family="Inter,Segoe UI,sans-serif" font-size="20">A modular IDE, built around your workflow.</text>
+ <text x="53" y="211" fill="#62d8bc" font-family="monospace" font-size="16">C/C++ packs available · More languages planned</text>
  <text x="1060" y="87" fill="#cf8e6d" font-family="monospace" font-size="20">int</text>
  <text x="1108" y="87" fill="#56a8f5" font-family="monospace" font-size="20">main</text>
  <text x="1158" y="87" fill="#bcbec4" font-family="monospace" font-size="20">() {</text>

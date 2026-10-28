@@ -62,7 +62,7 @@ final class ToolPacks {
         JSONArray requires=p.getJSONArray("requires");for(int i=0;i<requires.length();i++)installOne(requires.getString(i),visiting);
         visiting.remove(id);if(installed(p))return;
         File archive=new File(ide.tmp,"pack-"+id+".zip");
-        URL address=new URL("https://github.com/Bony-Lord/gcc-cpp-studio/releases/download/"+p.optString("release",catalog.getString("release"))+"/"+p.getString("asset"));
+        URL address=new URL("https://github.com/Bony-Lord/devforge/releases/download/"+p.optString("release",catalog.getString("release"))+"/"+p.getString("asset"));
         long total=p.getLong("bytes");download.fetch(address,archive,total,p.getString("sha256"),(done,size)->progress(id,done,size,"download"));download.check();
         Files.write(new File(ide.usr,".pack-"+id+"-incomplete").toPath(),new byte[0]);progress(id,total,total,"extract");
         extract(ide.usr,archive,id);

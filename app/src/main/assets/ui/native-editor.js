@@ -80,7 +80,7 @@ const NativeEditing={
     const windowHandles=[];for(const element of floating){const group=windows?.api.groups.find(g=>g.element.closest('.dv-resize-container')===element);if(!group)continue;for(const handle of element.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,element),direction=b.direction;if(!b.width||!b.height||direction.includes('top'))continue;if(floating.slice(floating.indexOf(element)+1).some(other=>{const r=other.getBoundingClientRect();return b.x+b.width/2>=r.left&&b.x+b.width/2<=r.right&&b.y+b.height/2>=r.top&&b.y+b.height/2<=r.bottom;}))continue;windowHandles.push({id:group.id+':'+direction,group:group.id,direction,x:b.x,y:b.y,width:b.width,height:b.height});}}
     const source=window.forge?.settings||{language:StudioI18n.locale},settings={};for(const key of ['language','theme','fontSize','codeScale','wordWrap','indentGuides','smartFormatOnClose','keyboardExtraKeys','keyboardPrimary','keyboardLayout','keyboardModifiers','keyboardNumpad','keyboardPcWidth','keyboardPcHeight','keyboardAndroidWidth','keyboardAndroidHeight'])if(source[key]!==undefined)settings[key]=source[key];
     if(window.forge?.addons?.host.lastFeatures){const host=forge.addons.host;if(!host.enabled('keyboard'))settings.keyboardPrimary='system';settings.smartTyping=host.enabled('smartTyping');settings.completionEnabled=host.enabled('completion');if(!host.enabled('indentGuides'))settings.indentGuides=false;}
-    return native('editorLayout',{panes,visible,occlusions,windowHandles,settings,keyboardRevision:this.keyboardRevision||0}).catch(console.warn);
+    return native('editorLayout',{inputReady:!!window.forge?.startupComplete&&!forge.setupOpen,panes,visible,occlusions,windowHandles,settings,keyboardRevision:this.keyboardRevision||0}).catch(console.warn);
   },
   selection(e){
     const p=this.panes.get(e.id);if(!p||p.editor.getModel()?.uri.toString()!==e.uri)return;
@@ -101,7 +101,7 @@ const NativeEditing={
     else job={uri:event.uri,model,id:event.id,running:false};
     job.sequence=(job.sequence||0)+1;job.id=event.id;job.decoration=model.deltaDecorations([],[{range,options:{stickiness:monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges}}])[0];this.formatJobs.set(event.uri,job);this.scheduleFormat(job);
   },
-  scheduleFormat(job){clearTimeout(job.timer);job.timer=setTimeout(()=>this.formatBlock(job),180);},
+  scheduleFormat(job){clearTimeout(job.timer);if(window.forge?.state?.trust?.trusted===false)return;job.timer=setTimeout(()=>this.formatBlock(job),180);},
   discardFormat(job){clearTimeout(job.timer);if(!job.model.isDisposed())job.model.deltaDecorations([job.decoration],[]);if(this.formatJobs.get(job.uri)===job)this.formatJobs.delete(job.uri);},
   async formatBlock(job){
     if(job.running){job.again=true;return;}job.running=true;job.again=false;

@@ -63,7 +63,7 @@ public final class MainActivity extends Activity {
                 ui.post(this::showEditor);
             } catch (Throwable e) {
                 android.util.Log.e("Forge", "Startup", e);
-                status("Не удалось запустить C++ Studio\n\n"+e+"\n\nПроверьте свободное место: нужно около 1 ГБ.");
+                status("Не удалось запустить DevForge\n\n"+e+"\n\nПроверьте свободное место: нужно около 1 ГБ.");
             }
         });
     }
@@ -265,7 +265,7 @@ public final class MainActivity extends Activity {
                 if(request==16){
                     String content=pendingAddonExport;pendingAddonExport=null;if(content==null)throw new IOException("Addon export expired; retry");try(OutputStream out=getContentResolver().openOutputStream(uri,"w")){if(out==null)throw new IOException("Cannot save addon package");out.write(content.getBytes(StandardCharsets.UTF_8));}event("toast",JSONObject.quote(interfaceLanguage().equals("ru")?"Пак состава сохранён":"Composition pack saved"));
                 } else if(request==15){
-                    try(InputStream in=getContentResolver().openInputStream(uri)){if(in==null)throw new IOException("Cannot read addon document");String content=IdeEngine.slurp(in,262144);event("addonImported",new JSONObject().put("text",content));}
+                    try(InputStream in=getContentResolver().openInputStream(uri)){if(in==null)throw new IOException("Cannot read addon document");String content=new String(AddonDownload.readBounded(in),java.nio.charset.StandardCharsets.UTF_8);event("addonImported",new JSONObject().put("text",content));}
                 } else if(request==12) {
                     File dest=engine.newProjectDir("import-"+System.currentTimeMillis());
                     copyDocumentTree(uri,DocumentsContract.getTreeDocumentId(uri),dest,new long[]{0,0});

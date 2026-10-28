@@ -55,10 +55,10 @@ final class AddonPackages {
         if(installs!=null)for(int i=0;i<installs.length();i++){
             JSONObject item=installs.getJSONObject(i),pkg;String source;
             if(item.has("official")){pkg=official.get(item.getString("official"));if(pkg==null)throw new IOException("Official addon not found");source="bundled-catalog";}
-            else{pkg=item.getJSONObject("package");if(pkg.getJSONObject("manifest").getString("id").startsWith("studio."))throw new IOException("The studio namespace is reserved");source="local";}
+            else{if(!request.optBoolean("accepted"))throw new IOException("Review and accept the addon installation notice first");pkg=item.getJSONObject("package");if(pkg.getJSONObject("manifest").getString("id").startsWith("studio."))throw new IOException("The studio namespace is reserved");source="local";}
             pack(pkg);String identity=key(pkg);JSONObject existing=null;for(int j=0;j<entries.length();j++)if(key(entries.getJSONObject(j).getJSONObject("package")).equals(identity))existing=entries.getJSONObject(j);
             if(existing!=null){if(!hash(existing.getJSONObject("package")).equals(hash(pkg)))throw new IOException("Addon version already exists with different content");continue;}
-            entries.put(new JSONObject().put("package",copy(pkg)).put("source",source).put("sha256",hash(pkg)).put("installedAt",System.currentTimeMillis()));
+            JSONObject entry=new JSONObject().put("package",copy(pkg)).put("source",source).put("sha256",hash(pkg)).put("installedAt",System.currentTimeMillis());if(source.equals("local")){String origin=request.optString("origin","local-file");if(origin.length()>2048)throw new IOException("Addon origin too long");entry.put("consent",new JSONObject().put("noticeVersion",1).put("acceptedAt",System.currentTimeMillis())).put("origin",origin);}entries.put(entry);
         }
         String remove=request.optString("remove","");if(!remove.isEmpty()){JSONArray kept=new JSONArray();boolean found=false;for(int i=0;i<entries.length();i++){JSONObject entry=entries.getJSONObject(i);if(key(entry.getJSONObject("package")).equals(remove))found=true;else kept.put(entry);}if(!found)throw new IOException("Installed addon not found");next.put("packages",kept);}
         next.put("revision",data.getLong("revision")+1);String token=UUID.randomUUID().toString();next.put("pending",new JSONObject().put("token",token).put("before",copy(data)));write(next);return new JSONObject().put("token",token).put("library",state());

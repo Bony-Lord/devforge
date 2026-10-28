@@ -24,4 +24,10 @@ function fixture(){
   const f=fixture();f.send('pointerdown',{pointerType:'mouse'});f.send('pointermove',{pointerType:'mouse',clientX:106});f.send('lostpointercapture');assert.deepEqual(f.moves,[[6,0]]);assert.equal(f.ends,1);assert.equal(f.dragging,false);checks++;
   f.send('keydown',{key:'ArrowRight',shiftKey:true});assert.deepEqual(f.moves.at(-1),[40,0]);assert.equal(f.ends,2);checks++;
 }
-console.log(checks+' splitter interaction checks passed');
+{
+  const context={};vm.createContext(context);vm.runInContext(fs.readFileSync('app/src/main/assets/ui/interaction.js','utf8')+'\nglobalThis.isTextInput=studioTextInput;',context);
+  for(const type of ['text','search','number','email']){assert.equal(context.isTextInput({tagName:'INPUT',type}),true);checks++;}
+  for(const type of ['checkbox','radio','range','button','color','file']){assert.equal(context.isTextInput({tagName:'INPUT',type}),false);checks++;}
+  assert.equal(context.isTextInput({tagName:'INPUT',type:'text',readOnly:true}),false);assert.equal(context.isTextInput({tagName:'INPUT',type:'text',disabled:true}),false);checks+=2;
+}
+console.log(checks+' interaction checks passed');

@@ -1,4 +1,5 @@
 'use strict';
+function studioTextInput(element){return !!element&&!element.disabled&&!element.readOnly&&(element.matches?.('textarea,[contenteditable="true"]')||element.tagName==='INPUT'&&['text','search','url','tel','email','password','number'].includes(element.type));}
 
 const StudioHover={
   target:null,timer:0,tip:null,original:'',x:0,y:0,

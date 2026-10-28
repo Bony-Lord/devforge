@@ -31,6 +31,8 @@ jobs:
           node tests/addon-core.test.cjs
           node tests/addon-packages.test.cjs
           node tests/addon-host.test.cjs
+          node tests/setup-model.test.cjs
+          node tests/addon-selection.test.cjs
       - name: Python syntax
         run: python -m compileall -q tools tests
       - name: License inventory and notices
@@ -51,6 +53,11 @@ jobs:
           java -cp build/core-checks dev.forge.ide.SnapshotFileTest
           javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/PackDownload.java tests/java/dev/forge/ide/PackDownloadTest.java
           java -cp build/core-checks dev.forge.ide.PackDownloadTest
+      - name: Check workspace trust and third-party download boundaries
+        run: |
+          javac -encoding UTF-8 -d build/core-checks app/src/main/java/dev/forge/ide/{AddonDownload,WorkspaceTrustPolicy}.java tests/java/dev/forge/ide/{AddonDownloadTest,WorkspaceTrustPolicyTest}.java
+          java -cp build/core-checks dev.forge.ide.AddonDownloadTest
+          java -cp build/core-checks dev.forge.ide.WorkspaceTrustPolicyTest
       - name: Compile Android Java host
         run: |
           chmod +x gradlew
