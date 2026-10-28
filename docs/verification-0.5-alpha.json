@@ -1,0 +1,509 @@
+{
+  "version": "0.5.0-alpha.1",
+  "codeCommit": "c57125c7425c6cc46fd339a2fc43a353dd7dbba4",
+  "date": "2026-10-28",
+  "recommendedAndroidPreview": "0.4.2",
+  "status": "unstable-alpha",
+  "checks": {
+    "hostCommandGroups": 74,
+    "hostCommandFailures": 0,
+    "desktopBackend": {
+      "passed": 15,
+      "skipped": 1,
+      "skipReason": "LLDB DAP integration requires macOS/Linux; actual GCC/GDB/CMake/Python tested on Windows"
+    },
+    "pythonKernelProcesses": 4,
+    "desktopUI": {
+      "checks": [
+        {
+          "test": "Current modular frontend boots with desktop Monaco",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Python and notebooks activate through addon dependencies",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Python runs from current renderer",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook cell view opens without native editor overlay",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook cell occupies visible document space",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook belongs to a document tab and creates no modal dialog",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook kernel preserves variables between cells",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Executed notebook saves standard outputs and metadata",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Addon manager uses retained shared picker on desktop",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook configuration hides unsupported Build and Debug buttons",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Adding an action exposes its button and executes the selected provider",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Interpreter configuration has action choices and no CMake compiler fields",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Configuration editor saves action removal without recreating defaults",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Project addon profile changes available actions without overwriting defaults",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Another project inherits the default addon composition",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Empty project has generic profile and no invented build or run actions",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Returning to the first project restores its own addons and action visibility",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Project sidebar layout is restored separately",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Cold reload restores project scope and layout without changing global defaults",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "C++ Run builds and launches the artifact through configured addon actions",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Project selects its addon-provided window interface after reload",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Creating another language project completes before changing interface mode",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Switching back restores the original project window workspace",
+          "passed": true,
+          "evidence": true
+        }
+      ],
+      "errors": []
+    },
+    "packagedDesktopUI": {
+      "checks": [
+        {
+          "test": "Current modular frontend boots with desktop Monaco",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Python and notebooks activate through addon dependencies",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Python runs from current renderer",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook cell view opens without native editor overlay",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook cell occupies visible document space",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook belongs to a document tab and creates no modal dialog",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook kernel preserves variables between cells",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Executed notebook saves standard outputs and metadata",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Addon manager uses retained shared picker on desktop",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Notebook configuration hides unsupported Build and Debug buttons",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Adding an action exposes its button and executes the selected provider",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Interpreter configuration has action choices and no CMake compiler fields",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Configuration editor saves action removal without recreating defaults",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Project addon profile changes available actions without overwriting defaults",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Another project inherits the default addon composition",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Empty project has generic profile and no invented build or run actions",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Returning to the first project restores its own addons and action visibility",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Project sidebar layout is restored separately",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Cold reload restores project scope and layout without changing global defaults",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "C++ Run builds and launches the artifact through configured addon actions",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Project selects its addon-provided window interface after reload",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Creating another language project completes before changing interface mode",
+          "passed": true,
+          "evidence": true
+        },
+        {
+          "test": "Switching back restores the original project window workspace",
+          "passed": true,
+          "evidence": true
+        }
+      ],
+      "errors": []
+    },
+    "androidApi36X86_64": [
+      {
+        "test": "Modern target API 36 and current addon UI boot",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Python and notebooks are real enabled addon dependencies",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Packaged Python interpreter is available",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Actual Python prints result and project-root cwd on Android 16",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Notebook view opens inside running Android application",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Notebook variables persist across cell executions",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Notebook result is saved as standard nbformat output",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Notebook cell occupies a visible, hit-testable area",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Runtime exception produces a traceback in the cell",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Native trust enforcement rejects Python execution",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Actual modern gcc compilation",
+        "passed": true,
+        "evidence": {
+          "code": 0,
+          "executable": "/data/data/com.forgex/files/projects/input-check-multilanguage-1793187991788/.forge/bin/program",
+          "exists": true,
+          "id": "build-gcc"
+        }
+      },
+      {
+        "test": "Packaged host loads and executes gcc shared program",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Actual modern clang compilation",
+        "passed": true,
+        "evidence": {
+          "code": 0,
+          "executable": "/data/data/com.forgex/files/projects/input-check-multilanguage-1793187991788/.forge/bin/program",
+          "exists": true,
+          "id": "build-clang"
+        }
+      },
+      {
+        "test": "Packaged host loads and executes clang shared program",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Actual CMake and Ninja build on target36",
+        "passed": true,
+        "evidence": {
+          "code": 0,
+          "id": "cmake",
+          "executable": "/data/data/com.forgex/files/projects/input-check-multilanguage-1793187991788/.forge/cmake-modern/app",
+          "exists": true
+        }
+      },
+      {
+        "test": "Python syntax check does not execute the script",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Notebook opens automatically in the editor without an open dialog",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Native code pane is hidden while notebook document is visible",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Switching files retains notebook view and cursor selection",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Source JSON mode stays in the same file pane",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "System Back dispatch closes UI instead of terminating modern Activity",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Notebook uses profile environment and working directory",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Android toolbar hides actions absent from the current configuration",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Project addon composition disables Python and hides its Run action",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Another Android project inherits defaults and has no fabricated C++ actions",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Android restores the project addon profile and sidebar layout",
+        "passed": true,
+        "evidence": true
+      },
+      {
+        "test": "Native addon snapshot keeps defaults separate across UI restart",
+        "passed": true,
+        "evidence": true
+      }
+    ],
+    "androidRuntimeWarnings": [
+      {
+        "compiler": "gcc",
+        "overflowReportedAndContinued": true
+      },
+      {
+        "compiler": "clang",
+        "overflowReportedAndContinued": true
+      }
+    ],
+    "gradle": [
+      "assembleModernRelease",
+      "assembleCompatRelease",
+      "lintModernRelease",
+      "lintCompatRelease",
+      "testModernDebugUnitTest",
+      "testCompatDebugUnitTest"
+    ],
+    "sourceMatchedApkAssets": true,
+    "arm64ElfImagesWith16kLoadAlignment": 223
+  },
+  "ci": [
+    {
+      "runId": 40682647886,
+      "conclusion": "success",
+      "url": "https://github.com/Bony-Lord/devforge/actions/runs/40682647886"
+    },
+    {
+      "runId": 40682647832,
+      "conclusion": "success",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "scope": "Portable workspace/Python/manual-command checks, not native installers or full desktop GUI on every OS",
+      "url": "https://github.com/Bony-Lord/devforge/actions/runs/40682647832"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "DevForge-0.5.0-alpha.1-modern-arm64.apk",
+      "bytes": 231238435,
+      "sha256": "4a46316a6c6ec884c633e978d26f903539401a52c80a93d2e81c6d5f3b493d1a",
+      "arm64Elf16kChecked": 223,
+      "signatureVerified": true
+    },
+    {
+      "file": "DevForge-0.5.0-alpha.1-compat-arm64.apk",
+      "bytes": 9373666,
+      "sha256": "f54d95862b1ed828695c8b93aaeb13b449fe6c4eda1caec2bd8e7d1007c2da1f",
+      "arm64Elf16kChecked": 0,
+      "signatureVerified": true
+    },
+    {
+      "file": "DevForge-0.5.0-alpha.1-win-x64-setup.exe",
+      "bytes": 125039713,
+      "sha256": "3f8fd72f03d741c52b93cd1086bd6dc2946b750d0bec3c6c64a596888554e8b5"
+    },
+    {
+      "file": "DevForge-win32-x64-0.5.0-alpha.1.zip",
+      "bytes": 167247103,
+      "sha256": "a5bf1ad3d5af71c6a939247f6810ecad345213f379a859b829904c4694627a9b"
+    },
+    {
+      "file": "DevForge-desktop-native-sources-44.9.1.zip",
+      "bytes": 39423670,
+      "sha256": "c4455ea4ce5ec70c9a9f4fc32894854402d0d4418d3e6746e5311bb198c40c41"
+    },
+    {
+      "file": "DevForge-0.5.0-alpha.1-source.zip",
+      "bytes": 13083577,
+      "sha256": "e62e259f5c89106f928085242f3b528eff47faebae66f37621fc99b8f856a251"
+    }
+  ],
+  "notVerified": [
+    "Physical tablet installation and gestures in this stage",
+    "Execution on ARM64 hardware with 16 KB pages",
+    "Modern Android GDB/PTY integration",
+    "ASan for Android hosted programs (explicitly unavailable)",
+    "Full Jupyter/IPython/Pyright/Python debugger",
+    "Arbitrary executable third-party addon SDK/online marketplace",
+    "Windows installer UI/install/uninstall; packaged payload was exercised",
+    "Linux/macOS GUI, C++ toolchains and native installers",
+    "Google Play/Play Protect approval"
+  ],
+  "devicePolicy": {
+    "physicalTabletTouched": false,
+    "ownedEmulatorStopped": true,
+    "previousWorkerSdkStashPreserved": true
+  }
+}
