@@ -6,13 +6,13 @@ const {inside}=require('./workspace.cjs');
 let window,host,server,origin,base,quitting=false;
 const smoke=process.argv.includes('--smoke');
 const headless=process.argv.includes('--headless-check');
-if(process.argv.includes('--headless-check'))app.commandLine.appendSwitch('remote-debugging-port','9333');
+if(headless){const port=process.argv.find(a=>a.startsWith('--cdp-port='))?.slice(11)||'9333';if(!/^[0-9]{1,5}$/.test(port)||Number(port)<1||Number(port)>65535)throw Error('Invalid test CDP port');app.commandLine.appendSwitch('remote-debugging-port',port);}
 const dataArg=process.argv.find(a=>a.startsWith('--data-dir='));
 if(dataArg)app.setPath('userData',path.resolve(dataArg.slice('--data-dir='.length)));
 app.setName('DevForge');
 const ui=path.join(__dirname,'ui');
 const sourceUi=path.join(__dirname,'../app/src/main/assets/ui');
-function trusted(event){return window&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame&&event.senderFrame.url.startsWith(base);}
+function trusted(sender,frame){try{return window&&!window.isDestroyed()&&sender===window.webContents&&frame&&!frame.detached&&frame===sender.mainFrame&&frame.url.startsWith(base);}catch{return false;}}
 async function serve(){
   const root=await fs.realpath(await fs.access(ui).then(()=>ui,()=>sourceUi)),token=crypto.randomBytes(24).toString('hex');
   const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ttf':'font/ttf','.woff2':'font/woff2','.txt':'text/plain; charset=utf-8'};
@@ -58,16 +58,16 @@ async function start(){
   window.webContents.on('will-navigate',(event,url)=>{if(!url.startsWith(base))event.preventDefault();});
   window.webContents.on('will-attach-webview',event=>event.preventDefault());
   if(smoke){window.webContents.on('console-message',(_event,level,message)=>console.log('renderer',level,message));window.webContents.on('did-finish-load',()=>console.log('page loaded'));window.webContents.on('did-fail-load',(_e,code,description)=>console.log('load failed',code,description));}
-  window.webContents.on('render-process-gone',(_event,details)=>{if(!quitting)dialog.showErrorBox('DevForge','The editor process stopped: '+details.reason+'\nSaved project files are unchanged.');});
+  window.webContents.on('render-process-gone',(_event,details)=>{if(!quitting&&!headless)dialog.showErrorBox('DevForge','The editor process stopped: '+details.reason+'\nSaved project files are unchanged.');});
   ipcMain.on('studio:request',async(event,raw)=>{
-    if(!trusted(event)||typeof raw!=='string'||raw.length>10*1024*1024)return;
-    let id;try{const request=JSON.parse(raw);id=request.id;if(typeof id!=='string'||id.length>64)throw Error('Invalid request id');const value=await host.handle(request.op,request.data||{});if(trusted(event))event.sender.send('studio:result',{id,value});}
-    catch(error){if(trusted(event))event.sender.send('studio:result',{id,error:error.message||String(error)});}
+    const sender=event.sender,frame=event.senderFrame;if(!trusted(sender,frame)||typeof raw!=='string'||raw.length>10*1024*1024)return;
+    let id;try{const request=JSON.parse(raw);id=request.id;if(typeof id!=='string'||id.length>64)throw Error('Invalid request id');const value=await host.handle(request.op,request.data||{});if(trusted(sender,frame))sender.send('studio:result',{id,value});}
+    catch(error){if(trusted(sender,frame))sender.send('studio:result',{id,error:error.message||String(error)});}
   });
   window.on('resize',()=>{if(!smoke){const {width,height}=window.getBounds();host.ws.prefs.window={width,height};clearTimeout(window.saveBoundsTimer);window.saveBoundsTimer=setTimeout(()=>host.ws.persist().catch(console.error),400);}});
   window.on('close',event=>{if(!quitting){event.preventDefault();quitting=true;host.close().finally(()=>{server.close();window.destroy();app.quit();});}});
-  await window.loadURL(page);if(smoke){const {runSmoke}=require('./smoke.cjs');await runSmoke({app,window,host,base});quitting=true;await host.close();server.close();window.destroy();app.quit();}else if(!headless)window.show();
+  await require('./navigation.cjs').loadLocalPage(window,page);if(smoke){const {runSmoke}=require('./smoke.cjs');await runSmoke({app,window,host,base});quitting=true;await host.close();server.close();window.destroy();app.quit();}else if(!headless)window.show();
 }
-app.whenReady().then(start).catch(error=>{console.error(error);if(!smoke)dialog.showErrorBox('DevForge',error.message);app.exit(1);});
+app.whenReady().then(start).catch(error=>{console.error(error);if(!smoke&&!headless)dialog.showErrorBox('DevForge',error.message);app.exit(1);});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
 app.on('activate',()=>{if(window&&!window.isDestroyed())window.show();});

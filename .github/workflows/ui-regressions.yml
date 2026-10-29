@@ -1,0 +1,41 @@
+name: Windows editor interaction regressions
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  electron-ui:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gdb
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-clang-tools-extra
+      - name: Make the explicit test toolchain discoverable
+        shell: pwsh
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        run: Add-Content -LiteralPath $env:GITHUB_PATH -Value "$env:MSYS2_LOCATION\mingw64\bin"
+      - run: npm ci
+        working-directory: desktop
+      - name: Run real isolated Electron interactions
+        working-directory: desktop
+        run: npm run test:ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-ui-regression-report
+          path: desktop/test-results/ui-regressions.json

@@ -23,6 +23,7 @@ final class IdeEngine {
     final ExecutorService pool=Executors.newCachedThreadPool();
     final android.content.SharedPreferences prefs;
     final String triple=Build.SUPPORTED_ABIS[0].equals("x86_64")?"x86_64-linux-android":Build.SUPPORTED_ABIS[0].startsWith("armeabi")?"arm-linux-androideabi":"aarch64-linux-android";
+    ProjectLibrary projectLibrary;
     volatile String currentProject;
     volatile Process lsp,execution,building;
     volatile long lspGeneration;
@@ -38,10 +39,10 @@ final class IdeEngine {
     IdeEngine(MainActivity a)throws Exception {
         app=a;version=a.getPackageManager().getPackageInfo(a.getPackageName(),0).versionName;projects=new File(a.getFilesDir(),"projects");usr=new File(a.getFilesDir(),"usr");tmp=new File(a.getFilesDir(),"tmp");
         projects.mkdirs();tmp.mkdirs();
-        prefs=a.getSharedPreferences("forge",0);workspace=new WorkspaceFiles(this);languages=new LanguageTools(this);
+        prefs=a.getSharedPreferences("forge",0);workspace=new WorkspaceFiles(this);projectLibrary=new ProjectLibrary(this);languages=new LanguageTools(this);
         currentProject=prefs.getString("project","");
         try{if(currentProject.isEmpty()||!project(currentProject).isDirectory())currentProject="";}catch(IOException error){currentProject="";}
-        if(currentProject.isEmpty()){File[] existing=projects.listFiles();if(existing!=null){Arrays.sort(existing,Comparator.comparing(File::getName));for(File folder:existing)if(folder.isDirectory()){currentProject=folder.getName();break;}}if(currentProject.isEmpty()){JSONObject links=workspace.bindings();for(Iterator<String> ids=links.keys();ids.hasNext();){String id=ids.next();if(project(id).isDirectory()){currentProject=id;break;}}}}
+        if(currentProject.isEmpty()&&!prefs.getBoolean("projectSelectionCleared",false)){File[] existing=projects.listFiles();if(existing!=null){Arrays.sort(existing,Comparator.comparing(File::getName));for(File folder:existing)if(folder.isDirectory()&&projectLibrary.visible(folder.getName())){currentProject=folder.getName();break;}}if(currentProject.isEmpty()){JSONObject links=workspace.bindings();for(Iterator<String> ids=links.keys();ids.hasNext();){String id=ids.next();if(project(id).isDirectory()&&projectLibrary.visible(id)){currentProject=id;break;}}}}
         tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);pythonStyle=new PythonStyleEngine(this);pythonIntelligence=new PythonIntelligenceEngine(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
@@ -100,8 +101,12 @@ final class IdeEngine {
             case "project":python.stop();pythonStyle.stop();pythonIntelligence.stop(); {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
-                stopLsp();currentProject=name;prefs.edit().putString("project",name).apply();return state();
+                stopLsp();currentProject=name;prefs.edit().putString("project",name).putBoolean("projectSelectionCleared",false).apply();return state();
             }
+            case "projectDescribe":return projectLibrary.describe(d.getString("id"));
+            case "projectRemove":return projectLibrary.remove(d);
+            case "projectArchive":return projectLibrary.list();
+            case "projectRestore":return projectLibrary.restore(d.getString("id"));
             case "newProject":{String name=d.getString("name");createProject(name,d.optString("language","cpp"));prefs.edit().putBoolean("trustedWorkspace:"+project(name).getCanonicalPath(),true).commit();return state().put("createdProject",name);}
             case "projectTemplateSnapshot":synchronized(this){return ProjectTemplateFiles.snapshot(project(currentProject),d);}
             case "projectTemplateApply":synchronized(this){JSONObject result=ProjectTemplateFiles.apply(project(currentProject),workspace.data(),d);JSONArray paths=result.getJSONArray("paths");for(int i=0;i<paths.length();i++)prefs.edit().putString("fileEncoding:"+paths.getString(i),"UTF-8").apply();return result;}
@@ -203,8 +208,8 @@ final class IdeEngine {
         }
     }
     JSONObject state()throws Exception {
-        JSONArray list=new JSONArray();File[] dirs=projects.listFiles();if(dirs!=null){Arrays.sort(dirs,Comparator.comparing(File::getName));for(File p:dirs)if(p.isDirectory())list.put(p.getName());}
-        JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
+        JSONArray list=new JSONArray();File[] dirs=projects.listFiles();if(dirs!=null){Arrays.sort(dirs,Comparator.comparing(File::getName));for(File p:dirs)if(p.isDirectory()&&projectLibrary.visible(p.getName()))list.put(p.getName());}
+        JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();if(!projectLibrary.visible(id))continue;list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
         boolean hasProject=!currentProject.isEmpty();
         return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",hasProject&&workspace.isExternal()).put("cache",hasProject?workspace.data().getAbsolutePath():new File(app.getFilesDir(),"workspaces/no-project").getAbsolutePath()).put("root",hasProject?project(currentProject).getAbsolutePath():"").put("projects",list)
             .put("usr",usr.getAbsolutePath()).put("tree",hasProject?tree(project(currentProject),0):new JSONArray()).put("settings",new JSONObject(prefs.getString("settings","{}")))
@@ -397,7 +402,7 @@ final class IdeEngine {
     JSONObject build(JSONObject d)throws Exception {
         synchronized(buildLock) {try(AutoCloseable guard=toolPacks.guardBuild()) {
             buildCancelled=false;JSONObject options=d.has("options")?d.getJSONObject("options"):settings();
-            File root=project(currentProject),outDir=new File(workspace.data(),"bin");outDir.mkdirs();
+            File root=project(currentProject),outDir=workspace.isExternal()?new File(workspace.data(),"bin"):BuildProfiles.cmakeDirectory(this,options);outDir.mkdirs();
             String mode=d.optString("mode","file"),id=d.optString("id",UUID.randomUUID().toString());
             File output=new File(outDir,"program");
             List<String> cmd=new ArrayList<>();
@@ -412,7 +417,7 @@ final class IdeEngine {
                 if(rc!=0||d.optBoolean("configureOnly"))return new JSONObject().put("code",rc).put("id",id).put("configured",rc==0);
                 List<String> buildCommand=new ArrayList<>(Arrays.asList(bin("cmake"),"--build",cmakeDir.getAbsolutePath(),"-j2"));if(!options.optString("target").isEmpty())buildCommand.addAll(Arrays.asList("--target",options.getString("target")));rc=buildCommand(buildCommand,root,id,environment);
                 File target=BuildProfiles.executable(this,cmakeDir,options);
-                if(!workspace.canExecute(target))throw new IOException("Путь исполняемого файла вне проекта");
+                if(rc==0)BuildProfiles.mirrorArtifact(this,target,options);if(!workspace.canExecute(target))throw new IOException("Путь исполняемого файла вне проекта");
                 return new JSONObject().put("code",rc).put("id",id).put("executable",target.getAbsolutePath()).put("exists",target.isFile());
             }
             File file=readable(d.getString("path"));if(!inside(file,root))throw new IOException("Выберите исходный файл проекта");
@@ -420,7 +425,7 @@ final class IdeEngine {
             if(mode.equals("project")){List<File> sources=new ArrayList<>();collectSources(root,sources);for(File s:sources)cmd.add(s.getAbsolutePath());}
             else cmd.add(file.getAbsolutePath());
             cmd.add("-o");cmd.add(output.getAbsolutePath());
-            int rc=buildCommand(cmd,root,id,environment);if(rc==0)output.setExecutable(true,true);
+            int rc=buildCommand(cmd,root,id,environment);if(rc==0){output.setExecutable(true,true);BuildProfiles.mirrorArtifact(this,output,options);}
             return new JSONObject().put("code",rc).put("executable",output.getAbsolutePath()).put("exists",output.isFile()).put("id",id);
         }}
     }

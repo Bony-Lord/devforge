@@ -8,7 +8,7 @@ const fileOptionsMethods={
     document.querySelector('#encodingStatus').onclick=()=>this.fileEncoding().catch(safeError);
     document.querySelector('#indentStatus').onclick=()=>this.openSettings();
   },
-  updateFileOptions(){
+  updateFileOptions(){document.body.classList.toggle('studio-utility-document',!!this.active?.virtual);
     document.querySelector('#encodingStatus').textContent=this.active?.encoding||'UTF-8';
     const mode=this.settings.indentMode;
     const status=document.querySelector('#indentStatus');status.textContent=mode==='formatter'?'.clang-format':tr(mode==='tabs'?'Табы':'Пробелы')+': '+this.settings.indentWidth;if(mode==='formatter'&&this.active){const doc=this.active;NativeEditing.typingOptions(doc.model).then(o=>{if(this.active===doc&&this.settings.indentMode==='formatter'){status.textContent=tr(o.tabs?'Табы':'Пробелы')+': '+(o.tabs?o.tab:o.indent);status.title='.clang-format';}}).catch(console.warn);}

@@ -52,7 +52,7 @@ function templates(kind,input,namespace=''){
 class Workspace {
   constructor(data,projectsDirectory){this.data=data;this.projectsDirectory=projectsDirectory||path.join(data,'projects');this.file=path.join(data,'settings.json');this.prefs={settings:{},session:{},projects:{},current:'',encodings:{}};this.versions=new Map();this.readState=new Map();this.saveQueue=Promise.resolve();}
   async init(){await fs.mkdir(this.data,{recursive:true});if(await exists(this.file))this.prefs={...this.prefs,...JSON.parse(await fs.readFile(this.file,'utf8'))};
-    if(!this.prefs.current||!await exists(this.prefs.projects[this.prefs.current]?.path||'')){
+    if(!this.prefs.projectSelectionCleared&&(!this.prefs.current||!await exists(this.prefs.projects[this.prefs.current]?.path||''))){
       let project=null;for(const entry of Object.entries(this.prefs.projects)){if(entry[1].path&&await exists(entry[1].path)&&(await fs.stat(entry[1].path)).isDirectory()){project=entry;break;}}if(project)this.prefs.current=project[0];else if(await exists(path.join(this.projectsDirectory,'hello-cpp'))){const opened=await this.open(path.join(this.projectsDirectory,'hello-cpp'));this.prefs.current=opened.project;await this.persist();}else{this.prefs.current='';await this.persist();}
     }return this;
   }

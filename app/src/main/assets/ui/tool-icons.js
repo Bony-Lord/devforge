@@ -1,6 +1,13 @@
 'use strict';
 // Original interface glyphs. Shape as well as color identifies each tool.
 for(const[name,paths]of Object.entries({
+ 'blocks':'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M17 2v8m-4-4h8"/>',
+ 'list-minus':'<path d="M8 5h13M8 11h13M8 17h7M3 5h.01M3 11h.01M3 17h.01m14 3h6"/>',
+ 'shield':'<path d="M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="M8 12l3 3 5-6"/>',
+ 'file-plus':'<path d="M14 3H5v18h14V8zM14 3v5h5M8 14h8m-4-4v8"/>',
+
+ 'studio-run-settings':'<path d="M3 4l7 5-7 5zM13 5h8m-8 6h8m-8 6h8"/><circle cx="16" cy="5" r="1.5"/><circle cx="19" cy="11" r="1.5"/><circle cx="15" cy="17" r="1.5"/>',
+ 'folder-cog':'<path d="M3 7V4h7l2 3h9v5M3 7v13h8"/><circle cx="17" cy="17" r="3"/><path d="M17 12v2m0 6v2m5-5h-2m-6 0h-2m1.5-3.5 1.4 1.4m4.2 4.2 1.4 1.4m0-7-1.4 1.4m-4.2 4.2-1.4 1.4"/>',
  'studio-console':'<path d="M4 5h16v14H4zM7 9l3 3-3 3m6 0h4"/>',
  'studio-terminal':'<path d="M3 7h18v13H3zM6 4h12M6 11l2 2-2 2m5 1h5"/>',
  'studio-problems':'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 3v1"/>',

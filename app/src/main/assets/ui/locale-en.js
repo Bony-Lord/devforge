@@ -98,3 +98,5 @@ Object.assign(window.STUDIO_EN,{
   'с зависимостями':'including dependencies',
   'пакет':'package'
 });
+
+Object.assign(STUDIO_EN,{"Действия проекта":"Project actions","Убранные проекты и корзина":"Removed projects and trash","Настройки проекта":"Project settings"});

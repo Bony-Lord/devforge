@@ -80,17 +80,17 @@ const StudioDocumentViews={
     editor.dispose=()=>{for(const view of pane.documentViews.values())view.dispose();pane.documentViews.clear();dispose();};
   },
   pane(editor){return [...NativeEditing.panes.values()].find(p=>p.editor===editor);},
-  activate(editor,doc){const ide=window.forge;if(!ide)return;ide.editor=editor;ide.active=doc;const pane=this.pane(editor);ide.windows?.activateEditor(pane.id);ide.renderTabs();ide.updateFileOptions();document.querySelector('#breadcrumb').textContent=relative(doc.path,ide.state.root);},
+  activate(editor,doc){const ide=window.forge;if(!ide)return;ide.editor=editor;ide.active=doc;const pane=this.pane(editor);ide.windows?.activateEditor(pane.id);ide.renderTabs();ide.updateFileOptions();document.querySelector('#breadcrumb').textContent=doc.virtual?doc.title:relative(doc.path,ide.state.root);},
   update(editor,model){
-    const current=this.pane(editor);if(model&&current?.documentView?.doc.model===model&&!current.rawModels.has(model)&&window.forge?.addons.host.enabled('notebooks')){NativeEditing.queueLayout();return;}
+    const current=this.pane(editor);if(model&&current?.documentView?.doc.model===model&&!current.rawModels.has(model)&&(current.documentView.doc.virtual||window.forge?.addons.host.enabled('notebooks'))){NativeEditing.queueLayout();return;}
     const pane=this.pane(editor);if(!pane)return;for(const[model,view]of pane.documentViews)if(model.isDisposed()){view.dispose();pane.documentViews.delete(model);}else view.dialog.hidden=true;pane.documentView=null;pane.container.style.visibility=pane.sourceVisibility;pane.container.classList.remove('studio-document-host');
     const ide=window.forge,doc=model&&ide?.docs.get(model.uri.toString());
-    if(doc?.path.endsWith('.ipynb')&&ide.addons.host.enabled('notebooks')&&!pane.rawModels.has(model))this.show(editor,doc);
+    if(doc?.virtual==='addons')this.show(editor,doc);else if(doc?.path.endsWith('.ipynb')&&ide.addons.host.enabled('notebooks')&&!pane.rawModels.has(model))this.show(editor,doc);
     NativeEditing.queueLayout();
   },
   show(editor,doc){
     const pane=this.pane(editor);if(!pane)return;pane.rawModels.delete(doc.model);for(const view of pane.documentViews.values())view.dialog.hidden=true;let view=pane.documentViews.get(doc.model);
-    if(!view){try{view=new StudioNotebookEditor(window.forge,doc);view.open(pane.container,editor);pane.documentViews.set(doc.model,view);}catch(error){safeError(error);return;}}
+    if(!view){try{view=doc.virtual==='addons'?new StudioAddonDocument(window.forge,doc):new StudioNotebookEditor(window.forge,doc);view.open(pane.container,editor);pane.documentViews.set(doc.model,view);}catch(error){safeError(error);return;}}
     pane.documentView=view;pane.container.classList.add('studio-document-host');pane.container.style.visibility='inherit';view.dialog.hidden=false;NativeEditing.queueLayout();return view;
   },
   raw(editor){const pane=this.pane(editor);if(!pane)return;const model=editor.getModel();if(model)pane.rawModels.add(model);this.update(editor,model);editor.focus();}

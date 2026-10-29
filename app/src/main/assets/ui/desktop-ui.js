@@ -1,7 +1,7 @@
 'use strict';
 const desktopMethods={
   initDesktopUI(){
-    if(!window.StudioDesktop)return;document.body.classList.add('studio-desktop');
+    $('#tabs').addEventListener('contextmenu',event=>{if(window.StudioDesktop)return;const tab=event.target.closest('.tab');if(!tab?.studioDoc)return;event.preventDefault();this.documentMenu(tab.studioDoc,event.clientX,event.clientY);});if(!window.StudioDesktop)return;document.body.classList.add('studio-desktop');
     const previous=this.fileMenu.bind(this);this.fileMenu=(file,x,y)=>{this.selectTreeItem({...file,dir:false});const more=this.fileActions(file);this.menu([...more,null,{label:this.settings.language==='en'?'More file actions…':'Остальные действия…',run:()=>previous(file,x,y)}],x,y);};
     const folderMenu=this.folderMenu.bind(this);this.folderMenu=(file,x,y)=>this.menu([{label:this.settings.language==='en'?'Create in folder…':'Создать в папке…',run:()=>this.newFile(relative(file.path,this.state.root))},{label:this.settings.language==='en'?'Copy folder path':'Копировать путь папки',run:()=>native('clipboardWrite',{text:file.path})},{label:this.settings.language==='en'?'Attach project template…':'Подключить шаблон проекта…',run:()=>this.openProjectTemplates()},null,{label:this.settings.language==='en'?'More folder actions…':'Остальные действия папки…',run:()=>folderMenu(file,x,y)}],x,y);
     $('#tabs').addEventListener('contextmenu',event=>{const tab=event.target.closest('.tab');if(!tab?.studioDoc)return;event.preventDefault();this.documentMenu(tab.studioDoc,event.clientX,event.clientY);});

@@ -1,4 +1,16 @@
 # Изменения
+
+## 0.6.0-dev.4 — local interaction regressions
+
+- Create works without a mandatory preview; project menu exposes forget/trash/restore with path confirmation and collision guards.
+- Code opens separately from the navigator after a project/editor reset. Both interface modes expose enabled console tools consistently.
+- Extensions open as a normal document tab from the left rail. Application addons remain shared when a project adds requirements.
+- Separate project/run/application settings icons; project settings expose postcreation attachments.
+- Touch hold invokes context menus, with movement/scroll/multitouch cancellation; text selection remains native.
+- Build outputs under project build/, notebook W391 cleanup, real GCC bits/print header/link fixes.
+- Cancelled initial local navigation no longer becomes a fatal ERR_ABORTED dialog. Headless test errors are reported in logs, never native popups.
+- Versioned isolated Electron regression runner and Windows CI definition. This is a development build; physical Android validation remains outstanding.
+
 ## 0.6.0-dev.3 — local Windows / Python repair
 
 - Pinned optional Jedi/parso runtime; real Python and notebook completions, hover and compact parameter help from the selected interpreter.

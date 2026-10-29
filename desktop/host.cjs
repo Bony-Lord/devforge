@@ -9,10 +9,11 @@ const {PythonStyleHost}=require('./python-style.cjs');
 const {PythonIntelligenceHost}=require('./python-intelligence.cjs');
 const {OptionalAssets}=require('./optional-assets.cjs');
 const {ProjectTemplateFiles}=require('./project-templates.cjs');
+const {ProjectLibrary}=require('./project-library.cjs');
 const STYLE='BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n';
 const CLION_STYLE=STYLE.replace('ReferenceAlignment: Left','ReferenceAlignment: Right').replace('SpaceBeforeRangeBasedForLoopColon: true','SpaceBeforeRangeBasedForLoopColon: false');
 class DesktopHost {
-  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.configurations=new ProjectConfigurations(this);this.operations=new Map();this.settingsQueue=Promise.resolve();this.addons=new AddonLibrary(this);this.python=new PythonHost(this);this.pythonStyle=new PythonStyleHost(this);this.pythonIntelligence=new PythonIntelligenceHost(this);this.templates=new ProjectTemplateFiles(this.ws);this.optionalAssets=new OptionalAssets(this);}
+  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.configurations=new ProjectConfigurations(this);this.operations=new Map();this.settingsQueue=Promise.resolve();this.addons=new AddonLibrary(this);this.python=new PythonHost(this);this.pythonStyle=new PythonStyleHost(this);this.pythonIntelligence=new PythonIntelligenceHost(this);this.templates=new ProjectTemplateFiles(this.ws);this.optionalAssets=new OptionalAssets(this);this.projects=new ProjectLibrary(this);}
   async init(){await this.ws.init();await this.addons.init();await this.tools.discover();if(!this.ws.prefs.settings.compiler&&!this.tools.tools.gxx&&this.tools.tools.clangxx){this.ws.prefs.settings.compiler='clang';await this.ws.persist();}return this;}
   async state(){const hasProject=!!this.ws.prefs.projects[this.ws.prefs.current];return{project:this.ws.prefs.current,projectLabels:Object.fromEntries(Object.entries(this.ws.prefs.projects).map(([id,p])=>[id,p.label])),projects:Object.keys(this.ws.prefs.projects),root:hasProject?this.ws.root:'',external:hasProject,cache:portable(this.ws.cache),usr:portable(path.dirname(this.tools.tools.gxx||this.tools.tools.clangxx||process.execPath)),tree:hasProject?await this.ws.tree():[],settings:{keepAwake:false,...this.ws.prefs.settings},session:this.ws.prefs.session,abi:os.arch(),version:require('./package.json').version,trust:this.trust(),capabilities:{protocol:1,platform:process.platform,editor:'monaco',toolDelivery:'system',localExecution:'native-process',debugger:(!!this.tools.tools.gdb&&!!this.tools.tools.gdbserver)||!!this.tools.tools.lldbdap,debugProtocol:this.tools.tools.gdb&&this.tools.tools.gdbserver?'mi':'dap',systemAnimations:!this.system.reducedMotion?.()}};}
   async handle(op,d={}){
@@ -44,7 +45,11 @@ class DesktopHost {
       case 'resolveConfiguration':return this.configurations.resolve(d);
       case 'settingsCommit':case 'settings':this.ws.prefs.settings=structuredClone(d);await this.ws.persist();await this.tools.discover();return d;
       case 'sessionCommit':case 'session':this.ws.prefs.session=structuredClone(d);await this.ws.persist();return true;
-      case 'project':this.python.stop();this.pythonStyle.stop();this.pythonIntelligence.stop();if(!this.ws.prefs.projects[d.name]||!await exists(this.ws.prefs.projects[d.name].path))throw Error('Project unavailable');this.tools.stopLsp();this.ws.prefs.current=d.name;await this.ws.persist();return this.state();
+      case 'project':this.python.stop();this.pythonStyle.stop();this.pythonIntelligence.stop();if(!this.ws.prefs.projects[d.name]||!await exists(this.ws.prefs.projects[d.name].path))throw Error('Project unavailable');this.tools.stopLsp();this.ws.prefs.current=d.name;this.ws.prefs.projectSelectionCleared=false;await this.ws.persist();return this.state();
+      case 'projectDescribe':return this.projects.describe(d.id);
+      case 'projectRemove':return this.projects.handle('remove',d);
+      case 'projectArchive':return this.projects.list();
+      case 'projectRestore':return this.projects.handle('restore',d);
       case 'newProject':{const created=await this.ws.newProject(d.name,d.language,false);this.ws.prefs.trustedRoots={...this.ws.prefs.trustedRoots,[created.path]:true};await this.ws.persist();if(!['empty','template'].includes(d.language))await atomic(path.join(created.path,'.clang-format'),STYLE);return{...await this.state(),createdProject:created.project};}
       case 'tree':return this.ws.prefs.current?this.ws.tree():[];
       case 'read':return this.ws.read(d.path,d.encoding);

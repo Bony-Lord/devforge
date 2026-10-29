@@ -64,7 +64,7 @@
           "cmakeOptions": [],
           "environment": {},
           "runtimeChecks": "undefined",
-          "buildDirectory": ".forge/cmake-debug"
+          "buildDirectory": "build/debug"
         },
         {
           "id": "release",
@@ -77,7 +77,7 @@
           "cmakeOptions": [],
           "environment": {},
           "runtimeChecks": "off",
-          "buildDirectory": ".forge/cmake-release"
+          "buildDirectory": "build/release"
         }
       ],
       "configurations": [
@@ -182,7 +182,7 @@
           "cmakeOptions": [],
           "environment": {},
           "runtimeChecks": "undefined",
-          "buildDirectory": ".forge/cmake-debug"
+          "buildDirectory": "build/debug"
         },
         {
           "id": "release",
@@ -195,7 +195,7 @@
           "cmakeOptions": [],
           "environment": {},
           "runtimeChecks": "off",
-          "buildDirectory": ".forge/cmake-release"
+          "buildDirectory": "build/release"
         }
       ],
       "configurations": [

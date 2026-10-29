@@ -151,7 +151,7 @@ def request(cache, value):
     class Report(pycodestyle.BaseReport):
         def error(self, line_number, offset, text, check):
             code = super().error(line_number, offset, text, check)
-            if code and not (value.get("notebook") and code == "W292") and len(diagnostics) < 300 and not any(marker in self.lines[line_number - 1] for marker in magics):
+            if code and not (value.get("notebook") and code in ("W292", "W391")) and len(diagnostics) < 300 and not any(marker in self.lines[line_number - 1] for marker in magics):
                 diagnostics.append({"line": line_number - 1, "column": offset, "code": code, "message": text[5:], "severity": "warning"})
             return code
 

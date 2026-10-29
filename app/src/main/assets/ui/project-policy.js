@@ -16,6 +16,6 @@
     return document;
   }
   function action(document,kind){const c=document?.configurations?.find(c=>c.id===document.active);return c?.actions?.[kind]||null;}
-  function profile(document,base){return document?.addons?.mode==='project'?document.addons.requested:base;}
+  function profile(document,base){if(document?.addons?.mode!=='project')return base;const merged=new Map(base.map(r=>[typeof r==='string'?r:r.id,r]));for(const r of document.addons.requested)merged.set(typeof r==='string'?r:r.id,r);return [...merged.values()];}
   return Object.freeze({kinds,defaults,validate,action,profile});
 });

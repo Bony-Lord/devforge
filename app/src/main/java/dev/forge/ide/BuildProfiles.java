@@ -10,17 +10,22 @@ import java.util.*;
 final class BuildProfiles {
     static JSONObject defaults(boolean c)throws JSONException {
         JSONArray profiles=new JSONArray(),configs=new JSONArray();
-        for(String id:new String[]{"debug","release"})profiles.put(new JSONObject().put("id",id).put("name",id.equals("debug")?"Debug":"Release").put("compiler","gcc").put("optimization",id).put("cppStandard","c++20").put("cStandard","c17").put("flags",new JSONArray()).put("cmakeOptions",new JSONArray()).put("environment",new JSONObject()).put("runtimeChecks",id.equals("debug")?"undefined":"off").put("buildDirectory",".forge/cmake-"+id));
+        for(String id:new String[]{"debug","release"})profiles.put(new JSONObject().put("id",id).put("name",id.equals("debug")?"Debug":"Release").put("compiler","gcc").put("optimization",id).put("cppStandard","c++20").put("cStandard","c17").put("flags",new JSONArray()).put("cmakeOptions",new JSONArray()).put("environment",new JSONObject()).put("runtimeChecks",id.equals("debug")?"undefined":"off").put("buildDirectory","build/"+id));
         for(String type:new String[]{"cmake","file","project"})configs.put(new JSONObject().put("id",type.equals("cmake")?"cmake-debug":type).put("name",type.equals("cmake")?"app":type.equals("file")?"Current file":"Project").put("type",type).put("profile","debug").put("target","app").put("source",type.equals("file")?"":c?"main.c":"main.cpp").put("args",new JSONArray()).put("environment",new JSONObject()).put("workingDirectory",".").put("executable","").put("buildBeforeRun",true));
         return new JSONObject().put("version",1).put("active","cmake-debug").put("profiles",profiles).put("configurations",configs);
     }
     static void create(File root,boolean c)throws Exception {File file=new File(root,".cpp-studio/configurations.json");file.getParentFile().mkdirs();Files.write(file.toPath(),defaults(c).toString(2).getBytes(StandardCharsets.UTF_8),StandardOpenOption.CREATE_NEW);}
     static File cmakeDirectory(IdeEngine ide,JSONObject options)throws Exception {
-        String configured=options.optString("buildDirectory");if(configured.isEmpty())return new File(ide.workspace.data(),"cmake-"+options.optString("compiler","gcc")+"-"+ide.standard(options,false).replace('+','p'));
+        String configured=options.optString("buildDirectory");if(configured.isEmpty())configured="build/"+options.optString("cmakeProfile",options.optString("optimization","debug"));
         File root=ide.project(ide.currentProject),file=new File(root,configured).getCanonicalFile();
         if(new File(configured).isAbsolute()||file.equals(root)||!ide.inside(file,root))throw new IOException("Build directory must be inside the project");
         // External storage cannot execute generated programs. Keep its cache private.
         return ide.workspace.isExternal()?new File(ide.workspace.data(),"profile-"+options.optString("cmakeProfile","default").replaceAll("[^A-Za-z0-9_.-]","_")):file;
+    }
+    static void mirrorArtifact(IdeEngine ide,File source,JSONObject options)throws Exception {
+        if(!ide.workspace.isExternal()||!source.isFile())return;
+        String profile=options.optString("cmakeProfile",options.optString("optimization","debug"));if(!profile.matches("[A-Za-z0-9_.-]{1,64}"))throw new IOException("Invalid build profile");
+        File root=ide.project(ide.currentProject),directory=new File(root,"build/"+profile).getCanonicalFile();if(!ide.inside(directory,root))throw new IOException("Build folder escaped project");if(!directory.isDirectory()&&!directory.mkdirs())throw new IOException("Cannot create project build folder");File target=new File(directory,source.getName()).getCanonicalFile();if(!ide.inside(target,directory))throw new IOException("Build artifact escaped project");Files.copy(source.toPath(),target.toPath(),StandardCopyOption.REPLACE_EXISTING);
     }
     static File workingDirectory(IdeEngine ide,JSONObject options)throws Exception {
         File root=ide.project(ide.currentProject);String name=options.optString("workingDirectory",".");File dir=(new File(name).isAbsolute()?new File(name):new File(root,name)).getCanonicalFile();if(!ide.inside(dir,root)||!dir.isDirectory())throw new IOException("Working directory is unavailable or outside the project");return dir;

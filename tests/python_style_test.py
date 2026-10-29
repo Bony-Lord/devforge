@@ -92,6 +92,10 @@ class PythonStyleTests(unittest.TestCase):
         self.assertFalse(any(d['code'] == 'W292' for d in self.call('analyze', 'value = 1', notebook=True)['diagnostics']))
         self.assertTrue(any(d['code'] == 'W292' for d in self.call('analyze', 'value = 1')['diagnostics']))
 
+    def test_notebook_trailing_blank_lines_are_not_a_file_end_warning(self):
+        self.assertFalse(any(d['code'] == 'W391' for d in self.call('analyze', '!pip install pandas\n\n', notebook=True)['diagnostics']))
+        self.assertTrue(any(d['code'] == 'W391' for d in self.call('analyze', 'value = 1\n\n')['diagnostics']))
+
     def test_notebook_magic_does_not_create_a_false_import_placement_warning(self):
         result = self.call('analyze', '!pip --version\nimport json\n', notebook=True)
         self.assertFalse(any(d['code'] == 'E402' for d in result['diagnostics']))
