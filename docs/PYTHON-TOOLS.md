@@ -35,7 +35,8 @@ checks that the parsed Python syntax tree remains equivalent.
 Diagnostics are debounced after edits and appear as underlines, notebook cell
 messages, and entries in Problems. Per-cell requests have distinct identities;
 older versions and results from a previous project cannot replace current
-diagnostics. Processing is limited to 512 KiB of UTF-8 source per request and
+diagnostics. Visible notebook cells are checked automatically, with at most two
+analysis requests running at once; queued obsolete requests are discarded. Processing is limited to 512 KiB of UTF-8 source per request and
 300 diagnostics. Source is parsed, not executed, during analysis and formatting;
 tools are available only in trusted workspaces.
 

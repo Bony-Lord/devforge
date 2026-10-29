@@ -7,7 +7,7 @@ class StudioNotebookCellInput {
     this.element=view.element('div',undefined,'notebook-source');this.paint=view.element('pre',undefined,'monaco-editor notebook-syntax');this.paint.setAttribute('aria-hidden','true');
     const input=view.element('textarea');this.input=input;StudioNotebookCellInput.fields.set(input,this);input.wrap='off';input.spellcheck=false;input.autocomplete='off';input.autocapitalize='off';input.setAttribute('autocorrect','off');
     this.element.append(this.paint,input);StudioNotebookCellInput.surfaces.set(this.element,this);this.visible=typeof IntersectionObserver==='undefined';
-    if(!this.visible){view.cellObserver||=new IntersectionObserver(entries=>{for(const e of entries){const source=StudioNotebookCellInput.surfaces.get(e.target);if(source&&!source.disposed&&source.visible!==e.isIntersecting){source.visible=e.isIntersecting;source.refresh();}}},{root:view.body,rootMargin:'240px'});view.cellObserver.observe(this.element);}
+    if(!this.visible){view.cellObserver||=new IntersectionObserver(entries=>{for(const e of entries){const source=StudioNotebookCellInput.surfaces.get(e.target);if(source&&!source.disposed&&source.visible!==e.isIntersecting){source.visible=e.isIntersecting;source.refresh();if(source.visible)view.ide.pythonStyle?.scheduleCell(source);}}},{root:view.body,rootMargin:'240px'});view.cellObserver.observe(this.element);}
     input.addEventListener('beforeinput',event=>{
       if(input.readOnly||event.isComposing)return;
       this.before=this.snapshot();

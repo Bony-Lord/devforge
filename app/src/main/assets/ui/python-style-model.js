@@ -3,5 +3,11 @@
   function range(text,d){const lines=text.split('\n'),line=Math.max(0,Math.min(lines.length-1,d.line||0)),content=lines[line].replace(/\r$/,''),cp=[...content],at=Math.max(0,Math.min(cp.length,d.column||0));let start=cp.slice(0,at).join('').length;if(start===content.length&&start>0)start=cp.slice(0,Math.max(0,at-1)).join('').length;const end=Math.max(start+1,cp.slice(0,Math.min(cp.length,at+1)).join('').length);return {startLineNumber:line+1,startColumn:start+1,endLineNumber:line+1,endColumn:end+1};}
   function offset(text,line,column){const lines=text.split('\n');return lines.slice(0,line-1).reduce((n,s)=>n+s.length+1,0)+column-1;}
   function edit(before,after,cursor=0){let start=0,end=before.length,next=after.length;while(start<end&&start<next&&before[start]===after[start])start++;if(start&&/[\uD800-\uDBFF]/.test(before[start-1]))start--;while(end>start&&next>start&&before[end-1]===after[next-1]){end--;next--;}if(end<before.length&&/[\uDC00-\uDFFF]/.test(before[end])){end++;next++;}const mapped=cursor<start?cursor:cursor>=end?cursor+next-end:Math.min(next,start+cursor-start);return {start,end,text:after.slice(start,next),cursor:Math.max(0,Math.min(after.length,mapped))};}
-  return Object.freeze({range,offset,edit});
+  class AnalysisQueue {
+    constructor(limit=2){this.limit=limit;this.pending=new Map();this.running=0;}
+    run(key,current,work){return new Promise((resolve,reject)=>{this.pending.get(key)?.resolve(null);this.pending.set(key,{current,work,resolve,reject});this.drain();});}
+    clear(){for(const job of this.pending.values())job.resolve(null);this.pending.clear();}
+    drain(){while(this.running<this.limit&&this.pending.size){const[key,job]=this.pending.entries().next().value;this.pending.delete(key);try{if(!job.current()){job.resolve(null);continue;}}catch(error){job.reject(error);continue;}this.running++;Promise.resolve().then(job.work).then(job.resolve,job.reject).finally(()=>{this.running--;this.drain();});}}
+  }
+  return Object.freeze({range,offset,edit,AnalysisQueue});
 });
