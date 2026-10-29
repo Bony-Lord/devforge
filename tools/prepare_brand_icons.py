@@ -1,16 +1,17 @@
-"""Rasterize DevForge's original geometric vector mark for desktop packaging."""
+"""Package the approved raster master without changing its artwork."""
 from pathlib import Path
-from PIL import Image, ImageDraw
-ROOT=Path(__file__).resolve().parents[1]
-def image(size):
- scale=4;canvas=Image.new('RGBA',(size*scale,size*scale));draw=ImageDraw.Draw(canvas);k=size*scale/108
- def points(values):return [(round(x*k),round(y*k))for x,y in values]
- draw.rounded_rectangle((0,0,size*scale-1,size*scale-1),radius=22*k,fill='#1d222b')
- draw.polygon(points([(22,27),(39,27),(52,40),(52,68),(39,81),(22,81)]),fill='#62d8bc')
- draw.polygon(points([(33,39),(33,69),(35,69),(41,63),(41,45),(35,39)]),fill='#1d222b')
- draw.polygon(points([(62,27),(89,27),(89,38),(73,38),(73,50),(87,50),(87,61),(73,61),(73,81),(62,81)]),fill='#78a5ff')
- draw.rectangle((59*k,13*k,68*k,22*k),fill='#f0af71')
- return canvas.resize((size,size),Image.Resampling.LANCZOS)
-if __name__=='__main__':
- mark=image(512);mark.save(ROOT/'desktop/icon.png');mark.save(ROOT/'desktop/icon.ico',sizes=[(n,n)for n in [16,24,32,48,64,128,256]])
- print('DevForge PNG/ICO generated from original geometric mark')
+from PIL import Image
+ROOT = Path(__file__).resolve().parents[1]
+MASTER = ROOT / 'artwork/devforge-icon-master.png'
+if __name__ == '__main__':
+    with Image.open(MASTER) as source:
+        assert source.mode == 'RGBA' and source.width == source.height
+        assert source.getchannel('A').getextrema() == (0, 255)
+        mark = source.resize((512, 512), Image.Resampling.LANCZOS)
+    mark.save(ROOT / 'desktop/icon.png', optimize=True)
+    mark.save(ROOT / 'desktop/icon.ico', sizes=[(n, n) for n in [16, 24, 32, 48, 64, 128, 256]])
+    for relative, size in [('app/src/main/assets/ui/brand/devforge.png', 128), ('app/src/main/res/drawable-nodpi/devforge_mark.png', 512), ('docs/devforge-logo.png', 512)]:
+        target = ROOT / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        mark.resize((size, size), Image.Resampling.LANCZOS).save(target, optimize=True)
+    print('DevForge raster master packaged as PNG and seven-size ICO')

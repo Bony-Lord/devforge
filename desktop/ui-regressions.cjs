@@ -22,6 +22,7 @@ async function main(){
   await command("Page.reload");
   await until("window.forge?.startupComplete");
   await evaluate("forge.sessionReady");
+  await check('DevForge raster mark loads fully within its header slot',"(()=>{const image=document.querySelector('.brand-mark img');if(!image)return false;const box=image.getBoundingClientRect(),slot=image.parentElement.getBoundingClientRect();return image.complete&&image.naturalWidth===128&&box.width===29&&box.height===29&&box.left>=slot.left&&box.right<=slot.right+1&&!image.draggable;})()");
   await evaluate("forge.templates.ready");
   await evaluate("forge.skipSetup()");
   await evaluate("StudioPopover.close();forge.newProject()");

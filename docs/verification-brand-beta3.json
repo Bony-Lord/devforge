@@ -1,0 +1,93 @@
+{
+  "version": "0.6.0-beta.3",
+  "date": "2026-10-29",
+  "channel": "local experimental beta; not published",
+  "change": "User-provided DevForge icon refined with built-in imagegen; shared alpha master packaged for UI, desktop PE/installer and Android",
+  "gui": {
+    "packagedInteractions": 88,
+    "rendererErrors": [],
+    "consoleErrors": [],
+    "headerImageChecked": true
+  },
+  "rootNode": {
+    "passed": 95,
+    "failed": 0
+  },
+  "previousFeatureVerification": "verification-polish-beta2.json; backend and localized smokes were not repeated for this artwork-only update",
+  "android": {
+    "apks": [
+      {
+        "flavor": "modern",
+        "bytes": 9823233,
+        "sha256": "fdcbdbbd985fce7f6c3c2cf7e1a4316f092e2587d594eb84efedfd56350bd839",
+        "targetSdk": 36,
+        "versionCode": 28,
+        "jvmTests": 8,
+        "matchingSourceAssets": 461,
+        "launcherPngMatches": true,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      },
+      {
+        "flavor": "compat",
+        "bytes": 9947710,
+        "sha256": "17637c5232462e28782452dca828f71e1d1e76e9d3230e9ccc80d9d09bd4de55",
+        "targetSdk": 28,
+        "versionCode": 28,
+        "jvmTests": 8,
+        "matchingSourceAssets": 461,
+        "launcherPngMatches": true,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      }
+    ],
+    "lintErrors": 0,
+    "lintWarnings": 89,
+    "physicalDeviceTested": false
+  },
+  "windowsInstaller": {
+    "version": "0.6.0-beta.3",
+    "matchingPayloadFiles": 580,
+    "matchingSourceFiles": 485,
+    "artifacts": [
+      {
+        "file": "DevForge-0.6.0-beta.3-win-x64-setup.exe.blockmap",
+        "bytes": 122809,
+        "sha256": "154d9e4f2a9d0c560032fc9065623ad377e8f4b9f3ac46438f74f24585205f83"
+      },
+      {
+        "file": "DevForge-0.6.0-beta.3-win-x64-setup.exe",
+        "bytes": 117232011,
+        "sha256": "25557b3f8e1175a2d202b7f2c2d2842aa3a7c2b6585d069edbbdb023043098ed"
+      }
+    ],
+    "unsignedSystemInstallTested": true,
+    "guiRuntime": "existing Electron runtime on packaged resources/app",
+    "optionalWindowEngineExcluded": true
+  },
+  "installedWindows": {
+    "version": "0.6.0-beta.3",
+    "matchingInstalledFiles": 580,
+    "registeredProjects": 10,
+    "settingsReset": false,
+    "profileFilesUnchanged": 2,
+    "executableIcon": {
+      "iconGroups": 1,
+      "iconSizes": 7
+    },
+    "installedByUserRequest": true,
+    "isolatedExecutableChecks": 45
+  },
+  "notPerformed": [
+    "physical Android launcher and touch/IME tests",
+    "Linux/macOS system icon and native installer checks"
+  ],
+  "master": {
+    "file": "artwork/devforge-icon-master.png",
+    "sha256": "ddfd838153233ce5a9c87ce91edbae63604d36d45ad2fefb92ed13e73e66e537",
+    "transparentAlpha": true,
+    "size": [
+      1254,
+      1254
+    ]
+  },
+  "promptAndProvenance": "artwork/ICON-NOTES.md"
+}
