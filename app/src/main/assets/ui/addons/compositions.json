@@ -54,7 +54,7 @@
     },
     "requested": [
       {
-        "id": "studio.pack.python",
+        "id": "studio.pack.python-quality",
         "version": "1.0.0"
       }
     ]
@@ -67,7 +67,7 @@
     },
     "requested": [
       {
-        "id": "studio.pack.notebooks",
+        "id": "studio.pack.notebooks-quality",
         "version": "1.0.0"
       }
     ]

@@ -4,7 +4,7 @@ const nativePending=new Map(),nativeListeners=new Map();
 function native(op,data={}){
   return new Promise((resolve,reject)=>{
     const id=String(++nativeSequence);
-    const timer=setTimeout(()=>{nativePending.delete(id);reject(new Error('Истекло время ожидания: '+op));},['toolPackInstall','toolPackInstallMany','toolPackRemove','toolEngineRemove'].includes(op)?1800000:op==='pythonStyleInstall'?210000:op==='build'?390000:45000);
+    const timer=setTimeout(()=>{nativePending.delete(id);reject(new Error('Истекло время ожидания: '+op));},['toolPackInstall','toolPackInstallMany','toolPackRemove','toolEngineRemove'].includes(op)?1800000:['pythonStyleInstall','pythonIntelligenceInstall','optionalAssetInstall'].includes(op)?210000:op==='build'?390000:45000);
     nativePending.set(id,{resolve,reject,timer,op});
     try{ForgeNative.request(JSON.stringify({id,op,data}));}catch(e){clearTimeout(timer);nativePending.delete(id);reject(e);}
   });

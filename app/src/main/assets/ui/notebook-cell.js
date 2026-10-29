@@ -17,7 +17,7 @@ class StudioNotebookCellInput {
     input.addEventListener('input',event=>this.changed(this.synthetic?.kind||event.inputType||'input',this.synthetic?.remember!==false));
     input.addEventListener('scroll',()=>this.scroll());
     input.addEventListener('keydown',event=>{
-      if(event.isComposing||input.readOnly)return;
+      if(event.isComposing||input.readOnly)return;if(this.view.ide.pythonIntelligence?.handleCellKey(this,event))return;
       if(/^(Arrow|Home|End|Page)/.test(event.key))this.history.group=null;
       const ctrl=event.ctrlKey||event.metaKey,key=event.key.toLowerCase();
       if(ctrl&&!event.altKey&&(key==='z'||key==='y')){event.preventDefault();event.stopPropagation();this.undo(key==='y'||event.shiftKey);}
@@ -59,5 +59,5 @@ class StudioNotebookCellInput {
     Promise.resolve(colorize(text,language,{tabSize:tab})).then(html=>{if(this.disposed||ticket!==this.ticket)return;this.paint.innerHTML=html;this.scroll();this.view.ide.pythonStyle?.paintCell(this);}).catch(()=>{if(ticket===this.ticket)this.element.classList.remove('has-syntax');});
   }
   scroll(){this.paint.scrollTop=this.input.scrollTop;this.paint.scrollLeft=this.input.scrollLeft;}
-  dispose(){this.view.ide.pythonStyle?.forgetCell(this);this.disposed=true;this.ticket++;this.view.cellObserver?.unobserve(this.element);StudioNotebookCellInput.fields.delete(this.input);StudioNotebookCellInput.surfaces.delete(this.element);}
+  dispose(){this.view.ide.pythonIntelligence?.forgetCell(this);this.view.ide.pythonStyle?.forgetCell(this);this.disposed=true;this.ticket++;this.view.cellObserver?.unobserve(this.element);StudioNotebookCellInput.fields.delete(this.input);StudioNotebookCellInput.surfaces.delete(this.element);}
 }

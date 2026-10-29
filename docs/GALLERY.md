@@ -1,5 +1,15 @@
 # DevForge: примеры на планшете
 
+## 0.6.0-dev.3 — локальные Python-подсказки
+
+![Автодополнение из выбранного окружения Python](screenshots/0.6.0-dev3-python-completion.png)
+
+![Компактная подсказка параметров pandas](screenshots/0.6.0-dev3-python-parameters.png)
+
+Снимки области редактора в работающей Windows-сборке. Подсказки предоставляет
+отдельный аддон Jedi; используется выбранное окружение с установленным pandas.
+[Интерпретаторы и ограничения](PYTHON-TOOLS.md).
+
 ## 0.5.0-alpha.4 — редактирование notebook
 
 ![Подсветка Python внутри документа notebook](screenshots/0.5-alpha4-notebook.png)

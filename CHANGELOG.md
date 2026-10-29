@@ -1,4 +1,14 @@
 # Изменения
+## 0.6.0-dev.3 — local Windows / Python repair
+
+- Pinned optional Jedi/parso runtime; real Python and notebook completions, hover and compact parameter help from the selected interpreter.
+- Visible interpreter/version and project chooser; simple !pip uses the kernel Python, failed installs mark the cell as failed, local modules import from the working directory.
+- Corrected suggestion-row clipping caused by a global CSS class collision; Monaco and notebook hints escape docked/floating panel clipping.
+- Notebook Escape and completion navigation are routed before global workspace shortcuts. Pending replies cannot overwrite results after changing interpreters/profiles.
+- Fresh setup keeps the essentials selection instead of enabling all detected tools. Windows Dockview engine is a verified optional download; unavailable graphics delivery falls back to simple editing.
+- Offline and small paired bootstrap installer build modes. Windows remains based on Electron; full delivery of every feature as a separate implementation is unfinished.
+- Local development only; no public recommendation or stability promotion.
+
 
 ## 0.5.0-alpha.2 — 2026-10-28 · одно окружение вместо отдельных APK
 

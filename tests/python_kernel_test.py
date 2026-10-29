@@ -22,6 +22,33 @@ class KernelTests(unittest.TestCase):
             item=json.loads(line);self.assertEqual(item['id'],identifier);result.append(item)
             if item['type']=='idle':return result
 
+    def test_bare_pip_uses_kernel_interpreter_even_with_another_pip_on_path(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix='devforge-wrong-pip-') as directory:
+            script = pathlib.Path(directory) / ('pip.bat' if os.name == 'nt' else 'pip')
+            script.write_text('@echo WRONG_PIP' if os.name == 'nt' else '#!/bin/sh\necho WRONG_PIP\n', encoding='utf-8')
+            script.chmod(0o755)
+            code = 'import os\nos.environ["PATH"] = ' + repr(directory + os.pathsep) + ' + os.environ["PATH"]\n'
+            self.cell(code)
+            result = self.cell('!pip --version')
+            output = ''.join(e.get('text', '') for e in result)
+            self.assertNotIn('WRONG_PIP', output)
+            self.assertIn('pip ', output)
+            self.assertFalse(any(e['type'] == 'error' for e in result))
+
+    def test_failed_pip_is_an_error_instead_of_a_successful_install(self):
+        result = self.cell('!pip --devforge-invalid-option')
+        self.assertTrue(any(e['type'] == 'error' and 'pip failed in' in e['evalue'] for e in result))
+
+    def test_notebook_can_import_project_modules_after_changing_directory(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix='devforge-local-module-') as directory:
+            (pathlib.Path(directory) / 'devforge_local_probe.py').write_text('answer = 42\n', encoding='utf-8')
+            self.cell('import os\nos.chdir(' + repr(directory) + ')')
+            result = self.cell('import devforge_local_probe\ndevforge_local_probe.answer')
+            self.cell('os.chdir(' + repr(str(ROOT)) + ')')
+            self.assertEqual(next(e['text'] for e in result if e['type'] == 'result'), '42')
+
     def test_shared_state_result_and_unicode_stream(self):
         self.cell('answer = 40')
         result=self.cell('print("Привет")\nanswer + 2')

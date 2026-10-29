@@ -1,0 +1,693 @@
+{
+  "version": "0.6.0-dev.3",
+  "date": "2026-10-29",
+  "status": "local-development",
+  "published": false,
+  "platforms": {
+    "windows": "packaged payload tested through installed Electron runtime; unsigned setup not system-installed",
+    "android": "modern target36 and compat target28 release builds; JVM/lint/static APK checks; no physical-device run",
+    "linuxMacOS": "source paths and CI definitions only, no platform GUI or installer verification"
+  },
+  "tests": {
+    "hostNode": {
+      "passed": 84
+    },
+    "desktopBackend": {
+      "passed": 26,
+      "skipped": 1,
+      "skipReason": "LLDB DAP uses macOS/Linux; Windows tests use GDB",
+      "refinement": "Python environment tests rerun separately: 3 passed, including alias deduplication"
+    },
+    "pythonKernel": {
+      "passed": 12
+    },
+    "pythonStyle": {
+      "passed": 10,
+      "includes": "Pinned tools, semantics, notebook magic/import placement and file-only newline checks"
+    },
+    "gui": {
+      "packagedRussian": {
+        "passed": 45,
+        "checks": [
+          {
+            "test": "Current modular frontend boots with desktop Monaco",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Python and notebooks activate through addon dependencies",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Python runs from current renderer",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook cell view opens without native editor overlay",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook cell occupies visible document space",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook belongs to a document tab and creates no modal dialog",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook kernel preserves variables between cells",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Executed notebook saves standard outputs and metadata",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook Enter inserts the Python block indentation",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook selected lines support Tab and Shift+Tab",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook undo restores the previous cell transaction",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook redo restores the cell transaction",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook Python syntax uses existing Monaco tokens",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Code zoom updates the notebook input and colored layer together",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook structural changes retain the textarea and selection",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook typing sends a short JSON edit rather than replacing the entire file",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook raw-model undo preserves the field and updates its source",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook token rendering follows horizontal and vertical scroll",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook source cannot inject HTML elements",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Rejected oversized cell input preserves the saved model and visible text",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Read-only notebooks reject editing and structural changes",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Addon manager uses retained shared picker on desktop",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook configuration hides unsupported Build and Debug buttons",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Adding an action exposes its button and executes the selected provider",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Interpreter configuration has action choices and no CMake compiler fields",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Configuration editor saves action removal without recreating defaults",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project addon profile changes available actions without overwriting defaults",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Another project inherits the default addon composition",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Empty project has generic profile and no invented build or run actions",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Returning to the first project restores its own addons and action visibility",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project sidebar layout is restored separately",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Cold reload restores project scope and layout without changing global defaults",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "C++ Run builds and launches the artifact through configured addon actions",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project selects its addon-provided window interface after reload",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Creating another language project completes before changing interface mode",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Switching back restores the original project window workspace",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged template catalog includes projects and attachable components",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged file host applies an attachment without rewriting run configurations",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged template repeated application is idempotent",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged template preview protects an existing configuration",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged file host rejects a stale preview before applying changes",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged Python template specializes its run actions and addon profile",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project switch during tool preparation invalidates the reviewed template",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Desktop file menus expose copying paths, splits and duplication",
+            "passed": true,
+            "evidence": true
+          }
+        ],
+        "rendererErrors": []
+      },
+      "packagedEnglish": {
+        "passed": 45,
+        "checks": [
+          {
+            "test": "Current modular frontend boots with desktop Monaco",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Python and notebooks activate through addon dependencies",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Python runs from current renderer",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook cell view opens without native editor overlay",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook cell occupies visible document space",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook belongs to a document tab and creates no modal dialog",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook kernel preserves variables between cells",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Executed notebook saves standard outputs and metadata",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook Enter inserts the Python block indentation",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook selected lines support Tab and Shift+Tab",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook undo restores the previous cell transaction",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook redo restores the cell transaction",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook Python syntax uses existing Monaco tokens",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Code zoom updates the notebook input and colored layer together",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook structural changes retain the textarea and selection",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook typing sends a short JSON edit rather than replacing the entire file",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook raw-model undo preserves the field and updates its source",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook token rendering follows horizontal and vertical scroll",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook source cannot inject HTML elements",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Rejected oversized cell input preserves the saved model and visible text",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Read-only notebooks reject editing and structural changes",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Addon manager uses retained shared picker on desktop",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook configuration hides unsupported Build and Debug buttons",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Adding an action exposes its button and executes the selected provider",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Interpreter configuration has action choices and no CMake compiler fields",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Configuration editor saves action removal without recreating defaults",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project addon profile changes available actions without overwriting defaults",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Another project inherits the default addon composition",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Empty project has generic profile and no invented build or run actions",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Returning to the first project restores its own addons and action visibility",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project sidebar layout is restored separately",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Cold reload restores project scope and layout without changing global defaults",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "C++ Run builds and launches the artifact through configured addon actions",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project selects its addon-provided window interface after reload",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Creating another language project completes before changing interface mode",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Switching back restores the original project window workspace",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged template catalog includes projects and attachable components",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged file host applies an attachment without rewriting run configurations",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged template repeated application is idempotent",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged template preview protects an existing configuration",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged file host rejects a stale preview before applying changes",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Packaged Python template specializes its run actions and addon profile",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project switch during tool preparation invalidates the reviewed template",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Desktop file menus expose copying paths, splits and duplication",
+            "passed": true,
+            "evidence": true
+          }
+        ],
+        "rendererErrors": []
+      },
+      "pythonEditorAndKernel": {
+        "passed": 13,
+        "checks": [
+          {
+            "test": "Fresh Windows setup enables only essentials even when system compilers are present",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook quality pack downloads Jedi separately and enables Python intelligence",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Real Python editor offers pandas.read_csv from the selected installed environment",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Monaco completion widget is in the browser top layer and receives pointer hits",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Completion labels fit completely inside their visible rows",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Python hover shows function documentation above panels",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook cells provide pandas completions with keyboard navigation",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Accepting a notebook completion uses the cell edit history",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook completion undo restores the typed prefix",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Bare !pip reports the kernel interpreter rather than MSYS2 Python",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "The next notebook cell imports the already installed pandas and runs a DataFrame",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook displays the exact selected Python version",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "No uncaught renderer exceptions",
+            "passed": true,
+            "evidence": true
+          }
+        ],
+        "rendererErrors": []
+      },
+      "pythonEdgesAndFloatingPanels": {
+        "passed": 11,
+        "checks": [
+          {
+            "test": "Large pandas signatures display a bounded parameter list",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Ctrl+Alt+Space uses names declared in previous notebook cells",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Notebook completion keyboard navigation changes the selected option",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Escape closes notebook completions without changing source",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Project interpreter picker lists versions and preselects the current executable",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Interpreter selection is saved in the effective run profile",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Late completions from a different interpreter configuration are discarded",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "An unavailable optional window engine preserves Python features in simple mode",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Optional window engine loads lazily and creates a real floating panel",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "Completions remain visible and receive hits above a real floating panel",
+            "passed": true,
+            "evidence": true
+          },
+          {
+            "test": "No uncaught renderer exceptions",
+            "passed": true,
+            "evidence": true
+          }
+        ],
+        "rendererErrors": []
+      }
+    }
+  },
+  "userReportedPandas": {
+    "cause": "!pip used Windows CPython3.12, automatic notebook kernel selected MSYS2 Python3.11",
+    "repair": "Selected the existing Windows CPython3.12 in the effective notebook run profile; prepared optional quality components and added the quality pack while preserving prior choices",
+    "verified": {
+      "python": "3.12.6",
+      "pandas": "2.3.3",
+      "dataFrameShape": [
+        2,
+        1
+      ],
+      "completionCount": 21,
+      "read_csv": true,
+      "originalNotebookUnchanged": true,
+      "qualityComponentsPrepared": true
+    },
+    "privacy": "Project/configuration backups and paths retained only in private workspace evidence; original notebook preserved",
+    "installedAppUpdated": false
+  },
+  "delivery": {
+    "pythonIntelligenceBytes": 4993005,
+    "pythonStyleBytes": 92155,
+    "windowPackBytes": 943160,
+    "windowsOptionalWindowImplementationExcluded": true,
+    "androidWindowImplementationBundled": true,
+    "thirdPartyExecutableAddonSDKComplete": false,
+    "everyFeatureImplementationSeparatelyDelivered": false,
+    "bootstrapPublished": false,
+    "bootstrapRequiresLocalSidecar": true
+  },
+  "limits": [
+    "Not declared stable or a full CLion replacement.",
+    "No Python type checker, unused-name analyzer, debugger, or complete Jupyter protocol.",
+    "No physical Android validation during this update; tablet not woken.",
+    "No GitHub push, release or PR; public Android recommendation0.4.2 unchanged.",
+    "Actual installed Windows binary remains the older version until user runs the new setup."
+  ],
+  "androidBuilds": {
+    "modern": {
+      "bytes": 9347146,
+      "sha256": "01c2dc665ed4e7e1f9603157e49794c2453739c19e06231c944c7e9cc0f0bcd6",
+      "target": 36,
+      "versionCode": 23,
+      "release": true,
+      "signer": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+    },
+    "compat": {
+      "bytes": 9471623,
+      "sha256": "19cb345f1951f706cdab90b194fcf74e0543ddf252ad37eaefe88811e9ec5069",
+      "target": 28,
+      "versionCode": 23,
+      "release": true,
+      "signer": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+    },
+    "lint": {
+      "Error": 0,
+      "Warning": 89
+    },
+    "jvm": {
+      "ModernRelease": {
+        "tests": 8,
+        "failures": 0
+      },
+      "CompatRelease": {
+        "tests": 8,
+        "failures": 0
+      }
+    }
+  }
+}

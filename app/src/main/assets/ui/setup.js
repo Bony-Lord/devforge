@@ -3,7 +3,7 @@ const setupMethods={
   setupText(ru,en){return (this.setupDraft?.values.language||this.settings.language)==='ru'?ru:en;},
   setupLocal(value){return typeof value==='string'?value:value?.[this.setupDraft?.values.language||this.settings.language]||value?.en||'';},
   async maybeSetup(){if(this.state.capabilities.toolDelivery==='engine-and-packs'&&this.settings.runtimeDeliveryVersion!==2){if(this.settings.setupComplete||this.settings.setupDismissed)this.settings.setupDraft=StudioSetupModel.initial({profile:this.addons.baseProfile,settings:this.settings,presets:this.addons.host.compositions});this.settings.runtimeDeliveryVersion=2;await native('settingsCommit',this.settings);}if(StudioSetupModel.required(this.settings))await this.openSetup();},
-  setupPlan(){return StudioSetupModel.plan(this.addons.catalog,this.setupDraft.requested,this.addons.host.toolState.packs,this.addons.host.definitions);},
+  setupPlan(){return StudioSetupModel.plan(this.addons.catalog,this.setupDraft.requested,this.addons.host.runtimeTools(),this.addons.host.definitions);},
   async openSetup(){
     if(this.setupInstalling)return;this.setupOpen=true;await NativeEditing.layout();await this.addons.ready;document.querySelector('#settingsDialog').close();this.addons.host.toolState=await native('toolPacks');
     this.setupDraft=StudioSetupModel.initial({saved:this.settings.setupDraft,profile:this.addons.profile,settings:this.settings,presets:this.addons.host.compositions});this.setupStep=this.setupDraft.step;this.setupError='';

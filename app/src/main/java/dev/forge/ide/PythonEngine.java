@@ -54,7 +54,7 @@ final class PythonEngine {
         return new JSONObject().put("session",generation);
     }
     void read(Process process,long session,String path){
-        try(BufferedReader in=new BufferedReader(new InputStreamReader(process.getInputStream(),StandardCharsets.UTF_8))){String line;while((line=in.readLine())!=null){if(line.length()>3*1024*1024)throw new IOException("Kernel message too large");JSONObject value=new JSONObject(line);synchronized(this){if(session!=generation)return;if(value.optString("type").equals("idle"))busy=false;}value.put("session",session).put("path",path);ide.app.event("notebook",value);}}
+        try(BufferedReader in=new BufferedReader(new InputStreamReader(process.getInputStream(),StandardCharsets.UTF_8))){String line;while((line=in.readLine())!=null){if(line.length()>3*1024*1024)throw new IOException("Kernel message too large");JSONObject value=new JSONObject(line);if(value.optString("type").equals("environmentChanged"))ide.pythonIntelligence.stop();synchronized(this){if(session!=generation)return;if(value.optString("type").equals("idle"))busy=false;}value.put("session",session).put("path",path);ide.app.event("notebook",value);}}
         catch(Exception e){android.util.Log.w("DevForge","Notebook session",e);}
         finally{synchronized(this){if(session==generation){kernel=null;busy=false;ide.app.event("notebook",NativeEditorHost.object("type","stopped","session",session,"path",path));}}}
     }

@@ -6,6 +6,7 @@ transformed line commands retain their original line numbers for tracebacks.
 import contextlib
 import codecs
 import io
+import importlib
 import os
 import pathlib
 import re
@@ -28,8 +29,9 @@ class ShellOutput(list):
 
 
 class Magics:
-    def __init__(self, namespace):
+    def __init__(self, namespace, on_environment_changed=None):
         self.namespace = namespace
+        self.on_environment_changed = on_environment_changed
         self.previous_directory = os.getcwd()
         namespace["__devforge_magic__"] = self.line
         namespace["__devforge_shell__"] = self.shell
@@ -41,6 +43,20 @@ class Magics:
     def shell(self, command, capture=False):
         if not command.strip():
             return ShellOutput() if capture else None
+        # A bare pip command belongs to this notebook's interpreter. Compound
+        # shell commands retain normal shell semantics.
+        try:
+            arguments = self.args(command)
+        except ValueError:
+            arguments = []
+        if arguments and re.fullmatch(r"pip(?:3(?:\.\d+)?)?(?:\.exe)?", arguments[0], re.IGNORECASE) and not re.search(r"[|;&<>]", command):
+            result = self.process([sys.executable, "-m", "pip", *arguments[1:]], capture=capture)
+            importlib.invalidate_caches()
+            if self.namespace.get("_exit_code") and not capture:
+                raise RuntimeError("pip failed in " + sys.executable + " (exit " + str(self.namespace["_exit_code"]) + ")")
+            if len(arguments) > 1 and arguments[1] in ("install", "uninstall") and not self.namespace.get("_exit_code") and self.on_environment_changed:
+                self.on_environment_changed()
+            return result
         return self.process(command, shell=True, capture=capture)
 
     def process(self, command, shell=False, capture=False):
@@ -105,7 +121,13 @@ class Magics:
             else:
                 return os.environ.get(value.strip(), "")
         elif name == "pip":
-            self.argv([sys.executable, "-m", "pip", *self.args(value)])
+            arguments = self.args(value)
+            self.argv([sys.executable, "-m", "pip", *arguments])
+            importlib.invalidate_caches()
+            if self.namespace.get("_exit_code"):
+                raise RuntimeError("pip failed in " + sys.executable + " (exit " + str(self.namespace["_exit_code"]) + ")")
+            if arguments and arguments[0] in ("install", "uninstall") and self.on_environment_changed:
+                self.on_environment_changed()
         elif name in ("system", "sc"):
             return self.shell(value)
         elif name == "sx":

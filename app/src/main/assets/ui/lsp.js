@@ -1,6 +1,6 @@
 'use strict';
 class ClangdClient {
-  constructor(ide){this.ide=ide;this.seq=0;this.pending=new Map();this.opened=new Map();this.changes=new Map();this.chain=Promise.resolve();this.ready=false;this.capabilities={};this.disposables=[];this.epoch=0;onNative('lsp',m=>this.receive(m));onNative('lspExit',e=>{this.ready=false;ide.lspStatus('clangd остановлен','error');for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd завершился'));}this.pending.clear();});onNative('lspLog',s=>console.warn('clangd:',s));}
+  constructor(ide){this.ide=ide;this.seq=0;this.pending=new Map();this.opened=new Map();this.changes=new Map();this.chain=Promise.resolve();this.ready=false;this.capabilities={};this.disposables=[];this.epoch=0;onNative('lsp',m=>this.receive(m));onNative('lspExit',e=>{this.ready=false;if(['python','notebook'].includes(ide.active?.model.getLanguageId()))ide.pythonIntelligence?.sync();else ide.lspStatus('clangd остановлен','error');for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd завершился'));}this.pending.clear();});onNative('lspLog',s=>console.warn('clangd:',s));}
   send(m){this.chain=this.chain.catch(()=>{}).then(()=>native('lspSend',{message:m}));return this.chain;}
   notify(method,params){return this.send({jsonrpc:'2.0',method,params}).catch(e=>console.warn('LSP',method,e.message));}
   request(method,params,token){
@@ -28,6 +28,7 @@ class ClangdClient {
   async start(){
     if(!this.ide.state.root){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'No project open':'Проект не открыт','pending');return;}
     if(!this.ide.startupComplete||this.ide.setupOpen){this.startDeferred=true;return;}this.startDeferred=false;
+    if((['python','notebook'].includes(this.ide.configurations?.document?.projectType)||['python','notebook'].includes(this.ide.active?.model.getLanguageId())&&!['cmake-cpp','cmake-c','cmake'].includes(this.ide.configurations?.document?.projectType))&&![...this.ide.docs.values()].some(d=>['c','cpp'].includes(d.model.getLanguageId()))){this.ready=false;await native('lspStop');this.ide.pythonIntelligence?.sync();return;}
     if(this.ide.state.trust?.trusted===false){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'Restricted mode':'Ограниченный режим','pending');return;}
     if(this.ide.addons?.host.lastFeatures&&!this.ide.addons.host.enabled('clangd')){this.ready=false;this.ide.lspStatus(this.ide.addons.text('Анализ отключён аддоном','Analysis disabled by addon'),'pending');return;}
     if(window.forge?.requireToolPack){const state=await native('toolPacks');if(!state.packs.find(p=>p.id==='analysis')?.installed){this.ready=false;this.ide.lspStatus('Анализ не установлен','pending');return;}}

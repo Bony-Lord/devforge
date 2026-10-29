@@ -88,7 +88,7 @@ const NativeEditing={
     const occlusions=overlays.filter(e=>!e.classList.contains('dv-resize-container')).map(mask);
     const windowHandles=[];for(const element of floating){const group=windows?.api.groups.find(g=>g.element.closest('.dv-resize-container')===element);if(!group)continue;for(const handle of element.querySelectorAll('[class^="dv-resize-handle-"]')){const b=resizeRect(handle,element),direction=b.direction;if(!b.width||!b.height||direction.includes('top'))continue;if(floating.slice(floating.indexOf(element)+1).some(other=>{const r=other.getBoundingClientRect();return b.x+b.width/2>=r.left&&b.x+b.width/2<=r.right&&b.y+b.height/2>=r.top&&b.y+b.height/2<=r.bottom;}))continue;windowHandles.push({id:group.id+':'+direction,group:group.id,direction,x:b.x,y:b.y,width:b.width,height:b.height});}}
     const source=window.forge?.settings||{language:StudioI18n.locale},settings={};for(const key of ['language','theme','fontSize','codeScale','wordWrap','indentGuides','smartFormatOnClose','keyboardExtraKeys','keyboardPrimary','keyboardLayout','keyboardModifiers','keyboardNumpad','keyboardPcWidth','keyboardPcHeight','keyboardAndroidWidth','keyboardAndroidHeight'])if(source[key]!==undefined)settings[key]=source[key];
-    if(window.forge?.addons?.host.lastFeatures){const host=forge.addons.host;if(!host.enabled('keyboard'))settings.keyboardPrimary='system';settings.smartTyping=host.enabled('smartTyping');settings.completionEnabled=host.enabled('completion');if(!host.enabled('indentGuides'))settings.indentGuides=false;}
+    if(window.forge?.addons?.host.lastFeatures){const host=forge.addons.host;if(!host.enabled('keyboard'))settings.keyboardPrimary='system';settings.smartTyping=host.enabled('smartTyping');settings.completionEnabled=host.enabled('completion')||host.enabled('pythonIntelligence');if(!host.enabled('indentGuides'))settings.indentGuides=false;}
     StudioWebKeyboard.refresh();return native('editorLayout',{webInputFocused:StudioWebKeyboard.lastFocused===true,inputReady:!!window.forge?.startupComplete&&!forge.setupOpen,panes,visible,occlusions,windowHandles,settings,keyboardRevision:this.keyboardRevision||0}).catch(console.warn);
   },
   selection(e){
@@ -175,9 +175,10 @@ const NativeEditing={
     const ide=window.forge,model=monaco.editor.getModel(monaco.Uri.parse(e.uri));let items=[];
     for(const task of this.completionTasks.values())if(task.uri===e.uri)task.cancel.cancel();
     const cancel=this.cancellation();this.completionTasks.set(e.request,{uri:e.uri,cancel});
-    if((!ide.addons?.host.lastFeatures||ide.addons.host.enabled('completion'))&&model&&e.revision===this.revisions.get(e.uri))try{
+    if((!ide.addons?.host.lastFeatures||ide.addons.host.enabled('completion')||ide.addons.host.enabled('pythonIntelligence'))&&model&&e.revision===this.revisions.get(e.uri))try{
       const position={lineNumber:e.line+1,column:e.column+1};let list;
       if(['c','cpp'].includes(model.getLanguageId())){const r=await ide.lsp.request('textDocument/completion',{...ide.lsp.at(model,position),context:{triggerKind:1}},cancel);list=Array.isArray(r)?r:r?.items||[];}
+      else if(model.getLanguageId()==='python'){const r=await ide.pythonIntelligence.request(model,position,'complete',cancel),line=model.getLineContent(position.lineNumber);list=(r?.items||[]).map(item=>({label:item.label,detail:item.kind,textEdit:{range:{start:{line:e.line,character:[...line].slice(0,item.start).join('').length},end:{line:e.line,character:e.column}},newText:item.label}}));}
       else list=await nativeBuildCompletions(model,position);
       const word=model.getWordUntilPosition(position),prefix=word.word.toLowerCase();
       items=(list||[]).filter(i=>!prefix||(i.filterText||i.label).toLowerCase().includes(prefix)).slice(0,100).map(i=>{

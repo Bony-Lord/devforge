@@ -19,57 +19,16 @@ MAX_SOURCE = 512 * 1024
 MANIFEST = json.loads(pathlib.Path(__file__).with_name("style-manifest.json").read_text(encoding="utf-8"))
 
 
-def digest(path):
-    with open(path, "rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest() if hasattr(hashlib, "file_digest") else hashlib.sha256(stream.read()).hexdigest()
-
+from package_store import PackageStore, digest
+store = PackageStore(MANIFEST)
 
 def info(cache):
-    entries = []
-    for entry in MANIFEST["packages"]:
-        file = cache / entry["filename"]
-        entries.append({**entry, "installed": file.is_file() and file.stat().st_size == entry["bytes"] and digest(file) == entry["sha256"]})
-    return {"id": "python-style", "installed": all(p["installed"] for p in entries), "packages": entries,
-            "bytes": sum(p["bytes"] for p in entries), "path": str(cache), "python": sys.version.split()[0]}
-
+    return store.info(cache)
 
 def install(cache):
     if sys.version_info < (3, 10):
         raise ValueError("Python 3.10 or newer is required for these style tools")
-    cache.mkdir(parents=True, exist_ok=True)
-    # Download wheels as immutable data. No pip, extraction, build hooks or
-    # installation into the user's interpreter/venv takes place.
-    cert = os.environ.get("SSL_CERT_FILE")
-    context = ssl.create_default_context(cafile=cert or None)
-    for entry in info(cache)["packages"]:
-        if entry["installed"]:
-            continue
-        temporary = None
-        try:
-            with urllib.request.urlopen(entry["url"], context=context, timeout=30) as response:
-                if urllib.parse.urlparse(response.url).hostname != "files.pythonhosted.org":
-                    raise ValueError("Unexpected Python package origin")
-                with tempfile.NamedTemporaryFile(dir=cache, prefix=".download-", delete=False) as target:
-                    temporary = pathlib.Path(target.name)
-                    size = 0
-                    while True:
-                        chunk = response.read(16384)
-                        if not chunk:
-                            break
-                        size += len(chunk)
-                        if size > entry["bytes"]:
-                            raise ValueError("Python package exceeds its pinned size")
-                        target.write(chunk)
-            if size != entry["bytes"] or digest(temporary) != entry["sha256"]:
-                raise ValueError("Python package checksum mismatch")
-            with zipfile.ZipFile(temporary) as archive:
-                if len(archive.infolist()) > 1024 or sum(f.file_size for f in archive.infolist()) > 8 * 1024 * 1024:
-                    raise ValueError("Invalid Python wheel limits")
-            os.replace(temporary, cache / entry["filename"])
-        finally:
-            if temporary is not None:
-                temporary.unlink(missing_ok=True)
-    return info(cache)
+    return store.install(cache)
 
 
 def settings(root, source_path):
@@ -192,7 +151,7 @@ def request(cache, value):
     class Report(pycodestyle.BaseReport):
         def error(self, line_number, offset, text, check):
             code = super().error(line_number, offset, text, check)
-            if code and len(diagnostics) < 300 and not any(marker in self.lines[line_number - 1] for marker in magics):
+            if code and not (value.get("notebook") and code == "W292") and len(diagnostics) < 300 and not any(marker in self.lines[line_number - 1] for marker in magics):
                 diagnostics.append({"line": line_number - 1, "column": offset, "code": code, "message": text[5:], "severity": "warning"})
             return code
 
@@ -200,7 +159,10 @@ def request(cache, value):
     if options["ignore"] is not None:
         kwargs["ignore"] = options["ignore"]
     guide = pycodestyle.StyleGuide(**kwargs)
-    pycodestyle.Checker(lines=text.splitlines(keepends=True), options=guide.options, report=guide.init_report(Report)).check_all()
+    # Magic placeholders keep syntax/line mapping valid, but are not Python
+    # statements for import-placement checks such as E402.
+    lint_lines = ["\n" if any(marker in line for marker in magics) else line for line in text.splitlines(keepends=True)]
+    pycodestyle.Checker(lines=lint_lines, options=guide.options, report=guide.init_report(Report)).check_all()
     return {"diagnostics": diagnostics, "config": files}
 
 

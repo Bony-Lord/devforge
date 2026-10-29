@@ -1,0 +1,25 @@
+[
+  {
+    "id": "window-assets",
+    "name": {
+      "ru": "Оконник · движок Dockview",
+      "en": "Window manager · Dockview engine"
+    },
+    "version": "8.3.1",
+    "files": [
+      {
+        "path": "vendor/dockview-core.js",
+        "url": "https://raw.githubusercontent.com/Bony-Lord/devforge/fc81eaf7034e519d8829ddb6911aee568aa82f34/app/src/main/assets/ui/vendor/dockview-core.js",
+        "bytes": 942097,
+        "sha256": "e8e87488b9e3e45742305d53c0febd10731fd1e919387270e866bb3f8deae7c9"
+      },
+      {
+        "path": "vendor/dockview-LICENSE.txt",
+        "url": "https://raw.githubusercontent.com/Bony-Lord/devforge/fc81eaf7034e519d8829ddb6911aee568aa82f34/licenses/dockview-LICENSE",
+        "bytes": 1063,
+        "sha256": "1d56757fdc06c9b33c0f80821efe4f4b11960dd7fb6544232cff61752101f513"
+      }
+    ],
+    "license": "MIT"
+  }
+]

@@ -14,6 +14,10 @@ import sys
 import traceback
 from notebook_magics import Magics
 
+# User imports follow the notebook working directory, not the IDE helper folder.
+# An empty entry also follows explicit %cd changes, as in an interactive kernel.
+sys.path.insert(0, "")
+
 MAX_INPUT = 2 * 1024 * 1024
 MAX_OUTPUT = 1024 * 1024
 protocol = os.fdopen(os.dup(sys.stdout.fileno()), "w", encoding="utf-8", buffering=1)
@@ -27,7 +31,7 @@ def notebook_input(prompt=""):
 
 
 namespace = {"__name__": "__main__", "__builtins__": {**vars(builtins), "input": notebook_input}}
-magics = Magics(namespace)
+magics = Magics(namespace, on_environment_changed=lambda: send("environmentChanged", executable=sys.executable))
 
 
 def send(kind, **fields):

@@ -27,7 +27,8 @@ dockview=json.loads((ROOT/'dockview.lock.json').read_text(encoding='utf-8'))
 assert dockview['license']=='MIT' and hashlib.sha256((ROOT/dockview['bundle']).read_bytes()).hexdigest()==dockview['sha256']
 assert 'MIT License' in (ROOT/'licenses/dockview-LICENSE').read_text(encoding='utf-8')
 style=json.loads((ROOT/'app/src/main/assets/python/style-manifest.json').read_text(encoding='utf-8'))
-for package in style['packages']:
+intelligence=json.loads((ROOT/'app/src/main/assets/python/intelligence-manifest.json').read_text(encoding='utf-8'))
+for package in style['packages']+intelligence['packages']:
     assert len(package['sha256'])==64 and package['url'].startswith('https://files.pythonhosted.org/')
     assert 'MIT' in (ROOT/'licenses'/(package['name']+'-LICENSE')).read_text(encoding='utf-8')
 print(json.dumps({'nativePackages':len(packages),'attributionFiles':sum(len(p['notices']) for p in inventory),'sharedNoticeMappings':shared,'copyleftSourceFamilies':len(copyleft),'sourceArchives':len(sources['archives']),'recipeSnapshots':len(sources['recipes']),'sourceArchiveBytesVerified':args.archives},indent=2))

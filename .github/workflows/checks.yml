@@ -40,7 +40,7 @@ jobs:
           node tests/setup-model.test.cjs
           node tests/addon-selection.test.cjs
           node tests/notebook-model.test.cjs
-          node --test tests/python-style-model.test.cjs tests/project-templates.test.cjs tests/project-paths.test.cjs tests/editor-lifecycle.test.cjs
+          node --test tests/python-intelligence-model.test.cjs tests/python-style-model.test.cjs tests/project-templates.test.cjs tests/project-paths.test.cjs tests/editor-lifecycle.test.cjs
           node tests/project-policy.test.cjs
           node tests/project-actions.test.cjs
           python tests/python_kernel_test.py

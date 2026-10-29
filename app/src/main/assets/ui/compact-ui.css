@@ -30,13 +30,13 @@
 .work-area>.activitybar{grid-column:1;grid-row:1;width:40px;min-height:0;overflow:auto}
 .work-area>.sidebar{grid-column:2;grid-row:1;min-height:0;width:auto;min-width:0}
 .work-area>#sidebarResizer{grid-column:3;grid-row:1}
-.work-area>.main{grid-column:4;grid-row:1;min-height:0}
+.work-area>.studio-editor-workspace{grid-column:4;grid-row:1;min-height:0}
 .work-area>#panelResizer{grid-column:1/-1;grid-row:2}
 .work-area>#panel{grid-column:1/-1;grid-row:3;height:auto;min-height:0;max-height:none;overflow:hidden}
 body.sidebar-hidden .work-area{grid-template-columns:40px 0 0 minmax(0,1fr)}
 body.panel-hidden .work-area{grid-template-rows:minmax(0,1fr) 0 0}
 body.panel-maximized:not(.panel-hidden) .work-area{grid-template-rows:0 0 minmax(0,1fr)}
-body.panel-maximized:not(.panel-hidden) .work-area>:is(.activitybar,.sidebar,#sidebarResizer,.main,#panelResizer){visibility:hidden;overflow:hidden;min-height:0}
+body.panel-maximized:not(.panel-hidden) .work-area>:is(.activitybar,.sidebar,#sidebarResizer,.studio-editor-workspace,#panelResizer){visibility:hidden;overflow:hidden;min-height:0}
 .panel-actions{margin-left:auto}
 .panel-tabs{min-width:0}
 .panel-tabs button{white-space:nowrap}

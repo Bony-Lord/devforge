@@ -15,7 +15,7 @@ final class IdeEngine {
     final ToolPacks toolPacks;
     final AddonPackages addons;
     final PythonEngine python;
-    final PythonStyleEngine pythonStyle;
+    final PythonStyleEngine pythonStyle;final PythonIntelligenceEngine pythonIntelligence;
     final WorkspaceFiles workspace;
     final LanguageTools languages;
     final File projects,usr,tmp;
@@ -42,7 +42,7 @@ final class IdeEngine {
         currentProject=prefs.getString("project","");
         try{if(currentProject.isEmpty()||!project(currentProject).isDirectory())currentProject="";}catch(IOException error){currentProject="";}
         if(currentProject.isEmpty()){File[] existing=projects.listFiles();if(existing!=null){Arrays.sort(existing,Comparator.comparing(File::getName));for(File folder:existing)if(folder.isDirectory()){currentProject=folder.getName();break;}}if(currentProject.isEmpty()){JSONObject links=workspace.bindings();for(Iterator<String> ids=links.keys();ids.hasNext();){String id=ids.next();if(project(id).isDirectory()){currentProject=id;break;}}}}
-        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);pythonStyle=new PythonStyleEngine(this);
+        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);pythonStyle=new PythonStyleEngine(this);pythonIntelligence=new PythonIntelligenceEngine(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
         boolean executes=WorkspaceTrustPolicy.executesProject(op);if(executes){requireWorkspaceTrust();if(toolPacks.installing)throw new IOException("Finish the component operation before running project tools");}projectExecution.set(executes);
@@ -64,6 +64,14 @@ final class IdeEngine {
             case "performanceReport":return app.responsiveness.report();
             case "performanceEvent":app.responsiveness.record("Web UI",Math.min(60000,d.optLong("delayMs")),"");return true;
             case "pythonInfo":return python.info();
+            case "optionalAssets":case "optionalAssetInstall":return optionalAssets();
+            case "optionalAssetRemove":throw new IOException("The Android window engine is bundled with this APK");
+            case "pythonIntelligenceInfo":return pythonIntelligence.info();
+            case "pythonIntelligenceInstall":return pythonIntelligence.manage("install",d);
+            case "pythonIntelligenceRemove":return pythonIntelligence.manage("remove",d);
+            case "pythonIntelligence":return pythonIntelligence.request(d);
+            case "pythonIntelligenceStop":pythonIntelligence.stop();return true;
+            case "pythonEnvironments":return new JSONArray().put(python.info());
             case "pythonStyleInfo":return pythonStyle.info();
             case "pythonStyleInstall":return pythonStyle.manage("install",d);
             case "pythonStyleRemove":return pythonStyle.manage("remove",d);
@@ -79,7 +87,7 @@ final class IdeEngine {
             case "settings":case "settingsCommit":{var edit=prefs.edit().putString("settings",d.toString());if(op.equals("settingsCommit")){if(!edit.commit())throw new IOException("Cannot save settings");}else edit.apply();app.configureKeyboard(d);return d;}
             case "session":case "sessionCommit":{var edit=prefs.edit().putString("session",d.toString());if(op.equals("sessionCommit")){if(!edit.commit())throw new IOException("Cannot save session");}else edit.apply();return true;}
             case "addonState":return addons.stateProfile();
-            case "addonStateCommit":if(!d.optString("resolved").contains("studio.python-formatting")&&!d.optString("resolved").contains("studio.python-diagnostics"))pythonStyle.stop();return addons.saveProfile(d);
+            case "addonStateCommit":if(!d.optString("resolved").contains("studio.python-formatting")&&!d.optString("resolved").contains("studio.python-diagnostics"))pythonStyle.stop();if(!d.optString("resolved").contains("studio.python-intelligence"))pythonIntelligence.stop();return addons.saveProfile(d);
             case "addonLibrary":return addons.state();
             case "addonCatalog":return addons.catalog();
             case "addonBegin":return addons.begin(d);
@@ -88,8 +96,8 @@ final class IdeEngine {
             case "addonDownload":{AddonDownload.Result result=AddonDownload.fetch(d.getString("url"),d.optString("sha256"));AddonPackages.pack(new JSONObject(result.text));return new JSONObject().put("text",result.text).put("sha256",result.sha256).put("url",result.url);}
             case "addonExport":app.exportAddon(d.getJSONObject("package"));return true;
             case "workspaceTrust":return workspaceTrust();
-            case "workspaceTrustSet":{boolean trusted=d.getBoolean("trusted");synchronized(workspaceTrustLock){if(!prefs.edit().putBoolean(trustKey(),trusted).commit())throw new IOException("Cannot save workspace trust");if(!trusted){for(Process p:projectProcesses)if(p.isAlive())p.destroyForcibly();projectProcesses.clear();}}if(!trusted){python.stop();pythonStyle.stop();stopLsp();stopExecution();}return workspaceTrust();}
-            case "project":python.stop();pythonStyle.stop(); {
+            case "workspaceTrustSet":{boolean trusted=d.getBoolean("trusted");synchronized(workspaceTrustLock){if(!prefs.edit().putBoolean(trustKey(),trusted).commit())throw new IOException("Cannot save workspace trust");if(!trusted){for(Process p:projectProcesses)if(p.isAlive())p.destroyForcibly();projectProcesses.clear();}}if(!trusted){python.stop();pythonStyle.stop();pythonIntelligence.stop();stopLsp();stopExecution();}return workspaceTrust();}
+            case "project":python.stop();pythonStyle.stop();pythonIntelligence.stop(); {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
                 stopLsp();currentProject=name;prefs.edit().putString("project",name).apply();return state();
@@ -314,6 +322,7 @@ final class IdeEngine {
             try{o.put(tool,version(tool));}catch(Exception e){o.put(tool,"ОШИБКА: "+e.getMessage());}
         }return o;
     }
+    JSONArray optionalAssets()throws Exception{JSONArray catalog;try(InputStream in=app.getAssets().open("ui/addons/optional-assets.json")){catalog=new JSONArray(slurp(in,131072));}for(int i=0;i<catalog.length();i++){JSONObject pack=catalog.getJSONObject(i);long bytes=0;boolean installed=true;JSONArray files=pack.getJSONArray("files");for(int n=0;n<files.length();n++){JSONObject file=files.getJSONObject(n);bytes+=file.getLong("bytes");try(InputStream in=app.getAssets().open("ui/"+file.getString("path"))){installed&=in.read()!=-1;}catch(IOException e){installed=false;}}pack.put("name",pack.getJSONObject("name").optString(settings().optString("language","en"),"Window engine")).put("bytes",bytes).put("installed",installed).put("bundled",installed).put("optional",true);}return catalog;}
     static String slurp(InputStream in,int max)throws IOException {
         ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] b=new byte[8192];int n;while((n=in.read(b))>0){if(out.size()<max)out.write(b,0,Math.min(n,max-out.size()));}return out.toString("UTF-8");
     }
@@ -460,5 +469,5 @@ final class IdeEngine {
         }catch(Exception e){android.util.Log.d("Forge","Output stream closed",e);}
     }
     void stopExecution(){if(python!=null)python.stop();if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null)a.destroyForcibly();if(b!=null)b.destroyForcibly();}
-    void close(){closed=true;pythonStyle.stop();python.stop();toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
+    void close(){closed=true;pythonStyle.stop();pythonIntelligence.stop();python.stop();toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
 }

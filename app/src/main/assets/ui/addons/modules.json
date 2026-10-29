@@ -23,7 +23,8 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "installationGroup": "workspace"
+      "installationGroup": "workspace",
+      "externalTool": "window-assets"
     },
     "contributions": [
       {
@@ -2909,6 +2910,10 @@
         "studio.python-style": {
           "min": "1.0.0",
           "maxExclusive": "2.0.0"
+        },
+        "studio.python-intelligence": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
         }
       },
       "conflicts": {},
@@ -2943,11 +2948,104 @@
         "studio.python-style": {
           "min": "1.0.0",
           "maxExclusive": "2.0.0"
+        },
+        "studio.python-intelligence": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
         }
       },
       "conflicts": {},
       "kind": "pack"
     },
     "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.tool.python-intelligence",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Jedi · анализ Python",
+        "en": "Jedi · Python intelligence tools"
+      },
+      "description": {
+        "ru": "Автодополнение, подсказки параметров и документация для Python и notebook. Отдельная загрузка.",
+        "en": "Python and notebook completions, signatures and hover documentation. Separate download."
+      },
+      "license": "MIT",
+      "kind": "runtime",
+      "dependencies": {
+        "studio.tool.python": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "capabilities": [
+        "tools.runtime"
+      ],
+      "installationGroup": "tools",
+      "introduced": 3,
+      "externalTool": "python-intelligence"
+    },
+    "contributions": [
+      {
+        "point": "runtimes",
+        "id": "studio.tool.python-intelligence/provider",
+        "value": {
+          "id": "python-intelligence"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.python-intelligence",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python · подсказки Jedi",
+        "en": "Python · Jedi code intelligence"
+      },
+      "description": {
+        "ru": "Автодополнение, подсказки параметров и документация для Python и notebook. Отдельная загрузка.",
+        "en": "Python and notebook completions, signatures and hover documentation. Separate download."
+      },
+      "license": "MIT",
+      "kind": "extension",
+      "dependencies": {
+        "studio.python": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tool.python-intelligence": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "capabilities": [
+        "host.features"
+      ],
+      "installationGroup": "extensions",
+      "introduced": 3
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.python-intelligence/feature",
+        "value": {
+          "id": "pythonIntelligence"
+        }
+      }
+    ]
   }
 ]
