@@ -217,6 +217,7 @@ const NativeEditing={
       if(ide.cmakeSnapshot?.included===false)ide.quickItems.push({label:'Добавить файл в CMake',run:()=>ide.offerCMakeSource()});ide.openQuick('Исправления и подсказки');return;
     }
     if(id==='editor.action.showHover'||id==='editor.action.triggerParameterHints'){
+      if(model.getLanguageId()==='python'){if(!ide.pythonIntelligence.enabled())return ide.pythonIntelligence.openTools(document.querySelector('#documentationButton'));return ide.pythonIntelligence.modelDocumentation(model,pos,id.includes('Parameter'));}
       if(model.getLanguageId()==='cmake'){const name=model.getWordAtPosition(pos)?.word;if(name){const r=await native('cmakeHelp',{name:name.toLowerCase()});this.showInfo('Документация',r.text);}return;}
       const r=await ide.lsp.request(id.includes('Parameter')?'textDocument/signatureHelp':'textDocument/hover',at);const text=r?.signatures?.map(s=>s.label).join('\n')||ide.lsp.markdown(r?.contents)?.value;
       if(text)this.showInfo('Документация',text);return;

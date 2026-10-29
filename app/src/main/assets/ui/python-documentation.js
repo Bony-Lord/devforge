@@ -1,0 +1,44 @@
+'use strict';
+/* Documentation is text from static Jedi analysis; never notebook execution/HTML. */
+Object.assign(StudioPythonIntelligence.prototype,{
+ docNode(tag,text,cls){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(cls)node.className=cls;return node;},
+ docBody(container,text){for(const block of StudioPythonIntelligenceModel.documentation(text)){const el=this.docNode(block.type==='heading'?'h4':block.type==='code'?'pre':'p',block.text);container.append(el);}},
+ renderDocumentation(value){
+  const card=this.docNode('section',undefined,'studio-python-documentation');card.setAttribute('role','tooltip');card.dataset.noI18n='';
+  for(const item of value.contents||[]){const head=this.docNode('header'),badge=this.docNode('span',this.kindLabel(item.kind),'python-doc-kind'),name=this.docNode('strong',item.qualifiedName||item.title);head.append(badge,name);card.append(head);for(const signature of item.signatures?.length?item.signatures:[item.title])if(signature)card.append(this.docNode('pre',signature,'python-doc-signature'));const body=this.docNode('div',undefined,'python-doc-body');this.docBody(body,item.text);card.append(body);}
+  const foot=this.docNode('footer',this.t('Jedi · статический анализ','Jedi · static analysis'));card.append(foot);return card;
+ },
+ hideDocumentation(){clearTimeout(this.docTimer);clearTimeout(this.docCloseTimer);this.docTarget=null;this.docTicket=(this.docTicket||0)+1;this.documentation?.element.remove();this.documentation=null;},
+ async modelDocumentation(model,pos,signature=false){
+  this.hideDocumentation();const ticket=this.docTicket,value=await this.request(model,pos,signature?'signature':'hover');if(!value||ticket!==this.docTicket||this.ide.editor.getModel()!==model)return;const element=signature?this.docNode('section',undefined,'studio-python-documentation python-signature'):this.renderDocumentation(value);if(signature){if(!value.signatures?.length)return;this.renderSignature(element,value);}else if(!value.contents?.length)return;
+  const close=this.docNode('button',undefined,'python-doc-close');close.type='button';close.innerHTML=svg('x');close.title=close.ariaLabel=this.t('Закрыть подсказку','Close documentation');close.onclick=()=>this.hideDocumentation();element.prepend(close);StudioEditorOverlays.root().append(element);this.documentation={element,model,pinned:true};const rect=(StudioDocumentViews.pane(this.ide.editor)?.container||document.querySelector('#editor')).getBoundingClientRect();element.style.left=Math.max(8,Math.min(rect.left+20,innerWidth-element.offsetWidth-8))+'px';element.style.top=Math.max(8,Math.min(rect.top+20,innerHeight-element.offsetHeight-8))+'px';StudioEditorOverlays.lift?.();
+ },
+ hoverOffset(source,event){const input=source.input,r=input.getBoundingClientRect(),style=getComputedStyle(input),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');ctx.font=style.font;return StudioPythonIntelligenceModel.hitOffset(input.value,event.clientX-r.left-parseFloat(style.paddingLeft)+input.scrollLeft,event.clientY-r.top-parseFloat(style.paddingTop)+input.scrollTop,{lineHeight:parseFloat(style.lineHeight),measure:t=>ctx.measureText(t).width,tabSize:Number(this.ide.settings.tabWidth)||4});},
+ async cellDocumentation(source,offset,pinned=false,point){
+  if(source.disposed||source.language()!=='python')return;if(!this.enabled()){if(pinned)return this.openTools(source.input);return;}
+  const word=StudioPythonIntelligenceModel.wordAt(source.input.value,offset);if(!word)return;const text=source.input.value,root=this.ide.state.root,key=this.contextKey(),ticket=this.docTicket=(this.docTicket||0)+1,context=StudioPythonIntelligenceModel.cellContext(source.view.value.cells,source.record.cell,text,Math.min(word.end,word.start+1));
+  const current=()=>ticket===this.docTicket&&!source.disposed&&text===source.input.value&&root===this.ide.state.root&&key===this.contextKey()&&this.enabled();
+  const value=await this.queue.run('cell-doc:'+source.view.doc.path,current,()=>native('pythonIntelligence',{...context,root,path:source.view.doc.path,notebook:true,action:'hover',options:this.options()}));if(!value?.contents?.length||!current())return;
+  this.documentation?.element.remove();const element=this.renderDocumentation(value);StudioEditorOverlays.root().append(element);this.documentation={element,source,word:word.text,offset,pinned};element.onpointerenter=()=>clearTimeout(this.docCloseTimer);element.onpointerleave=()=>{if(!pinned)this.docCloseTimer=setTimeout(()=>this.hideDocumentation(),180);};
+  if(pinned){const close=this.docNode('button',undefined,'python-doc-close');close.type='button';close.innerHTML=svg('x');close.title=close.ariaLabel=this.t('Закрыть подсказку','Close documentation');close.onclick=()=>this.hideDocumentation();element.prepend(close);}
+  if(point){const v=visualViewport,w=v?.width||innerWidth,h=v?.height||innerHeight,b=element.getBoundingClientRect();element.style.left=Math.max(8,Math.min(point.x,w-b.width-8))+'px';element.style.top=Math.max(8,Math.min(point.y+18,h-b.height-8))+'px';}else this.position(source,element);
+  StudioEditorOverlays.lift?.();
+ },
+ renderSignature(element,result){
+  const info=StudioPythonIntelligenceModel.signature(result.signatures[0]),head=this.docNode('div',this.t('Параметры функции','Function parameters'),'python-signature-heading'),code=this.docNode('div',undefined,'python-signature-code'),active=info.parameters[info.activeParameter]?.label;
+  if(active){code.append(document.createTextNode(info.label.slice(0,active[0])),this.docNode('mark',info.label.slice(...active)),document.createTextNode(info.label.slice(active[1])));}else code.textContent=info.label;
+  element.append(head,code);if(info.activeDetail)element.append(this.docNode('code',info.activeDetail,'python-signature-detail'));if(result.signatures[0].documentation){const body=this.docNode('div',undefined,'python-doc-body');this.docBody(body,result.signatures[0].documentation);element.append(body);}
+ }
+});
+{
+ const watch=StudioPythonIntelligence.prototype.watchCell,forget=StudioPythonIntelligence.prototype.forgetCell,key=StudioPythonIntelligence.prototype.handleCellKey;
+ StudioPythonIntelligence.prototype.watchCell=function(source){if(this.cells.has(source))return;watch.call(this,source);const input=source.input;
+  const move=event=>{if(event.pointerType!=='mouse'||event.buttons||this.popup||this.documentation?.pinned)return;const offset=this.hoverOffset(source,event),word=offset!==null&&StudioPythonIntelligenceModel.wordAt(input.value,offset);if(!word){clearTimeout(this.docTimer);if(!this.documentation?.pinned)this.docCloseTimer=setTimeout(()=>this.hideDocumentation(),150);return;}if(this.docTarget?.source===source&&this.docTarget.start===word.start&&this.docTarget.text===input.value)return;this.hideDocumentation();this.docTarget={source,start:word.start,text:input.value};const point={x:event.clientX,y:event.clientY};this.docTimer=setTimeout(()=>this.cellDocumentation(source,offset,false,point).catch(console.warn),420);};
+  const leave=event=>{clearTimeout(this.docTimer);this.docTarget=null;if(this.documentation?.element.contains(event.relatedTarget))return;if(!this.documentation?.pinned)this.docCloseTimer=setTimeout(()=>this.hideDocumentation(),180);};const changed=()=>{this.docTarget=null;this.hideDocumentation();};
+  input.addEventListener('pointermove',move);input.addEventListener('pointerleave',leave);input.addEventListener('input',changed);input.addEventListener('scroll',changed);source.documentationCleanup=()=>{input.removeEventListener('pointermove',move);input.removeEventListener('pointerleave',leave);input.removeEventListener('input',changed);input.removeEventListener('scroll',changed);};
+ };
+ StudioPythonIntelligence.prototype.forgetCell=function(source){source.documentationCleanup?.();if(this.documentation?.source===source)this.hideDocumentation();return forget.call(this,source);};
+ StudioPythonIntelligence.prototype.handleCellKey=function(source,event){if(StudioShortcutKeys.matches(event,'Ctrl+Q')&&source.language()==='python'){event.preventDefault();event.stopImmediatePropagation();this.hide();this.hideDocumentation();this.cellDocumentation(source,source.input.selectionStart,true).catch(safeError);return true;}if(event.key==='Escape'&&this.documentation){event.preventDefault();event.stopImmediatePropagation();this.hideDocumentation();return true;}return key.call(this,source,event);};
+ document.addEventListener('pointerdown',event=>{const service=window.forge?.pythonIntelligence;if(service?.documentation&&!service.documentation.element.contains(event.target))service.hideDocumentation();},true);
+ document.addEventListener('keydown',event=>{const service=window.forge?.pythonIntelligence;if(event.key==='Escape'&&service?.documentation){event.preventDefault();event.stopImmediatePropagation();service.hideDocumentation();}},true);
+}

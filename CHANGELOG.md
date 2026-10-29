@@ -1,5 +1,13 @@
 # Изменения
 
+## 0.6.0-beta.1 — дизайн и документация Python (prerelease)
+
+- Общая палитра и состояния интерфейса, редактора и notebook; компактные команды, поиск файла в заголовке, различимые значки, категории и поиск настроек.
+- Документация функций Python/notebook: hover, Ctrl+Q, кнопка книги, сигнатуры, структурированные docstrings, активный аргумент; статический Jedi без исполнения ячеек.
+- Масштабирование больше не перекрывает новую тему старой. Устаревшие диагностики ячейки убираются сразу после правки.
+- 67 упакованных GUI-проверок, 45 RU + 45 EN smoke, 92 теста моделей. Подробные результаты и ограничения — docs/verification-design-beta.json.
+- Windows x64 NSIS и Android ARM64 modern target36/compat target28. Физическая проверка Android и Linux/macOS в этой бете не выполнена; стабильный статус не заявляется.
+
 ## 0.6.0-dev.5 — local workspace and marketplace update
 
 - Searchable extension catalog, filters, platform compatibility, details/dependencies/previews and existing third-party import.

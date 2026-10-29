@@ -48,7 +48,10 @@ def query(request, jedi):
         return {"items": [{"label": item.name, "kind": item.type, "start": max(0, column - item.get_completion_prefix_length())} for item in items[:300]], "incomplete": len(items) > 300}
     if action == "hover":
         names = script.help(line, column)
-        return {"contents": [{"title": name.description, "text": name.docstring(raw=True)[:5000]} for name in names[:2]]}
+        return {"contents": [{"title": name.description, "qualifiedName": name.full_name or name.name,
+                              "kind": name.type, "text": name.docstring(raw=True)[:8000],
+                              "signatures": [sig.to_string()[:2000] for sig in name.get_signatures()[:4]]}
+                             for name in names[:2]]}
     if action == "signature":
         return {"signatures": [{"name": signature.name, "label": signature.to_string(), "documentation": signature.docstring(raw=True)[:1500], "parameters": [p.to_string() for p in signature.params], "activeParameter": signature.index or 0} for signature in script.get_signatures(line, column)[:4]]}
     raise ValueError("Unknown Python intelligence operation")

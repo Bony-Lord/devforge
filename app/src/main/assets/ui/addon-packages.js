@@ -2,7 +2,7 @@
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./addon-core.js'):root.StudioAddonCore);if(typeof module==='object'&&module.exports)module.exports=api;else root.StudioAddonPackages=api;})(globalThis,core=>{
   'use strict';
   const ACTIONS=Object.freeze(['editor.focus','editor.resetZoom','ui.settings','ui.focusMode']);
-  const COLORS=Object.freeze(['--bg','--deep','--panel','--elev','--hover','--line','--text','--muted','--accent','--accent-bg','--green','--red','--yellow']);
+  const COLORS=Object.freeze(['--bg','--deep','--panel','--elev','--hover','--line','--text','--muted','--accent','--accent-bg','--green','--red','--yellow','--purple','--cyan','--surface-inset','--surface-active']);
   const fail=message=>{throw Error(message);};
   function object(value){return value&&typeof value==='object'&&!Array.isArray(value);}
   function label(value){if(typeof value==='string')return value.length>0&&value.length<=240;if(!object(value)||!Object.keys(value).length)return false;return Object.entries(value).every(([k,v])=>/^[a-z]{2}(-[A-Za-z]{2,4})?$/.test(k)&&typeof v==='string'&&v.length>0&&v.length<=240);}

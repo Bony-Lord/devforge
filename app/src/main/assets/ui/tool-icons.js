@@ -1,6 +1,12 @@
 'use strict';
 // Original interface glyphs. Shape as well as color identifies each tool.
 for(const[name,paths]of Object.entries({
+ 'save':'<path d="M4 3h13l4 4v14H3V3zm3 0v6h10V3M7 21v-8h10v8M14 4v3"/>',
+ 'studio-motion':'<path d="M3 7h8M2 12h5m-4 5h8M14 5l7 7-7 7m-4-7h11"/>',
+ 'book-open':'<path d="M12 5c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-4-1-7-1-10 1zm0 0v15M5 8h4m-4 4h4m6-4h4m-4 4h4"/>',
+ 'palette':'<path d="M12 3a9 9 0 1 0 0 18h2a2 2 0 0 0 1-4 2 2 0 0 1 1-4h2a3 3 0 0 0 3-3c0-4-4-7-9-7Z"/><circle cx="7" cy="10" r="1"/><circle cx="10" cy="6" r="1"/><circle cx="15" cy="7" r="1"/><circle cx="6" cy="15" r="1"/>',
+ 'studio-python':'<path d="M12 3H8a3 3 0 0 0-3 3v3h9v3H6a3 3 0 0 0-3 3v1h5m4 5h4a3 3 0 0 0 3-3v-3h-9v-3h8a3 3 0 0 0 3-3V8h-5"/><circle cx="9" cy="6" r=".7" fill="currentColor"/><circle cx="15" cy="18" r=".7" fill="currentColor"/>',
+ 'studio-notebook':'<rect x="5" y="3" width="15" height="18" rx="2"/><path d="M3 7h4M3 12h4M3 17h4m3-10h7m-7 4 2 2-2 2m4 0h3"/>',
  'lightbulb':'<path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/>',
  'sliders-horizontal':'<path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11M8 3v6m6 0v6M6 15v6"/>',
  'panels-top-left':'<rect x="2" y="3" width="15" height="13" rx="1"/><rect x="7" y="8" width="15" height="13" rx="1"/><path d="M7 12h15"/>',

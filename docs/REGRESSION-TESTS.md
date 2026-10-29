@@ -1,5 +1,13 @@
 # Reproducing interaction regressions
 
+0.6 beta adds real notebook mouse hover, pinned Ctrl+Q documentation, Escape,
+active function parameter help, immediate invalidation of old cell diagnostics,
+Python-file hover in the top overlay, text-only untrusted docstrings, settings
+category/search navigation, and reachable controls at phone width. Icon inventory
+tests catch silent fallback to generic file symbols. Cell execution smoke selects
+the explicit run action rather than relying on its position among buttons.
+The exact beta results are in `verification-design-beta.json`.
+
 The previous checks did not adequately cover complete user workflows. In
 particular, a disabled Create button, project transitions and modal geometry
 could pass checks that only inspected isolated controls. This local dev.4 update

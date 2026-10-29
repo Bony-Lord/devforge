@@ -1,0 +1,383 @@
+{
+  "version": "0.6.0-beta.1",
+  "date": "2026-10-29",
+  "channel": "prerelease, not stable",
+  "gui": {
+    "packagedInteractions": 67,
+    "checks": [
+      {
+        "test": "Create is enabled before requesting a preview",
+        "passed": true
+      },
+      {
+        "test": "One Create click creates and opens the selected project",
+        "passed": true
+      },
+      {
+        "test": "An empty project name blocks creation",
+        "passed": true
+      },
+      {
+        "test": "Extensions open as a normal editor tab without a modal or backdrop",
+        "passed": true
+      },
+      {
+        "test": "Utility tabs do not show a file-only read-only badge or internal URI",
+        "passed": true
+      },
+      {
+        "test": "Extensions page stays within its editor pane",
+        "passed": true
+      },
+      {
+        "test": "Marketplace search filters packs without rebuilding its focused search field",
+        "passed": true
+      },
+      {
+        "test": "Marketplace details stay in the editor and list dependencies",
+        "passed": true
+      },
+      {
+        "test": "Marketplace retains its search after returning from extension details",
+        "passed": true
+      },
+      {
+        "test": "Project settings have a dedicated entry point and distinct run/global icons",
+        "passed": true
+      },
+      {
+        "test": "Attach is available without requesting a preview",
+        "passed": true
+      },
+      {
+        "test": "A single Attach click writes the selected EditorConfig template",
+        "passed": true
+      },
+      {
+        "test": "Conflicting attachments keep a usable explicit replacement review",
+        "passed": true
+      },
+      {
+        "test": "Confirmed template replacement completes without a mandatory Preview click",
+        "passed": true
+      },
+      {
+        "test": "Run configuration icon fits entirely in its header button",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens console pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens terminal pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens problems pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens debug pane",
+        "passed": true
+      },
+      {
+        "test": "Explorer and code start in separate groups",
+        "passed": true
+      },
+      {
+        "test": "Initial horizontal editor to project ratio is between four and six",
+        "passed": true
+      },
+      {
+        "test": "Opening code after clearing the previous project cannot join the explorer group",
+        "passed": true
+      },
+      {
+        "test": "Extensions tab does not become the current-file build source",
+        "passed": true
+      },
+      {
+        "test": "Notebook project retains the application window manager",
+        "passed": true
+      },
+      {
+        "test": "Notebook projects also begin with four to six times more editor width than navigator",
+        "passed": true
+      },
+      {
+        "test": "Ordinary application extensions remain active across project specialization",
+        "passed": true
+      },
+      {
+        "test": "Notebook typing produces real Python completions without a hotkey",
+        "passed": true
+      },
+      {
+        "test": "Editing a notebook cell clears diagnostics for its previous source immediately",
+        "passed": true
+      },
+      {
+        "test": "Notebook mouse hover shows a real function signature and docstring without stealing input focus",
+        "passed": true
+      },
+      {
+        "test": "Ctrl Q pins documentation and exposes a close control",
+        "passed": true
+      },
+      {
+        "test": "Escape closes notebook documentation",
+        "passed": true
+      },
+      {
+        "test": "Function parameter help marks the active argument and keeps its description",
+        "passed": true
+      },
+      {
+        "test": "Untrusted function docstrings render as selectable text, never HTML",
+        "passed": true
+      },
+      {
+        "test": "Notebook Enter indents Python blocks through actual input events",
+        "passed": true
+      },
+      {
+        "test": "Notebook automatically pairs an opening parenthesis",
+        "passed": true
+      },
+      {
+        "test": "Typing the matching closing parenthesis skips it without duplicating",
+        "passed": true
+      },
+      {
+        "test": "Notebook resource limits persist in its standard metadata",
+        "passed": true
+      },
+      {
+        "test": "Python source files use indentation and paired brackets in the real editor",
+        "passed": true
+      },
+      {
+        "test": "Python file function documentation uses the top overlay with signature and docstring",
+        "passed": true
+      },
+      {
+        "test": "Exact shortcut modifiers separate outline/focus/completion and preserve Ctrl+Y redo",
+        "passed": true
+      },
+      {
+        "test": "Run settings remain accessible in a narrower desktop header",
+        "passed": true
+      },
+      {
+        "test": "New palette survives UI scaling and differs between editor and panels",
+        "passed": true
+      },
+      {
+        "test": "Settings have a category navigator with one visible page",
+        "passed": true
+      },
+      {
+        "test": "Clearing settings search restores every category",
+        "passed": true
+      },
+      {
+        "test": "Phone header keeps run and configuration actions within the screen",
+        "passed": true
+      },
+      {
+        "test": "Build is visible and large generated folders load on demand",
+        "passed": true
+      },
+      {
+        "test": "Hidden directory descendants inherit their yellow marker",
+        "passed": true
+      },
+      {
+        "test": "Opening another desktop project offers this window or a new window",
+        "passed": true
+      },
+      {
+        "test": "Second project opens independently and inherits application extensions",
+        "passed": true
+      },
+      {
+        "test": "The new window opens the selected project with the same global extensions",
+        "passed": true
+      },
+      {
+        "test": "Files created in the other project do not appear in the first project",
+        "passed": true
+      },
+      {
+        "test": "Extensions tab works in windowed mode too",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens console pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens terminal pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens problems pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens debug pane",
+        "passed": true
+      },
+      {
+        "test": "Touch hold opens the existing file context menu",
+        "passed": true
+      },
+      {
+        "test": "Scrolling motion cancels the context-menu hold",
+        "passed": true
+      },
+      {
+        "test": "A second finger cancels a pending long press",
+        "passed": true
+      },
+      {
+        "test": "Project list exposes visible actions without first opening that project",
+        "passed": true
+      },
+      {
+        "test": "Project actions keep the project selector open behind the child menu",
+        "passed": true
+      },
+      {
+        "test": "Moving project files requires an explicit confirmation showing the exact path",
+        "passed": true
+      },
+      {
+        "test": "Cancel keeps the project registered",
+        "passed": true
+      },
+      {
+        "test": "Removed projects have a discoverable restore action",
+        "passed": true
+      },
+      {
+        "test": "Trashing the active project opens the empty workspace",
+        "passed": true
+      },
+      {
+        "test": "Restoring a trashed project preserves its exact saved bytes",
+        "passed": true
+      },
+      {
+        "test": "No renderer exceptions or console errors",
+        "passed": true
+      }
+    ],
+    "localizedSmokes": {
+      "ru": 45,
+      "en": 45
+    },
+    "rendererErrors": []
+  },
+  "rootNode": {
+    "passed": 92,
+    "failed": 0
+  },
+  "backend": {
+    "passed": 40,
+    "failed": 0,
+    "skipped": [
+      "LLDB unavailable on this Windows host",
+      "managed runtime opt-in in full suite; run separately below"
+    ]
+  },
+  "managedRuntimeDownload": {
+    "passed": 2,
+    "includes": [
+      "actual pinned Python 3.13 download",
+      "installation",
+      "probe",
+      "environment discovery",
+      "removal"
+    ]
+  },
+  "pythonKernel": {
+    "passed": 14
+  },
+  "pythonStyle": {
+    "passed": 11
+  },
+  "android": {
+    "apks": [
+      {
+        "flavor": "modern",
+        "bytes": 9500037,
+        "sha256": "943ab8a59d0ac4b5369b74235621e7c92b0aab29d5548a20ac8537dc4e649826",
+        "targetSdk": 36,
+        "versionCode": 26,
+        "jvmTests": 8,
+        "matchingSourceAssets": 456,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      },
+      {
+        "flavor": "compat",
+        "bytes": 9624510,
+        "sha256": "241baa55eb6dbc6b6321fe7a78713c33023ead37c9db0fa258a999ea044308ab",
+        "targetSdk": 28,
+        "versionCode": 26,
+        "jvmTests": 8,
+        "matchingSourceAssets": 456,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      }
+    ],
+    "lintErrors": 0,
+    "lintWarnings": 89,
+    "physicalDeviceTested": false
+  },
+  "windowsInstaller": {
+    "version": "0.6.0-beta.1",
+    "matchingPayloadFiles": 552,
+    "matchingSourceFiles": 479,
+    "artifacts": [
+      {
+        "file": "DevForge-0.6.0-beta.1-win-x64-setup.exe.blockmap",
+        "bytes": 122236,
+        "sha256": "4743507df786914f5d1cf4876b260796aaa0155d36aa3b9481526dfbe06f55e0"
+      },
+      {
+        "file": "DevForge-0.6.0-beta.1-win-x64-setup.exe",
+        "bytes": 116562512,
+        "sha256": "2d195ce0417a85bc0dc0585c95c3a2599aaf96b9f7ea7b1c244126bf4ee43190"
+      }
+    ],
+    "unsignedSystemInstallTested": false,
+    "guiRuntime": "existing Electron runtime on packaged resources/app",
+    "optionalWindowEngineExcluded": true
+  },
+  "earlierAttempts": [
+    {
+      "test": "Phone header geometry",
+      "finding": "Legacy CSS hid Settings at 390px; fixed and rechecked."
+    },
+    {
+      "test": "Python hover cleanup",
+      "finding": "Test used a nonexistent Monaco command; changed to actual Escape key."
+    },
+    {
+      "test": "Localized smoke",
+      "finding": "Position-based cell button selector clicked new documentation action; Run is now explicit and selected semantically."
+    },
+    {
+      "test": "Icon inventory",
+      "finding": "Missing save icon fell back to generic files; added distinct original SVG."
+    }
+  ],
+  "notPerformed": [
+    "physical Android touch, IME and Bluetooth verification",
+    "system installation of unsigned Windows installer",
+    "Linux/macOS native installer and GUI testing",
+    "exhaustive stress of every docking interaction"
+  ],
+  "privateBackup": "Saved and hash-verified locally before modifications; user settings and 10 projects excluded from public artifacts."
+}
