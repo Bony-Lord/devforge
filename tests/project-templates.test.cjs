@@ -30,3 +30,7 @@ test('addon templates use an explicit capability, ownership and normal addon lif
   const registry=new core.Registry({projectTemplates:'projects.templates'}),manager=new core.Manager({catalog:[pkg.manifest],factories:new Map([[pkg.manifest.id+'@'+pkg.manifest.version,packages.factory(pkg)]]),registry});await manager.setProfile([pkg.manifest.id]);assert.equal(registry.list('projectTemplates').length,1);await manager.dispose();assert.equal(registry.list('projectTemplates').length,0);
   for(const mutate of [p=>p.manifest.capabilities=[],p=>p.contributions[0].value.id='other.owner.project',p=>p.contributions[0].value.files[0].path='../escape']){const copy=structuredClone(pkg);mutate(copy);assert.throws(()=>packages.parse(copy));}
 });
+test('exported templates have stable distinct addon identities and roundtrip through the real package validator',()=>{
+  const vm=require('node:vm'),UI=vm.runInNewContext(fs.readFileSync(ui+'/project-template-ui.js','utf8')+';StudioTemplates',{structuredClone}),owner=Object.create(UI.prototype);owner.ide={settings:{language:'en'}};const ids=new Set();
+  for(const template of catalog){const pkg=owner.package(template);packages.parse(JSON.stringify(pkg));assert.equal(pkg.manifest.id,owner.package(template).manifest.id);assert(!ids.has(pkg.manifest.id));ids.add(pkg.manifest.id);assert(pkg.contributions[0].value.id.startsWith(pkg.manifest.id+'.'));}
+});
