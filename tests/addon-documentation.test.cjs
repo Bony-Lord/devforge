@@ -1,0 +1,2 @@
+const test=require('node:test'),assert=require('node:assert/strict'),docs=require('../app/src/main/assets/ui/addons/documentation.json'),modules=require('../app/src/main/assets/ui/addons/modules.json');
+test('every official module has useful bilingual descriptions beyond its name',()=>{for(const entry of modules){const m=entry.manifest,doc=docs[m.id];assert(doc,m.id);for(const locale of ['ru','en']){assert(doc.summary[locale].length>40,m.id);assert.notEqual(doc.summary[locale],m.name[locale]);assert(doc.details[locale].length>=40);}}});

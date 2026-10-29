@@ -42,3 +42,7 @@
 Полная проверка происхождения и условий распространения: [LICENSE-AUDIT.md](docs/LICENSE-AUDIT.md). Инвентарь уведомлений 56 пакетов: [package-notices.json](licenses/package-notices.json). Символические ссылки copyright разрешены в соответствующие тексты из точного снимка Termux; пять дочерних пакетов ссылаются на уведомления LLVM/ncurses. JetBrains и CLion — товарные знаки JetBrains s.r.o.
 
 Optional Python intelligence uses Jedi 0.20.1 and parso 0.8.7 (MIT). The separate pinned wheels retain their complete notices, including the typeshed notices embedded in Jedi. See `app/src/main/assets/python/intelligence-manifest.json` and `licenses/jedi-LICENSE`, `licenses/parso-LICENSE`. The desktop optional window-engine pack retains its Dockview MIT notice alongside the exact pinned JavaScript bundle.
+
+### Markdown rendering
+
+markdown-it 14.1.0 (MIT), bundled browser renderer. Source: https://github.com/markdown-it/markdown-it/tree/14.1.0 . License: licenses/markdown-it-LICENSE. Raw HTML is disabled; remote image loading is disabled in previews.

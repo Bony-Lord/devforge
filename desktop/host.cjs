@@ -79,7 +79,8 @@ class DesktopHost {
       case 'desktopNotices':return this.system.showNotices?.();
       case 'desktopSources':return this.system.openExternal?.('https://github.com/Bony-Lord/devforge/releases');
       case 'clipboardWrite':if(typeof d.text!=='string'||d.text.length>256*1024)throw Error('Invalid clipboard text');this.system.writeClipboard?.(d.text);return true;
-      case 'addonImport':{const file=await this.system.chooseFile?.();if(!file)return false;if((await fs.stat(file)).size>262144)throw Error('Template/addon exceeds 256 KiB');this.event('addonImported',{text:await fs.readFile(file,'utf8')});return true;}
+      case 'openDocumentationLink':return this.system.openDocumentationLink?.(d.url);
+      case 'addonImport':{const file=await this.system.chooseFile?.();if(!file)return false;if(file.toLowerCase().endsWith('.vsix')){if((await fs.stat(file)).size>32*1024*1024)throw Error('VSIX exceeds 32 MiB');const pkg=require('./vsix.cjs').convert(await fs.readFile(file));this.event('addonImported',{text:JSON.stringify(pkg)});return true;}if((await fs.stat(file)).size>262144)throw Error('Template/addon exceeds 256 KiB');this.event('addonImported',{text:await fs.readFile(file,'utf8')});return true;}
       case 'addonExport':{const pkg=require(require('./assets.cjs').ui+'/addon-packages.js').parse(d.package);return this.system.saveData?.(JSON.stringify(pkg,null,2)+'\n','workspace.studio-addon')||false;}
       case 'performanceEvent':return true;
       case 'performanceReport':return {platform:process.platform,events:[]};

@@ -5,5 +5,5 @@ class StudioAddonDocument {
  focus(){this.dialog.querySelector('input,button')?.focus({preventScroll:true});}
  optionsChanged(){}
  dispose(){this.dialog.remove();}
- static rail(ide){if(document.querySelector('#extensionsButton'))return;const button=document.createElement('button');button.id='extensionsButton';button.className='activity';button.type='button';button.innerHTML=svg('blocks');button.title=button.ariaLabel=ide.settings.language==='en'?'Extensions':'Дополнения';button.onclick=()=>ide.addons.open();document.querySelector('.activitybar').insertBefore(button,document.querySelector('#helpButton'));}
+ static rail(ide){if(document.querySelector('#extensionsButton'))return;const button=document.createElement('button');button.id='extensionsButton';button.className='activity';button.type='button';button.innerHTML=svg('blocks');button.title=button.ariaLabel=ide.settings.language==='en'?'Extensions':'Дополнения';button.onclick=()=>ide.addons.open();document.querySelector('.activitybar').insertBefore(button,document.querySelector('.activitybar .activity-spacer')||document.querySelector('.activitybar .top-spacer')||document.querySelector('#helpButton'));}
 }

@@ -1,5 +1,13 @@
 # Reproducing interaction regressions
 
+Local beta.2 extends these checks to retained marketplace details, compact search,
+single-scroll choices, full run-profile icons at several widths, desktop-only
+controls, resource slider/manual input synchronization, rendered Markdown and
+completion templates, task toggles, JSON-to-cells navigation and notebook input/
+syntax-layer geometry. Results: `verification-polish-beta2.json`. The Windows
+installer payload and installed files were compared byte for byte; settings were
+preserved. This does not replace physical Android input testing.
+
 0.6 beta adds real notebook mouse hover, pinned Ctrl+Q documentation, Escape,
 active function parameter help, immediate invalidation of old cell diagnostics,
 Python-file hover in the top overlay, text-only untrusted docstrings, settings

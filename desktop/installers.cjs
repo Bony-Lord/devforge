@@ -15,7 +15,7 @@ async function main(){
     artifactName:'DevForge-'+pkg.version+'-${os}-${arch}-setup.${ext}',directories:{output,buildResources:__dirname},
     extraMetadata:{homepage:'https://github.com/Bony-Lord/devforge',author:'DevForge contributors'},
     publish:null,compression:'maximum',electronVersion:require('./node_modules/electron/package.json').version,
-    win:{executableName:'DevForge',target:web?'nsis-web':'nsis',signAndEditExecutable:false},
+    win:{executableName:'DevForge',target:web?'nsis-web':'nsis',icon:path.join(__dirname,'icon.ico'),signAndEditExecutable:false},
     nsis:{packElevateHelper:false,oneClick:false,perMachine:false,allowElevation:false,allowToChangeInstallationDirectory:true,createDesktopShortcut:true,createStartMenuShortcut:true,shortcutName:'DevForge',runAfterFinish:false,deleteAppDataOnUninstall:false,installerLanguages:['en_US','ru_RU'],license:path.join(__dirname,'../LICENSE')},
     linux:{executableName:'devforge',target:['deb'],category:'Development',maintainer:'DevForge contributors',synopsis:'Modular development environment',description:pkg.description,icon:path.join(__dirname,'icon.png')},
     deb:{depends:['libgtk-3-0','libnss3','libxss1','libxtst6','xdg-utils','libatspi2.0-0','libuuid1','libgbm1','libasound2 | libasound2t64']},

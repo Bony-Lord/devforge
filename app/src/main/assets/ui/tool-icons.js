@@ -1,6 +1,8 @@
 'use strict';
 // Original interface glyphs. Shape as well as color identifies each tool.
 for(const[name,paths]of Object.entries({
+ 'arrow-down':'<path d="M12 3v18m-7-7 7 7 7-7"/>',
+ 'pencil':'<path d="M4 15l11-11 5 5L9 20l-6 1zM13 6l5 5M4 15l5 5"/>',
  'save':'<path d="M4 3h13l4 4v14H3V3zm3 0v6h10V3M7 21v-8h10v8M14 4v3"/>',
  'studio-motion':'<path d="M3 7h8M2 12h5m-4 5h8M14 5l7 7-7 7m-4-7h11"/>',
  'book-open':'<path d="M12 5c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-4-1-7-1-10 1zm0 0v15M5 8h4m-4 4h4m6-4h4m-4 4h4"/>',

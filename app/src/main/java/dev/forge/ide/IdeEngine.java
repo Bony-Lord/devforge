@@ -93,6 +93,7 @@ final class IdeEngine {
             case "addonCatalog":return addons.catalog();
             case "addonBegin":return addons.begin(d);
             case "addonFinish":return addons.finish(d.getString("token"),d.getBoolean("commit"));
+            case "openDocumentationLink":{android.net.Uri uri=android.net.Uri.parse(d.getString("url"));if(!"https".equals(uri.getScheme())||uri.getHost()==null||uri.getUserInfo()!=null)throw new IOException("Only HTTPS documentation links are supported");app.runOnUiThread(()->app.startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,uri)));return true;}
             case "addonImport":app.importAddon();return true;
             case "addonDownload":{AddonDownload.Result result=AddonDownload.fetch(d.getString("url"),d.optString("sha256"));AddonPackages.pack(new JSONObject(result.text));return new JSONObject().put("text",result.text).put("sha256",result.sha256).put("url",result.url);}
             case "addonExport":app.exportAddon(d.getJSONObject("package"));return true;

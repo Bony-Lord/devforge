@@ -45,6 +45,7 @@ async function start(){
     showNotices:()=>shell.openPath(app.isPackaged?path.join(process.platform==='darwin'?process.resourcesPath:path.resolve(process.resourcesPath,'..'),'LICENSES.chromium.html'):path.join(__dirname,'node_modules/electron/dist/LICENSES.chromium.html')),
     writeClipboard:text=>require('electron').clipboard.writeText(text),
     saveData:async(text,name)=>{const result=await dialog.showSaveDialog(window,{defaultPath:path.join(app.getPath('downloads'),name),properties:['showOverwriteConfirmation']});if(result.canceled)return false;await require('./workspace.cjs').atomic(result.filePath,text);return true;},
+    openDocumentationLink:url=>{const value=new URL(url);if(value.protocol!=='https:'||value.username||value.password)throw Error('Only HTTPS documentation links are supported');return shell.openExternal(value.href);},
     openExternal:url=>{const value=new URL(url);if(value.protocol!=='https:'||value.hostname!=='github.com')throw Error('External link denied');return shell.openExternal(value.href);},
     exportProject:async root=>{
       const result=await dialog.showSaveDialog(window,{defaultPath:path.join(app.getPath('downloads'),path.basename(root)+'.zip'),filters:[{name:'ZIP',extensions:['zip']}],properties:['showOverwriteConfirmation']});if(result.canceled)return false;
@@ -54,7 +55,7 @@ async function start(){
   });host.addons=stores.addonFacade(host);await host.init();
   if(smoke){if(!host.ws.prefs.current)await host.ws.newProject('smoke-fixture');host.ws.prefs.settings.interfaceMode='simple';host.ws.prefs.settings.pythonExecutable=process.env.DEVFORGE_TEST_PYTHON||'';host.ws.prefs.settings.setupDismissed=true;host.ws.prefs.settings.language=process.env.CPP_STUDIO_SMOKE_LANGUAGE||'ru';host.ws.prefs.settings.toolPaths={...host.ws.prefs.settings.toolPaths,...process.env.CPP_STUDIO_FORMAT?{format:process.env.CPP_STUDIO_FORMAT}:{},...process.env.CPP_STUDIO_CLANGD?{clangd:process.env.CPP_STUDIO_CLANGD}:{},...process.env.CPP_STUDIO_NINJA?{ninja:process.env.CPP_STUDIO_NINJA}:{}};await host.ws.persist();await host.tools.discover();}
   const bounds=host.ws.prefs.window||{};
-  window=new BrowserWindow({width:Math.max(800,Math.min(2400,bounds.width||1360)),height:Math.max(560,Math.min(1800,bounds.height||880)),minWidth:720,minHeight:480,show:false,backgroundColor:'#191b23',title:'DevForge',icon:path.join(__dirname,'icon.png'),autoHideMenuBar:true,
+  window=new BrowserWindow({width:Math.max(800,Math.min(2400,bounds.width||1360)),height:Math.max(560,Math.min(1800,bounds.height||880)),minWidth:720,minHeight:480,show:false,backgroundColor:'#1e1e1e',title:'DevForge',icon:path.join(__dirname,'icon.png'),autoHideMenuBar:true,
     webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,spellcheck:false,backgroundThrottling:!smoke,offscreen:smoke||headless,devTools:!app.isPackaged}});
   record={window,host};openWindows.add(record);
   window.on('focus',()=>{if(!window.isDestroyed())window.webContents.send('studio:event','globalStateChanged',{projects:Object.keys(stores.global.projects),projectLabels:Object.fromEntries(Object.entries(stores.global.projects).map(([id,p])=>[id,p.label]))});});

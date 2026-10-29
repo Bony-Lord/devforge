@@ -24,6 +24,7 @@ async function notebookEditing({evaluate,until,check,window}){
  await evaluate("notebookView.doc.model.undo()");
  await check('Notebook raw-model undo preserves the field and updates its source',"notebookView.rows.get(notebookView.value.cells[0]).input===originalCellInput&&!originalCellInput.value.endsWith('# ok')");
  await evaluate("inputSource.apply({text:'long_line'.repeat(150)+'\\n'+Array.from({length:80},()=> 'print(42)').join('\\n'),start:0,end:0},'paste');inputSource.input.scrollLeft=200;inputSource.input.scrollTop=80;inputSource.input.dispatchEvent(new Event('scroll'))");
+ await evaluate("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>{inputSource.input.scrollLeft=200;inputSource.input.scrollTop=80;inputSource.scroll();resolve();})))");
  await check('Notebook token rendering follows horizontal and vertical scroll',"Math.abs(inputSource.paint.scrollLeft-inputSource.input.scrollLeft)<1&&Math.abs(inputSource.paint.scrollTop-inputSource.input.scrollTop)<1");
  await evaluate("inputSource.apply({text:'<img src=x onerror=alert(1)>',start:0,end:0},'paste')");await until("inputSource.paint.textContent.includes('<img')");
  await check('Notebook source cannot inject HTML elements',"!inputSource.paint.querySelector('img,iframe,script')");

@@ -1,0 +1,442 @@
+{
+  "version": "0.6.0-beta.2",
+  "date": "2026-10-29",
+  "channel": "local experimental beta; not published or promoted stable",
+  "gui": {
+    "packagedInteractions": 87,
+    "checks": [
+      {
+        "test": "Create is enabled before requesting a preview",
+        "passed": true
+      },
+      {
+        "test": "One Create click creates and opens the selected project",
+        "passed": true
+      },
+      {
+        "test": "An empty project name blocks creation",
+        "passed": true
+      },
+      {
+        "test": "Extensions open as a normal editor tab without a modal or backdrop",
+        "passed": true
+      },
+      {
+        "test": "Utility tabs do not show a file-only read-only badge or internal URI",
+        "passed": true
+      },
+      {
+        "test": "Extensions page stays within its editor pane",
+        "passed": true
+      },
+      {
+        "test": "Marketplace search filters packs without rebuilding its focused search field",
+        "passed": true
+      },
+      {
+        "test": "Marketplace search is a compact field and the catalog has its own scroll region",
+        "passed": true
+      },
+      {
+        "test": "Official catalog descriptions explain behavior rather than repeating names",
+        "passed": true
+      },
+      {
+        "test": "Marketplace details stay in the editor and list dependencies",
+        "passed": true
+      },
+      {
+        "test": "Extension details and retained list share one editor tab",
+        "passed": true
+      },
+      {
+        "test": "Marketplace retains its search after returning from extension details",
+        "passed": true
+      },
+      {
+        "test": "Project picker has one inner scrollbar and no outer overflow",
+        "passed": true
+      },
+      {
+        "test": "Project settings have a dedicated entry point and distinct run/global icons",
+        "passed": true
+      },
+      {
+        "test": "Attach is available without requesting a preview",
+        "passed": true
+      },
+      {
+        "test": "A single Attach click writes the selected EditorConfig template",
+        "passed": true
+      },
+      {
+        "test": "Conflicting attachments keep a usable explicit replacement review",
+        "passed": true
+      },
+      {
+        "test": "Confirmed template replacement completes without a mandatory Preview click",
+        "passed": true
+      },
+      {
+        "test": "Run configuration icon fits entirely in its header button",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens console pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens terminal pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens problems pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens debug pane",
+        "passed": true
+      },
+      {
+        "test": "Explorer and code start in separate groups",
+        "passed": true
+      },
+      {
+        "test": "Extensions rail action belongs to the navigator group above consoles",
+        "passed": true
+      },
+      {
+        "test": "Desktop does not show an unavailable on-screen keyboard action",
+        "passed": true
+      },
+      {
+        "test": "Initial horizontal editor to project ratio is between four and six",
+        "passed": true
+      },
+      {
+        "test": "Opening code after clearing the previous project cannot join the explorer group",
+        "passed": true
+      },
+      {
+        "test": "Extensions tab does not become the current-file build source",
+        "passed": true
+      },
+      {
+        "test": "Desktop tree omits touch-only drag grips but retains native row dragging",
+        "passed": true
+      },
+      {
+        "test": "Notebook project retains the application window manager",
+        "passed": true
+      },
+      {
+        "test": "Notebook projects also begin with four to six times more editor width than navigator",
+        "passed": true
+      },
+      {
+        "test": "Ordinary application extensions remain active across project specialization",
+        "passed": true
+      },
+      {
+        "test": "Notebook typing produces real Python completions without a hotkey",
+        "passed": true
+      },
+      {
+        "test": "Editing a notebook cell clears diagnostics for its previous source immediately",
+        "passed": true
+      },
+      {
+        "test": "Notebook mouse hover shows a real function signature and docstring without stealing input focus",
+        "passed": true
+      },
+      {
+        "test": "Ctrl Q pins documentation and exposes a close control",
+        "passed": true
+      },
+      {
+        "test": "Escape closes notebook documentation",
+        "passed": true
+      },
+      {
+        "test": "Function parameter help marks the active argument and keeps its description",
+        "passed": true
+      },
+      {
+        "test": "Untrusted function docstrings render as selectable text, never HTML",
+        "passed": true
+      },
+      {
+        "test": "Notebook Enter indents Python blocks through actual input events",
+        "passed": true
+      },
+      {
+        "test": "Notebook automatically pairs an opening parenthesis",
+        "passed": true
+      },
+      {
+        "test": "Typing the matching closing parenthesis skips it without duplicating",
+        "passed": true
+      },
+      {
+        "test": "Each notebook limit has a slider and an editable numeric field",
+        "passed": true
+      },
+      {
+        "test": "Manual limits and sliders synchronize in both directions",
+        "passed": true
+      },
+      {
+        "test": "Notebook resource limits persist in its standard metadata",
+        "passed": true
+      },
+      {
+        "test": "Markdown cells render headings, tables, tasks and callouts after leaving edit mode",
+        "passed": true
+      },
+      {
+        "test": "Markdown task preview updates notebook source without leaving a stale preview",
+        "passed": true
+      },
+      {
+        "test": "Markdown completion offers a table template inside the notebook cell",
+        "passed": true
+      },
+      {
+        "test": "Accepting Markdown completion persists source and renders a real table",
+        "passed": true
+      },
+      {
+        "test": "Raw notebook JSON exposes a visible labeled return-to-cells action",
+        "passed": true
+      },
+      {
+        "test": "Return-to-cells restores the existing notebook without changing its content",
+        "passed": true
+      },
+      {
+        "test": "Code cells have no artificial trailing empty row",
+        "passed": true
+      },
+      {
+        "test": "Python environment path expands or wraps with no horizontal scrollbar",
+        "passed": true
+      },
+      {
+        "test": "Python source files use indentation and paired brackets in the real editor",
+        "passed": true
+      },
+      {
+        "test": "Python file function documentation uses the top overlay with signature and docstring",
+        "passed": true
+      },
+      {
+        "test": "Exact shortcut modifiers separate outline/focus/completion and preserve Ctrl+Y redo",
+        "passed": true
+      },
+      {
+        "test": "Run configuration glyph is fully reachable at width 720",
+        "passed": true
+      },
+      {
+        "test": "Run configuration glyph is fully reachable at width 900",
+        "passed": true
+      },
+      {
+        "test": "Run configuration glyph is fully reachable at width 1100",
+        "passed": true
+      },
+      {
+        "test": "Run settings remain accessible in a narrower desktop header",
+        "passed": true
+      },
+      {
+        "test": "New palette survives UI scaling and differs between editor and panels",
+        "passed": true
+      },
+      {
+        "test": "Settings have a category navigator with one visible page",
+        "passed": true
+      },
+      {
+        "test": "Clearing settings search restores every category",
+        "passed": true
+      },
+      {
+        "test": "Phone header keeps run and configuration actions within the screen",
+        "passed": true
+      },
+      {
+        "test": "Build is visible and large generated folders load on demand",
+        "passed": true
+      },
+      {
+        "test": "Hidden directory descendants inherit their yellow marker",
+        "passed": true
+      },
+      {
+        "test": "Opening another desktop project offers this window or a new window",
+        "passed": true
+      },
+      {
+        "test": "Second project opens independently and inherits application extensions",
+        "passed": true
+      },
+      {
+        "test": "The new window opens the selected project with the same global extensions",
+        "passed": true
+      },
+      {
+        "test": "Files created in the other project do not appear in the first project",
+        "passed": true
+      },
+      {
+        "test": "Extensions tab works in windowed mode too",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens console pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens terminal pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens problems pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens debug pane",
+        "passed": true
+      },
+      {
+        "test": "Touch hold opens the existing file context menu",
+        "passed": true
+      },
+      {
+        "test": "Scrolling motion cancels the context-menu hold",
+        "passed": true
+      },
+      {
+        "test": "A second finger cancels a pending long press",
+        "passed": true
+      },
+      {
+        "test": "Project list exposes visible actions without first opening that project",
+        "passed": true
+      },
+      {
+        "test": "Project actions keep the project selector open behind the child menu",
+        "passed": true
+      },
+      {
+        "test": "Moving project files requires an explicit confirmation showing the exact path",
+        "passed": true
+      },
+      {
+        "test": "Cancel keeps the project registered",
+        "passed": true
+      },
+      {
+        "test": "Removed projects have a discoverable restore action",
+        "passed": true
+      },
+      {
+        "test": "Trashing the active project opens the empty workspace",
+        "passed": true
+      },
+      {
+        "test": "Restoring a trashed project preserves its exact saved bytes",
+        "passed": true
+      },
+      {
+        "test": "No renderer exceptions or console errors",
+        "passed": true
+      }
+    ],
+    "localizedSmokes": {
+      "ru": 45,
+      "en": 45
+    },
+    "rendererErrors": []
+  },
+  "rootNode": {
+    "passed": 95,
+    "failed": 0
+  },
+  "backend": {
+    "passed": 43,
+    "failed": 0,
+    "skipped": [
+      "LLDB unavailable on this Windows host",
+      "managed Python download is opt-in and was not repeated for this update"
+    ]
+  },
+  "android": {
+    "apks": [
+      {
+        "flavor": "modern",
+        "bytes": 9564623,
+        "sha256": "89994db9e14183aa617f872143e4af3ce55073431d840b18cac3cea212623625",
+        "targetSdk": 36,
+        "versionCode": 27,
+        "jvmTests": 8,
+        "matchingSourceAssets": 460,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      },
+      {
+        "flavor": "compat",
+        "bytes": 9689100,
+        "sha256": "96c778dc3c78218de5a60245e4ae982ca900dc6f7f8b5e15d5a5c8da088d0a9e",
+        "targetSdk": 28,
+        "versionCode": 27,
+        "jvmTests": 8,
+        "matchingSourceAssets": 460,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      }
+    ],
+    "lintErrors": 0,
+    "lintWarnings": 89,
+    "physicalDeviceTested": false
+  },
+  "windowsInstaller": {
+    "version": "0.6.0-beta.2",
+    "matchingPayloadFiles": 579,
+    "matchingSourceFiles": 484,
+    "artifacts": [
+      {
+        "file": "DevForge-0.6.0-beta.2-win-x64-setup.exe.blockmap",
+        "bytes": 122345,
+        "sha256": "e3ac3549deb318253c47bdbc9ec94d41958b8d304376a8c9b165f569b1023723"
+      },
+      {
+        "file": "DevForge-0.6.0-beta.2-win-x64-setup.exe",
+        "bytes": 116689713,
+        "sha256": "1b09b290220ffb87b3e28172cc5206f3686c79cc737080538e8ad624eb7c91df"
+      }
+    ],
+    "unsignedSystemInstallTested": true,
+    "guiRuntime": "existing Electron runtime on packaged resources/app",
+    "optionalWindowEngineExcluded": true
+  },
+  "installedWindows": {
+    "version": "0.6.0-beta.2",
+    "matchingInstalledFiles": 579,
+    "registeredProjects": 10,
+    "settingsReset": false,
+    "profileFilesUnchanged": 2,
+    "executableIcon": {
+      "iconGroups": 1,
+      "iconSizes": 7
+    },
+    "installedByUserRequest": true,
+    "isolatedExecutableChecks": 45
+  },
+  "notPerformed": [
+    "physical Android touch/IME/Bluetooth tests",
+    "Linux/macOS installer and GUI tests",
+    "full VS Code extension host compatibility",
+    "every docking and input stress scenario"
+  ],
+  "privateBackup": "Source and settings backups retained locally; user projects and settings excluded from deliverable."
+}

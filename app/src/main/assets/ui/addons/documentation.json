@@ -1,0 +1,712 @@
+{
+  "studio.window-manager": {
+    "summary": {
+      "ru": "Перетаскивайте и группируйте панели, разделяйте редакторы и сохраняйте расположение рабочего места.",
+      "en": "Dock, float and group tool panels, split editors and retain your workspace layout."
+    },
+    "details": {
+      "ru": "Перетаскивайте вкладку или заголовок панели, чтобы отделить окно, привязать его или объединить с другим. Меняйте размеры границами. Расположение сохраняется; сброс доступен в меню «Вид». Для простого интерфейса отключите этот модуль или выберите упрощённый режим в настройках.",
+      "en": "Drag a tab or panel header to float, dock or group it. Resize using panel boundaries. Layout is retained and can be reset from View. Disable this module or choose the simple interface in Settings to use the fixed layout."
+    }
+  },
+  "studio.keyboard": {
+    "summary": {
+      "ru": "Экранная клавиатура DevForge: модификаторы, сочетания, повтор клавиш и изменение размера.",
+      "en": "DevForge on-screen keyboard with modifiers, shortcuts, key repeat and resizing."
+    },
+    "details": {
+      "ru": "Кнопка клавиатуры включает экранную PC-раскладку. Размер меняется за границу; в настройках выбираются режим модификаторов, цифровой блок и адаптированная Android-раскладка. Физическая клавиатура остаётся доступной.",
+      "en": "Use the keyboard button to open the on-screen PC layout. Resize its boundary; Settings provides modifier modes, numpad and an Android-adapted layout. Physical keyboard input remains available."
+    }
+  },
+  "studio.git": {
+    "summary": {
+      "ru": "Просматривайте изменения и diff, индексируйте файлы, создавайте коммиты и работайте с ветками.",
+      "en": "Review changes and diffs, stage files, create commits and manage branches."
+    },
+    "details": {
+      "ru": "Откройте Git на боковой панели: сравните изменения, добавьте файлы в индекс и создайте коммит. Для клонирования используются HTTPS-адреса. Рабочие файлы остаются в обычной папке проекта.",
+      "en": "Open Git on the activity rail to review diffs, stage files and commit. Cloning uses HTTPS URLs. Working files remain in the ordinary project folder."
+    }
+  },
+  "studio.clangd": {
+    "summary": {
+      "ru": "Диагностика C/C++, дополнение символов, документация и навигация с учётом команд сборки проекта.",
+      "en": "C/C++ diagnostics, symbol completion, documentation and navigation using project compile commands."
+    },
+    "details": {
+      "ru": "Диагностика C/C++, дополнение символов, документация и навигация с учётом команд сборки проекта.",
+      "en": "C/C++ diagnostics, symbol completion, documentation and navigation using project compile commands."
+    }
+  },
+  "studio.formatter": {
+    "summary": {
+      "ru": "Форматируйте C/C++ через clang-format и редактируйте стиль с предпросмотром результата.",
+      "en": "Format C/C++ with clang-format and edit your style with a live sample preview."
+    },
+    "details": {
+      "ru": "Форматируйте C/C++ через clang-format и редактируйте стиль с предпросмотром результата.",
+      "en": "Format C/C++ with clang-format and edit your style with a live sample preview."
+    }
+  },
+  "studio.debugger": {
+    "summary": {
+      "ru": "Точки останова, шаг с обходом и входом, стек, поля структур и наблюдаемые выражения через GDB.",
+      "en": "GDB breakpoints, step over/into/out, call stack, structured variables and watches."
+    },
+    "details": {
+      "ru": "Точки останова, шаг с обходом и входом, стек, поля структур и наблюдаемые выражения через GDB.",
+      "en": "GDB breakpoints, step over/into/out, call stack, structured variables and watches."
+    }
+  },
+  "studio.language.cpp": {
+    "summary": {
+      "ru": "Подсветка токенов и распознавание исходников и заголовков C/C++. Семантический анализ подключается отдельно.",
+      "en": "Token highlighting and file recognition for C/C++ source and headers. Semantic analysis is separate."
+    },
+    "details": {
+      "ru": "Подсветка токенов и распознавание исходников и заголовков C/C++. Семантический анализ подключается отдельно.",
+      "en": "Token highlighting and file recognition for C/C++ source and headers. Semantic analysis is separate."
+    }
+  },
+  "studio.language.cmake": {
+    "summary": {
+      "ru": "Подсветка CMakeLists.txt и .cmake, команды, переменные и предложения для сценариев сборки.",
+      "en": "Highlight CMakeLists.txt and .cmake files, with commands, variables and build-script suggestions."
+    },
+    "details": {
+      "ru": "Подсветка CMakeLists.txt и .cmake, команды, переменные и предложения для сценариев сборки.",
+      "en": "Highlight CMakeLists.txt and .cmake files, with commands, variables and build-script suggestions."
+    }
+  },
+  "studio.language.json": {
+    "summary": {
+      "ru": "Подсветка JSON и JSONC, скобки, строки и числа в конфигурационных файлах.",
+      "en": "JSON and JSONC syntax for configuration files, including brackets, strings and numbers."
+    },
+    "details": {
+      "ru": "Подсветка JSON и JSONC, скобки, строки и числа в конфигурационных файлах.",
+      "en": "JSON and JSONC syntax for configuration files, including brackets, strings and numbers."
+    }
+  },
+  "studio.language.yaml": {
+    "summary": {
+      "ru": "Подсветка ключей, значений и вложенности YAML, включая конфигурации clang-format и clangd.",
+      "en": "Highlight YAML keys, values and nesting, including clang-format and clangd configuration."
+    },
+    "details": {
+      "ru": "Подсветка ключей, значений и вложенности YAML, включая конфигурации clang-format и clangd.",
+      "en": "Highlight YAML keys, values and nesting, including clang-format and clangd configuration."
+    }
+  },
+  "studio.language.markdown": {
+    "summary": {
+      "ru": "Подсветка Markdown: заголовки, ссылки, списки и блоки кода в документации.",
+      "en": "Markdown highlighting for headings, links, lists and fenced code in documentation."
+    },
+    "details": {
+      "ru": "Подсветка Markdown: заголовки, ссылки, списки и блоки кода в документации.",
+      "en": "Markdown highlighting for headings, links, lists and fenced code in documentation."
+    }
+  },
+  "studio.language.shell": {
+    "summary": {
+      "ru": "Подсветка командных сценариев и строк оболочки; выполнение требует отдельного терминала.",
+      "en": "Shell-script token highlighting. Command execution uses the separate terminal tool."
+    },
+    "details": {
+      "ru": "Подсветка командных сценариев и строк оболочки; выполнение требует отдельного терминала.",
+      "en": "Shell-script token highlighting. Command execution uses the separate terminal tool."
+    }
+  },
+  "studio.views.json": {
+    "summary": {
+      "ru": "Открывайте JSON как раскрываемое дерево и переключайтесь обратно к исходному тексту.",
+      "en": "Explore JSON as an expandable tree and switch back to source text."
+    },
+    "details": {
+      "ru": "Открывайте JSON как раскрываемое дерево и переключайтесь обратно к исходному тексту.",
+      "en": "Explore JSON as an expandable tree and switch back to source text."
+    }
+  },
+  "studio.views.markdown": {
+    "summary": {
+      "ru": "Читайте предварительный просмотр Markdown в редакторе, сохраняя доступ к исходнику.",
+      "en": "Read a Markdown preview inside the editor while retaining access to source."
+    },
+    "details": {
+      "ru": "Читайте предварительный просмотр Markdown в редакторе, сохраняя доступ к исходнику.",
+      "en": "Read a Markdown preview inside the editor while retaining access to source."
+    }
+  },
+  "studio.project.cpp": {
+    "summary": {
+      "ru": "Типы и шаблоны проектов C/C++, стандарты языка и команды компиляции в профилях запуска.",
+      "en": "C/C++ project types and templates, language standards and compiler actions in run profiles."
+    },
+    "details": {
+      "ru": "Типы и шаблоны проектов C/C++, стандарты языка и команды компиляции в профилях запуска.",
+      "en": "C/C++ project types and templates, language standards and compiler actions in run profiles."
+    }
+  },
+  "studio.project.cmake": {
+    "summary": {
+      "ru": "Настраивайте CMake-профили, генерацию, цель сборки и конфигурации запуска проекта.",
+      "en": "Configure CMake profiles, generation, build targets and project run configurations."
+    },
+    "details": {
+      "ru": "Настраивайте CMake-профили, генерацию, цель сборки и конфигурации запуска проекта.",
+      "en": "Configure CMake profiles, generation, build targets and project run configurations."
+    }
+  },
+  "studio.pack.cpp": {
+    "summary": {
+      "ru": "Базовая поддержка C/C++: подсветка, типы проектов и конфигурации. Компилятор выбирается отдельно.",
+      "en": "Basic C/C++ syntax, project types and configurations. Choose a compiler separately."
+    },
+    "details": {
+      "ru": "Базовая поддержка C/C++: подсветка, типы проектов и конфигурации. Компилятор выбирается отдельно.",
+      "en": "Basic C/C++ syntax, project types and configurations. Choose a compiler separately."
+    }
+  },
+  "studio.pack.cmake": {
+    "summary": {
+      "ru": "CMake-проекты, подсветка сценариев и инструменты CMake/Ninja для генерации и сборки.",
+      "en": "CMake projects, build-script syntax and CMake/Ninja tools for generation and builds."
+    },
+    "details": {
+      "ru": "CMake-проекты, подсветка сценариев и инструменты CMake/Ninja для генерации и сборки.",
+      "en": "CMake projects, build-script syntax and CMake/Ninja tools for generation and builds."
+    }
+  },
+  "studio.pack.cpp-full": {
+    "summary": {
+      "ru": "Набор C/C++ IDE: компилятор, CMake, clangd, форматирование, отладчик и Git с зависимостями.",
+      "en": "C/C++ IDE workload with compiler, CMake, clangd, formatting, debugging and Git dependencies."
+    },
+    "details": {
+      "ru": "Набор C/C++ IDE: компилятор, CMake, clangd, форматирование, отладчик и Git с зависимостями.",
+      "en": "C/C++ IDE workload with compiler, CMake, clangd, formatting, debugging and Git dependencies."
+    }
+  },
+  "studio.animations": {
+    "summary": {
+      "ru": "Короткие переходы и анимации панелей. Учитывает системную настройку уменьшения движения.",
+      "en": "Short panel transitions and motion effects, respecting the system reduced-motion setting."
+    },
+    "details": {
+      "ru": "Короткие переходы и анимации панелей. Учитывает системную настройку уменьшения движения.",
+      "en": "Short panel transitions and motion effects, respecting the system reduced-motion setting."
+    }
+  },
+  "studio.tooltips": {
+    "summary": {
+      "ru": "Подсказки к кнопкам при наведении мыши: действие, назначение и сочетание клавиш.",
+      "en": "Mouse-hover explanations for interface buttons, actions and keyboard shortcuts."
+    },
+    "details": {
+      "ru": "Подсказки к кнопкам при наведении мыши: действие, назначение и сочетание клавиш.",
+      "en": "Mouse-hover explanations for interface buttons, actions and keyboard shortcuts."
+    }
+  },
+  "studio.smart-typing": {
+    "summary": {
+      "ru": "Парные скобки и кавычки, пропуск закрывающей скобки и умные отступы при вводе.",
+      "en": "Paired brackets and quotes, closing-bracket skipping and smart indentation while typing."
+    },
+    "details": {
+      "ru": "Парные скобки и кавычки, пропуск закрывающей скобки и умные отступы при вводе.",
+      "en": "Paired brackets and quotes, closing-bracket skipping and smart indentation while typing."
+    }
+  },
+  "studio.indent-guides": {
+    "summary": {
+      "ru": "Тонкие направляющие показывают уровни отступов и помогают читать вложенные блоки.",
+      "en": "Subtle indent guides reveal nesting levels and make code blocks easier to follow."
+    },
+    "details": {
+      "ru": "Тонкие направляющие показывают уровни отступов и помогают читать вложенные блоки.",
+      "en": "Subtle indent guides reveal nesting levels and make code blocks easier to follow."
+    }
+  },
+  "studio.autosave": {
+    "summary": {
+      "ru": "Автоматически записывает изменённые файлы с небольшой задержкой после ввода.",
+      "en": "Writes changed files automatically after a short typing delay."
+    },
+    "details": {
+      "ru": "Автоматически записывает изменённые файлы с небольшой задержкой после ввода.",
+      "en": "Writes changed files automatically after a short typing delay."
+    }
+  },
+  "studio.local-history": {
+    "summary": {
+      "ru": "Сохраняет локальные снимки файла для просмотра прежних версий и восстановления правок.",
+      "en": "Keeps local file snapshots so you can inspect earlier versions and recover edits."
+    },
+    "details": {
+      "ru": "Сохраняет локальные снимки файла для просмотра прежних версий и восстановления правок.",
+      "en": "Keeps local file snapshots so you can inspect earlier versions and recover edits."
+    }
+  },
+  "studio.find-replace": {
+    "summary": {
+      "ru": "Поиск и замена в открытом документе, включая регистр, слова целиком и регулярные выражения.",
+      "en": "Find and replace in the open document, with case, whole-word and regular-expression options."
+    },
+    "details": {
+      "ru": "Поиск и замена в открытом документе, включая регистр, слова целиком и регулярные выражения.",
+      "en": "Find and replace in the open document, with case, whole-word and regular-expression options."
+    }
+  },
+  "studio.split-editors": {
+    "summary": {
+      "ru": "Открывайте несколько файлов рядом или сверху и снизу; меняйте ширину и высоту редакторов.",
+      "en": "Open files side by side or stacked and resize the editor panes."
+    },
+    "details": {
+      "ru": "Открывайте несколько файлов рядом или сверху и снизу; меняйте ширину и высоту редакторов.",
+      "en": "Open files side by side or stacked and resize the editor panes."
+    }
+  },
+  "studio.palette": {
+    "summary": {
+      "ru": "Находите команды IDE по названию и запускайте их без поиска по меню.",
+      "en": "Search IDE actions by name and run them without navigating menus."
+    },
+    "details": {
+      "ru": "Находите команды IDE по названию и запускайте их без поиска по меню.",
+      "en": "Search IDE actions by name and run them without navigating menus."
+    }
+  },
+  "studio.project-search": {
+    "summary": {
+      "ru": "Поиск текста по файлам проекта с переходом к найденной строке.",
+      "en": "Search text across project files and jump to matching lines."
+    },
+    "details": {
+      "ru": "Поиск текста по файлам проекта с переходом к найденной строке.",
+      "en": "Search text across project files and jump to matching lines."
+    }
+  },
+  "studio.outline": {
+    "summary": {
+      "ru": "Список символов открытого файла для перехода к функциям, типам и другим объявлениям.",
+      "en": "Navigate functions, types and other declarations through the open file symbol list."
+    },
+    "details": {
+      "ru": "Список символов открытого файла для перехода к функциям, типам и другим объявлениям.",
+      "en": "Navigate functions, types and other declarations through the open file symbol list."
+    }
+  },
+  "studio.console": {
+    "summary": {
+      "ru": "Вывод запущенной программы, ввод stdin, код завершения и остановка процесса.",
+      "en": "Program output, stdin input, exit status and process controls."
+    },
+    "details": {
+      "ru": "Вывод запущенной программы, ввод stdin, код завершения и остановка процесса.",
+      "en": "Program output, stdin input, exit status and process controls."
+    }
+  },
+  "studio.terminal": {
+    "summary": {
+      "ru": "Выполняйте команды оболочки в рабочей папке проекта с выводом результата.",
+      "en": "Run shell commands in the project working directory and inspect their output."
+    },
+    "details": {
+      "ru": "Выполняйте команды оболочки в рабочей папке проекта с выводом результата.",
+      "en": "Run shell commands in the project working directory and inspect their output."
+    }
+  },
+  "studio.run-configurations": {
+    "summary": {
+      "ru": "Профили инструментов и конфигурации сборки, запуска и отладки с аргументами, окружением и рабочей папкой.",
+      "en": "Tool profiles and build/run/debug configurations with arguments, environment and working directory."
+    },
+    "details": {
+      "ru": "Профили инструментов и конфигурации сборки, запуска и отладки с аргументами, окружением и рабочей папкой.",
+      "en": "Tool profiles and build/run/debug configurations with arguments, environment and working directory."
+    }
+  },
+  "studio.file-templates": {
+    "summary": {
+      "ru": "Создавайте файлы, каталоги, классы и CMake-сценарии с подходящей заготовкой и проверкой имён.",
+      "en": "Create files, folders, classes and CMake scripts with templates and name validation."
+    },
+    "details": {
+      "ru": "Создавайте файлы, каталоги, классы и CMake-сценарии с подходящей заготовкой и проверкой имён.",
+      "en": "Create files, folders, classes and CMake scripts with templates and name validation."
+    }
+  },
+  "studio.runtime-diagnostics": {
+    "summary": {
+      "ru": "Показывает предупреждения выполнения и сообщения инструментов отладки для обнаруженных проблем.",
+      "en": "Shows runtime warnings and debugging-tool messages for detected execution problems."
+    },
+    "details": {
+      "ru": "Показывает предупреждения выполнения и сообщения инструментов отладки для обнаруженных проблем.",
+      "en": "Shows runtime warnings and debugging-tool messages for detected execution problems."
+    }
+  },
+  "studio.completion": {
+    "summary": {
+      "ru": "Всплывающий список дополнения кода от активного анализатора языка.",
+      "en": "Code-completion popup backed by the active language analysis provider."
+    },
+    "details": {
+      "ru": "Всплывающий список дополнения кода от активного анализатора языка.",
+      "en": "Code-completion popup backed by the active language analysis provider."
+    }
+  },
+  "studio.diagnostics": {
+    "summary": {
+      "ru": "Список ошибок и предупреждений, подчёркивания в коде и переход к месту диагностики.",
+      "en": "Error and warning lists, code underlines and navigation to diagnostic locations."
+    },
+    "details": {
+      "ru": "Список ошибок и предупреждений, подчёркивания в коде и переход к месту диагностики.",
+      "en": "Error and warning lists, code underlines and navigation to diagnostic locations."
+    }
+  },
+  "studio.semantic": {
+    "summary": {
+      "ru": "Дополнительные цвета символов от анализатора языка; для C/C++ требуется clangd.",
+      "en": "Additional symbol colors from the language analyzer; C/C++ requires clangd."
+    },
+    "details": {
+      "ru": "Дополнительные цвета символов от анализатора языка; для C/C++ требуется clangd.",
+      "en": "Additional symbol colors from the language analyzer; C/C++ requires clangd."
+    }
+  },
+  "studio.inlay-hints": {
+    "summary": {
+      "ru": "Компактные подсказки выведенных типов и имён параметров от активного анализатора.",
+      "en": "Compact inferred-type and parameter-name hints from the active analyzer."
+    },
+    "details": {
+      "ru": "Компактные подсказки выведенных типов и имён параметров от активного анализатора.",
+      "en": "Compact inferred-type and parameter-name hints from the active analyzer."
+    }
+  },
+  "studio.pack.essentials": {
+    "summary": {
+      "ru": "Удобный минимум: редактирование, подсветки, поиск, автосохранение и клавиатура без загрузки компилятора.",
+      "en": "Comfortable editing, syntax, search, autosave and keyboard support without a compiler download."
+    },
+    "details": {
+      "ru": "Удобный минимум: редактирование, подсветки, поиск, автосохранение и клавиатура без загрузки компилятора.",
+      "en": "Comfortable editing, syntax, search, autosave and keyboard support without a compiler download."
+    }
+  },
+  "studio.language.python": {
+    "summary": {
+      "ru": "Подсветка .py и .pyi и распознавание файлов Python; интерпретатор и Jedi выбираются отдельно.",
+      "en": "Recognize and highlight .py/.pyi files; choose the interpreter and Jedi separately."
+    },
+    "details": {
+      "ru": "Подсветка .py и .pyi и распознавание файлов Python; интерпретатор и Jedi выбираются отдельно.",
+      "en": "Recognize and highlight .py/.pyi files; choose the interpreter and Jedi separately."
+    }
+  },
+  "studio.language.notebook": {
+    "summary": {
+      "ru": "Распознаёт .ipynb и включает представление ячеек вместо обычного JSON-редактора.",
+      "en": "Recognize .ipynb files and open cell views instead of plain JSON."
+    },
+    "details": {
+      "ru": "Распознаёт .ipynb и включает представление ячеек вместо обычного JSON-редактора.",
+      "en": "Recognize .ipynb files and open cell views instead of plain JSON."
+    }
+  },
+  "studio.python": {
+    "summary": {
+      "ru": "Запускайте Python-файл выбранным интерпретатором с аргументами, окружением и рабочей папкой проекта.",
+      "en": "Run Python files with the selected interpreter, arguments, environment and project working directory."
+    },
+    "details": {
+      "ru": "Запускайте Python-файл выбранным интерпретатором с аргументами, окружением и рабочей папкой проекта.",
+      "en": "Run Python files with the selected interpreter, arguments, environment and project working directory."
+    }
+  },
+  "studio.notebooks": {
+    "summary": {
+      "ru": "Ячейки Python и Markdown, сохранённый вывод, общее состояние ядра и ограничения ресурсов.",
+      "en": "Python/Markdown cells, persisted outputs, shared kernel state and resource limits."
+    },
+    "details": {
+      "ru": "Откройте .ipynb как вкладку редактора. Shift+Enter выполняет ячейку, Run all — весь notebook. Ядро сохраняет переменные до перезапуска; %pip и !pip используют его интерпретатор. Доступны код, Markdown и сохранённые результаты. Ограничения задаются кнопкой ресурсов. Полный Jupyter/IPython пока не реализован.",
+      "en": "Open .ipynb as an editor tab. Shift+Enter runs a cell; Run all executes the notebook. Variables persist until restart; %pip and !pip use its interpreter. Code, Markdown and persisted outputs are supported. Configure limits with the resources button. Full Jupyter/IPython is not implemented."
+    }
+  },
+  "studio.project.python": {
+    "summary": {
+      "ru": "Шаблон проекта Python с main.py и подходящей конфигурацией запуска.",
+      "en": "Python project template with main.py and a matching run configuration."
+    },
+    "details": {
+      "ru": "Шаблон проекта Python с main.py и подходящей конфигурацией запуска.",
+      "en": "Python project template with main.py and a matching run configuration."
+    }
+  },
+  "studio.project.notebook": {
+    "summary": {
+      "ru": "Шаблон notebook-проекта с .ipynb, Python-ядром и выполнением ячеек.",
+      "en": "Notebook project template with an .ipynb file, Python kernel and cell execution."
+    },
+    "details": {
+      "ru": "Шаблон notebook-проекта с .ipynb, Python-ядром и выполнением ячеек.",
+      "en": "Notebook project template with an .ipynb file, Python kernel and cell execution."
+    }
+  },
+  "studio.pack.python": {
+    "summary": {
+      "ru": "Подсветка, шаблоны проектов и локальный запуск Python; без инструментов C/C++.",
+      "en": "Python syntax, project templates and local execution without C/C++ tooling."
+    },
+    "details": {
+      "ru": "Подсветка, шаблоны проектов и локальный запуск Python; без инструментов C/C++.",
+      "en": "Python syntax, project templates and local execution without C/C++ tooling."
+    }
+  },
+  "studio.pack.notebooks": {
+    "summary": {
+      "ru": "Python и notebook: ячейки, вывод, состояние ядра и специализированные конфигурации проекта.",
+      "en": "Python and notebooks with cells, outputs, kernel state and specialized configurations."
+    },
+    "details": {
+      "ru": "Python и notebook: ячейки, вывод, состояние ядра и специализированные конфигурации проекта.",
+      "en": "Python and notebooks with cells, outputs, kernel state and specialized configurations."
+    }
+  },
+  "studio.tool.python-style": {
+    "summary": {
+      "ru": "Отдельная загрузка autopep8 и pycodestyle для форматирования и проверки PEP 8.",
+      "en": "Separate autopep8 and pycodestyle tools for formatting and PEP 8 checks."
+    },
+    "details": {
+      "ru": "Отдельная загрузка autopep8 и pycodestyle для форматирования и проверки PEP 8.",
+      "en": "Separate autopep8 and pycodestyle tools for formatting and PEP 8 checks."
+    }
+  },
+  "studio.python-formatting": {
+    "summary": {
+      "ru": "Форматирование Python-файлов и ячеек notebook через autopep8 с настройками проекта.",
+      "en": "Format Python files and notebook cells with autopep8 and project settings."
+    },
+    "details": {
+      "ru": "Форматирование Python-файлов и ячеек notebook через autopep8 с настройками проекта.",
+      "en": "Format Python files and notebook cells with autopep8 and project settings."
+    }
+  },
+  "studio.python-diagnostics": {
+    "summary": {
+      "ru": "Проверка синтаксиса и стиля PEP 8 при редактировании Python и notebook.",
+      "en": "Syntax and PEP 8 diagnostics while editing Python files and notebook cells."
+    },
+    "details": {
+      "ru": "Проверка синтаксиса и стиля PEP 8 при редактировании Python и notebook.",
+      "en": "Syntax and PEP 8 diagnostics while editing Python files and notebook cells."
+    }
+  },
+  "studio.python-style": {
+    "summary": {
+      "ru": "Объединяет форматирование autopep8 и диагностику pycodestyle для Python-проектов.",
+      "en": "Combines autopep8 formatting and pycodestyle diagnostics for Python projects."
+    },
+    "details": {
+      "ru": "Объединяет форматирование autopep8 и диагностику pycodestyle для Python-проектов.",
+      "en": "Combines autopep8 formatting and pycodestyle diagnostics for Python projects."
+    }
+  },
+  "studio.pack.python-quality": {
+    "summary": {
+      "ru": "Python с умным вводом, Jedi-подсказками, форматированием и проверками PEP 8.",
+      "en": "Python with smart typing, Jedi intelligence, formatting and PEP 8 checks."
+    },
+    "details": {
+      "ru": "Python с умным вводом, Jedi-подсказками, форматированием и проверками PEP 8.",
+      "en": "Python with smart typing, Jedi intelligence, formatting and PEP 8 checks."
+    }
+  },
+  "studio.pack.notebooks-quality": {
+    "summary": {
+      "ru": "Notebook с умными отступами, дополнением и документацией Jedi и проверками стиля Python.",
+      "en": "Notebooks with smart indentation, Jedi completion/documentation and Python style checks."
+    },
+    "details": {
+      "ru": "Notebook с умными отступами, дополнением и документацией Jedi и проверками стиля Python.",
+      "en": "Notebooks with smart indentation, Jedi completion/documentation and Python style checks."
+    }
+  },
+  "studio.tool.python-intelligence": {
+    "summary": {
+      "ru": "Загружает Jedi и parso отдельно от IDE для статического анализа выбранным Python.",
+      "en": "Download Jedi and parso separately for static analysis with the selected Python."
+    },
+    "details": {
+      "ru": "Загружает Jedi и parso отдельно от IDE для статического анализа выбранным Python.",
+      "en": "Download Jedi and parso separately for static analysis with the selected Python."
+    }
+  },
+  "studio.python-intelligence": {
+    "summary": {
+      "ru": "Дополнение символов, документация функций и подсказки аргументов в Python и notebook через Jedi.",
+      "en": "Jedi symbol completion, function documentation and argument hints in Python and notebooks."
+    },
+    "details": {
+      "ru": "В .py наведите мышь на функцию или нажмите Ctrl+Q. В notebook используйте наведение, Ctrl+Q или кнопку книги у ячейки. Jedi показывает сигнатуры и docstrings без исполнения кода; предыдущие кодовые ячейки входят в контекст. Выберите интерпретатор проекта и доверенную папку. Анализ динамических объектов может отличаться от состояния запущенного ядра.",
+      "en": "Hover a function or press Ctrl+Q in .py. In notebooks use hover, Ctrl+Q or the cell book button. Jedi provides signatures and docstrings without running user code; preceding code cells are included. Select the project interpreter and trust its folder. Dynamic objects may differ from live kernel state."
+    }
+  },
+  "studio.navigation": {
+    "summary": {
+      "ru": "Команды перехода к редактору и сброса масштаба для удобной навигации по рабочему месту.",
+      "en": "Editor-focus and reset-zoom commands for workspace navigation."
+    },
+    "details": {
+      "ru": "Команды перехода к редактору и сброса масштаба для удобной навигации по рабочему месту.",
+      "en": "Editor-focus and reset-zoom commands for workspace navigation."
+    }
+  },
+  "studio.contrast": {
+    "summary": {
+      "ru": "Усиливает контраст границ и второстепенного текста без смены цветов кода.",
+      "en": "Increases border and secondary-text contrast without changing code colors."
+    },
+    "details": {
+      "ru": "Усиливает контраст границ и второстепенного текста без смены цветов кода.",
+      "en": "Increases border and secondary-text contrast without changing code colors."
+    }
+  },
+  "studio.ocean-ui": {
+    "summary": {
+      "ru": "Дополнительная тема с синими акцентами. Можно отключить независимо от основной темы редактора.",
+      "en": "Optional blue-accent interface theme, independently removable from the code editor theme."
+    },
+    "details": {
+      "ru": "Дополнительная тема с синими акцентами. Можно отключить независимо от основной темы редактора.",
+      "en": "Optional blue-accent interface theme, independently removable from the code editor theme."
+    }
+  },
+  "studio.runtime.python312": {
+    "summary": {
+      "ru": "Отдельная установка CPython 3.12 в папке DevForge. Системный Python и PATH не изменяются.",
+      "en": "Install CPython 3.12 privately inside DevForge without changing system Python or PATH."
+    },
+    "details": {
+      "ru": "Установите эту версию, затем выберите её в конфигурации запуска или меню интерпретатора notebook. pip, выполнение и Jedi используют выбранное окружение проекта. Версия удаляется отдельно, когда процессы остановлены.",
+      "en": "Install this runtime, then select it in a run configuration or notebook interpreter menu. pip, execution and Jedi share the selected project environment. Remove it separately after its processes stop."
+    }
+  },
+  "studio.runtime.python313": {
+    "summary": {
+      "ru": "Отдельная установка CPython 3.13 в папке DevForge. Системный Python и PATH не изменяются.",
+      "en": "Install CPython 3.13 privately inside DevForge without changing system Python or PATH."
+    },
+    "details": {
+      "ru": "Установите эту версию, затем выберите её в конфигурации запуска или меню интерпретатора notebook. pip, выполнение и Jedi используют выбранное окружение проекта. Версия удаляется отдельно, когда процессы остановлены.",
+      "en": "Install this runtime, then select it in a run configuration or notebook interpreter menu. pip, execution and Jedi share the selected project environment. Remove it separately after its processes stop."
+    }
+  },
+  "studio.runtime.python314": {
+    "summary": {
+      "ru": "Отдельная установка CPython 3.14 в папке DevForge. Системный Python и PATH не изменяются.",
+      "en": "Install CPython 3.14 privately inside DevForge without changing system Python or PATH."
+    },
+    "details": {
+      "ru": "Установите эту версию, затем выберите её в конфигурации запуска или меню интерпретатора notebook. pip, выполнение и Jedi используют выбранное окружение проекта. Версия удаляется отдельно, когда процессы остановлены.",
+      "en": "Install this runtime, then select it in a run configuration or notebook interpreter menu. pip, execution and Jedi share the selected project environment. Remove it separately after its processes stop."
+    }
+  },
+  "studio.tool.gcc": {
+    "summary": {
+      "ru": "Компиляция C и C++ локально. Выберите стандарт и флаги в конфигурации запуска.",
+      "en": "Compile C/C++ locally. Select language standard and flags in a run configuration."
+    },
+    "details": {
+      "ru": "GNU GCC — Компиляция C и C++ локально. Выберите стандарт и флаги в конфигурации запуска. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "GNU GCC — Compile C/C++ locally. Select language standard and flags in a run configuration. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.clang": {
+    "summary": {
+      "ru": "Альтернативный компилятор C/C++ на базе LLVM.",
+      "en": "Alternative LLVM-based compiler for C and C++."
+    },
+    "details": {
+      "ru": "LLVM Clang — Альтернативный компилятор C/C++ на базе LLVM. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "LLVM Clang — Alternative LLVM-based compiler for C and C++. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.analysis": {
+    "summary": {
+      "ru": "Языковой анализ и форматирование C/C++; подключается по выбору.",
+      "en": "Optional C/C++ language analysis and formatting."
+    },
+    "details": {
+      "ru": "clangd / clang-format — Языковой анализ и форматирование C/C++; подключается по выбору. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "clangd / clang-format — Optional C/C++ language analysis and formatting. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.cmake": {
+    "summary": {
+      "ru": "Генерация и сборка проектов по CMakeLists.txt.",
+      "en": "Generate and build projects from CMakeLists.txt."
+    },
+    "details": {
+      "ru": "CMake + Ninja — Генерация и сборка проектов по CMakeLists.txt. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "CMake + Ninja — Generate and build projects from CMakeLists.txt. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.gdb": {
+    "summary": {
+      "ru": "Нативный отладчик для точек останова, шагов, стека и значений.",
+      "en": "Native debugger for breakpoints, stepping, stack and values."
+    },
+    "details": {
+      "ru": "GDB — Нативный отладчик для точек останова, шагов, стека и значений. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "GDB — Native debugger for breakpoints, stepping, stack and values. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.git": {
+    "summary": {
+      "ru": "Локальная история версий, ветки и обмен с удалёнными репозиториями.",
+      "en": "Local version history, branches and remote repository operations."
+    },
+    "details": {
+      "ru": "Git — Локальная история версий, ветки и обмен с удалёнными репозиториями. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "Git — Local version history, branches and remote repository operations. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.python": {
+    "summary": {
+      "ru": "Локальный интерпретатор для Python-файлов и notebook.",
+      "en": "Local interpreter for Python files and notebooks."
+    },
+    "details": {
+      "ru": "Python 3 — Локальный интерпретатор для Python-файлов и notebook. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "Python 3 — Local interpreter for Python files and notebooks. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.runtime": {
+    "summary": {
+      "ru": "Системные библиотеки, необходимые локальным нативным инструментам.",
+      "en": "System libraries required by local native tools."
+    },
+    "details": {
+      "ru": "C/C++ libraries — Системные библиотеки, необходимые локальным нативным инструментам. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "C/C++ libraries — System libraries required by local native tools. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  },
+  "studio.tool.window-assets": {
+    "summary": {
+      "ru": "Отдельно загружаемый движок группировки и привязки окон.",
+      "en": "Separately downloaded engine for window grouping and docking."
+    },
+    "details": {
+      "ru": "Window engine — Отдельно загружаемый движок группировки и привязки окон. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
+      "en": "Window engine — Separately downloaded engine for window grouping and docking. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
+    }
+  }
+}

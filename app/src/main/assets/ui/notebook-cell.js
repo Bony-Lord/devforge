@@ -26,14 +26,14 @@ class StudioNotebookCellInput {
       else if(event.key==='Enter'&&(event.shiftKey||ctrl)){event.preventDefault();event.stopPropagation();if(this.record.cell.cell_type==='code')this.view.run(this.record.cell,event.shiftKey).catch(error=>this.view.status.textContent=error.message);}
     });
     input.addEventListener('pointerdown',()=>{this.history.group=null;});
-    this.sync();
+    this.sync();StudioMarkdown.attach(this);this.sizeObserver=new ResizeObserver(()=>{if(!this.disposed){this.measure();this.scroll();}});this.sizeObserver.observe(this.element);
   }
   snapshot(){return{text:this.input.value,start:this.input.selectionStart,end:this.input.selectionEnd};}
   language(){return this.record.cell.cell_type==='code'?'python':this.record.cell.cell_type==='markdown'?'markdown':'plaintext';}
   sync(){
     const input=this.input,text=StudioNotebook.lines(this.record.cell.source);
     if(input.value!==text){const start=input.selectionStart,end=input.selectionEnd;input.value=text;input.setSelectionRange(Math.min(start,text.length),Math.min(end,text.length));this.history.reset();}
-    input.readOnly=this.view.doc.readonly||this.view.external;input.ariaLabel=this.view.t('Исходник ячейки ','Cell source ')+(this.view.value.cells.indexOf(this.record.cell)+1);this.saved=this.snapshot();this.refresh();
+    input.readOnly=this.view.doc.readonly||this.view.external;input.ariaLabel=this.view.t('Исходник ячейки ','Cell source ')+(this.view.value.cells.indexOf(this.record.cell)+1);this.saved=this.snapshot();this.refresh();StudioMarkdown.refresh(this);
   }
   apply(value,kind,remember=true){
     const input=this.input;if(input.readOnly)return;
@@ -45,20 +45,22 @@ class StudioNotebookCellInput {
     if(this.input.readOnly)return;
     const after=this.snapshot(),before=this.before||this.saved,source=this.record.cell.source;this.before=null;this.record.cell.source=after.text;
     try{this.view.commit();}catch(error){this.record.cell.source=source;this.input.value=before.text;this.input.setSelectionRange(before.start,before.end);this.view.status.textContent=error.message;this.refresh();return;}
-    if(remember)this.history.record(before,after,kind);this.saved=after;this.refresh();
+    if(remember)this.history.record(before,after,kind);this.saved=after;this.refresh();StudioMarkdown.refresh(this);
   }
   undo(redo=false){const value=this.history[redo?'redo':'undo'](this.snapshot());if(value)this.apply(value,redo?'redo':'undo',false);}
   refresh(){
     const input=this.input,settings=this.view.ide.settings,tab=Math.max(1,Number(settings.tabWidth)||4),language=this.language(),host=this.view.ide.addons?.host;
     const font=Math.max(10,Math.min(48,(Number(settings.fontSize)||14)*(Number(settings.codeScale)||100)/100));this.element.style.setProperty('--cell-font',font+'px');this.element.style.setProperty('--cell-tab',tab);
-    input.rows=Math.max(3,Math.min(16,input.value.split('\n').length+1));
+    input.rows=Math.max(1,Math.min(500,input.value.split('\n').length));
+    this.measure();
     const enabled=this.visible&&language!=='plaintext'&&(!host?.lastFeatures||host.language('cell.'+(language==='python'?'py':'md'))===language),text=input.value,key=[text,enabled,tab,settings.theme].join('\u0000');
     if(key===this.paintKey)return;this.paintKey=key;const ticket=++this.ticket;this.paint.textContent=this.visible?text+'\n':'';this.scroll();
-    const colorize=window.monaco?.editor.colorize;if(!enabled||text.length>100000||input.rows===16&&text.split('\n').length>2000||!colorize){this.element.classList.remove('has-syntax');return;}
+    const colorize=window.monaco?.editor.colorize;if(!enabled||text.length>100000||input.rows===500&&text.split('\n').length>2000||!colorize){this.element.classList.remove('has-syntax');return;}
     // Only token HTML produced by Monaco is inserted, never notebook HTML output.
     this.element.classList.add('has-syntax');
     Promise.resolve(colorize(text,language,{tabSize:tab})).then(html=>{if(this.disposed||ticket!==this.ticket)return;this.paint.innerHTML=html;this.scroll();this.view.ide.pythonStyle?.paintCell(this);}).catch(()=>{if(ticket===this.ticket)this.element.classList.remove('has-syntax');});
   }
-  scroll(){this.paint.scrollTop=this.input.scrollTop;this.paint.scrollLeft=this.input.scrollLeft;}
-  dispose(){this.view.ide.pythonIntelligence?.forgetCell(this);this.view.ide.pythonStyle?.forgetCell(this);this.disposed=true;this.ticket++;this.view.cellObserver?.unobserve(this.element);StudioNotebookCellInput.fields.delete(this.input);StudioNotebookCellInput.surfaces.delete(this.element);}
+  measure(){const input=this.input;if(!input.isConnected||!input.clientWidth)return;const style=getComputedStyle(input),bar=input.scrollWidth>input.clientWidth+1?input.offsetHeight-input.clientHeight:0,height=input.rows*(parseFloat(style.lineHeight)||21)+parseFloat(style.paddingTop)+parseFloat(style.paddingBottom)+bar;if(Math.abs(parseFloat(input.style.height||0)-height)>.5)input.style.height=height+'px';}
+  scroll(){this.paint.style.height=this.input.clientHeight+'px';this.paint.style.width=this.input.clientWidth+'px';this.paint.scrollTop=this.input.scrollTop;this.paint.scrollLeft=this.input.scrollLeft;}
+  dispose(){this.sizeObserver?.disconnect();this.view.ide.pythonIntelligence?.forgetCell(this);this.view.ide.pythonStyle?.forgetCell(this);StudioMarkdown.dispose(this);this.disposed=true;this.ticket++;this.view.cellObserver?.unobserve(this.element);StudioNotebookCellInput.fields.delete(this.input);StudioNotebookCellInput.surfaces.delete(this.element);}
 }

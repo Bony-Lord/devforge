@@ -25,3 +25,5 @@ manifest is in resources/app/python/style-manifest.json; no pip installation int
 the user's interpreter is performed.
 
 Optional Jedi 0.20.1/parso 0.8.7 are separate verified downloads, with all upstream notices retained in their wheels and installed cache. License copies accompany this core package. See resources/app/python/intelligence-manifest.json. The window engine is a separate pinned Dockview implementation plus its MIT notice; see resources/app/ui/addons/optional-assets.json.
+
+Markdown-it 14.1.0 (MIT) renders notebook/document Markdown; json5 2.2.3 (MIT) parses declarative VSIX metadata. Their license files accompany the package. Build-only resedit 1.7.2 (MIT) sets DevForge PE icons; it is not loaded by the installed application.
