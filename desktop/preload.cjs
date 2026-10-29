@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('ForgeNative',{request:request=>{
   ipcRenderer.send('studio:request',request);
 }});
 contextBridge.exposeInMainWorld('StudioDesktop',{
-  platform:process.platform,sandboxed:process.sandboxed===true,
+  platform:process.platform,darkTitleBar:process.platform==='win32',sandboxed:process.sandboxed===true,
   onResult:callback=>{const listener=(_event,value)=>callback(value);ipcRenderer.on('studio:result',listener);return()=>ipcRenderer.removeListener('studio:result',listener);},
   onEvent:callback=>{const listener=(_event,type,value)=>callback(type,value);ipcRenderer.on('studio:event',listener);return()=>ipcRenderer.removeListener('studio:event',listener);}
 });

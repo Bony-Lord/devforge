@@ -108,7 +108,7 @@
     "manifest": {
       "schemaVersion": 1,
       "id": "studio.vim",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "api": {
         "min": "0.1.2",
         "maxExclusive": "0.2.0"
@@ -126,7 +126,12 @@
       "capabilities": [
         "extensions.full-access"
       ],
-      "dependencies": {},
+      "dependencies": {
+        "studio.lib.vim": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
       "conflicts": {},
       "kind": "feature",
       "installationGroup": "editing",
@@ -135,7 +140,6 @@
         "editor"
       ],
       "readme": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately.",
-      "externalTool": "vim-assets",
       "platforms": [
         "win32",
         "linux",
@@ -151,7 +155,7 @@
     "manifest": {
       "schemaVersion": 1,
       "id": "studio.code-map",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "api": {
         "min": "0.1.2",
         "maxExclusive": "0.2.0"
@@ -182,9 +186,55 @@
         "win32",
         "linux",
         "darwin"
+      ],
+      "configuration": {
+        "maxFunctions": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 300,
+          "description": "Maximum functions / Максимум функций"
+        }
+      }
+    },
+    "contributions": [],
+    "module": "const names=new Map(),ru=api.raw.application.settings.language!=='en';\napi.commands.register('open',ru?'Визуализация кода: карта функций':'Code visualization: function map',()=>{\n const source=api.editor.document;if(!source||source.virtual){api.ui.toast(ru?'Откройте файл с кодом':'Open a source file');return;}\n const key=source.path.replace(/[^a-zA-Z0-9]/g,'').slice(-60);let view=names.get(key);\n if(!view){view=api.views.register(key,source.path.split(/[\\\\/]/).pop()+' · '+(ru?'Карта':'Map'),container=>{\n  const title=api.ui.element('h2',source.path.split(/[\\\\/]/).pop()),bar=api.ui.element('div',undefined,'code-map-toolbar'),refresh=api.ui.element('button',ru?'Обновить':'Refresh','primary'),hint=api.ui.element('small',ru?'Связи по именам в текущем файле':'Name-based links in the current file'),graph=api.ui.element('div',undefined,'code-map-graph');bar.append(refresh,hint);container.append(title,bar,graph);\n  function draw(){graph.replaceChildren();if(source.model.isDisposed())return;const text=source.model.getValue().slice(0,1000000),language=source.model.getLanguageId(),nodes=[];\n   const clean=text.replace(/\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'/g,s=>s.replace(/[^\\n]/g,' '));\n   const pattern=language==='python'?/^(\\s*)(?:async\\s+)?def\\s+([\\w]+)\\s*\\([^\\n]*\\)\\s*(?:->[^:\\n]+)?\\s*:/gm:/(?:[\\w:*&<>]+\\s+)+([\\w:~]+)\\s*\\([^;{}]*\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?(?:->[^{}]+)?\\s*\\{/g;\n   let match;while((match=pattern.exec(clean))&&nodes.length<Math.max(10,Math.min(300,api.configuration.get('maxFunctions',100)))){const name=language==='python'?match[2]:match[1];if(['if','for','while','switch','catch'].includes(name))continue;const line=clean.slice(0,match.index).split('\\n').length;let end=clean.length;if(language!=='python'){let depth=1,index=pattern.lastIndex;while(index<clean.length&&depth){if(clean[index]==='{')depth++;if(clean[index]==='}')depth--;index++;}end=index;}else{const lines=clean.slice(pattern.lastIndex).split('\\n'),indent=match[1].length;let offset=pattern.lastIndex;for(const line of lines){if(line.trim()&&line.search(/\\S/)<=indent&&offset>pattern.lastIndex){end=offset;break;}offset+=line.length+1;}}nodes.push({name,line,body:clean.slice(pattern.lastIndex,end)});}\n   if(!nodes.length){graph.append(api.ui.element('p',ru?'Определений функций не найдено':'No function definitions found'));return;}\n   for(const node of nodes){const card=api.ui.element('article',undefined,'code-map-node'),open=api.ui.element('button',node.name+' · '+node.line);open.onclick=()=>api.workspace.open(source.path).then(()=>{api.editor.active.setPosition({lineNumber:node.line,column:1});api.editor.active.revealLineInCenter(node.line);});card.append(open);const calls=nodes.filter(other=>other!==node&&new RegExp('\\\\b'+other.name.split('::').pop()+'\\\\s*\\\\(').test(node.body));for(const target of calls){const link=api.ui.element('button','→ '+target.name,'code-map-link');link.onclick=()=>api.workspace.open(source.path).then(()=>{api.editor.active.setPosition({lineNumber:target.line,column:1});api.editor.active.revealLineInCenter(target.line);});card.append(link);}graph.append(card);}\n  }\n  refresh.onclick=draw;const changed=source.model.onDidChangeContent(draw);draw();return()=>changed.dispose();\n });names.set(key,view);}return view.open();\n});\napi.ui.style('.code-map-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}.code-map-graph{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;align-items:start}.code-map-node{border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:7px;background:var(--panel);padding:12px;display:flex;flex-direction:column;gap:7px}.code-map-node>button{text-align:left;justify-content:flex-start}.code-map-node>button:first-child{font-family:monospace;font-weight:600;color:var(--cyan);padding:4px}.code-map-link{color:var(--text);padding:4px 8px;border-left:1px solid var(--line);margin-left:8px}');\n"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.vsix",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "VSIX и Open VSX",
+        "en": "VSIX and Open VSX"
+      },
+      "description": {
+        "ru": "Каталог Open VSX, импорт совместимых сниппетов и тем VSIX, значки и управление установкой.",
+        "en": "Open VSX catalog, compatible VSIX snippets and themes, icons and installation controls."
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "installationGroup": "extensions",
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
       ]
     },
     "contributions": [],
-    "module": "const names=new Map(),ru=api.raw.application.settings.language!=='en';\napi.commands.register('open',ru?'Визуализация кода: карта функций':'Code visualization: function map',()=>{\n const source=api.editor.document;if(!source||source.virtual){api.ui.toast(ru?'Откройте файл с кодом':'Open a source file');return;}\n const key=source.path.replace(/[^a-zA-Z0-9]/g,'').slice(-60);let view=names.get(key);\n if(!view){view=api.views.register(key,source.path.split(/[\\\\/]/).pop()+' · '+(ru?'Карта':'Map'),container=>{\n  const title=api.ui.element('h2',source.path.split(/[\\\\/]/).pop()),bar=api.ui.element('div',undefined,'code-map-toolbar'),refresh=api.ui.element('button',ru?'Обновить':'Refresh','primary'),hint=api.ui.element('small',ru?'Связи по именам в текущем файле':'Name-based links in the current file'),graph=api.ui.element('div',undefined,'code-map-graph');bar.append(refresh,hint);container.append(title,bar,graph);\n  function draw(){graph.replaceChildren();if(source.model.isDisposed())return;const text=source.model.getValue().slice(0,1000000),language=source.model.getLanguageId(),nodes=[];\n   const clean=text.replace(/\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'/g,s=>s.replace(/[^\\n]/g,' '));\n   const pattern=language==='python'?/^(\\s*)(?:async\\s+)?def\\s+([\\w]+)\\s*\\([^\\n]*\\)\\s*(?:->[^:\\n]+)?\\s*:/gm:/(?:[\\w:*&<>]+\\s+)+([\\w:~]+)\\s*\\([^;{}]*\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?(?:->[^{}]+)?\\s*\\{/g;\n   let match;while((match=pattern.exec(clean))&&nodes.length<100){const name=language==='python'?match[2]:match[1];if(['if','for','while','switch','catch'].includes(name))continue;const line=clean.slice(0,match.index).split('\\n').length;let end=clean.length;if(language!=='python'){let depth=1,index=pattern.lastIndex;while(index<clean.length&&depth){if(clean[index]==='{')depth++;if(clean[index]==='}')depth--;index++;}end=index;}else{const lines=clean.slice(pattern.lastIndex).split('\\n'),indent=match[1].length;let offset=pattern.lastIndex;for(const line of lines){if(line.trim()&&line.search(/\\S/)<=indent&&offset>pattern.lastIndex){end=offset;break;}offset+=line.length+1;}}nodes.push({name,line,body:clean.slice(pattern.lastIndex,end)});}\n   if(!nodes.length){graph.append(api.ui.element('p',ru?'Определений функций не найдено':'No function definitions found'));return;}\n   for(const node of nodes){const card=api.ui.element('article',undefined,'code-map-node'),open=api.ui.element('button',node.name+' · '+node.line);open.onclick=()=>api.workspace.open(source.path).then(()=>{api.editor.active.setPosition({lineNumber:node.line,column:1});api.editor.active.revealLineInCenter(node.line);});card.append(open);const calls=nodes.filter(other=>other!==node&&new RegExp('\\\\b'+other.name.split('::').pop()+'\\\\s*\\\\(').test(node.body));for(const target of calls){const link=api.ui.element('button','→ '+target.name,'code-map-link');link.onclick=()=>api.workspace.open(source.path).then(()=>{api.editor.active.setPosition({lineNumber:target.line,column:1});api.editor.active.revealLineInCenter(target.line);});card.append(link);}graph.append(card);}\n  }\n  refresh.onclick=draw;const changed=source.model.onDidChangeContent(draw);draw();return()=>changed.dispose();\n });names.set(key,view);}return view.open();\n});\napi.ui.style('.code-map-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}.code-map-graph{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;align-items:start}.code-map-node{border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:7px;background:var(--panel);padding:12px;display:flex;flex-direction:column;gap:7px}.code-map-node>button{text-align:left;justify-content:flex-start}.code-map-node>button:first-child{font-family:monospace;font-weight:600;color:var(--cyan);padding:4px}.code-map-link{color:var(--text);padding:4px 8px;border-left:1px solid var(--line);margin-left:8px}');\n"
+    "module": "const previous={};for(const key of ['openExternalGallery','galleryAddonId','galleryIcon','renderExternalGallery'])previous[key]=StudioAddons.prototype[key];\n\n'use strict';\nObject.assign(StudioAddons.prototype,{\n openExternalGallery(){this.tab='catalog';this.externalGallery=true;this.render();},\n galleryAddonId(entry){return 'vscode.'+entry.namespace.toLowerCase().replace(/[^a-z0-9-]/g,'-')+'.'+entry.name.toLowerCase().replace(/[^a-z0-9-]/g,'-');},\n galleryIcon(entry,size=33){const box=this.marketIcon('vscode.extension');box.style.width=box.style.height=size+'px';if(!entry.icon)return box;this.galleryIcons??=new Map();let promise=this.galleryIcons.get(entry.icon);if(!promise){promise=native('extensionGalleryIcon',{url:entry.icon}).catch(()=>null);this.galleryIcons.set(entry.icon,promise);}promise.then(src=>{if(src&&box.isConnected){const image=this.element('img',undefined,'market-gallery-icon');image.width=image.height=size;image.style.width=image.style.height=size+'px';image.alt=entry.title||entry.name;image.src=src;box.replaceChildren(image);}});return box;},\n renderExternalGallery(container){\n  const section=this.element('section',undefined,'studio-marketplace'),side=this.element('aside',undefined,'market-sidebar'),detail=this.element('section',undefined,'market-detail-host');section.append(side,detail);container.append(section);const back=this.element('button','← DevForge','market-back');back.onclick=()=>{this.externalGallery=false;this.render();};const title=this.element('strong','Open VSX'),search=this.element('input');search.type='search';search.placeholder=this.text('Искать расширения VS Code','Search VS Code extensions');search.value=this.galleryQuery||'';const filters=this.element('div',undefined,'market-filter-options'),category=this.element('select'),sort=this.element('select');for(const[value,label]of [['all',this.text('Все категории','All categories')],['Snippets','Snippets'],['Themes','Themes'],['Programming Languages','Languages'],['Formatters','Formatters'],['Extension Packs','Packs']]){const o=this.element('option',label);o.value=value;category.append(o);}for(const[value,ru,en]of [['relevance','Релевантность','Relevance'],['downloadCount','Загрузки','Downloads'],['rating','Оценка','Rating'],['timestamp','Новые','Newest']]){const o=this.element('option',this.text(ru,en));o.value=value;sort.append(o);}filters.append(category,sort);const run=this.element('button',this.text('Найти','Search'),'primary'),status=this.element('small'),list=this.element('div',undefined,'market-results'),toolbar=this.element('div',undefined,'market-filters');toolbar.append(back,title,search,filters,run,status);side.append(toolbar,list);let sequence=0;\n  const show=async entry=>{this.gallerySelected=entry;const current=++sequence;detail.textContent=this.text('Загрузка…','Loading…');try{const data=await native('extensionGalleryInfo',entry);if(!detail.isConnected||current!==sequence)return;detail.replaceChildren();const id=this.galleryAddonId(data),local=this.marketplaceEntries().find(e=>e.manifest.id===id&&e.installed),active=this.manager.active.has(id),article=this.element('article',undefined,'market-detail'),head=this.element('div',undefined,'market-detail-heading'),heading=this.element('div');heading.append(this.element('h2',data.title),this.element('p',data.publisher),this.element('p',data.description));head.append(this.galleryIcon(data,72),heading);article.append(head);\n   const compatibility=this.element('p',data.supported?this.text('Поддерживаются сниппеты и цвета темы.','Snippets and theme colors are supported.'):this.text('Этому расширению требуется Extension Host VS Code. Его поддержка ещё не реализована.','This extension requires the VS Code Extension Host, which is not implemented yet.')),actions=this.element('div',undefined,'market-detail-actions'),error=this.element('p',undefined,'inline-error');article.append(compatibility,actions,error);\n   const act=(label,callback,primary=false)=>{const button=this.element('button',label,primary?'primary':'');button.type='button';button.onclick=async()=>{button.disabled=true;error.textContent='';try{await callback();}catch(e){error.textContent=e.message;this.app.toast(e.message);}finally{button.disabled=false;}};actions.append(button);return button;};\n   if(local){act(active?this.text('Отключить','Disable'):this.text('Включить','Enable'),async()=>{await this.marketToggle(local,!active);this.render();},!active);act(this.text('Настройки','Settings'),()=>this.openExtensionSettings(id));act(this.text('Удалить','Uninstall'),async()=>{await this.marketRemove(local);this.render();});}\n   else if(data.supported)act(this.text('Загрузить и проверить','Download and review'),async()=>{const pkg=await native('extensionGalleryPrepare',data);this.externalGallery=false;this.review(pkg.text,false,{url:pkg.url,sha256:pkg.sha256});},true);\n   if(data.license)article.append(this.element('p',data.license));const readme=this.element('div',undefined,'notebook-markdown-preview');StudioMarkdown.render(readme,data.readme||data.description,this.app);article.append(readme);detail.append(article);section.classList.add('market-detail-open');const backToList=this.element('button',this.text('← Результаты','← Results'),'market-back');backToList.onclick=()=>{this.gallerySelected=null;section.classList.remove('market-detail-open');};article.prepend(backToList);}catch(error){detail.textContent=error.message;}};\n  const find=async()=>{run.disabled=true;this.galleryQuery=search.value;status.textContent=this.text('Поиск…','Searching…');try{const response=await native('extensionGallerySearch',{query:search.value,category:category.value,sort:sort.value});if(!list.isConnected)return;list.replaceChildren();status.textContent=this.text('Найдено: ','Found: ')+response.total;for(const entry of response.extensions){const row=this.element('article',undefined,'market-item'),body=this.element('div',undefined,'market-item-info'),button=this.element('button',entry.title,'market-title'),id=this.galleryAddonId(entry),installed=this.library.packages.some(p=>p.package.manifest.id===id);row.dataset.addonState=this.manager.active.has(id)?'enabled':installed?'installed':'available';body.append(button,this.element('p',entry.description),this.element('small',entry.namespace+' · '+entry.downloads.toLocaleString()));row.append(this.galleryIcon(entry),body);row.onclick=()=>show(entry);list.append(row);}}catch(error){status.textContent=error.message;}finally{run.disabled=false;}};run.onclick=find;search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();find();}};category.onchange=find;sort.onchange=find;find();if(this.gallerySelected)show(this.gallerySelected);\n }\n});\n\napi.commands.register('open',api.raw.application.settings.language==='ru'?'Open VSX: расширения':'Open VSX: extensions',()=>api.raw.application.addons.openExternalGallery());\napi.use(()=>{api.raw.application.addons.externalGallery=false;for(const[key,value]of Object.entries(previous)){if(value)StudioAddons.prototype[key]=value;else delete StudioAddons.prototype[key];}api.raw.application.addons.render();});"
   }
 ]

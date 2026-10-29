@@ -728,5 +728,25 @@
       "ru": "Карта определений и связей по именам в текущем файле C/C++ или Python. Переход к коду из карты. Включается и удаляется в каталоге дополнений.",
       "en": "A map of definitions and name-based links in the current C/C++ or Python file, with navigation to code. Enable and uninstall it in the extension catalog."
     }
+  },
+  "studio.lib.vim": {
+    "summary": {
+      "ru": "Движок Vim для Monaco, загружаемый отдельно от IDE.",
+      "en": "Vim engine for Monaco, downloaded separately from the IDE."
+    },
+    "details": {
+      "ru": "Библиотека требуется дополнению Vim. Общие зависимости не удаляются, пока нужны другим включённым дополнениям.",
+      "en": "Required by the Vim addon. Shared dependencies remain while other enabled extensions need them."
+    }
+  },
+  "studio.vsix": {
+    "summary": {
+      "ru": "Поиск Open VSX, значки, загрузка VSIX и управление совместимыми сниппетами/темами.",
+      "en": "Open VSX search, icons, VSIX download and compatible snippet/theme management."
+    },
+    "details": {
+      "ru": "Отдельный отключаемый модуль. Полный Extension Host VS Code пока не реализован; неподдерживаемые пакеты не предлагаются как рабочие.",
+      "en": "An independently switchable module. The complete VS Code Extension Host is not implemented; unsupported packages are not advertised as working."
+    }
   }
 }

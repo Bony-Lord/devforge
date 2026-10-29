@@ -3213,5 +3213,37 @@
       }
     },
     "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.lib.vim",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Библиотека Monaco Vim",
+        "en": "Monaco Vim library"
+      },
+      "description": {
+        "ru": "Отдельно загружаемый движок режимов и команд Vim для Monaco, с уведомлениями MIT/CodeMirror.",
+        "en": "Separately downloaded Vim modes and commands for Monaco, with MIT/CodeMirror notices."
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "library",
+      "installationGroup": "tools",
+      "externalTool": "vim-assets",
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
+      ]
+    },
+    "contributions": []
   }
 ]

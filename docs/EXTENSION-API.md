@@ -37,7 +37,7 @@ Raw APIs and language registrations require the author to register their cleanup
 | `editor.active / document / models / action / onChange` | Source editor access |
 | `editor.decorate(model, markers)` | Namespaced diagnostic markers with cleanup |
 | `languages` | Monaco language/provider registration APIs |
-| `configuration.get / set` | Namespaced persisted extension settings |
+| `configuration.get / set / onChange` | Namespaced persisted extension settings and change notifications |
 | `host.request(operation, data) / on(event, callback)` | Validated native host protocol |
 | `ui.element / toast / popover / style` | UI elements, anchored forms and styles |
 | `events.listen` | Automatically disposed DOM listener |
@@ -53,3 +53,26 @@ shared-library/DEX loader or full Node/VS Code API host in this alpha.
 The official Vim and Function map modules in `ui/addons/catalog.json` are working
 examples. Disabling/uninstalling removes registered commands, views and tracked
 resources; extensions must not retain untracked global changes.
+
+## Settings and dependency libraries
+
+`manifest.configuration` declares the extension's settings (boolean, number,
+string, enum, or JSON object/array). Its editor is available from the extension
+card and the IDE settings; values are stored by extension ID. Use
+`configuration.onChange` to apply changes to a running extension.
+
+Library addons use the same versioned dependency graph and lifecycle as other
+addons. `studio.lib.vim` is a working example: Vim depends on it, and its pinned
+implementation is downloaded separately. Declare library requirements in
+`manifest.dependencies`, using the existing version ranges. A library is not an
+implicit unrestricted native loader.
+
+Disabling or uninstalling reviews both requirements and reverse dependencies.
+Users may cancel, disable dependents, and optionally clean unused requirements.
+Requirements still used by other enabled extensions are retained, including
+transitive libraries. Bulk component changes also review the affected graph.
+Uninstalling a particular inactive version leaves the active version enabled.
+
+`studio.vsix` owns the optional Open VSX/VSIX interface. Registry operations and
+VSIX import require that addon; snippets and JSON theme colors remain the current
+compatibility boundary, rather than a complete VS Code extension host.

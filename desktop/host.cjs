@@ -26,7 +26,8 @@ class DesktopHost {
     if(op==='addonStateCommit'&&!d.resolved?.includes('studio.python-intelligence'))this.pythonIntelligence.stop();
     if(op==='addonStateCommit'&&!d.resolved?.some(id=>['studio.python-formatting','studio.python-diagnostics'].includes(id)))this.pythonStyle.stop();
     if(op.startsWith('addon')&&['addonLibrary','addonState','addonCatalog','addonStateCommit','addonBegin','addonFinish'].includes(op))return this.addons.handle(op,d);
-    if(op==='extensionGallerySearch')return this.gallery.search(d);if(op==='extensionGalleryInfo')return this.gallery.info(d);if(op==='extensionGalleryPrepare')return this.gallery.prepare(d);
+    if((op.startsWith('extensionGallery')||op==='addonImport'&&d.vsix)&&!this.addons.enabled('studio.vsix'))throw Error('Enable the VSIX / Open VSX support addon first');
+    if(op==='extensionGalleryIcon')return this.gallery.icon(d);if(op==='extensionGallerySearch')return this.gallery.search(d);if(op==='extensionGalleryInfo')return this.gallery.info(d);if(op==='extensionGalleryPrepare')return this.gallery.prepare(d);
     if(op==='pythonRuntimeCancel')return this.pythonRuntimes.cancel();if(op==='pythonRuntimes')return this.pythonRuntimes.info();if(op==='pythonRuntimeInstall'){const result=await this.pythonRuntimes.install(d.id);await this.tools.discover();return result;}if(op==='pythonRuntimeRemove')return this.pythonRuntimes.remove(d.id);
     if(op==='pythonInfo')return this.python.info(this.trust().trusted?d.options:undefined);if(op==='pythonEnvironments')return this.python.environment.list();if(op==='pythonRun')return this.python.run(d);if(op==='pythonCheck')return this.python.check(d);
     if(op==='optionalAssets')return this.optionalAssets.info();if(op==='optionalAssetInstall')return this.optionalAssets.install(d.id);if(op==='optionalAssetRemove')return this.optionalAssets.remove(d.id);
@@ -84,7 +85,7 @@ class DesktopHost {
       case 'desktopSources':return this.system.openExternal?.('https://github.com/Bony-Lord/devforge/releases');
       case 'clipboardWrite':if(typeof d.text!=='string'||d.text.length>256*1024)throw Error('Invalid clipboard text');this.system.writeClipboard?.(d.text);return true;
       case 'openDocumentationLink':return this.system.openDocumentationLink?.(d.url);
-      case 'addonImport':{const file=await this.system.chooseFile?.();if(!file)return false;if(file.toLowerCase().endsWith('.vsix')){if((await fs.stat(file)).size>32*1024*1024)throw Error('VSIX exceeds 32 MiB');const pkg=require('./vsix.cjs').convert(await fs.readFile(file));this.event('addonImported',{text:JSON.stringify(pkg)});return true;}if((await fs.stat(file)).size>262144)throw Error('Template/addon exceeds 256 KiB');this.event('addonImported',{text:await fs.readFile(file,'utf8')});return true;}
+      case 'addonImport':{const file=await this.system.chooseFile?.();if(!file)return false;if(file.toLowerCase().endsWith('.vsix')){if(!this.addons.enabled('studio.vsix'))throw Error('Enable the VSIX / Open VSX support addon first');if((await fs.stat(file)).size>32*1024*1024)throw Error('VSIX exceeds 32 MiB');const pkg=require('./vsix.cjs').convert(await fs.readFile(file));this.event('addonImported',{text:JSON.stringify(pkg)});return true;}if((await fs.stat(file)).size>262144)throw Error('Template/addon exceeds 256 KiB');this.event('addonImported',{text:await fs.readFile(file,'utf8')});return true;}
       case 'addonExport':{const pkg=require(require('./assets.cjs').ui+'/addon-packages.js').parse(d.package);return this.system.saveData?.(JSON.stringify(pkg,null,2)+'\n','workspace.studio-addon')||false;}
       case 'performanceEvent':return true;
       case 'performanceReport':return {platform:process.platform,events:[]};

@@ -1,4 +1,4 @@
-# DevForge 0.7.0-alpha.1
+# DevForge 0.7.0-alpha.2
 
 Experimental prerelease, not a stable recommendation. Windows still uses Electron
 and bundled Chromium. Android uses its system WebView. A later desktop-shell
@@ -15,8 +15,12 @@ from a future shell is claimed without measurements.
   matching Monaco scrollbar. Necessary scrolling remains available.
 - The file search occupies a configurable percentage of the free header space.
   Tool selectors are optional; narrow layouts prioritize project/run controls.
-- Notebook cells are centered at a configurable width; narrow screens use the
-  available width. Width and tree/header preferences are in Interface settings.
+- The previous notebook and workbench appearance is retained; additional notebook
+  centering and frame redesign were reverted at the user's request. Changes are
+  confined to requested colors, scrollbars, field consistency and layout fixes.
+- Windows has an app-specific dark caption with native window controls.
+- The saved UI language is injected before startup, and project profiles cannot
+  override it. Russian and English are checked after a full reload.
 - Notebook budgets show infinity at the right end of each slider. Numeric entry
   accepts `∞` or `inf`; zero remains an internal legacy representation. Available
   RAM/disk capacity is queried from the host and used to size finite sliders.
@@ -35,7 +39,7 @@ from a future shell is claimed without measurements.
   negative terms. Enabled, installed, downloadable and incompatible entries have
   distinct styling. Removable installed packages/tools have visible Uninstall.
   System-owned tools are managed by their system installer.
-- Desktop Open VSX search, categories/sorting, descriptions and Markdown README;
+- Optional **VSIX and Open VSX** addon: desktop Open VSX search, categories/sorting, descriptions and Markdown README;
   downloads are bounded and checked against the registry SHA-256 before review.
   VSIX compatibility remains **partial: snippets and JSON workbench colors**.
   Unsupported executable extensions are described as unsupported rather than
@@ -73,3 +77,11 @@ Machine-readable results accompany the release. Fixture tests do not modify the
 user's projects. Physical Android/IME/Bluetooth and native Linux/macOS installer
 checks are not covered. This alpha is intentionally published as a prerelease;
 it does not replace the previous recommended release.
+
+Extension cards show publisher icons and actual enabled/installed state. Settings
+are accessible from cards and the main settings page. VSIX configuration schemas
+are retained when importing supported packages; extensions without their own
+schema use the existing IDE settings. Disable/uninstall reviews list requirements
+and active reverse dependencies, with cancellation and unused-dependency cleanup.
+Monaco Vim's downloaded implementation is represented by a library addon so its
+requirements and removal participate in that dependency model.

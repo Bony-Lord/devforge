@@ -1,0 +1,2 @@
+const test=require('node:test'),assert=require('node:assert/strict'),profiles=require('../app/src/main/assets/ui/run-configurations.js');
+test('a project profile cannot replace the application interface language',()=>{const doc=profiles.empty();doc.profiles[0].language='en';const current=profiles.resolve(doc,{language:'ru'},'/project','/project/main.cpp');assert.equal(current.options.language,'ru');});

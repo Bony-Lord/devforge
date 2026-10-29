@@ -9,7 +9,7 @@ test('rejects code, arbitrary actions, CSS injection and invalid namespaced cont
   for(const mutate of bad){const p=clone(sample);mutate(p);assert.throws(()=>packages.parse(p));}assert.throws(()=>packages.parse('{'));assert.throws(()=>packages.parse(' '.repeat(262145)));
 });
 test('official data catalog validates and allowed commands stay declarative',()=>{
-  const catalog=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../app/src/main/assets/ui/addons/catalog.json'),'utf8')).map(packages.parse);assert.equal(catalog.length,4);assert(catalog.every(p=>p.manifest.id.startsWith('studio.')));assert.deepEqual(packages.ACTIONS,['editor.focus','editor.resetZoom','ui.settings','ui.focusMode']);
+  const catalog=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../app/src/main/assets/ui/addons/catalog.json'),'utf8')).map(packages.parse);assert.equal(catalog.length,5);assert(catalog.every(p=>p.manifest.id.startsWith('studio.')));assert.deepEqual(packages.ACTIONS,['editor.focus','editor.resetZoom','ui.settings','ui.focusMode']);
 });
 test('install planning includes dependencies, pins selected version and preserves disabled profile',()=>{
   const dep=clone(sample);dep.manifest.id='example.base';dep.contributions[0].id='example.base/colors';const app=clone(sample);app.manifest.dependencies={'example.base':{min:'1.0.0'}};

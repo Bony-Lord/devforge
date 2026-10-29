@@ -20,7 +20,7 @@ test('Python quality specializes formatters without enabling C++ tools',async()=
 });
 
 test('Python quality requires its separately downloaded runtime',async()=>{
- const {adapter,registry}=host(),entries=await adapter.load();adapter.styleState.installed=false;const selected=core.resolve(entries.map(e=>e.manifest),['studio.pack.python-quality']);assert(adapter.missing(selected).some(t=>t.id==='python-style'&&t.bytes===92155));const manager=new core.Manager({catalog:entries.map(e=>e.manifest),factories:new Map(entries.map(e=>[e.manifest.id+'@'+e.manifest.version,e.activate])),registry});await assert.rejects(manager.setProfile(['studio.pack.python-quality']),/Download Python style tools/);assert.equal(registry.entries.size,0);
+ const {adapter,registry}=host(),entries=await adapter.load();adapter.styleState.installed=false;const selected=core.resolve(entries.map(e=>e.manifest),['studio.pack.python-quality']);assert(adapter.missing(selected).some(t=>t.id==='python-style'&&t.bytes===92155));const manager=new core.Manager({catalog:entries.map(e=>e.manifest),factories:new Map(entries.map(e=>[e.manifest.id+'@'+e.manifest.version,e.activate])),registry});await assert.rejects(manager.setProfile(['studio.pack.python-quality']),/Download.*python-style/);assert.equal(registry.entries.size,0);
 });
 
 test('fresh minimal APK migration enables no feature with missing native dependencies',async()=>{

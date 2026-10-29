@@ -50,7 +50,7 @@ class ForgeIDE {
     $('#stdin').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.sendInput();}};$('#sendInput').onclick=()=>this.sendInput();$('#eofInput').onclick=()=>native('eof').catch(safeError);
     $('#terminalForm').onsubmit=e=>{e.preventDefault();this.shell();};$('#fileSearch').oninput=e=>this.searchFiles(e.target.value);
     $$('[data-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();this.menu(this.menuItems(b.dataset.menu),b.getBoundingClientRect().left,b.getBoundingClientRect().bottom+2);});
-    document.addEventListener('click',e=>{if(!e.target.closest('#menu'))$('#menu').classList.add('hidden');});
+    document.addEventListener('click',e=>{if(!e.target.closest('#menu,.tree-file-menu,[data-menu]'))$('#menu').classList.add('hidden');});
     $$('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).close());
     $('#settingsForm').onsubmit=e=>{e.preventDefault();this.saveSettingsForm();};$('#welcomeNew').onclick=()=>this.newProject();$('#welcomeOpen').onclick=()=>native('import');
     $('#quickInput').oninput=()=>this.renderQuick();$('#quickInput').onkeydown=e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();this.quickSelected+=e.key==='ArrowDown'?1:-1;this.quickSelected=Math.max(0,Math.min(this.filteredQuick.length-1,this.quickSelected));this.renderQuick(false);}else if(e.key==='Enter'){e.preventDefault();this.executeQuick();}};
