@@ -15,7 +15,10 @@ cache. This does not run pip or change the selected interpreter's installed
 packages. Removing the runtime deletes only these cached wheels. It does not
 delete Python, project files, or project settings. Python 3.10 or later is required.
 On desktop the active run profile's interpreter is used; Android uses its optional
-Python runtime. Network access is needed for the initial download or reinstall.
+Python runtime. Network access is needed for the initial download or reinstall. The notebook
+kernel runs with bytecode-cache writing disabled so it cannot add `.pyc` files
+to installed application resources. Desktop packaging and installer preflight
+reject caches, downloaded wheels, and signing keys in the core payload.
 
 Use **Format** in the toolbar, a code cell's format button, `Ctrl+Alt+L`, or
 `Shift+Alt+F`. Formatting preserves undo history and refuses to apply a late

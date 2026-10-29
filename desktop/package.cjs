@@ -32,6 +32,7 @@ async function main(){
   await fs.writeFile(path.join(output,'START-HERE.txt'),instructions);
   const locales=await require('./package-content.cjs').trimLocales(output);await fs.writeFile(path.join(output,'package-content.json'),JSON.stringify({languages:['en','ru'],locales},null,2)+'\n');
   if(process.platform==='darwin'){const signed=await capture('/usr/bin/codesign',['--force','--deep','--sign','-','--preserve-metadata=entitlements,requirements,flags',path.join(output,'DevForge.app')]);if(signed.code)throw Error(signed.error);}
+  await require('./package-content.cjs').assertCoreContents(output);
   const zip=output+'.zip',info=await zipDirectory(output,zip,{maxBytes:2*1024*1024*1024,preserveSymlinks:true}),hash=crypto.createHash('sha256');const handle=await fs.open(zip);for await(const bytes of handle.createReadStream())hash.update(bytes);const sha256=hash.digest('hex');await fs.writeFile(zip+'.sha256',sha256+'  '+path.basename(zip)+'\n');console.log(JSON.stringify({output,zip,sha256,localeBytesRemoved:locales.bytes,...info}));
 }
 fs.mkdir(path.join(__dirname,'dist'),{recursive:true}).then(main).catch(error=>{console.error(error);process.exitCode=1;});

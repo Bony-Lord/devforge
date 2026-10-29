@@ -7,3 +7,8 @@ test('Windows/Linux paks and macOS lproj translations are trimmed without touchi
   await fs.writeFile(path.join(root,'LICENSES.chromium.html'),'notices');await fs.writeFile(path.join(root,'program.pak'),'code');const outside=path.join(folder,'external');await fs.mkdir(outside);await fs.writeFile(path.join(outside,'private.txt'),'retained');await fs.symlink(outside,path.join(root,'linked'),process.platform==='win32'?'junction':'dir');
   const result=await trimLocales(root);assert.equal(result.bytes,8);assert.equal(result.removed.length,2);for(const name of ['en-US.pak','ru.pak'])await fs.access(path.join(root,'locales',name));assert.equal(await fs.readFile(path.join(outside,'private.txt'),'utf8'),'retained');await fs.access(path.join(root,'LICENSES.chromium.html'));await fs.access(path.join(root,'program.pak'));assert.equal((await trimLocales(root)).bytes,0);
 });
+test('installer preflight rejects generated Python caches, optional wheels and signing keys without deleting files',async t=>{
+ const folder=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-core-'));t.after(()=>fs.rm(folder,{recursive:true,force:true}));const {assertCoreContents}=require('../package-content.cjs');await fs.writeFile(path.join(folder,'kernel.py'),'# source');await assertCoreContents(folder);
+ for(const name of ['kernel.pyc','download.whl','private.jks']){const file=path.join(folder,name);await fs.writeFile(file,'fixture');await assert.rejects(assertCoreContents(folder),/Unexpected cache, downloaded tool or private key/);assert.equal(await fs.readFile(file,'utf8'),'fixture');await fs.unlink(file);}
+ await fs.mkdir(path.join(folder,'__pycache__'));await assert.rejects(assertCoreContents(folder),/__pycache__/);
+});

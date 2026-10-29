@@ -42,7 +42,7 @@ final class PythonEngine {
         if(kernel!=null&&kernel.isAlive()&&path.equals(notebook)&&key.equals(contextKey))return info().put("session",generation);
         stop();String python=executable();File script=new File(ide.app.getFilesDir(),"python/kernel.py");script.getParentFile().mkdirs();
         for(String asset:Arrays.asList("kernel.py","notebook_magics.py"))try(InputStream in=ide.app.getAssets().open("python/"+asset)){byte[] bytes=IdeEngine.slurp(in,1024*1024).getBytes(StandardCharsets.UTF_8);File target=new File(script.getParentFile(),asset);if(!target.isFile()||!Arrays.equals(Files.readAllBytes(target.toPath()),bytes))ProjectTemplateFiles.replace(target,bytes);}
-        Process process=ide.spawn(Arrays.asList(python,"-u",script.getAbsolutePath()),cwd,false,environment);kernel=process;notebook=path;contextKey=key;long session=++generation;
+        Process process=ide.spawn(Arrays.asList(python,"-B","-u",script.getAbsolutePath()),cwd,false,environment);kernel=process;notebook=path;contextKey=key;long session=++generation;
         ide.pool.execute(()->read(process,session,path));ide.pool.execute(()->ide.pump(process.getErrorStream(),"notebook","stderr"));
         return info().put("session",session);
     }

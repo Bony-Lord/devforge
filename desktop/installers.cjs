@@ -5,7 +5,7 @@ const {build,Platform,Arch}=require('electron-builder');
 const pkg=require('./package.json');
 async function main(){
   const folder=path.join(__dirname,'dist',`DevForge-${process.platform}-${process.arch}-${pkg.version}`);
-  await fs.access(folder);
+  await fs.access(folder);await require('./package-content.cjs').assertCoreContents(folder);
   const output=path.join(__dirname,'dist','installers');await fs.mkdir(output,{recursive:true});
   const config={appId:'dev.cppstudio.desktop',productName:'DevForge',copyright:'Copyright (c) DevForge contributors',
     artifactName:'DevForge-'+pkg.version+'-${os}-${arch}-setup.${ext}',directories:{output,buildResources:__dirname},
