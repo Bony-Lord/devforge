@@ -13,6 +13,7 @@ class StudioNotebookCellInput {
       this.before=this.snapshot();
       if(event.cancelable&&['historyUndo','historyRedo'].includes(event.inputType)){event.preventDefault();this.undo(event.inputType==='historyRedo');}
       else if(event.cancelable&&['insertLineBreak','insertParagraph'].includes(event.inputType)){event.preventDefault();this.apply(StudioCellEditing.newline(input.value,input.selectionStart,input.selectionEnd,this.view.ide.settings,this.language()==='python'),'newline');}
+      else if(event.cancelable&&this.language()==='python'){const edit=event.inputType==='insertText'?StudioCellEditing.typed(input.value,input.selectionStart,input.selectionEnd,event.data,this.view.ide.settings):event.inputType==='deleteContentBackward'?StudioCellEditing.backspace(input.value,input.selectionStart,input.selectionEnd):null;if(edit){event.preventDefault();this.apply(edit,event.inputType);}}
     });
     input.addEventListener('input',event=>this.changed(this.synthetic?.kind||event.inputType||'input',this.synthetic?.remember!==false));
     input.addEventListener('scroll',()=>this.scroll());
@@ -39,7 +40,7 @@ class StudioNotebookCellInput {
     const before=this.snapshot(),edit=StudioCellEditing.delta(before.text,value.text);if(edit)input.setRangeText(edit.text,edit.start,edit.end,'preserve');input.setSelectionRange(value.start,value.end);
     this.before=before;this.synthetic={kind,remember};try{this.input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:kind==='undo'?'historyUndo':kind==='redo'?'historyRedo':'insertReplacementText'}));}finally{this.synthetic=null;}
   }
-  insert(text){const input=this.input;if(input.readOnly)return false;const start=input.selectionStart,end=input.selectionEnd;this.apply({text:input.value.slice(0,start)+text+input.value.slice(end),start:start+text.length,end:start+text.length},'insertText');return true;}
+  insert(text){const input=this.input;if(input.readOnly)return false;const start=input.selectionStart,end=input.selectionEnd,settings=this.view.ide.settings,smart=text==='\n'?StudioCellEditing.newline(input.value,start,end,settings,this.language()==='python'):this.language()==='python'?StudioCellEditing.typed(input.value,start,end,text,settings):null;this.apply(smart||{text:input.value.slice(0,start)+text+input.value.slice(end),start:start+text.length,end:start+text.length},'insertText');return true;}
   changed(kind,remember=true){
     if(this.input.readOnly)return;
     const after=this.snapshot(),before=this.before||this.saved,source=this.record.cell.source;this.before=null;this.record.cell.source=after.text;

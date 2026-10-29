@@ -1,6 +1,9 @@
 'use strict';
 // Original interface glyphs. Shape as well as color identifies each tool.
 for(const[name,paths]of Object.entries({
+ 'lightbulb':'<path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3Z"/>',
+ 'sliders-horizontal':'<path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11M8 3v6m6 0v6M6 15v6"/>',
+ 'panels-top-left':'<rect x="2" y="3" width="15" height="13" rx="1"/><rect x="7" y="8" width="15" height="13" rx="1"/><path d="M7 12h15"/>',
  'blocks':'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M17 2v8m-4-4h8"/>',
  'list-minus':'<path d="M8 5h13M8 11h13M8 17h7M3 5h.01M3 11h.01M3 17h.01m14 3h6"/>',
  'shield':'<path d="M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="M8 12l3 3 5-6"/>',

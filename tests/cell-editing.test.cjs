@@ -1,5 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),{delta,indent,newline,History}=require('../app/src/main/assets/ui/cell-editing.js');
+test('Python pairs surround selections, skip matching closers and leave strings/comments alone',()=>{const{typed,backspace}=require('../app/src/main/assets/ui/cell-editing.js');assert.deepEqual(typed('print',5,5,'('),{text:'print()',start:6,end:6});assert.deepEqual(typed('print()',6,6,')'),{text:'print()',start:7,end:7});assert.equal(typed('# comment',9,9,'('),null);assert.equal(typed('"text',5,5,'('),null);assert.equal(typed('print("#"); ',12,12,'(').text,'print("#"); ()');assert.deepEqual(typed('value',0,5,'['),{text:'[value]',start:1,end:6});assert.deepEqual(backspace('()',1,1),{text:'',start:0,end:0});assert.equal(newline('    return result',17,17).text,'    return result\n');});
 test('small JSON source changes produce a small edit rather than a whole notebook replacement',()=>{
  const before=JSON.stringify({metadata:{padding:'x'.repeat(200000)},cells:[{source:'print(40)'}]}),after=before.replace('print(40)','print(42)'),edit=delta(before,after);
  assert.equal(edit.text,'2');assert.equal(edit.end-edit.start,1);assert.equal(before.slice(0,edit.start)+edit.text+before.slice(edit.end),after);assert.equal(delta(after,after),null);

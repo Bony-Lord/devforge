@@ -24,7 +24,10 @@
       "conflicts": {},
       "kind": "feature",
       "installationGroup": "workspace",
-      "externalTool": "window-assets"
+      "externalTool": "window-assets",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": [
       {
@@ -1474,7 +1477,10 @@
       "conflicts": {},
       "kind": "feature",
       "introduced": 2,
-      "installationGroup": "editing"
+      "installationGroup": "editing",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": [
       {
@@ -1938,7 +1944,10 @@
       "conflicts": {},
       "kind": "feature",
       "introduced": 2,
-      "installationGroup": "projects"
+      "installationGroup": "projects",
+      "screenshots": [
+        "addons/previews/marketplace.png"
+      ]
     },
     "contributions": [
       {
@@ -2319,7 +2328,10 @@
           "maxExclusive": "2.0.0"
         }
       },
-      "conflicts": {}
+      "conflicts": {},
+      "screenshots": [
+        "addons/previews/marketplace.png"
+      ]
     },
     "contributions": []
   },
@@ -2391,7 +2403,10 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "language",
-      "installationGroup": "languages"
+      "installationGroup": "languages",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": [
       {
@@ -2526,7 +2541,14 @@
       },
       "conflicts": {},
       "kind": "view",
-      "installationGroup": "analysis"
+      "installationGroup": "analysis",
+      "readme": {
+        "ru": "Локальное ядро DevForge: постоянные переменные Python, !команды и %pip, %cd, вывод и ошибки. Это не сервер Jupyter и не полный IPython. Интерпретатор устанавливается отдельно.",
+        "en": "Local DevForge kernel: persistent Python variables, !commands, %pip, %cd, outputs and errors. This is not a Jupyter server or full IPython. The interpreter is installed separately."
+      },
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": [
       {
@@ -2626,7 +2648,10 @@
       },
       "conflicts": {},
       "kind": "project",
-      "installationGroup": "projects"
+      "installationGroup": "projects",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": [
       {
@@ -2699,7 +2724,10 @@
         "studio.project.notebook": {}
       },
       "conflicts": {},
-      "kind": "pack"
+      "kind": "pack",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": []
   },
@@ -2917,7 +2945,10 @@
         }
       },
       "conflicts": {},
-      "kind": "pack"
+      "kind": "pack",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": []
   },
@@ -2955,7 +2986,10 @@
         }
       },
       "conflicts": {},
-      "kind": "pack"
+      "kind": "pack",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": []
   },
@@ -2990,7 +3024,10 @@
       ],
       "installationGroup": "tools",
       "introduced": 3,
-      "externalTool": "python-intelligence"
+      "externalTool": "python-intelligence",
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": [
       {
@@ -3036,7 +3073,10 @@
         "host.features"
       ],
       "installationGroup": "extensions",
-      "introduced": 3
+      "introduced": 3,
+      "screenshots": [
+        "addons/previews/notebook-python.png"
+      ]
     },
     "contributions": [
       {
@@ -3047,5 +3087,131 @@
         }
       }
     ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.runtime.python312",
+      "version": "3.12.14",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python 3.12.14 · отдельная установка",
+        "en": "Python 3.12.14 · managed runtime"
+      },
+      "description": {
+        "ru": "Переносимый CPython в приватной папке DevForge. Не меняет системный Python и PATH.",
+        "en": "Portable CPython in DevForge private storage. Does not change system Python or PATH."
+      },
+      "license": "Python-2.0 and bundled dependency licenses",
+      "capabilities": [
+        "tools.runtime"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
+      ],
+      "kind": "runtime",
+      "externalTool": "python-3.12.14",
+      "tags": [
+        "python",
+        "interpreter",
+        "3.12.14"
+      ],
+      "readme": {
+        "ru": "Отдельная загрузка CPython из python-build-standalone (Astral). Файлы устанавливаются в приватную папку DevForge; системный PATH не меняется. После установки выберите интерпретатор в профиле проекта. Пакет содержит pip и venv. Лицензии Python и зависимостей сохраняются внутри дистрибутива.",
+        "en": "Separate CPython download from Astral python-build-standalone. Files live in DevForge private storage; system PATH is unchanged. Select this interpreter in the project profile after installation. Includes pip and venv. Python and dependency licenses remain in the distribution."
+      }
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.runtime.python313",
+      "version": "3.13.15",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python 3.13.15 · отдельная установка",
+        "en": "Python 3.13.15 · managed runtime"
+      },
+      "description": {
+        "ru": "Переносимый CPython в приватной папке DevForge. Не меняет системный Python и PATH.",
+        "en": "Portable CPython in DevForge private storage. Does not change system Python or PATH."
+      },
+      "license": "Python-2.0 and bundled dependency licenses",
+      "capabilities": [
+        "tools.runtime"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
+      ],
+      "kind": "runtime",
+      "externalTool": "python-3.13.15",
+      "tags": [
+        "python",
+        "interpreter",
+        "3.13.15"
+      ],
+      "readme": {
+        "ru": "Отдельная загрузка CPython из python-build-standalone (Astral). Файлы устанавливаются в приватную папку DevForge; системный PATH не меняется. После установки выберите интерпретатор в профиле проекта. Пакет содержит pip и venv. Лицензии Python и зависимостей сохраняются внутри дистрибутива.",
+        "en": "Separate CPython download from Astral python-build-standalone. Files live in DevForge private storage; system PATH is unchanged. Select this interpreter in the project profile after installation. Includes pip and venv. Python and dependency licenses remain in the distribution."
+      }
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.runtime.python314",
+      "version": "3.14.7",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python 3.14.7 · отдельная установка",
+        "en": "Python 3.14.7 · managed runtime"
+      },
+      "description": {
+        "ru": "Переносимый CPython в приватной папке DevForge. Не меняет системный Python и PATH.",
+        "en": "Portable CPython in DevForge private storage. Does not change system Python or PATH."
+      },
+      "license": "Python-2.0 and bundled dependency licenses",
+      "capabilities": [
+        "tools.runtime"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
+      ],
+      "kind": "runtime",
+      "externalTool": "python-3.14.7",
+      "tags": [
+        "python",
+        "interpreter",
+        "3.14.7"
+      ],
+      "readme": {
+        "ru": "Отдельная загрузка CPython из python-build-standalone (Astral). Файлы устанавливаются в приватную папку DevForge; системный PATH не меняется. После установки выберите интерпретатор в профиле проекта. Пакет содержит pip и venv. Лицензии Python и зависимостей сохраняются внутри дистрибутива.",
+        "en": "Separate CPython download from Astral python-build-standalone. Files live in DevForge private storage; system PATH is unchanged. Select this interpreter in the project profile after installation. Includes pip and venv. Python and dependency licenses remain in the distribution."
+      }
+    },
+    "contributions": []
   }
 ]

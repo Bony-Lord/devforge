@@ -77,9 +77,9 @@ class Workspace {
   async tree(folder=this.root,depth=0,budget={remaining:12000}){
     if(depth>16)return[];const entries=await fs.readdir(folder,{withFileTypes:true}),result=[];
     entries.sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name));
-    for(const entry of entries){if(budget.remaining--<=0)break;if(entry.isSymbolicLink()||['.forge','.git','.cache','node_modules'].includes(entry.name)||entry.name.startsWith('.studio-write-'))continue;
+    for(const entry of entries){if(budget.remaining--<=0)break;if(entry.isSymbolicLink()||entry.name.startsWith('.studio-write-'))continue;
       const file=portable(path.join(folder,entry.name)),dir=entry.isDirectory();if(!dir&&!entry.isFile())continue;
-      result.push({name:entry.name,path:file,dir,...dir?{children:await this.tree(file,depth+1,budget)}:{size:(await fs.stat(file)).size}});
+      const unloaded=dir&&['.git','node_modules','.cache','build'].includes(entry.name);result.push({name:entry.name,path:file,dir,...dir?{children:unloaded?[]:await this.tree(file,depth+1,budget),unloaded}:{size:(await fs.stat(file)).size}});
     }return result;
   }
   async read(input,encoding){

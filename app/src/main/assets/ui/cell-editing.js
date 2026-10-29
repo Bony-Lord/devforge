@@ -33,14 +33,28 @@
       else if(')]}'.includes(c)&&brackets.at(-1)?.char==='([{'.charAt(')]}'.indexOf(c)))brackets.pop();
       line+=c;
     }
-    return{quote,line,brackets};
+    return{quote,line,brackets,comment};
   }
   function newline(text,start,end,options={},python=true){
     const lineStart=lineAt(text,start),prefix=text.slice(lineStart,start),base=prefix.match(/^[ \t]*/)[0],context=python&&text.length<=200000?pythonContext(text,start):null;
     let padding=base,tail='';
     if(context&&!context.quote){const bracket=context.brackets.at(-1);if(bracket){padding=bracket.indent+unit(options);if(text[end]===')]}'.charAt('([{'.indexOf(bracket.char)))tail='\n'+bracket.indent;}else if(/^\s*(?:(?:async\s+)?(?:def|for|with)|class|if|elif|else|while|try|except|finally|match|case)\b/.test(context.line)&&/:\s*$/.test(context.line))padding+=unit(options);}
+    if(context&&!context.quote&&!context.brackets.length&&/^\s*(?:return|raise|break|continue|pass)\b/.test(context.line)&&base)padding=base.endsWith('\t')?base.slice(0,-1):base.slice(0,Math.max(0,base.length-width(options)));
     const insert='\n'+padding+tail,caret=start+1+padding.length;return{text:text.slice(0,start)+insert+text.slice(end),start:caret,end:caret};
   }
+  function typed(text,start,end,char,options={}){
+    if(typeof char!=='string'||char.length!==1||options.autoClosingBrackets===false)return null;
+    const context=pythonContext(text,start),pairs={'(':')','[':']','{':'}',"'":"'",'"':'"'},close=pairs[char],next=text[end]||'';
+    if(start===end&&')]}\'"'.includes(char)&&next===char){
+      if(context.quote===char||context.brackets.at(-1)?.char==='([{'.charAt(')]}'.indexOf(char)))return{text,start:start+1,end:start+1};
+    }
+    if(!close||context.quote||context.comment)return null;
+    if((char==="'"||char==='"')&&/[\w\\]/.test(text[start-1]||''))return null;
+    if(start===end&&next&&!/[\s)\]}:,;]/.test(next))return null;
+    const selection=text.slice(start,end),value=text.slice(0,start)+char+selection+close+text.slice(end);
+    return{text:value,start:start+1,end:end+1};
+  }
+  function backspace(text,start,end){if(start!==end||!start)return null;const pairs={'(':')','[':']','{':'}',"'":"'",'"':'"'};return pairs[text[start-1]]===text[start]?{text:text.slice(0,start-1)+text.slice(start+1),start:start-1,end:start-1}:null;}
   class History {
     constructor(){this.undoStack=[];this.redoStack=[];this.bytes=0;this.group=null;}
     reset(){this.undoStack=[];this.redoStack=[];this.bytes=0;this.group=null;}
@@ -54,5 +68,5 @@
     undo(current){const value=this.undoStack.pop();if(!value)return null;this.bytes-=value.text.length*2;this.redoStack.push(snapshot(current));this.group=null;return value;}
     redo(current){const value=this.redoStack.pop();if(!value)return null;this.undoStack.push(snapshot(current));this.bytes+=current.text.length*2;this.group=null;return value;}
   }
-  return Object.freeze({delta,indent,newline,History});
+  return Object.freeze({delta,indent,newline,typed,backspace,History});
 });

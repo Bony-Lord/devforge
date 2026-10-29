@@ -33,6 +33,12 @@ final class ProjectLibrary {
         if(!edit.commit()){if(record.has("stored")&&!root.exists())Files.move(new File(record.getString("stored")).toPath(),root.toPath());ide.currentProject=ide.prefs.getString("project","");throw new IOException("Cannot save project list");}return new JSONObject().put("removed",token).put("state",ide.state());
     }
     synchronized JSONArray list()throws Exception{JSONArray result=new JSONArray();JSONObject all=archive();for(Iterator<String> keys=all.keys();keys.hasNext();)result.put(all.getJSONObject(keys.next()));return result;}
+    synchronized JSONObject delete(JSONObject request)throws Exception{
+        JSONObject project=describe(request.getString("id"));if(!project.getString("label").equals(request.optString("confirmName")))throw new IOException("Type the project name to confirm permanent deletion");
+        request.put("mode","trash");JSONObject result=remove(request),all=archive(),record=all.getJSONObject(result.getString("removed"));File stored=new File(record.getString("stored")).getCanonicalFile(),base=new File(new File(record.getString("path")).getParentFile(),".devforge-project-trash").getCanonicalFile();if(stored.equals(base)||!ide.inside(stored,base))throw new IOException("Invalid project trash path");
+        try(java.util.stream.Stream<Path> paths=Files.walk(stored.toPath())){for(Path p:(Iterable<Path>)paths.sorted(Comparator.reverseOrder())::iterator)Files.delete(p);}catch(IOException error){return result.put("deleteError",error.getMessage());}
+        all.remove(record.getString("id"));if(!ide.prefs.edit().putString("removedProjects",all.toString()).commit())throw new IOException("Cannot save project list");return new JSONObject().put("deleted",true).put("state",ide.state());
+    }
     synchronized JSONObject restore(String token)throws Exception{
         requireIdle();JSONObject all=archive(),record=all.getJSONObject(token),hidden=hidden(),links=ide.workspace.bindings();String id=record.getString("projectId");File root=new File(record.getString("path")).getCanonicalFile();
         if(record.getString("mode").equals("trash")){File base=new File(root.getParentFile(),".devforge-project-trash").getCanonicalFile(),stored=new File(record.getString("stored")).getCanonicalFile();if(!ide.inside(stored,base)||stored.equals(base)||root.exists())throw new IOException("Original project folder is occupied or trash path changed");Files.move(stored.toPath(),root.toPath());}else if(!root.isDirectory())throw new IOException("Project folder unavailable");

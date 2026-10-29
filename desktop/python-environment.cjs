@@ -6,6 +6,7 @@ class PythonEnvironments {
   async candidates(){
     const result=[],add=async file=>{try{if((await fs.stat(file)).isFile()&&(await fs.stat(file)).size>0&&!result.includes(file))result.push(file);}catch{}};
     if(this.host.ws.prefs.current&&this.host.trust().trusted)for(const name of ['.venv','venv'])await add(path.join(this.host.ws.root,name,process.platform==='win32'?'Scripts/python.exe':'bin/python'));
+    for(const file of await this.host.pythonRuntimes?.candidates()||[])await add(file);
     const paths=(process.env.PATH||'').split(path.delimiter).filter(Boolean);
     if(process.platform==='win32'){
       const native=paths.filter(p=>!/(?:msys|cygwin|WindowsApps)/i.test(p));for(const folder of native)await add(path.join(folder,'python.exe'));

@@ -58,15 +58,15 @@ const compactMethods={
     this.updatePanelMaximize();this.layoutEditors();this.editor.focus();
   },
   compactKeydown(event){
-    if(document.querySelector('dialog[open]')||event.target?.closest?.('input,textarea,[contenteditable=true]'))return false;
+    if(document.querySelector('dialog[open]')||event.target?.closest?.('input,textarea,[contenteditable=true]')&&!event.target.closest('.monaco-editor'))return false;
     let action;
-    if(event.key==='Escape'&&this.windows?.targets.ctx)action=()=>this.windows.targets.cancel();
-    else if(event.ctrlKey&&event.shiftKey&&event.key==='F12')action=()=>this.toggleFocusMode();
-    else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='j'&&this.windows)action=()=>this.windows.toggle(this.currentPanel||'console');
-    else if(event.altKey&&!event.ctrlKey&&this.windows&&({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key])action=()=>this.windows.toggle(({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key]);
-    else if(event.key==='Escape'&&$('#mainMenuToggle').getAttribute('aria-expanded')==='true')action=()=>{this.toggleMainMenu(false);this.editor.focus();};
-    else if(event.key==='Escape'&&this.windows?.api.hasMaximizedGroup())action=()=>this.windows.restoreMaximized();
-    else if(event.key==='Escape'&&document.body.classList.contains('panel-maximized'))action=()=>this.maximizePanel(false);
+    if(!event.shiftKey&&!event.ctrlKey&&!event.altKey&&event.key==='Escape'&&this.windows?.targets.ctx)action=()=>this.windows.targets.cancel();
+    else if(StudioShortcutKeys.matches(event,'Ctrl+Shift+F12'))action=()=>this.toggleFocusMode();
+    else if(StudioShortcutKeys.matches(event,'Ctrl+J')&&this.windows)action=()=>this.windows.toggle(this.currentPanel||'console');
+    else if(event.altKey&&!event.ctrlKey&&!event.shiftKey&&!event.metaKey&&this.windows&&({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key])action=()=>this.windows.toggle(({1:'project',4:'console',5:'debug',6:'problems',7:'outline',9:'git'})[event.key]);
+    else if(!event.shiftKey&&!event.ctrlKey&&!event.altKey&&event.key==='Escape'&&$('#mainMenuToggle').getAttribute('aria-expanded')==='true')action=()=>{this.toggleMainMenu(false);this.editor.focus();};
+    else if(!event.shiftKey&&!event.ctrlKey&&!event.altKey&&event.key==='Escape'&&this.windows?.api.hasMaximizedGroup())action=()=>this.windows.restoreMaximized();
+    else if(!event.shiftKey&&!event.ctrlKey&&!event.altKey&&event.key==='Escape'&&document.body.classList.contains('panel-maximized'))action=()=>this.maximizePanel(false);
     else if(event.shiftKey&&event.key==='Escape')action=()=>{if(this.windows){const id=this.windows.api.activePanel?.id;if(id&&id!=='editor')this.windows.hide(id);else this.togglePanel(false);}else this.togglePanel(false);this.editor.focus();};
     if(!action)return false;event.preventDefault();event.stopImmediatePropagation();action();return true;
   }

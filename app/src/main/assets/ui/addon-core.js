@@ -14,6 +14,9 @@
     if(!Array.isArray(m.capabilities)||m.capabilities.length>64||m.capabilities.some(c=>typeof c!=='string'||!ID.test(c)))fail('Invalid capabilities');
     for(const field of ['dependencies','conflicts']){m[field]??={};if(!m[field]||typeof m[field]!=='object'||Array.isArray(m[field])||Object.keys(m[field]).length>64)fail('Invalid '+field);for(const [id,r]of Object.entries(m[field])){if(!ID.test(id)||id===m.id)fail('Invalid dependency: '+id);range(r);}}
     if(m.platforms&&(!Array.isArray(m.platforms)||!m.platforms.length||m.platforms.some(p=>typeof p!=='string')))fail('Invalid platforms');
+    if(m.tags!==undefined&&(!Array.isArray(m.tags)||m.tags.length>40||m.tags.some(t=>typeof t!=='string'||t.length>80)))fail('Invalid addon tags');
+    if(m.screenshots!==undefined&&(!Array.isArray(m.screenshots)||m.screenshots.length>8||m.screenshots.some(s=>typeof s!=='string'||s.length>131072)))fail('Invalid addon screenshots');
+    if(m.readme!==undefined&&(typeof m.readme!=='string'&&(!m.readme||typeof m.readme!=='object'||Array.isArray(m.readme)||Object.values(m.readme).some(s=>typeof s!=='string'))||JSON.stringify(m.readme).length>24000))fail('Invalid addon readme');
     return frozen(m); // Unknown fields survive for future schemas and author tooling.
   }
   function order(selected){const result=[],visiting=new Set(),done=new Set();function visit(id){if(visiting.has(id))fail('Dependency cycle: '+id);if(done.has(id))return;visiting.add(id);for(const dep of Object.keys(selected.get(id).dependencies))visit(dep);visiting.delete(id);done.add(id);result.push(selected.get(id));}for(const id of selected.keys())visit(id);return result;}

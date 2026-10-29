@@ -105,12 +105,13 @@ final class IdeEngine {
             }
             case "projectDescribe":return projectLibrary.describe(d.getString("id"));
             case "projectRemove":return projectLibrary.remove(d);
+            case "projectDelete":return projectLibrary.delete(d);
             case "projectArchive":return projectLibrary.list();
             case "projectRestore":return projectLibrary.restore(d.getString("id"));
             case "newProject":{String name=d.getString("name");createProject(name,d.optString("language","cpp"));prefs.edit().putBoolean("trustedWorkspace:"+project(name).getCanonicalPath(),true).commit();return state().put("createdProject",name);}
             case "projectTemplateSnapshot":synchronized(this){return ProjectTemplateFiles.snapshot(project(currentProject),d);}
             case "projectTemplateApply":synchronized(this){JSONObject result=ProjectTemplateFiles.apply(project(currentProject),workspace.data(),d);JSONArray paths=result.getJSONArray("paths");for(int i=0;i<paths.length();i++)prefs.edit().putString("fileEncoding:"+paths.getString(i),"UTF-8").apply();return result;}
-            case "tree":return currentProject.isEmpty()?new JSONArray():tree(project(currentProject),0);
+            case "tree":return currentProject.isEmpty()?new JSONArray():tree(d.has("path")?writablePath(d.getString("path")):project(currentProject),0);
             case "browseFilesystem":return workspace.browse(d);
             case "openFolder":return workspace.open(d);
             case "storagePermission":app.requestStorageAccess();return true;
@@ -255,11 +256,11 @@ final class IdeEngine {
         Arrays.sort(files,(a,b) -> {int d=Boolean.compare(b.isDirectory(),a.isDirectory());return d==0?a.getName().compareToIgnoreCase(b.getName()):d;});
         int count=0;
         for(File f:files) {
-            if(f.getName().equals(".forge")||f.getName().equals(".git")||f.getName().equals(".cache"))continue;
+            if(f.getName().startsWith(".forge-write-"))continue;
             if(Files.isSymbolicLink(f.toPath()))continue;
             if(++count>2000)break;
             JSONObject item=new JSONObject().put("name",f.getName()).put("path",f.getAbsolutePath()).put("dir",f.isDirectory());
-            if(f.isDirectory())item.put("children",tree(f,depth+1));else item.put("size",f.length());out.put(item);
+            if(f.isDirectory()){boolean unloaded=Arrays.asList(".git","node_modules",".cache","build").contains(f.getName());item.put("children",unloaded?new JSONArray():tree(f,depth+1)).put("unloaded",unloaded);}else item.put("size",f.length());out.put(item);
         }
         return out;
     }
@@ -474,5 +475,5 @@ final class IdeEngine {
         }catch(Exception e){android.util.Log.d("Forge","Output stream closed",e);}
     }
     void stopExecution(){if(python!=null)python.stop();if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null)a.destroyForcibly();if(b!=null)b.destroyForcibly();}
-    void close(){closed=true;pythonStyle.stop();pythonIntelligence.stop();python.stop();toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
+    void close(){closed=true;pythonStyle.stop();pythonIntelligence.stop();python.stop();python.timer.shutdownNow();toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
 }

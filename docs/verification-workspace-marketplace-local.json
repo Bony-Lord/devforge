@@ -1,0 +1,704 @@
+{
+  "version": "0.6.0-dev.5",
+  "date": "2026-10-29",
+  "channel": "local development, not stable",
+  "published": false,
+  "gui": {
+    "interactions": {
+      "passed": 56,
+      "checks": [
+        {
+          "test": "Create is enabled before requesting a preview",
+          "passed": true
+        },
+        {
+          "test": "One Create click creates and opens the selected project",
+          "passed": true
+        },
+        {
+          "test": "An empty project name blocks creation",
+          "passed": true
+        },
+        {
+          "test": "Extensions open as a normal editor tab without a modal or backdrop",
+          "passed": true
+        },
+        {
+          "test": "Utility tabs do not show a file-only read-only badge or internal URI",
+          "passed": true
+        },
+        {
+          "test": "Extensions page stays within its editor pane",
+          "passed": true
+        },
+        {
+          "test": "Marketplace search filters packs without rebuilding its focused search field",
+          "passed": true
+        },
+        {
+          "test": "Marketplace details stay in the editor and list dependencies",
+          "passed": true
+        },
+        {
+          "test": "Marketplace retains its search after returning from extension details",
+          "passed": true
+        },
+        {
+          "test": "Project settings have a dedicated entry point and distinct run/global icons",
+          "passed": true
+        },
+        {
+          "test": "Attach is available without requesting a preview",
+          "passed": true
+        },
+        {
+          "test": "A single Attach click writes the selected EditorConfig template",
+          "passed": true
+        },
+        {
+          "test": "Conflicting attachments keep a usable explicit replacement review",
+          "passed": true
+        },
+        {
+          "test": "Confirmed template replacement completes without a mandatory Preview click",
+          "passed": true
+        },
+        {
+          "test": "Run configuration icon fits entirely in its header button",
+          "passed": true
+        },
+        {
+          "test": "Simple interface opens console pane",
+          "passed": true
+        },
+        {
+          "test": "Simple interface opens terminal pane",
+          "passed": true
+        },
+        {
+          "test": "Simple interface opens problems pane",
+          "passed": true
+        },
+        {
+          "test": "Simple interface opens debug pane",
+          "passed": true
+        },
+        {
+          "test": "Explorer and code start in separate groups",
+          "passed": true
+        },
+        {
+          "test": "Initial horizontal editor to project ratio is between four and six",
+          "passed": true
+        },
+        {
+          "test": "Opening code after clearing the previous project cannot join the explorer group",
+          "passed": true
+        },
+        {
+          "test": "Extensions tab does not become the current-file build source",
+          "passed": true
+        },
+        {
+          "test": "Notebook project retains the application window manager",
+          "passed": true
+        },
+        {
+          "test": "Notebook projects also begin with four to six times more editor width than navigator",
+          "passed": true
+        },
+        {
+          "test": "Ordinary application extensions remain active across project specialization",
+          "passed": true
+        },
+        {
+          "test": "Notebook typing produces real Python completions without a hotkey",
+          "passed": true
+        },
+        {
+          "test": "Notebook Enter indents Python blocks through actual input events",
+          "passed": true
+        },
+        {
+          "test": "Notebook automatically pairs an opening parenthesis",
+          "passed": true
+        },
+        {
+          "test": "Typing the matching closing parenthesis skips it without duplicating",
+          "passed": true
+        },
+        {
+          "test": "Notebook resource limits persist in its standard metadata",
+          "passed": true
+        },
+        {
+          "test": "Python source files use indentation and paired brackets in the real editor",
+          "passed": true
+        },
+        {
+          "test": "Exact shortcut modifiers separate outline/focus/completion and preserve Ctrl+Y redo",
+          "passed": true
+        },
+        {
+          "test": "Run settings remain accessible in a narrower desktop header",
+          "passed": true
+        },
+        {
+          "test": "Build is visible and large generated folders load on demand",
+          "passed": true
+        },
+        {
+          "test": "Hidden directory descendants inherit their yellow marker",
+          "passed": true
+        },
+        {
+          "test": "Opening another desktop project offers this window or a new window",
+          "passed": true
+        },
+        {
+          "test": "Second project opens independently and inherits application extensions",
+          "passed": true
+        },
+        {
+          "test": "The new window opens the selected project with the same global extensions",
+          "passed": true
+        },
+        {
+          "test": "Files created in the other project do not appear in the first project",
+          "passed": true
+        },
+        {
+          "test": "Extensions tab works in windowed mode too",
+          "passed": true
+        },
+        {
+          "test": "Windowed interface opens console pane",
+          "passed": true
+        },
+        {
+          "test": "Windowed interface opens terminal pane",
+          "passed": true
+        },
+        {
+          "test": "Windowed interface opens problems pane",
+          "passed": true
+        },
+        {
+          "test": "Windowed interface opens debug pane",
+          "passed": true
+        },
+        {
+          "test": "Touch hold opens the existing file context menu",
+          "passed": true
+        },
+        {
+          "test": "Scrolling motion cancels the context-menu hold",
+          "passed": true
+        },
+        {
+          "test": "A second finger cancels a pending long press",
+          "passed": true
+        },
+        {
+          "test": "Project list exposes visible actions without first opening that project",
+          "passed": true
+        },
+        {
+          "test": "Project actions keep the project selector open behind the child menu",
+          "passed": true
+        },
+        {
+          "test": "Moving project files requires an explicit confirmation showing the exact path",
+          "passed": true
+        },
+        {
+          "test": "Cancel keeps the project registered",
+          "passed": true
+        },
+        {
+          "test": "Removed projects have a discoverable restore action",
+          "passed": true
+        },
+        {
+          "test": "Trashing the active project opens the empty workspace",
+          "passed": true
+        },
+        {
+          "test": "Restoring a trashed project preserves its exact saved bytes",
+          "passed": true
+        },
+        {
+          "test": "No renderer exceptions or console errors",
+          "passed": true
+        }
+      ]
+    },
+    "russianSmoke": {
+      "passed": 45,
+      "checks": [
+        {
+          "test": "Current modular frontend boots with desktop Monaco",
+          "passed": true
+        },
+        {
+          "test": "Python and notebooks activate through addon dependencies",
+          "passed": true
+        },
+        {
+          "test": "Python runs from current renderer",
+          "passed": true
+        },
+        {
+          "test": "Notebook cell view opens without native editor overlay",
+          "passed": true
+        },
+        {
+          "test": "Notebook cell occupies visible document space",
+          "passed": true
+        },
+        {
+          "test": "Notebook belongs to a document tab and creates no modal dialog",
+          "passed": true
+        },
+        {
+          "test": "Notebook kernel preserves variables between cells",
+          "passed": true
+        },
+        {
+          "test": "Executed notebook saves standard outputs and metadata",
+          "passed": true
+        },
+        {
+          "test": "Notebook Enter inserts the Python block indentation",
+          "passed": true
+        },
+        {
+          "test": "Notebook selected lines support Tab and Shift+Tab",
+          "passed": true
+        },
+        {
+          "test": "Notebook undo restores the previous cell transaction",
+          "passed": true
+        },
+        {
+          "test": "Notebook redo restores the cell transaction",
+          "passed": true
+        },
+        {
+          "test": "Notebook Python syntax uses existing Monaco tokens",
+          "passed": true
+        },
+        {
+          "test": "Code zoom updates the notebook input and colored layer together",
+          "passed": true
+        },
+        {
+          "test": "Notebook structural changes retain the textarea and selection",
+          "passed": true
+        },
+        {
+          "test": "Notebook typing sends a short JSON edit rather than replacing the entire file",
+          "passed": true
+        },
+        {
+          "test": "Notebook raw-model undo preserves the field and updates its source",
+          "passed": true
+        },
+        {
+          "test": "Notebook token rendering follows horizontal and vertical scroll",
+          "passed": true
+        },
+        {
+          "test": "Notebook source cannot inject HTML elements",
+          "passed": true
+        },
+        {
+          "test": "Rejected oversized cell input preserves the saved model and visible text",
+          "passed": true
+        },
+        {
+          "test": "Read-only notebooks reject editing and structural changes",
+          "passed": true
+        },
+        {
+          "test": "Addon manager uses retained shared picker on desktop",
+          "passed": true
+        },
+        {
+          "test": "Notebook configuration hides unsupported Build and Debug buttons",
+          "passed": true
+        },
+        {
+          "test": "Adding an action exposes its button and executes the selected provider",
+          "passed": true
+        },
+        {
+          "test": "Interpreter configuration has action choices and no CMake compiler fields",
+          "passed": true
+        },
+        {
+          "test": "Configuration editor saves action removal without recreating defaults",
+          "passed": true
+        },
+        {
+          "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+          "passed": true
+        },
+        {
+          "test": "Project requirements retain application addons and configured actions",
+          "passed": true
+        },
+        {
+          "test": "Another project inherits the default addon composition",
+          "passed": true
+        },
+        {
+          "test": "Empty project has generic profile and no invented build or run actions",
+          "passed": true
+        },
+        {
+          "test": "Returning to the first project keeps application addons and restores its actions",
+          "passed": true
+        },
+        {
+          "test": "Project sidebar layout is restored separately",
+          "passed": true
+        },
+        {
+          "test": "Cold reload restores project scope and layout without changing global defaults",
+          "passed": true
+        },
+        {
+          "test": "C++ Run builds and launches the artifact through configured addon actions",
+          "passed": true
+        },
+        {
+          "test": "Project selects its addon-provided window interface after reload",
+          "passed": true
+        },
+        {
+          "test": "Creating another language project completes before changing interface mode",
+          "passed": true
+        },
+        {
+          "test": "Switching back restores the original project window workspace",
+          "passed": true
+        },
+        {
+          "test": "Packaged template catalog includes projects and attachable components",
+          "passed": true
+        },
+        {
+          "test": "Packaged file host applies an attachment without rewriting run configurations",
+          "passed": true
+        },
+        {
+          "test": "Packaged template repeated application is idempotent",
+          "passed": true
+        },
+        {
+          "test": "Packaged template preview protects an existing configuration",
+          "passed": true
+        },
+        {
+          "test": "Packaged file host rejects a stale preview before applying changes",
+          "passed": true
+        },
+        {
+          "test": "Packaged Python template specializes its run actions and addon profile",
+          "passed": true
+        },
+        {
+          "test": "Project switch during tool preparation invalidates the reviewed template",
+          "passed": true
+        },
+        {
+          "test": "Desktop file menus expose copying paths, splits and duplication",
+          "passed": true
+        }
+      ]
+    },
+    "englishSmoke": {
+      "passed": 45,
+      "checks": [
+        {
+          "test": "Current modular frontend boots with desktop Monaco",
+          "passed": true
+        },
+        {
+          "test": "Python and notebooks activate through addon dependencies",
+          "passed": true
+        },
+        {
+          "test": "Python runs from current renderer",
+          "passed": true
+        },
+        {
+          "test": "Notebook cell view opens without native editor overlay",
+          "passed": true
+        },
+        {
+          "test": "Notebook cell occupies visible document space",
+          "passed": true
+        },
+        {
+          "test": "Notebook belongs to a document tab and creates no modal dialog",
+          "passed": true
+        },
+        {
+          "test": "Notebook kernel preserves variables between cells",
+          "passed": true
+        },
+        {
+          "test": "Executed notebook saves standard outputs and metadata",
+          "passed": true
+        },
+        {
+          "test": "Notebook Enter inserts the Python block indentation",
+          "passed": true
+        },
+        {
+          "test": "Notebook selected lines support Tab and Shift+Tab",
+          "passed": true
+        },
+        {
+          "test": "Notebook undo restores the previous cell transaction",
+          "passed": true
+        },
+        {
+          "test": "Notebook redo restores the cell transaction",
+          "passed": true
+        },
+        {
+          "test": "Notebook Python syntax uses existing Monaco tokens",
+          "passed": true
+        },
+        {
+          "test": "Code zoom updates the notebook input and colored layer together",
+          "passed": true
+        },
+        {
+          "test": "Notebook structural changes retain the textarea and selection",
+          "passed": true
+        },
+        {
+          "test": "Notebook typing sends a short JSON edit rather than replacing the entire file",
+          "passed": true
+        },
+        {
+          "test": "Notebook raw-model undo preserves the field and updates its source",
+          "passed": true
+        },
+        {
+          "test": "Notebook token rendering follows horizontal and vertical scroll",
+          "passed": true
+        },
+        {
+          "test": "Notebook source cannot inject HTML elements",
+          "passed": true
+        },
+        {
+          "test": "Rejected oversized cell input preserves the saved model and visible text",
+          "passed": true
+        },
+        {
+          "test": "Read-only notebooks reject editing and structural changes",
+          "passed": true
+        },
+        {
+          "test": "Addon manager uses retained shared picker on desktop",
+          "passed": true
+        },
+        {
+          "test": "Notebook configuration hides unsupported Build and Debug buttons",
+          "passed": true
+        },
+        {
+          "test": "Adding an action exposes its button and executes the selected provider",
+          "passed": true
+        },
+        {
+          "test": "Interpreter configuration has action choices and no CMake compiler fields",
+          "passed": true
+        },
+        {
+          "test": "Configuration editor saves action removal without recreating defaults",
+          "passed": true
+        },
+        {
+          "test": "Removing Build hides the button and hotkey dispatch becomes a no-op",
+          "passed": true
+        },
+        {
+          "test": "Project requirements retain application addons and configured actions",
+          "passed": true
+        },
+        {
+          "test": "Another project inherits the default addon composition",
+          "passed": true
+        },
+        {
+          "test": "Empty project has generic profile and no invented build or run actions",
+          "passed": true
+        },
+        {
+          "test": "Returning to the first project keeps application addons and restores its actions",
+          "passed": true
+        },
+        {
+          "test": "Project sidebar layout is restored separately",
+          "passed": true
+        },
+        {
+          "test": "Cold reload restores project scope and layout without changing global defaults",
+          "passed": true
+        },
+        {
+          "test": "C++ Run builds and launches the artifact through configured addon actions",
+          "passed": true
+        },
+        {
+          "test": "Project selects its addon-provided window interface after reload",
+          "passed": true
+        },
+        {
+          "test": "Creating another language project completes before changing interface mode",
+          "passed": true
+        },
+        {
+          "test": "Switching back restores the original project window workspace",
+          "passed": true
+        },
+        {
+          "test": "Packaged template catalog includes projects and attachable components",
+          "passed": true
+        },
+        {
+          "test": "Packaged file host applies an attachment without rewriting run configurations",
+          "passed": true
+        },
+        {
+          "test": "Packaged template repeated application is idempotent",
+          "passed": true
+        },
+        {
+          "test": "Packaged template preview protects an existing configuration",
+          "passed": true
+        },
+        {
+          "test": "Packaged file host rejects a stale preview before applying changes",
+          "passed": true
+        },
+        {
+          "test": "Packaged Python template specializes its run actions and addon profile",
+          "passed": true
+        },
+        {
+          "test": "Project switch during tool preparation invalidates the reviewed template",
+          "passed": true
+        },
+        {
+          "test": "Desktop file menus expose copying paths, splits and duplication",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "hostNode": {
+    "passed": 89
+  },
+  "kernel": {
+    "passed": 14
+  },
+  "pythonStyle": {
+    "passed": 11
+  },
+  "android": {
+    "modern": {
+      "bytes": 9485005,
+      "sha256": "4fa8ebabc7a216dd05f28afd3ee2afa30aefccb095d2f1435db6013cc9ff4d4e",
+      "target": 36,
+      "versionCode": 25,
+      "release": true,
+      "signer": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+    },
+    "compat": {
+      "bytes": 9609482,
+      "sha256": "9467dd630eb47bdbcd06c8fa9d4bdf5a19ff2b161ff7c74b770839d1b1e2af3c",
+      "target": 28,
+      "versionCode": 25,
+      "release": true,
+      "signer": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+    },
+    "lint": {
+      "Error": 0,
+      "Warning": 89
+    },
+    "jvm": {
+      "ModernRelease": {
+        "tests": 8,
+        "failures": 0
+      },
+      "CompatRelease": {
+        "tests": 8,
+        "failures": 0
+      }
+    }
+  },
+  "optionalPythonDownloadActuallyTested": true,
+  "testIsolation": "Private fixture profiles and temporary projects; no actual user project modified or deleted",
+  "installedWindowsUpdated": false,
+  "physicalAndroidTested": false,
+  "remoteCIExecuted": false,
+  "limits": {
+    "RAM": "Windows committed process/job memory; Linux/Android per-process virtual address space",
+    "CPU": "Windows hard Job Object rate cap; unavailable on other local runners",
+    "GPU": "Library visibility policy only; no arbitrary GPU percentage quota",
+    "disk": "Working-folder size monitoring; may overshoot until next 750ms check; outside-folder writes not covered",
+    "cellTime": "Wall clock per cell, kills kernel",
+    "notebookTime": "Accumulated execution across cells until kernel restart; excludes idle"
+  },
+  "limitations": [
+    "Local development build, not a stable release or full CLion replacement.",
+    "Physical Sora, Android IME and tablet gestures are not verified by this run.",
+    "Separate native project windows are implemented and tested on Windows, not on Android.",
+    "Linux/macOS GUI, managed interpreter installations and installers are not verified here.",
+    "Unsigned Windows setup was built and extracted, not system-installed.",
+    "Third-party addons remain data-only; full executable addon SDK and total feature separation remain unfinished.",
+    "One backend test exceeded its 60-second timeout while multiple GUI suites and installer compression ran concurrently; a separate sequential rerun is recorded below."
+  ],
+  "installer": {
+    "version": "0.6.0-dev.5",
+    "matchingPayloadFiles": 549,
+    "matchingSourceFiles": 476,
+    "artifacts": [
+      {
+        "file": "DevForge-0.6.0-dev.5-win-x64-setup.exe.blockmap",
+        "bytes": 122196,
+        "sha256": "4d5bb63c6f7cb2331833a2da42fa82cb1901a5806d54d9386515cf219b74fd76"
+      },
+      {
+        "file": "DevForge-0.6.0-dev.5-win-x64-setup.exe",
+        "bytes": 116548368,
+        "sha256": "bb55918e35148ffab3135e9b6ce42bdf5de9ae8c17373e32f0a5ff7414fa4a95"
+      }
+    ],
+    "unsignedSystemInstallTested": false,
+    "guiRuntime": "existing Electron runtime on packaged resources/app",
+    "optionalWindowEngineExcluded": true
+  },
+  "desktopBackend": {
+    "passed": 41,
+    "skipped": 1,
+    "skipReason": "LLDB DAP is supported on macOS/Linux; Windows uses GDB",
+    "command": "DEVFORGE_TEST_DOWNLOADS=1 node --test --test-concurrency=1 desktop/tests/*.test.cjs",
+    "optionalPythonDownloadTested": true,
+    "earlierConcurrentAttempt": {
+      "passed": 40,
+      "cancelled": 1,
+      "skipped": 1,
+      "reason": "GCC bits/std::print regression exceeded 60 seconds during simultaneous installer compression and GUI runs"
+    },
+    "sequentialGccHeaderPrintMs": 32454.082
+  }
+}

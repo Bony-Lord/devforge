@@ -63,3 +63,18 @@ selection, system IME, real tablet gesture arbitration, Android external-storage
 execution and Linux/macOS GUI installers still need platform tests. The current
 build remains a development build. Results for the delivered payload are in
 `verification-project-management-local.json`.
+
+
+Local dev.5 extends the suite with marketplace search/details, direct Attach and
+conflicting replacement, initial widths across notebook creation, real typed Jedi
+completions, smart Python/notebook input, resource metadata, exact shortcut routing,
+narrow-header geometry, lazy build folders, inherited hidden-folder color and
+separate project windows. Window-store tests verify shared settings/extensions,
+independent cold-restored sessions and the project archive after restart.
+
+`desktop/tests/notebook-budget.test.cjs` checks cumulative execution and monitored
+disk limits without deleting output. Kernel tests exercise real Windows memory/CPU
+Job Object setup and recoverable MemoryError. `desktop/tests/python.test.cjs` checks
+a real infinite-cell timeout and restart. Runtime download/install/probe/discovery/
+remove is opt-in: `DEVFORGE_TEST_DOWNLOADS=1 node --test desktop/tests/python-runtimes.test.cjs`.
+The local report records whether this network test actually ran.

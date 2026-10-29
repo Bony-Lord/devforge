@@ -80,25 +80,12 @@ const workspaceMethods={
     doc.unusedDecorations=model.deltaDecorations(doc.unusedDecorations||[],unused.map(d=>({range:this.lsp.range(d.range),options:{inlineClassName:'forge-unused-symbol',inlineClassNameAffectsLetterSpacing:false,hoverMessage:{value:d.message,isTrusted:false}}})));
   },
   workspaceKeydown(e){
-    if($('dialog[open]'))return false;const ctrl=e.ctrlKey||e.metaKey,k=e.key.toLowerCase();let fn;
-    if(ctrl&&e.altKey&&e.shiftKey&&k==='l')fn=()=>this.openFormatter();
-    else if(ctrl&&e.altKey&&k==='o')fn=()=>this.openDeviceFolder();
-    else if(ctrl&&e.altKey&&(k==='+'||k==='='||k==='-'))fn=()=>this.setUIScale(this.settings.uiScale+(k==='-'?-5:5));
-    else if(ctrl&&e.altKey&&k==='0')fn=()=>this.setUIScale(100);
-    else if(ctrl&&k==='0')fn=()=>this.setCodeScale(100);
-    else if(ctrl&&(k==='+'||k==='='||k==='-'))fn=()=>this.setCodeScale(this.settings.codeScale+(k==='-'?-10:10));
-    else if(ctrl&&k==='\\')fn=()=>this.splitEditor('side');
-    else if(ctrl&&e.altKey&&k==='s')fn=()=>this.openSettings();
-    else if(ctrl&&e.shiftKey&&k==='a')fn=()=>this.quick('commands');
-    else if(e.altKey&&e.key==='F12')fn=()=>this.showPanel('terminal');
-    else if(e.shiftKey&&e.key==='F10')fn=()=>this.build(true);
-    else if(ctrl&&e.key==='F9')fn=()=>this.build(false);
-    else if(ctrl&&k==='d')fn=()=>this.action('editor.action.copyLinesDownAction');
-    else if(ctrl&&k==='y')fn=()=>this.action('editor.action.deleteLines');
-    else if(e.key==='Escape'&&!this.editor.hasTextFocus())fn=()=>this.editor.focus();
-    else if(ctrl&&k==='1')fn=()=>this.windows?this.windows.focusEditor(0):this.primaryEditor.focus();
-    else if(ctrl&&k==='2'&&this.secondaryEditor)fn=()=>this.windows?this.windows.focusEditor(1):this.secondaryEditor.focus();
-    if(fn){e.preventDefault();e.stopImmediatePropagation();Promise.resolve(fn()).catch(safeError);return true;}return false;
+    if($('dialog[open]')||e.target?.closest?.('input,textarea,[contenteditable=true]')&&!e.target.closest('.monaco-editor'))return false;
+    const match=b=>StudioShortcutKeys.matches(e,b);let fn;
+    const commands=[['Ctrl+Alt+Shift+L',()=>this.openFormatter()],['Ctrl+Alt+O',()=>this.openDeviceFolder()],['Ctrl+Alt+0',()=>this.setUIScale(100)],['Ctrl+0',()=>this.setCodeScale(100)],['Ctrl+\\',()=>this.splitEditor('side')],['Ctrl+Alt+S',()=>this.openSettings()],['Ctrl+Shift+A',()=>this.quick('commands')],['Alt+F12',()=>this.showPanel('terminal')],['Ctrl+F9',()=>this.build(false)],['Ctrl+D',()=>this.action('editor.action.copyLinesDownAction')],['Ctrl+Shift+K',()=>this.action('editor.action.deleteLines')],['Ctrl+1',()=>this.windows?this.windows.focusEditor(0):this.primaryEditor.focus()],['Ctrl+2',()=>this.secondaryEditor&&(this.windows?this.windows.focusEditor(1):this.secondaryEditor.focus())]];
+    for(const[binding,work]of commands)if(match(binding)){fn=work;break;}
+    for(const[key,direction]of [['=',1],['-',-1]]){if(match('Ctrl+Alt'+(e.shiftKey?'+Shift':'')+'+'+key))fn=()=>this.setUIScale(this.settings.uiScale+direction*5);else if(match('Ctrl'+(e.shiftKey?'+Shift':'')+'+'+key))fn=()=>this.setCodeScale(this.settings.codeScale+direction*10);}
+    if(!fn&&match('Escape')&&!this.editor.hasTextFocus())fn=()=>this.editor.focus();if(!fn)return false;e.preventDefault();e.stopImmediatePropagation();Promise.resolve(fn()).catch(safeError);return true;
   },
   workspaceCommands(){return[
     {label:'Разделить редактор справа',key:'Ctrl+\\',run:()=>this.splitEditor('side')},{label:'Разделить редактор снизу',run:()=>this.splitEditor('stacked')},{label:'Один редактор',run:()=>this.unsplitEditor()},

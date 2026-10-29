@@ -38,4 +38,4 @@ jobs:
         if: always()
         with:
           name: windows-ui-regression-report
-          path: desktop/test-results/ui-regressions.json
+          path: desktop/test-results/

@@ -13,6 +13,7 @@ import os
 import sys
 import traceback
 from notebook_magics import Magics
+from notebook_limits import apply_memory_limit
 
 # User imports follow the notebook working directory, not the IDE helper folder.
 # An empty entry also follows explicit %cd changes, as in an interactive kernel.
@@ -96,7 +97,13 @@ def execute(source, filename):
         send("idle", count=count)
 
 
-send("ready", version=sys.version.split()[0], executable=sys.executable)
+resource_limits = apply_memory_limit(os.environ.get('DEVFORGE_NOTEBOOK_MEMORY_MB', '0'),
+                                     os.environ.get('DEVFORGE_NOTEBOOK_CPU_PERCENT', '0'))
+send("ready", version=sys.version.split()[0], executable=sys.executable, limits=resource_limits)
+if resource_limits.get('error') or resource_limits.get('cpuError'):
+    sys.stderr.write('Requested notebook limits could not be applied: ' + str(resource_limits.get('error') or resource_limits.get('cpuError')) + '\n')
+    sys.stderr.flush()
+    sys.exit(3)
 for raw in sys.stdin:
     try:
         if len(raw) > MAX_INPUT:

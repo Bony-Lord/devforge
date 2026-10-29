@@ -4,6 +4,24 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class KernelTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform == 'win32', 'Windows Job Object CPU rate')
+    def test_cpu_cap_is_applied_to_the_kernel(self):
+        result = subprocess.run([sys.executable, '-B', '-c', 'import json,sys;sys.path.insert(0,sys.argv[1]);from notebook_limits import apply_memory_limit;print(json.dumps(apply_memory_limit(0,25)))', str(ROOT/'app/src/main/assets/python')], capture_output=True, text=True, check=True)
+        value = json.loads(result.stdout)
+        self.assertTrue(value['cpuEnforced'], value)
+        self.assertEqual(value['cpuPercent'], 25)
+
+    @unittest.skipUnless(sys.platform == 'win32' or sys.platform.startswith('linux'), 'Hard limits are implemented on Windows/Linux')
+    def test_memory_limit_reports_enforcement_and_rejects_a_large_allocation(self):
+        self.child.kill()
+        self.child.communicate(timeout=5)
+        self.child = subprocess.Popen([sys.executable, '-B', '-u', str(ROOT/'app/src/main/assets/python/kernel.py')], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', env={**os.environ, 'DEVFORGE_NOTEBOOK_MEMORY_MB': '128'})
+        ready = json.loads(self.child.stdout.readline())
+        self.assertTrue(ready['limits']['enforced'], ready)
+        result = self.cell('oversized = bytearray(512 * 1024 * 1024)')
+        self.assertTrue(any(e.get('ename') == 'MemoryError' for e in result), result)
+        self.assertTrue(any(e.get('text') == '42' for e in self.cell('40 + 2')))
+
     def setUp(self):
         self.child = subprocess.Popen([sys.executable, '-u', str(ROOT/'app/src/main/assets/python/kernel.py')], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
         self.assertEqual(json.loads(self.child.stdout.readline())['type'], 'ready')

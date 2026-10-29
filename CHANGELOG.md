@@ -1,5 +1,17 @@
 # Изменения
 
+## 0.6.0-dev.5 — local workspace and marketplace update
+
+- Searchable extension catalog, filters, platform compatibility, details/dependencies/previews and existing third-party import.
+- Private pinned CPython desktop downloads with install, discovery and removal; no runtime added to the core installer.
+- Independent desktop project windows with a shared extension library and separate editor/tool sessions.
+- Nested project actions, exact-name permanent deletion, visible/lazy build and hidden-folder highlighting.
+- Attach without mandatory Preview, including working conflict review; editor/project width defaults preserved across project creation.
+- Smart Python/notebook pairing and indentation, visible Jedi completion controls and specialized quality templates.
+- Notebook RAM, Windows CPU, monitored disk, per-cell and cumulative execution budgets. GPU visibility policy; no unsupported GPU percentage promise.
+- Exact shortcut modifiers, correct Ctrl+F12, retained redo, and AltGr/composition guards.
+- Expanded isolated UI/backend/kernel regressions. Physical Android and Linux/macOS GUI remain unverified.
+
 ## 0.6.0-dev.4 — local interaction regressions
 
 - Create works without a mandatory preview; project menu exposes forget/trash/restore with path confirmation and collision guards.

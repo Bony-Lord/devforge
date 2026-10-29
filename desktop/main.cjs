@@ -3,7 +3,8 @@ const {app,BrowserWindow,ipcMain,session,dialog,shell,nativeTheme,Menu}=require(
 const fs=require('node:fs/promises'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {DesktopHost}=require('./host.cjs');
 const {inside}=require('./workspace.cjs');
-let window,host,server,origin,base,quitting=false;
+let stores;const openWindows=new Set();
+const {WindowStore}=require('./window-store.cjs');
 const smoke=process.argv.includes('--smoke');
 const headless=process.argv.includes('--headless-check');
 if(headless){const port=process.argv.find(a=>a.startsWith('--cdp-port='))?.slice(11)||'9333';if(!/^[0-9]{1,5}$/.test(port)||Number(port)<1||Number(port)>65535)throw Error('Invalid test CDP port');app.commandLine.appendSwitch('remote-debugging-port',port);}
@@ -12,6 +13,8 @@ if(dataArg)app.setPath('userData',path.resolve(dataArg.slice('--data-dir='.lengt
 app.setName('DevForge');
 const ui=path.join(__dirname,'ui');
 const sourceUi=path.join(__dirname,'../app/src/main/assets/ui');
+async function openWindow(project,initial=false){
+let window,host,server,origin,base,quitting=false,record;
 function trusted(sender,frame){try{return window&&!window.isDestroyed()&&sender===window.webContents&&frame&&!frame.detached&&frame===sender.mainFrame&&frame.url.startsWith(base);}catch{return false;}}
 async function serve(){
   const root=await fs.realpath(await fs.access(ui).then(()=>ui,()=>sourceUi)),token=crypto.randomBytes(24).toString('hex');
@@ -30,9 +33,11 @@ async function serve(){
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin='http://127.0.0.1:'+server.address().port;base=origin+'/'+token+'/';return base+'index.html';
 }
 async function start(){
-  const page=await serve();
+  const existing=project&&[...openWindows].find(r=>r.host.ws.prefs.current===project);if(existing){existing.window.show();existing.window.focus();return true;}
+  const page=await serve();const workspace=await stores.workspace(project,initial);
   host=await new DesktopHost(app.getPath('userData'),(type,data)=>{if(window&&!window.isDestroyed())window.webContents.send('studio:event',type,data);},{
-    projectsDirectory:smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'DevForge'),
+    workspace,projectsDirectory:smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'DevForge'),
+    pythonRuntimeInUse:directory=>[...openWindows].some(r=>r.host!==host&&[r.host.python.kernel,r.host.pythonIntelligence.child,r.host.tools.execution].some(child=>child?.spawnfile&&inside(path.resolve(child.spawnfile),directory))),openProjectWindow:id=>openWindow(id),projectInUse:id=>[...openWindows].some(r=>r.host!==host&&r.host.ws.prefs.current===id),
     reducedMotion:()=>nativeTheme.prefersReducedMotion,
     chooseFolder:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openDirectory']});return r.canceled?null:r.filePaths[0];},
     chooseFile:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openFile']});return r.canceled?null:r.filePaths[0];},
@@ -46,11 +51,13 @@ async function start(){
       const destination=path.resolve(result.filePath);if(inside(destination,root))throw Error('Choose an archive location outside the project');
       const temp=destination+'.studio-'+crypto.randomUUID();try{const info=await require('./archive.cjs').zipDirectory(root,temp,{exclude:new Set(['.forge','.git','build','.cache','node_modules'])});await fs.rename(temp,destination);host.event('toast','Project exported: '+destination);return info;}finally{await fs.rm(temp,{force:true});}
     }
-  }).init();
+  });host.addons=stores.addonFacade(host);await host.init();
   if(smoke){if(!host.ws.prefs.current)await host.ws.newProject('smoke-fixture');host.ws.prefs.settings.interfaceMode='simple';host.ws.prefs.settings.pythonExecutable=process.env.DEVFORGE_TEST_PYTHON||'';host.ws.prefs.settings.setupDismissed=true;host.ws.prefs.settings.language=process.env.CPP_STUDIO_SMOKE_LANGUAGE||'ru';host.ws.prefs.settings.toolPaths={...host.ws.prefs.settings.toolPaths,...process.env.CPP_STUDIO_FORMAT?{format:process.env.CPP_STUDIO_FORMAT}:{},...process.env.CPP_STUDIO_CLANGD?{clangd:process.env.CPP_STUDIO_CLANGD}:{},...process.env.CPP_STUDIO_NINJA?{ninja:process.env.CPP_STUDIO_NINJA}:{}};await host.ws.persist();await host.tools.discover();}
   const bounds=host.ws.prefs.window||{};
   window=new BrowserWindow({width:Math.max(800,Math.min(2400,bounds.width||1360)),height:Math.max(560,Math.min(1800,bounds.height||880)),minWidth:720,minHeight:480,show:false,backgroundColor:'#191b23',title:'DevForge',icon:path.join(__dirname,'icon.png'),autoHideMenuBar:true,
     webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,spellcheck:false,backgroundThrottling:!smoke,offscreen:smoke||headless,devTools:!app.isPackaged}});
+  record={window,host};openWindows.add(record);
+  window.on('focus',()=>{if(!window.isDestroyed())window.webContents.send('studio:event','globalStateChanged',{projects:Object.keys(stores.global.projects),projectLabels:Object.fromEntries(Object.entries(stores.global.projects).map(([id,p])=>[id,p.label]))});});
   if(process.platform==='darwin')app.dock?.setIcon(path.join(__dirname,'icon.png'));Menu.setApplicationMenu(null);
   session.defaultSession.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
@@ -59,15 +66,17 @@ async function start(){
   window.webContents.on('will-attach-webview',event=>event.preventDefault());
   if(smoke){window.webContents.on('console-message',(_event,level,message)=>console.log('renderer',level,message));window.webContents.on('did-finish-load',()=>console.log('page loaded'));window.webContents.on('did-fail-load',(_e,code,description)=>console.log('load failed',code,description));}
   window.webContents.on('render-process-gone',(_event,details)=>{if(!quitting&&!headless)dialog.showErrorBox('DevForge','The editor process stopped: '+details.reason+'\nSaved project files are unchanged.');});
-  ipcMain.on('studio:request',async(event,raw)=>{
+  const ipcHandler=async(event,raw)=>{
     const sender=event.sender,frame=event.senderFrame;if(!trusted(sender,frame)||typeof raw!=='string'||raw.length>10*1024*1024)return;
-    let id;try{const request=JSON.parse(raw);id=request.id;if(typeof id!=='string'||id.length>64)throw Error('Invalid request id');const value=await host.handle(request.op,request.data||{});if(trusted(sender,frame))sender.send('studio:result',{id,value});}
+    let id;try{const request=JSON.parse(raw);id=request.id;if(typeof id!=='string'||id.length>64)throw Error('Invalid request id');const previousDefaults=JSON.stringify(stores.addons?.data.profile.defaultRequested);const value=await host.handle(request.op,request.data||{});if(request.op.startsWith('addon')&&JSON.stringify(stores.addons?.data.profile.defaultRequested)!==previousDefaults){for(const other of openWindows)if(other!==record&&!other.window.isDestroyed())other.window.webContents.send('studio:event','globalAddonsChanged',{requested:stores.addons.data.profile.defaultRequested});}if(trusted(sender,frame))sender.send('studio:result',{id,value});}
     catch(error){if(trusted(sender,frame))sender.send('studio:result',{id,error:error.message||String(error)});}
-  });
+  };ipcMain.on('studio:request',ipcHandler);window.once('closed',()=>{ipcMain.removeListener('studio:request',ipcHandler);clearTimeout(window.saveBoundsTimer);if(!quitting){quitting=true;host.close().finally(()=>{server.close();openWindows.delete(record);});}else openWindows.delete(record);});
   window.on('resize',()=>{if(!smoke){const {width,height}=window.getBounds();host.ws.prefs.window={width,height};clearTimeout(window.saveBoundsTimer);window.saveBoundsTimer=setTimeout(()=>host.ws.persist().catch(console.error),400);}});
-  window.on('close',event=>{if(!quitting){event.preventDefault();quitting=true;host.close().finally(()=>{server.close();window.destroy();app.quit();});}});
+  window.on('close',event=>{if(!quitting){event.preventDefault();quitting=true;host.close().finally(()=>{server.close();openWindows.delete(record);window.destroy();if(!openWindows.size&&process.platform!=='darwin')app.quit();});}});
   await require('./navigation.cjs').loadLocalPage(window,page);if(smoke){const {runSmoke}=require('./smoke.cjs');await runSmoke({app,window,host,base});quitting=true;await host.close();server.close();window.destroy();app.quit();}else if(!headless)window.show();
 }
-app.whenReady().then(start).catch(error=>{console.error(error);if(!smoke&&!headless)dialog.showErrorBox('DevForge',error.message);app.exit(1);});
+await start();return true;
+}
+app.whenReady().then(async()=>{stores=await new WindowStore(app.getPath('userData'),smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'DevForge')).init();await openWindow(undefined,true);}).catch(error=>{console.error(error);if(!smoke&&!headless)dialog.showErrorBox('DevForge',error.message);app.exit(1);});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
-app.on('activate',()=>{if(window&&!window.isDestroyed())window.show();});
+app.on('activate',()=>{const record=[...openWindows].at(-1);if(record&&!record.window.isDestroyed())record.window.show();else if(stores)openWindow(undefined,true).catch(console.error);});

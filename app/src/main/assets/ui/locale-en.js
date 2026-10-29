@@ -99,4 +99,4 @@ Object.assign(window.STUDIO_EN,{
   'пакет':'package'
 });
 
-Object.assign(STUDIO_EN,{"Действия проекта":"Project actions","Убранные проекты и корзина":"Removed projects and trash","Настройки проекта":"Project settings"});
+Object.assign(STUDIO_EN,{"Открыть папку…":"Open folder…","Действия проекта":"Project actions","Убранные проекты и корзина":"Removed projects and trash","Настройки проекта":"Project settings"});
