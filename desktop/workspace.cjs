@@ -53,7 +53,7 @@ class Workspace {
   constructor(data,projectsDirectory){this.data=data;this.projectsDirectory=projectsDirectory||path.join(data,'projects');this.file=path.join(data,'settings.json');this.prefs={settings:{},session:{},projects:{},current:'',encodings:{}};this.versions=new Map();this.readState=new Map();this.saveQueue=Promise.resolve();}
   async init(){await fs.mkdir(this.data,{recursive:true});if(await exists(this.file))this.prefs={...this.prefs,...JSON.parse(await fs.readFile(this.file,'utf8'))};
     if(!this.prefs.current||!await exists(this.prefs.projects[this.prefs.current]?.path||'')){
-      let project=null;for(const entry of Object.entries(this.prefs.projects)){if(entry[1].path&&await exists(entry[1].path)&&(await fs.stat(entry[1].path)).isDirectory()){project=entry;break;}}if(project)this.prefs.current=project[0];else if(await exists(path.join(this.projectsDirectory,'hello-cpp'))){const opened=await this.open(path.join(this.projectsDirectory,'hello-cpp'));this.prefs.current=opened.project;await this.persist();}else await this.newProject('hello-cpp');
+      let project=null;for(const entry of Object.entries(this.prefs.projects)){if(entry[1].path&&await exists(entry[1].path)&&(await fs.stat(entry[1].path)).isDirectory()){project=entry;break;}}if(project)this.prefs.current=project[0];else if(await exists(path.join(this.projectsDirectory,'hello-cpp'))){const opened=await this.open(path.join(this.projectsDirectory,'hello-cpp'));this.prefs.current=opened.project;await this.persist();}else{this.prefs.current='';await this.persist();}
     }return this;
   }
   persist(){const data=JSON.stringify(this.prefs,null,2);return this.saveQueue=this.saveQueue.catch(()=>{}).then(()=>atomic(this.file,data));}
@@ -66,7 +66,7 @@ class Workspace {
   async newProject(name,language='cpp',select=true){
     if(!name||name==='.'||name==='..'||/[<>:"/\\|?*\x00-\x1f]/.test(name)||name.length>80)throw Error('Invalid project name');
     const folder=path.join(this.projectsDirectory,name);await fs.mkdir(path.dirname(folder),{recursive:true});await fs.mkdir(folder);
-    if(language==='empty'){const result=await this.open(folder);if(select)this.prefs.current=result.project;await this.persist();return result;}
+    if(language==='empty'||language==='template'){const result=await this.open(folder);if(select)this.prefs.current=result.project;await this.persist();return result;}
     const c=language==='c',file=c?'main.c':'main.cpp';
     await fs.writeFile(path.join(folder,file),c?'#include <stdio.h>\n\nint main(void) {\n    puts("Hello from DevForge!");\n    return 0;\n}\n':'#include <iostream>\n\nint main() {\n    std::cout << "Hello from DevForge!\\n";\n    return 0;\n}\n');
     await fs.writeFile(path.join(folder,'CMakeLists.txt'),'cmake_minimum_required(VERSION 3.16)\nproject(studio_app LANGUAGES '+(c?'C':'CXX')+')\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable(app '+file+')\n');
@@ -77,7 +77,7 @@ class Workspace {
   async tree(folder=this.root,depth=0,budget={remaining:12000}){
     if(depth>16)return[];const entries=await fs.readdir(folder,{withFileTypes:true}),result=[];
     entries.sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name));
-    for(const entry of entries){if(budget.remaining--<=0)break;if(entry.isSymbolicLink()||['.forge','.git','build','.cache','node_modules'].includes(entry.name)||entry.name.startsWith('.studio-write-'))continue;
+    for(const entry of entries){if(budget.remaining--<=0)break;if(entry.isSymbolicLink()||['.forge','.git','.cache','node_modules'].includes(entry.name)||entry.name.startsWith('.studio-write-'))continue;
       const file=portable(path.join(folder,entry.name)),dir=entry.isDirectory();if(!dir&&!entry.isFile())continue;
       result.push({name:entry.name,path:file,dir,...dir?{children:await this.tree(file,depth+1,budget)}:{size:(await fs.stat(file)).size}});
     }return result;

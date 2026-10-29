@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {Workspace,encode,decode,templates,inside}=require('../workspace.cjs');
-async function fixture(t){const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cpp-studio-workspace-'));t.after(()=>fs.rm(dir,{recursive:true,force:true}));return new Workspace(dir).init();}
+async function fixture(t){const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cpp-studio-workspace-'));t.after(()=>fs.rm(dir,{recursive:true,force:true}));const ws=await new Workspace(dir).init();await ws.newProject('fixture');return ws;}
 test('lossless encodings preserve BOM, Cyrillic and reject destructive conversions',()=>{
   for(const encoding of ['UTF-8','UTF-8-BOM','UTF-16LE','UTF-16BE','windows-1251','KOI8-R']){const bytes=encode('Привет, C++\r\n',encoding,encoding.startsWith('UTF-16'));const decoded=decode(bytes,encoding);assert.equal(decoded.text,'Привет, C++\r\n');assert.deepEqual(encode(decoded.text,encoding,decoded.bom),bytes);}
   assert.throws(()=>encode('Привет','US-ASCII'),/Cannot encode/);assert.throws(()=>decode(Buffer.from([0xff]),'UTF-8'),/Cannot decode/);

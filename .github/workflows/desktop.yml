@@ -24,7 +24,7 @@ jobs:
       - name: Portable workspace, addon and Python process tests
         env:
           DEVFORGE_TEST_PYTHON: ${{ steps.python.outputs.python-path }}
-        run: node --test desktop/tests/archive.test.cjs desktop/tests/workspace.test.cjs desktop/tests/python.test.cjs desktop/tests/custom-actions.test.cjs
+        run: node --test desktop/tests/archive.test.cjs desktop/tests/workspace.test.cjs desktop/tests/python.test.cjs desktop/tests/custom-actions.test.cjs desktop/tests/project-templates.test.cjs desktop/tests/package-content.test.cjs
       - name: Notebook format and kernel checks
         run: |
           node tests/notebook-model.test.cjs

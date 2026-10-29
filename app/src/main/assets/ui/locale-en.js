@@ -1,5 +1,6 @@
 'use strict';
 window.STUDIO_EN={
+'Подключить шаблон к проекту':'Attach template to project','Мои шаблоны проектов':'My project templates',
 'Действия конфигурации':'Configuration actions','Профиль':'Profile','Профили':'Profiles','Тип профиля':'Profile type','Интерпретатор':'Interpreter','Универсальный':'Generic','Изменить профиль…':'Edit profile…',
   'Действия конфигурации':'Configuration actions','Профиль':'Profile',
   'Аддоны':'Addons',

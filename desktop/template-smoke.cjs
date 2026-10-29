@@ -1,0 +1,19 @@
+'use strict';
+async function templateSmoke({evaluate,check}){
+ await evaluate('forge.templates.ready');
+ await check('Packaged template catalog includes projects and attachable components',"forge.templates.catalog().filter(e=>e.template.kind==='project').length>=5&&forge.templates.catalog().some(e=>e.template.id==='studio.template.clang-format')");
+ await evaluate("(async()=>{window.templateBefore=JSON.stringify(forge.configurations.document.configurations);window.templatePlan=await forge.templates.prepare('studio.template.editorconfig',{},null,[],'attachment');await forge.templates.apply(templatePlan);})()");
+ await check('Packaged file host applies an attachment without rewriting run configurations',"forge.flatFiles().some(f=>f.name==='.editorconfig')&&JSON.stringify(forge.configurations.document.configurations)===templateBefore&&forge.configurations.document.templates.some(t=>t.id==='studio.template.editorconfig')");
+ await evaluate("(async()=>{window.templateAgain=await forge.templates.prepare('studio.template.editorconfig',{},null,[],'attachment');})()");
+ await check('Packaged template repeated application is idempotent',"templateAgain.plan.changes.length===0&&templateAgain.plan.conflicts.length===0");
+ await evaluate("(async()=>{await native('write',{path:forge.state.root+'/.editorconfig',text:'outside-before-preview'});window.templateConflict=await forge.templates.prepare('studio.template.editorconfig',{},null,[],'attachment');})()");
+ await check('Packaged template preview protects an existing configuration',"templateConflict.plan.conflicts.includes('.editorconfig')&&templateConflict.plan.changes.length===0");
+ await evaluate("(async()=>{templateConflict.replace.push('.editorconfig');templateConflict.plan=forge.templates.combine(templateConflict.instances,templateConflict.snapshot,templateConflict.document,templateConflict.replace);await native('write',{path:forge.state.root+'/.editorconfig',text:'outside-after-preview'});try{await forge.templates.apply(templateConflict);window.templateStale=false;}catch(error){window.templateStale=error.message.includes('changed since preview');}})()");
+ await check('Packaged file host rejects a stale preview before applying changes',"templateStale");
+ await evaluate("(async()=>{window.pythonTemplate=await forge.templates.prepare('studio.template.python',{},'python-template',[],'project');})()");
+ await check('Packaged Python template specializes its run actions and addon profile',"pythonTemplate.plan.project.configurations.length===1&&!pythonTemplate.plan.project.configurations[0].actions.build&&!pythonTemplate.plan.requirements.addons.some(id=>/clangd|formatter|cmake/.test(id))");
+ await evaluate("(async()=>{const t=forge.templates.catalog().find(e=>e.template.id==='studio.template.editorconfig').template;window.templateRace=await forge.templates.prepare(t.id,{},null,[],'attachment');templateRace.replace=templateRace.plan.conflicts;templateRace.plan=forge.templates.combine(templateRace.instances,templateRace.snapshot,templateRace.document,templateRace.replace);templateRace.plan.requirements.addons=[];templateRace.plan.requirements.tools=[];const prepare=forge.addons.host.prepare,root=forge.state.root;forge.addons.host.prepare=async()=>{forge.state.root=root+'/changed';};try{await forge.templates.apply(templateRace,{install:true});window.templateRootGuard=false;}catch(e){window.templateRootGuard=e.message.includes('Project changed');}finally{forge.state.root=root;forge.addons.host.prepare=prepare;}})()");
+ await check('Project switch during tool preparation invalidates the reviewed template',"templateRootGuard");
+ await check('Desktop file menus expose copying paths, splits and duplication',"forge.fileActions({path:forge.active.path}).length>=7&&typeof forge.documentMenu==='function'");
+}
+module.exports={templateSmoke};

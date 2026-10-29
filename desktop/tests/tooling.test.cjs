@@ -3,7 +3,7 @@ const {DesktopHost}=require('../host.cjs');
 const {LspFrames}=require('../tooling.cjs');
 const {RuntimeFaultParser}=require('../runtime-faults.cjs');
 const context=vm.createContext({});vm.runInContext(require('node:fs').readFileSync(path.join(__dirname,'../../app/src/main/assets/ui/debugger.js'),'utf8')+';globalThis.parse=parseMI;',context);
-async function fixture(t){const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cpp-studio-tools-')),events=[],listeners=new Set();const host=await new DesktopHost(dir,(type,data)=>{events.push({type,data});for(const fn of listeners)fn(type,data);}).init();await host.handle("workspaceTrustSet",{trusted:true});
+async function fixture(t){const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cpp-studio-tools-')),events=[],listeners=new Set();const host=await new DesktopHost(dir,(type,data)=>{events.push({type,data});for(const fn of listeners)fn(type,data);}).init();await host.ws.newProject('fixture');await host.handle("workspaceTrustSet",{trusted:true});
   if(process.env.CPP_STUDIO_NINJA){host.ws.prefs.settings.toolPaths={...host.ws.prefs.settings.toolPaths,ninja:process.env.CPP_STUDIO_NINJA};await host.tools.discover();}
   t.after(async()=>{await host.close();await new Promise(resolve=>setTimeout(resolve,700));await fs.rm(dir,{recursive:true,force:true,maxRetries:6,retryDelay:200});});
   const wait=(type,predicate=()=>true)=>new Promise((resolve,reject)=>{const old=events.find(e=>e.type===type&&predicate(e.data));if(old)return resolve(old.data);const timer=setTimeout(()=>{listeners.delete(fn);reject(Error('Timed out waiting '+type+'\n'+JSON.stringify(events.slice(-20))));},20000);const fn=(kind,data)=>{if(kind===type&&predicate(data)){clearTimeout(timer);listeners.delete(fn);resolve(data);}};listeners.add(fn);});

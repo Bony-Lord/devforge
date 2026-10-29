@@ -38,9 +38,9 @@ final class IdeEngine {
         app=a;version=a.getPackageManager().getPackageInfo(a.getPackageName(),0).versionName;projects=new File(a.getFilesDir(),"projects");usr=new File(a.getFilesDir(),"usr");tmp=new File(a.getFilesDir(),"tmp");
         projects.mkdirs();tmp.mkdirs();
         prefs=a.getSharedPreferences("forge",0);workspace=new WorkspaceFiles(this);languages=new LanguageTools(this);
-        if(!new File(projects,"hello-cpp").exists()){createProject("hello-cpp","cpp");prefs.edit().putBoolean("trustedWorkspace:"+project("hello-cpp").getCanonicalPath(),true).commit();}
-        currentProject=prefs.getString("project","hello-cpp");
-        if(!project(currentProject).isDirectory())currentProject="hello-cpp";
+        currentProject=prefs.getString("project","");
+        try{if(currentProject.isEmpty()||!project(currentProject).isDirectory())currentProject="";}catch(IOException error){currentProject="";}
+        if(currentProject.isEmpty()){File[] existing=projects.listFiles();if(existing!=null){Arrays.sort(existing,Comparator.comparing(File::getName));for(File folder:existing)if(folder.isDirectory()){currentProject=folder.getName();break;}}if(currentProject.isEmpty()){JSONObject links=workspace.bindings();for(Iterator<String> ids=links.keys();ids.hasNext();){String id=ids.next();if(project(id).isDirectory()){currentProject=id;break;}}}}
         tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
@@ -88,7 +88,9 @@ final class IdeEngine {
                 stopLsp();currentProject=name;prefs.edit().putString("project",name).apply();return state();
             }
             case "newProject":{String name=d.getString("name");createProject(name,d.optString("language","cpp"));prefs.edit().putBoolean("trustedWorkspace:"+project(name).getCanonicalPath(),true).commit();return state().put("createdProject",name);}
-            case "tree":return tree(project(currentProject),0);
+            case "projectTemplateSnapshot":synchronized(this){return ProjectTemplateFiles.snapshot(project(currentProject),d);}
+            case "projectTemplateApply":synchronized(this){JSONObject result=ProjectTemplateFiles.apply(project(currentProject),workspace.data(),d);JSONArray paths=result.getJSONArray("paths");for(int i=0;i<paths.length();i++)prefs.edit().putString("fileEncoding:"+paths.getString(i),"UTF-8").apply();return result;}
+            case "tree":return currentProject.isEmpty()?new JSONArray():tree(project(currentProject),0);
             case "browseFilesystem":return workspace.browse(d);
             case "openFolder":return workspace.open(d);
             case "storagePermission":app.requestStorageAccess();return true;
@@ -188,13 +190,14 @@ final class IdeEngine {
     JSONObject state()throws Exception {
         JSONArray list=new JSONArray();File[] dirs=projects.listFiles();if(dirs!=null){Arrays.sort(dirs,Comparator.comparing(File::getName));for(File p:dirs)if(p.isDirectory())list.put(p.getName());}
         JSONObject labels=new JSONObject();JSONObject links=workspace.bindings();for(Iterator<String> keys=links.keys();keys.hasNext();){String id=keys.next();list.put(id);labels.put(id,links.getJSONObject(id).optString("label",id));}
-        return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",workspace.isExternal()).put("cache",workspace.data().getAbsolutePath()).put("root",project(currentProject).getAbsolutePath()).put("projects",list)
-            .put("usr",usr.getAbsolutePath()).put("tree",tree(project(currentProject),0)).put("settings",new JSONObject(prefs.getString("settings","{}")))
+        boolean hasProject=!currentProject.isEmpty();
+        return new JSONObject().put("project",currentProject).put("projectLabels",labels).put("external",hasProject&&workspace.isExternal()).put("cache",hasProject?workspace.data().getAbsolutePath():new File(app.getFilesDir(),"workspaces/no-project").getAbsolutePath()).put("root",hasProject?project(currentProject).getAbsolutePath():"").put("projects",list)
+            .put("usr",usr.getAbsolutePath()).put("tree",hasProject?tree(project(currentProject),0):new JSONArray()).put("settings",new JSONObject(prefs.getString("settings","{}")))
             .put("session",new JSONObject(prefs.getString("session","{}"))).put("abi",Build.SUPPORTED_ABIS[0]).put("version",version).put("trust",workspaceTrust()).put("capabilities",new JSONObject().put("platform","android").put("editor","sora").put("targetSdk",app.getApplicationInfo().targetSdkVersion).put("toolDelivery",app.installedRuntime==null?"download":app.installedRuntime.components==null?"bundled":app.installedRuntime.manifest.optString("delivery")).put("localExecution",app.installedRuntime==null?"native-process":"installed-program-host"));
     }
     String trustKey()throws IOException{return "trustedWorkspace:"+project(currentProject).getCanonicalPath();}
-    boolean workspaceTrusted()throws IOException{return prefs.getBoolean(trustKey(),false);}
-    JSONObject workspaceTrust()throws Exception{return new JSONObject().put("trusted",workspaceTrusted()).put("root",project(currentProject).getCanonicalPath());}
+    boolean workspaceTrusted()throws IOException{return !currentProject.isEmpty()&&prefs.getBoolean(trustKey(),false);}
+    JSONObject workspaceTrust()throws Exception{return new JSONObject().put("trusted",workspaceTrusted()).put("root",currentProject.isEmpty()?"":project(currentProject).getCanonicalPath());}
     void requireWorkspaceTrust()throws IOException{if(!workspaceTrusted())throw new IOException("WORKSPACE_UNTRUSTED: Trust this folder before executing project tools");}
     File project(String name)throws IOException {
         File external=workspace.external(name);if(external!=null)return external;
@@ -204,6 +207,7 @@ final class IdeEngine {
     File newProjectDir(String name)throws Exception {File p=project(name);if(p.exists())throw new IOException("Проект уже существует");p.mkdirs();return p;}
     void createProject(String name,String lang)throws Exception {
         File p=newProjectDir(name);
+        if(lang.equals("template"))return;
         if(lang.equals("empty")){JSONObject manual=new JSONObject().put("id","manual").put("name","Manual").put("type","custom").put("profile","manual").put("source","").put("target","").put("workingDirectory",".").put("executable","").put("args",new JSONArray()).put("environment",new JSONObject()).put("buildBeforeRun",false).put("actions",new JSONObject()).put("runCommand",new JSONArray()).put("buildCommands",new JSONArray());JSONObject profile=new JSONObject().put("id","manual").put("name","Manual").put("kind","generic").put("environment",new JSONObject());JSONObject config=new JSONObject().put("version",1).put("active","manual").put("projectType","empty").put("profiles",new JSONArray().put(profile)).put("configurations",new JSONArray().put(manual));File settings=new File(p,".devforge/project.json");settings.getParentFile().mkdirs();Files.write(settings.toPath(),config.toString(2).getBytes(StandardCharsets.UTF_8));return;}
         boolean c=lang.equals("c");
         String source=c?"#include <stdio.h>\n\nint main(void) {\n    printf(\"Hello from DevForge!\\n\");\n    return 0;\n}\n":"#include <iostream>\n#include <vector>\n#include <numeric>\n\nint main() {\n    std::vector<int> numbers{1, 2, 3, 4, 5};\n    const auto sum = std::accumulate(numbers.begin(), numbers.end(), 0);\n    std::cout << \"Hello from DevForge!\\n\";\n    std::cout << \"Sum = \" << sum << '\\n';\n    return 0;\n}\n";
@@ -231,7 +235,7 @@ final class IdeEngine {
         Arrays.sort(files,(a,b) -> {int d=Boolean.compare(b.isDirectory(),a.isDirectory());return d==0?a.getName().compareToIgnoreCase(b.getName()):d;});
         int count=0;
         for(File f:files) {
-            if(f.getName().equals(".forge")||f.getName().equals(".git")||f.getName().equals("build")||f.getName().equals(".cache"))continue;
+            if(f.getName().equals(".forge")||f.getName().equals(".git")||f.getName().equals(".cache"))continue;
             if(Files.isSymbolicLink(f.toPath()))continue;
             if(++count>2000)break;
             JSONObject item=new JSONObject().put("name",f.getName()).put("path",f.getAbsolutePath()).put("dir",f.isDirectory());

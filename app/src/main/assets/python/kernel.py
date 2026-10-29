@@ -12,6 +12,7 @@ import linecache
 import os
 import sys
 import traceback
+from notebook_magics import Magics
 
 MAX_INPUT = 2 * 1024 * 1024
 MAX_OUTPUT = 1024 * 1024
@@ -26,6 +27,7 @@ def notebook_input(prompt=""):
 
 
 namespace = {"__name__": "__main__", "__builtins__": {**vars(builtins), "input": notebook_input}}
+magics = Magics(namespace)
 
 
 def send(kind, **fields):
@@ -73,7 +75,9 @@ def execute(source, filename):
     send("busy", count=count)
     try:
         with contextlib.redirect_stdout(Stream("stdout")), contextlib.redirect_stderr(Stream("stderr")):
-            tree = ast.parse(source, filename, "exec")
+            if magics.cell(source):
+                return
+            tree = ast.parse(magics.transform(source), filename, "exec")
             expression = tree.body.pop() if tree.body and isinstance(tree.body[-1], ast.Expr) else None
             exec(compile(tree, filename, "exec"), namespace)
             if expression:

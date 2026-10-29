@@ -1,0 +1,697 @@
+[
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.cmake-cpp",
+    "kind": "project",
+    "name": {
+      "ru": "CMake · C++",
+      "en": "CMake · C++"
+    },
+    "files": [
+      {
+        "path": "CMakeLists.txt",
+        "text": "cmake_minimum_required(VERSION 3.22)\nproject({{target}} LANGUAGES CXX)\nset(CMAKE_CXX_STANDARD 20)\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable({{target}} main.cpp)\n"
+      },
+      {
+        "path": "main.cpp",
+        "text": "#include <iostream>\n\nint main() {\n    std::cout << \"Hello from DevForge!\\n\";\n    return 0;\n}\n"
+      },
+      {
+        "path": ".gitignore",
+        "text": ".forge/\nbuild/\n"
+      }
+    ],
+    "category": "C / C++",
+    "description": {
+      "ru": "Одна конфигурация Main, профили Debug и Release.",
+      "en": "One Main configuration, Debug and Release profiles."
+    },
+    "parameters": [
+      {
+        "id": "target",
+        "label": {
+          "ru": "Имя цели",
+          "en": "Target name"
+        },
+        "type": "identifier",
+        "default": "app"
+      }
+    ],
+    "requires": {
+      "addons": [
+        "studio.pack.essentials",
+        "studio.pack.cmake",
+        "studio.tool.gcc"
+      ],
+      "tools": [
+        "gcc",
+        "cmake"
+      ]
+    },
+    "project": {
+      "projectType": "cmake",
+      "active": "main",
+      "profiles": [
+        {
+          "id": "debug",
+          "name": "Debug",
+          "compiler": "gcc",
+          "optimization": "debug",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "undefined",
+          "buildDirectory": ".forge/cmake-debug"
+        },
+        {
+          "id": "release",
+          "name": "Release",
+          "compiler": "gcc",
+          "optimization": "release",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "off",
+          "buildDirectory": ".forge/cmake-release"
+        }
+      ],
+      "configurations": [
+        {
+          "id": "main",
+          "name": "Main",
+          "type": "cmake",
+          "profile": "debug",
+          "target": "{{target}}",
+          "source": "main.cpp",
+          "args": [],
+          "environment": {},
+          "workingDirectory": ".",
+          "executable": "",
+          "buildBeforeRun": true,
+          "actions": {
+            "build": {
+              "provider": "cpp.build"
+            },
+            "run": {
+              "provider": "cpp.run"
+            },
+            "debug": {
+              "provider": "cpp.debug"
+            }
+          }
+        }
+      ],
+      "addons": {
+        "mode": "project",
+        "requested": [
+          "studio.pack.essentials",
+          "studio.pack.cmake",
+          "studio.tool.gcc"
+        ]
+      }
+    },
+    "entryFile": "main.cpp"
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.cmake-c",
+    "kind": "project",
+    "name": {
+      "ru": "CMake · C",
+      "en": "CMake · C"
+    },
+    "files": [
+      {
+        "path": "CMakeLists.txt",
+        "text": "cmake_minimum_required(VERSION 3.22)\nproject({{target}} LANGUAGES C)\nset(CMAKE_C_STANDARD 17)\nset(CMAKE_EXPORT_COMPILE_COMMANDS ON)\nadd_executable({{target}} main.c)\n"
+      },
+      {
+        "path": "main.c",
+        "text": "#include <stdio.h>\n\nint main(void) {\n    puts(\"Hello from DevForge!\");\n    return 0;\n}\n"
+      },
+      {
+        "path": ".gitignore",
+        "text": ".forge/\nbuild/\n"
+      }
+    ],
+    "category": "C / C++",
+    "description": {
+      "ru": "Одна конфигурация Main, профили Debug и Release.",
+      "en": "One Main configuration, Debug and Release profiles."
+    },
+    "parameters": [
+      {
+        "id": "target",
+        "label": {
+          "ru": "Имя цели",
+          "en": "Target name"
+        },
+        "type": "identifier",
+        "default": "app"
+      }
+    ],
+    "requires": {
+      "addons": [
+        "studio.pack.essentials",
+        "studio.pack.cmake",
+        "studio.tool.gcc"
+      ],
+      "tools": [
+        "gcc",
+        "cmake"
+      ]
+    },
+    "project": {
+      "projectType": "cmake",
+      "active": "main",
+      "profiles": [
+        {
+          "id": "debug",
+          "name": "Debug",
+          "compiler": "gcc",
+          "optimization": "debug",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "undefined",
+          "buildDirectory": ".forge/cmake-debug"
+        },
+        {
+          "id": "release",
+          "name": "Release",
+          "compiler": "gcc",
+          "optimization": "release",
+          "cppStandard": "c++20",
+          "cStandard": "c17",
+          "flags": [],
+          "cmakeOptions": [],
+          "environment": {},
+          "runtimeChecks": "off",
+          "buildDirectory": ".forge/cmake-release"
+        }
+      ],
+      "configurations": [
+        {
+          "id": "main",
+          "name": "Main",
+          "type": "cmake",
+          "profile": "debug",
+          "target": "{{target}}",
+          "source": "main.c",
+          "args": [],
+          "environment": {},
+          "workingDirectory": ".",
+          "executable": "",
+          "buildBeforeRun": true,
+          "actions": {
+            "build": {
+              "provider": "cpp.build"
+            },
+            "run": {
+              "provider": "cpp.run"
+            },
+            "debug": {
+              "provider": "cpp.debug"
+            }
+          }
+        }
+      ],
+      "addons": {
+        "mode": "project",
+        "requested": [
+          "studio.pack.essentials",
+          "studio.pack.cmake",
+          "studio.tool.gcc"
+        ]
+      }
+    },
+    "entryFile": "main.c"
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.python",
+    "kind": "project",
+    "name": {
+      "ru": "Python · приложение",
+      "en": "Python · application"
+    },
+    "files": [
+      {
+        "path": "main.py",
+        "text": "def main():\n    print(\"Hello from DevForge!\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+      }
+    ],
+    "category": "Python",
+    "requires": {
+      "addons": [
+        "studio.pack.essentials",
+        "studio.pack.python"
+      ],
+      "tools": [
+        "python"
+      ]
+    },
+    "description": {
+      "ru": "Python без CMake, clangd и C++-форматтера.",
+      "en": "Python without CMake, clangd or C++ formatting."
+    },
+    "project": {
+      "projectType": "python",
+      "active": "main",
+      "profiles": [
+        {
+          "id": "python",
+          "name": "Python",
+          "kind": "interpreter",
+          "environment": {}
+        }
+      ],
+      "configurations": [
+        {
+          "id": "main",
+          "name": "Main",
+          "type": "python",
+          "profile": "python",
+          "target": "",
+          "source": "main.py",
+          "args": [],
+          "environment": {},
+          "workingDirectory": ".",
+          "executable": "",
+          "buildBeforeRun": false,
+          "actions": {
+            "run": {
+              "provider": "python.run"
+            }
+          }
+        }
+      ],
+      "addons": {
+        "mode": "project",
+        "requested": [
+          "studio.pack.essentials",
+          "studio.pack.python"
+        ]
+      }
+    },
+    "entryFile": "main.py"
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.notebook",
+    "kind": "project",
+    "name": {
+      "ru": "Python · ноутбук",
+      "en": "Python · notebook"
+    },
+    "files": [
+      {
+        "path": "notebook.ipynb",
+        "text": "{\n  \"nbformat\": 4,\n  \"nbformat_minor\": 5,\n  \"metadata\": {\n    \"kernelspec\": {\n      \"display_name\": \"Python 3\",\n      \"language\": \"python\",\n      \"name\": \"python3\"\n    },\n    \"language_info\": {\n      \"name\": \"python\"\n    }\n  },\n  \"cells\": [\n    {\n      \"cell_type\": \"code\",\n      \"id\": \"078e6708f37d4935b7e1bfaea93513d9\",\n      \"metadata\": {},\n      \"source\": \"\",\n      \"execution_count\": null,\n      \"outputs\": []\n    }\n  ]\n}\n"
+      }
+    ],
+    "category": "Python",
+    "requires": {
+      "addons": [
+        "studio.pack.essentials",
+        "studio.pack.notebooks"
+      ],
+      "tools": [
+        "python"
+      ]
+    },
+    "description": {
+      "ru": "Python без CMake, clangd и C++-форматтера.",
+      "en": "Python without CMake, clangd or C++ formatting."
+    },
+    "project": {
+      "projectType": "notebook",
+      "active": "main",
+      "profiles": [
+        {
+          "id": "python",
+          "name": "Python",
+          "kind": "interpreter",
+          "environment": {}
+        }
+      ],
+      "configurations": [
+        {
+          "id": "main",
+          "name": "Main",
+          "type": "notebook",
+          "profile": "python",
+          "target": "",
+          "source": "notebook.ipynb",
+          "args": [],
+          "environment": {},
+          "workingDirectory": ".",
+          "executable": "",
+          "buildBeforeRun": false,
+          "actions": {
+            "run": {
+              "provider": "notebook.runAll"
+            }
+          }
+        }
+      ],
+      "addons": {
+        "mode": "project",
+        "requested": [
+          "studio.pack.essentials",
+          "studio.pack.notebooks"
+        ]
+      }
+    },
+    "entryFile": "notebook.ipynb"
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.empty",
+    "kind": "project",
+    "name": {
+      "ru": "Пустой / вручную",
+      "en": "Empty / manual"
+    },
+    "files": [],
+    "category": "General",
+    "project": {
+      "projectType": "empty",
+      "active": "manual",
+      "profiles": [
+        {
+          "id": "manual",
+          "name": "Manual",
+          "kind": "generic",
+          "environment": {}
+        }
+      ],
+      "configurations": [
+        {
+          "id": "manual",
+          "name": "Manual",
+          "type": "custom",
+          "profile": "manual",
+          "source": "",
+          "target": "",
+          "args": [],
+          "environment": {},
+          "workingDirectory": ".",
+          "executable": "",
+          "buildBeforeRun": false,
+          "buildCommands": [],
+          "runCommand": [],
+          "actions": {}
+        }
+      ]
+    },
+    "description": {
+      "ru": "Собственные языки, команды, профили и аддоны. Действия изначально не заданы.",
+      "en": "Custom languages, commands, profiles and addons. No actions are predefined."
+    }
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.clangd",
+    "kind": "attachment",
+    "name": {
+      "ru": "Анализ C / C++ · clangd",
+      "en": "C / C++ analysis · clangd"
+    },
+    "files": [
+      {
+        "path": ".clangd",
+        "text": "CompileFlags:\n  Add: [-Wall, -Wextra]\n"
+      }
+    ],
+    "category": "C / C++",
+    "appliesTo": [
+      "cmake",
+      "cpp"
+    ],
+    "requires": {
+      "addons": [
+        "studio.clangd",
+        "studio.diagnostics",
+        "studio.completion"
+      ],
+      "tools": [
+        "analysis"
+      ]
+    },
+    "project": {
+      "tooling": {
+        "languageServer": {
+          "provider": "clangd",
+          "configuration": ".clangd"
+        }
+      }
+    }
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.clang-format",
+    "kind": "attachment",
+    "name": {
+      "ru": "Форматтер C++ Studio",
+      "en": "C++ Studio formatter"
+    },
+    "files": [
+      {
+        "path": ".clang-format",
+        "text": "BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n"
+      }
+    ],
+    "category": "C / C++",
+    "appliesTo": [
+      "cmake",
+      "cpp"
+    ],
+    "requires": {
+      "addons": [
+        "studio.formatter"
+      ],
+      "tools": [
+        "analysis"
+      ]
+    },
+    "project": {
+      "tooling": {
+        "formatter": {
+          "provider": "clang-format",
+          "configuration": ".clang-format"
+        }
+      }
+    }
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.gcc",
+    "kind": "attachment",
+    "name": {
+      "ru": "Компилятор · GCC",
+      "en": "Compiler · GCC"
+    },
+    "files": [],
+    "category": "C / C++",
+    "appliesTo": [
+      "cmake",
+      "cpp"
+    ],
+    "description": {
+      "ru": "Выбирает компилятор для текущего профиля. Сам инструмент загружается отдельно.",
+      "en": "Selects the compiler for the active profile. The tool is downloaded separately."
+    },
+    "requires": {
+      "addons": [
+        "studio.tool.gcc"
+      ],
+      "tools": [
+        "gcc"
+      ]
+    },
+    "profile": {
+      "compiler": "gcc"
+    }
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.clang",
+    "kind": "attachment",
+    "name": {
+      "ru": "Компилятор · CLANG",
+      "en": "Compiler · CLANG"
+    },
+    "files": [],
+    "category": "C / C++",
+    "appliesTo": [
+      "cmake",
+      "cpp"
+    ],
+    "description": {
+      "ru": "Выбирает компилятор для текущего профиля. Сам инструмент загружается отдельно.",
+      "en": "Selects the compiler for the active profile. The tool is downloaded separately."
+    },
+    "requires": {
+      "addons": [
+        "studio.tool.clang"
+      ],
+      "tools": [
+        "clang"
+      ]
+    },
+    "profile": {
+      "compiler": "clang"
+    }
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.python-interpreter",
+    "kind": "attachment",
+    "name": {
+      "ru": "Интерпретатор Python",
+      "en": "Python interpreter"
+    },
+    "files": [],
+    "category": "Python",
+    "appliesTo": [
+      "python",
+      "notebook"
+    ],
+    "parameters": [
+      {
+        "id": "executable",
+        "label": {
+          "ru": "Путь к Python на ПК (пусто — автоматически)",
+          "en": "Desktop Python path (empty for automatic)"
+        },
+        "type": "text",
+        "default": ""
+      }
+    ],
+    "requires": {
+      "addons": [
+        "studio.python"
+      ],
+      "tools": [
+        "python"
+      ]
+    },
+    "profile": {
+      "pythonExecutable": "{{executable}}"
+    },
+    "project": {
+      "tooling": {
+        "interpreter": {
+          "provider": "python"
+        }
+      }
+    }
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.python-style",
+    "kind": "attachment",
+    "name": {
+      "ru": "Python · настройки PEP 8",
+      "en": "Python · PEP 8 settings"
+    },
+    "files": [
+      {
+        "path": ".pep8",
+        "text": "[pycodestyle]\nmax-line-length = 79\nindent-size = 4\n"
+      }
+    ],
+    "category": "Python",
+    "appliesTo": [
+      "python",
+      "notebook"
+    ],
+    "description": {
+      "ru": "Конфигурация pycodestyle/autopep8. Пакеты устанавливаются отдельно в выбранный Python.",
+      "en": "pycodestyle/autopep8 configuration. Install these packages separately into the selected Python."
+    },
+    "project": {
+      "tooling": {
+        "formatter": {
+          "provider": "autopep8",
+          "configuration": ".pep8"
+        },
+        "linter": {
+          "provider": "pycodestyle",
+          "configuration": ".pep8"
+        }
+      }
+    }
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.editorconfig",
+    "kind": "attachment",
+    "name": {
+      "ru": "Единые отступы · EditorConfig",
+      "en": "Shared indentation · EditorConfig"
+    },
+    "files": [
+      {
+        "path": ".editorconfig",
+        "text": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\nindent_style = space\nindent_size = 4\n\n[*.{yml,yaml,json}]\nindent_size = 2\n"
+      }
+    ],
+    "category": "General"
+  },
+  {
+    "format": "devforge.template",
+    "version": 1,
+    "id": "studio.template.cmake-tests",
+    "kind": "attachment",
+    "name": {
+      "ru": "CMake · заготовка тестов",
+      "en": "CMake · test scaffold"
+    },
+    "files": [
+      {
+        "path": "tests/CMakeLists.txt",
+        "text": "enable_testing()\nadd_executable(studio_tests smoke.cpp)\nadd_test(NAME smoke COMMAND studio_tests)\n"
+      },
+      {
+        "path": "tests/smoke.cpp",
+        "text": "#include <cassert>\n\nint main() {\n    assert(2 + 2 == 4);\n}\n"
+      }
+    ],
+    "category": "C / C++",
+    "appliesTo": [
+      "cmake"
+    ],
+    "description": {
+      "ru": "Создаёт самостоятельный каталог tests. Подключите его через add_subdirectory(tests) в CMakeLists.txt.",
+      "en": "Creates a tests directory. Connect it with add_subdirectory(tests) in CMakeLists.txt."
+    },
+    "requires": {
+      "addons": [
+        "studio.project.cmake"
+      ],
+      "tools": [
+        "cmake"
+      ]
+    }
+  }
+]

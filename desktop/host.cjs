@@ -5,12 +5,13 @@ const {Tooling,capture}=require('./tooling.cjs');
 const {ProjectConfigurations}=require('./project-config.cjs');
 const {AddonLibrary}=require('./addons.cjs');
 const {PythonHost}=require('./python.cjs');
+const {ProjectTemplateFiles}=require('./project-templates.cjs');
 const STYLE='BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n';
 const CLION_STYLE=STYLE.replace('ReferenceAlignment: Left','ReferenceAlignment: Right').replace('SpaceBeforeRangeBasedForLoopColon: true','SpaceBeforeRangeBasedForLoopColon: false');
 class DesktopHost {
-  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.configurations=new ProjectConfigurations(this);this.operations=new Map();this.settingsQueue=Promise.resolve();this.addons=new AddonLibrary(this);this.python=new PythonHost(this);}
-  async init(){await this.ws.init();await this.addons.init();await this.tools.discover();if(!this.ws.prefs.settings.compiler&&!this.tools.tools.gxx&&this.tools.tools.clangxx){this.ws.prefs.settings.compiler='clang';await this.ws.persist();}if(!await exists(path.join(this.ws.root,'.clang-format')))await this.ws.write(path.join(this.ws.root,'.clang-format'),STYLE);return this;}
-  async state(){return{project:this.ws.prefs.current,projectLabels:Object.fromEntries(Object.entries(this.ws.prefs.projects).map(([id,p])=>[id,p.label])),projects:Object.keys(this.ws.prefs.projects),root:this.ws.root,external:true,cache:portable(this.ws.cache),usr:portable(path.dirname(this.tools.tools.gxx||this.tools.tools.clangxx||process.execPath)),tree:await this.ws.tree(),settings:{keepAwake:false,...this.ws.prefs.settings},session:this.ws.prefs.session,abi:os.arch(),version:require('./package.json').version,trust:this.trust(),capabilities:{protocol:1,platform:process.platform,editor:'monaco',toolDelivery:'system',localExecution:'native-process',debugger:(!!this.tools.tools.gdb&&!!this.tools.tools.gdbserver)||!!this.tools.tools.lldbdap,debugProtocol:this.tools.tools.gdb&&this.tools.tools.gdbserver?'mi':'dap',systemAnimations:!this.system.reducedMotion?.()}};}
+  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.configurations=new ProjectConfigurations(this);this.operations=new Map();this.settingsQueue=Promise.resolve();this.addons=new AddonLibrary(this);this.python=new PythonHost(this);this.templates=new ProjectTemplateFiles(this.ws);}
+  async init(){await this.ws.init();await this.addons.init();await this.tools.discover();if(!this.ws.prefs.settings.compiler&&!this.tools.tools.gxx&&this.tools.tools.clangxx){this.ws.prefs.settings.compiler='clang';await this.ws.persist();}return this;}
+  async state(){const hasProject=!!this.ws.prefs.projects[this.ws.prefs.current];return{project:this.ws.prefs.current,projectLabels:Object.fromEntries(Object.entries(this.ws.prefs.projects).map(([id,p])=>[id,p.label])),projects:Object.keys(this.ws.prefs.projects),root:hasProject?this.ws.root:'',external:hasProject,cache:portable(this.ws.cache),usr:portable(path.dirname(this.tools.tools.gxx||this.tools.tools.clangxx||process.execPath)),tree:hasProject?await this.ws.tree():[],settings:{keepAwake:false,...this.ws.prefs.settings},session:this.ws.prefs.session,abi:os.arch(),version:require('./package.json').version,trust:this.trust(),capabilities:{protocol:1,platform:process.platform,editor:'monaco',toolDelivery:'system',localExecution:'native-process',debugger:(!!this.tools.tools.gdb&&!!this.tools.tools.gdbserver)||!!this.tools.tools.lldbdap,debugProtocol:this.tools.tools.gdb&&this.tools.tools.gdbserver?'mi':'dap',systemAnimations:!this.system.reducedMotion?.()}};}
   async handle(op,d={}){
     if(typeof op!=='string'||!d||typeof d!=='object'||Array.isArray(d))throw Error('Invalid request');
     const executes=['pythonCheck','pythonRun','notebookStart','notebookExecute','build','run','runCommand','shell','git','lspStart','lspSend','cmakeConfigure','formatDocument','formatterOnType','formatterRange','dapStart','dapSend','gdbStart','gdbSend'].includes(op);
@@ -19,6 +20,7 @@ class DesktopHost {
     if(op==='pythonInfo')return this.python.info();if(op==='pythonRun')return this.python.run(d);if(op==='pythonCheck')return this.python.check(d);
     if(['notebookStart','notebookExecute'].includes(op)){if(!this.addons.enabled('studio.notebooks'))throw Error('Enable the notebook addon');return op==='notebookStart'?this.python.start(d):this.python.execute(d);}if(op==='notebookStop'){if(d.session!==undefined&&d.session!==this.python.generation)return false;await this.python.stop();return true;}
     if(op==='workspaceTrust')return this.trust();if(op==='workspaceTrustSet'){this.ws.prefs.trustedRoots={...this.ws.prefs.trustedRoots,[this.ws.root]:!!d.trusted};await this.ws.persist();if(!d.trusted){this.python.stop();await this.tools.close();}return this.trust();}
+    if(['projectTemplateSnapshot','projectTemplateApply'].includes(op))return this.templates.handle(op,d);
     if(op.startsWith('editor'))return op==='editorSnapshot'?[]:op==='editorReset'?{}:true;
     switch(op){
       case 'state':return this.state();
@@ -29,8 +31,8 @@ class DesktopHost {
       case 'settingsCommit':case 'settings':this.ws.prefs.settings=structuredClone(d);await this.ws.persist();await this.tools.discover();return d;
       case 'sessionCommit':case 'session':this.ws.prefs.session=structuredClone(d);await this.ws.persist();return true;
       case 'project':this.python.stop();if(!this.ws.prefs.projects[d.name]||!await exists(this.ws.prefs.projects[d.name].path))throw Error('Project unavailable');this.tools.stopLsp();this.ws.prefs.current=d.name;await this.ws.persist();return this.state();
-      case 'newProject':{const created=await this.ws.newProject(d.name,d.language,false);this.ws.prefs.trustedRoots={...this.ws.prefs.trustedRoots,[created.path]:true};await this.ws.persist();await atomic(path.join(created.path,'.clang-format'),STYLE);return{...await this.state(),createdProject:created.project};}
-      case 'tree':return this.ws.tree();
+      case 'newProject':{const created=await this.ws.newProject(d.name,d.language,false);this.ws.prefs.trustedRoots={...this.ws.prefs.trustedRoots,[created.path]:true};await this.ws.persist();if(!['empty','template'].includes(d.language))await atomic(path.join(created.path,'.clang-format'),STYLE);return{...await this.state(),createdProject:created.project};}
+      case 'tree':return this.ws.prefs.current?this.ws.tree():[];
       case 'read':return this.ws.read(d.path,d.encoding);
       case 'write':case 'convertEncoding':return this.serializeWrite(d.path,()=>this.ws.write(d.path,d.text,d.encoding));
       case 'newFile':{const file=await this.ws.writable(d.path);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,encode(d.text||'',d.encoding||this.ws.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});return file;}
@@ -54,6 +56,8 @@ class DesktopHost {
       case 'desktopNotices':return this.system.showNotices?.();
       case 'desktopSources':return this.system.openExternal?.('https://github.com/Bony-Lord/devforge/releases');
       case 'clipboardWrite':if(typeof d.text!=='string'||d.text.length>256*1024)throw Error('Invalid clipboard text');this.system.writeClipboard?.(d.text);return true;
+      case 'addonImport':{const file=await this.system.chooseFile?.();if(!file)return false;if((await fs.stat(file)).size>262144)throw Error('Template/addon exceeds 256 KiB');this.event('addonImported',{text:await fs.readFile(file,'utf8')});return true;}
+      case 'addonExport':{const pkg=require(require('./assets.cjs').ui+'/addon-packages.js').parse(d.package);return this.system.saveData?.(JSON.stringify(pkg,null,2)+'\n','workspace.studio-addon')||false;}
       case 'performanceEvent':return true;
       case 'performanceReport':return {platform:process.platform,events:[]};
       case 'toolPacks':return this.toolPacks();
@@ -102,7 +106,7 @@ class DesktopHost {
     }
   }
   async serializeWrite(key,fn){const previous=this.operations.get(key)||Promise.resolve();const next=previous.catch(()=>{}).then(fn);this.operations.set(key,next);try{return await next;}finally{if(this.operations.get(key)===next)this.operations.delete(key);}}
-  trust(){return{root:this.ws.root,trusted:!!this.ws.prefs.trustedRoots?.[this.ws.root]};}
+  trust(){const root=this.ws.prefs.projects[this.ws.prefs.current]?.path||'';return{root,trusted:!!root&&!!this.ws.prefs.trustedRoots?.[root]};}
   toolPacks(){const t=this.tools.tools,disabled=this.ws.prefs.settings.disabledTools||{};return{delivery:'system',base:{},packs:[
     {id:'platform',name:'System C/C++ libraries',description:'System platform libraries',available:true},
     {id:'cmake',name:'CMake + Ninja',description:'System CMake and Ninja',available:!!t.cmake&&!!t.ninja,path:t.cmake},

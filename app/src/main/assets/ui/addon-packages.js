@@ -10,7 +10,7 @@
     const text=typeof input==='string'?input:JSON.stringify(input);if(typeof text!=='string'||new TextEncoder().encode(text).length>262144)fail('Addon package exceeds 256 KiB');let pkg;try{pkg=JSON.parse(text);}catch{fail('Invalid addon JSON');}
     if(!object(pkg)||pkg.format!=='cppstudio.addon'||pkg.formatVersion!==1||Object.keys(pkg).some(k=>!['format','formatVersion','manifest','contributions'].includes(k)))fail('Unsupported data addon format');
     const m=core.manifest(pkg.manifest);if(m.id.length>100||!label(m.name)||typeof m.license!=='string'||!m.license||m.license.length>100)fail('Addon name or license is missing');
-    if(m.capabilities.some(c=>!['ui.commands','ui.theme'].includes(c)))fail('Executable or unsupported addon capability');
+    if(m.capabilities.some(c=>!['ui.commands','ui.theme','projects.templates'].includes(c)))fail('Executable or unsupported addon capability');
     if(!Array.isArray(pkg.contributions)||pkg.contributions.length>128)fail('Invalid addon contributions');const ids=new Set();
     for(const c of pkg.contributions){
       if(!object(c)||Object.keys(c).some(k=>!['point','id','value'].includes(k))||typeof c.id!=='string'||!c.id.startsWith(m.id+'/')||c.id.length>180||ids.has(c.id))fail('Invalid or duplicate contribution id');ids.add(c.id);
@@ -19,6 +19,10 @@
       }else if(c.point==='themes'){
         if(!m.capabilities.includes('ui.theme')||!object(c.value)||!Object.keys(c.value).length)fail('Invalid addon theme');
         for(const [mode,values]of Object.entries(c.value)){if(!['dark','light'].includes(mode)||!object(values)||!Object.keys(values).length)fail('Invalid theme mode');for(const [key,color]of Object.entries(values))if(!COLORS.includes(key)||typeof color!=='string'||!/^#[a-f0-9]{6}([a-f0-9]{2})?$/i.test(color))fail('Unsupported theme color');}
+      }else if(c.point==='projectTemplates'){
+        const templates=typeof module==='object'&&module.exports?require('./project-templates.js'):globalThis.StudioProjectTemplates;
+        if(!m.capabilities.includes('projects.templates')||!c.value?.id?.startsWith(m.id+'.'))fail('Invalid template contribution ownership');
+        templates.parse(c.value);
       }else fail('Unsupported addon extension point');
     }
     pkg.manifest=m;return freeze(pkg);

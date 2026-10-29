@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {DesktopHost}=require('../host.cjs');
 const python=process.env.DEVFORGE_TEST_PYTHON;
 test('Python scripts and notebook cells use actual processes, workspace trust and shared state',{skip:!python},async()=>{
- const dir=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-python-')),events=[],host=await new DesktopHost(dir,(type,value)=>events.push({type,value})).init();
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-python-')),events=[],host=await new DesktopHost(dir,(type,value)=>events.push({type,value})).init();await host.ws.newProject('fixture');
  try{
   host.ws.prefs.settings.pythonExecutable=python;host.addons.data.profile.resolved=['studio.python','studio.notebooks'];
   const main=path.join(host.ws.root,'main.py'),book=path.join(host.ws.root,'notebook.ipynb');await host.ws.write(main,'import os, sys\nprint(os.getcwd())\nprint(sys.argv[1])\nprint(os.environ["DF_TEST"])\n');await host.ws.write(book,'{}');

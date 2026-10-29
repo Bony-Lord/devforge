@@ -1,9 +1,9 @@
 'use strict';
 const assert=require('node:assert/strict'),profiles=require('../app/src/main/assets/ui/run-configurations.js'),warnings=require('../app/src/main/assets/ui/runtime-warnings.js');
 const base=profiles.defaults({compiler:'gcc'},'main.cpp',true);profiles.validate(base);
-assert.equal(base.active,'cmake-debug');assert.equal(base.profiles.length,2);assert.equal(base.configurations.length,3);
+assert.equal(base.active,'main');assert.equal(base.profiles.length,2);assert.equal(base.configurations.length,1);
 const resolved=profiles.resolve(base,{fontSize:17},'/project','/project/src/active.cpp');assert.equal(resolved.options.buildMode,'cmake');assert.equal(resolved.options.fontSize,17);assert.equal(resolved.options.buildDirectory,'.forge/cmake-debug');
-const next=structuredClone(base);next.active='file';assert.equal(profiles.resolve(next,{},'/project','/project/other.cpp').path,'/project/other.cpp');next.configurations[1].source='src/with spaces.cpp';assert.equal(profiles.resolve(next,{},'/project','/project/other.cpp').path,'/project/src/with spaces.cpp');
+const next=structuredClone(base);next.configurations.push({...structuredClone(base.configurations[0]),id:'file',type:'file',source:''});next.active='file';profiles.validate(next);assert.equal(profiles.resolve(next,{},'/project','/project/other.cpp').path,'/project/other.cpp');next.configurations[1].source='src/with spaces.cpp';assert.equal(profiles.resolve(next,{},'/project','/project/other.cpp').path,'/project/src/with spaces.cpp');
 next.profiles[0].environment={A:'profile',B:'kept'};next.configurations[1].environment={A:'run'};assert.deepEqual(profiles.resolve(next,{},'/project','').options.environment,{A:'run',B:'kept'});
 for(const mutate of [v=>v.active='missing',v=>v.profiles.push(structuredClone(v.profiles[0])),v=>v.configurations[0].profile='missing',v=>v.profiles[0].buildDirectory='../outside',v=>v.profiles[0].buildDirectory='/absolute',v=>v.profiles[0].environment={'A=B':'invalid'},v=>v.configurations[0].args=['bad\0argument'],v=>v.profiles[0].runtimeChecks='address']){const value=structuredClone(base);mutate(value);assert.throws(()=>profiles.validate(value));}
 const clang=structuredClone(base);clang.profiles[0].compiler='clang';clang.profiles[0].runtimeChecks='address';profiles.validate(clang);

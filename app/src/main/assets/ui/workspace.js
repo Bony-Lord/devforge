@@ -3,7 +3,7 @@ const workspaceMethods={
   initWorkspace(){
     this.primaryEditor=this.editor;this.attachWorkspaceEditor(this.editor);registerForgeThemes(monaco);
     this.settings.uiScale??=100;this.settings.codeScale??=100;this.settings.layout??={};
-    this.scaleCSS=Promise.all(['style.css','project-tools.css','clion.css','tools.css','interaction.css','compact-ui.css','dock-windows.css','addons.css','addon-picker.css','notebook.css','project-context.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
+    this.scaleCSS=Promise.all(['style.css','project-tools.css','clion.css','tools.css','interaction.css','compact-ui.css','dock-windows.css','addons.css','addon-picker.css','notebook.css','project-context.css','project-templates.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
     this.applyUIScale();
     onNative('keyboardGeometry',geometry=>{this.keyboardGeometry=geometry;requestAnimationFrame(()=>this.updateKeyboardOcclusion());});
     window.addEventListener('resize',()=>this.updateKeyboardOcclusion());
@@ -18,6 +18,7 @@ const workspaceMethods={
   },
   toggleSide(name){const visible=innerWidth<=620?document.body.classList.contains('sidebar-mobile-open'):!document.body.classList.contains('sidebar-hidden');if(visible&&this.currentSide===name){document.body.classList.add('sidebar-hidden');document.body.classList.remove('sidebar-mobile-open');$$('.activity.active').forEach(b=>b.classList.remove('active'));this.settings.layout.sidebarHidden=true;this.layoutEditors();this.saveWorkspaceSettings();return;}if(name==='git')this.showGit().catch(safeError);else this.showSide(name);this.settings.layout.sidebarHidden=false;this.layoutEditors();this.saveWorkspaceSettings();},
   attachWorkspaceEditor(editor){
+    StudioEditorLifecycle.attach(editor);
     const container=editor.getDomNode();
     editor.onDidFocusEditorWidget(()=>{this.editor=editor;const model=editor.getModel(),doc=model&&this.docs.get(model.uri.toString());if(doc){this.active=doc;this.renderTabs();this.updateStandard();$('#breadcrumb').textContent=relative(doc.path,this.state.root).replaceAll('/','  ›  ');$('#readonlyBadge').classList.toggle('hidden',!doc.readonly);}});
     editor.onDidChangeCursorPosition(e=>{$('#cursorStatus').textContent=`Стр ${e.position.lineNumber}, стлб ${e.position.column}`;this.revealCaretAboveKeyboard(editor);});

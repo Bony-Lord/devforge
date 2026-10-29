@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {DesktopHost}=require('../host.cjs');
 test('manual builds honor cwd/env, fail in order and can be stopped',async()=>{
- const dir=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-actions-')),events=[],host=await new DesktopHost(dir,(type,value)=>events.push({type,value})).init();
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-actions-')),events=[],host=await new DesktopHost(dir,(type,value)=>events.push({type,value})).init();await host.ws.newProject('fixture');
  try{
   await host.handle('workspaceTrustSet',{trusted:true});await fs.mkdir(path.join(host.ws.root,'sub'));
   const options={workingDirectory:'sub',environment:{DEVFORGE_ACTION_TEST:'ok'},buildCommands:[[process.execPath,'-e','console.log(process.cwd()); console.log(process.env.DEVFORGE_ACTION_TEST);process.exit(7)'],[process.execPath,'-e','console.log("SHOULD_NOT_RUN")']]};

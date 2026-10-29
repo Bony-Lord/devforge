@@ -10,7 +10,7 @@ async function main(){
   const config={appId:'dev.cppstudio.desktop',productName:'DevForge',copyright:'Copyright (c) DevForge contributors',
     artifactName:'DevForge-'+pkg.version+'-${os}-${arch}-setup.${ext}',directories:{output,buildResources:__dirname},
     extraMetadata:{homepage:'https://github.com/Bony-Lord/devforge',author:'DevForge contributors'},
-    publish:null,electronVersion:require('./node_modules/electron/package.json').version,
+    publish:null,compression:'maximum',electronVersion:require('./node_modules/electron/package.json').version,
     win:{executableName:'DevForge',target:'nsis',signAndEditExecutable:false},
     nsis:{oneClick:false,perMachine:false,allowElevation:false,allowToChangeInstallationDirectory:true,createDesktopShortcut:true,createStartMenuShortcut:true,shortcutName:'DevForge',runAfterFinish:false,deleteAppDataOnUninstall:false,installerLanguages:['en_US','ru_RU'],license:path.join(__dirname,'../LICENSE')},
     linux:{executableName:'devforge',target:['deb'],category:'Development',maintainer:'DevForge contributors',synopsis:'Modular development environment',description:pkg.description,icon:path.join(__dirname,'icon.png')},

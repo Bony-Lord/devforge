@@ -41,7 +41,7 @@ final class PythonEngine {
         JSONObject options=d.optJSONObject("options");if(options==null)options=ide.settings();File cwd=BuildProfiles.workingDirectory(ide,options);Map<String,String> environment=BuildProfiles.environment(options);String key=cwd.getCanonicalPath()+new TreeMap<>(environment).toString();
         if(kernel!=null&&kernel.isAlive()&&path.equals(notebook)&&key.equals(contextKey))return info().put("session",generation);
         stop();String python=executable();File script=new File(ide.app.getFilesDir(),"python/kernel.py");script.getParentFile().mkdirs();
-        try(InputStream in=ide.app.getAssets().open("python/kernel.py")){Files.copy(in,script.toPath(),StandardCopyOption.REPLACE_EXISTING);}
+        for(String asset:Arrays.asList("kernel.py","notebook_magics.py"))try(InputStream in=ide.app.getAssets().open("python/"+asset)){Files.copy(in,new File(script.getParentFile(),asset).toPath(),StandardCopyOption.REPLACE_EXISTING);}
         Process process=ide.spawn(Arrays.asList(python,"-u",script.getAbsolutePath()),cwd,false,environment);kernel=process;notebook=path;contextKey=key;long session=++generation;
         ide.pool.execute(()->read(process,session,path));ide.pool.execute(()->ide.pump(process.getErrorStream(),"notebook","stderr"));
         return info().put("session",session);

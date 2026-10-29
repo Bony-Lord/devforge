@@ -2,6 +2,7 @@
 class StudioProjectActions {
   constructor(ide){this.ide=ide;this.legacyBuild=ide.build.bind(ide);this.legacyDebug=ide.debugBuild.bind(ide);ide.build=run=>this.dispatch(run?'run':'build');ide.debugBuild=()=>this.dispatch('debug');this.running=false;}
   descriptor(kind){return StudioProjectPolicy.action(this.ide.configurations.document,kind);}
+  syncAvailability(){const build=!!this.descriptor('build');for(const button of document.querySelectorAll('[data-tool="build"],[data-panel="build"]'))button.hidden=!build;if(!build){if(this.ide.windows?.outputMode==='build')this.ide.windows.show('console');else if(!this.ide.windows&&this.ide.currentPanel==='build')this.ide.showPanel('console');}}
   provider(kind){const action=this.descriptor(kind);if(!action)return null;const entry=this.ide.addons.registry.list('actionProviders').find(e=>e.value.id===action.provider&&e.value.kind===kind);if(!entry)return null;const value=entry.value;
     if(value.feature&&!this.ide.addons.host.enabled(value.feature))return null;
     if(value.compiler){const compiler=this.ide.configurations.current()?.options.compiler||this.ide.settings.compiler||'gcc';if(!this.ide.addons.host.runtimeEnabled(compiler))return null;}return value;

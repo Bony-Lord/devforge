@@ -1,0 +1,102 @@
+{
+  "format": "cppstudio.addon",
+  "formatVersion": 1,
+  "manifest": {
+    "schemaVersion": 1,
+    "id": "example.python-tool",
+    "version": "1.0.0",
+    "api": {
+      "min": "0.1.1",
+      "maxExclusive": "0.2.0"
+    },
+    "name": "Python tool templates",
+    "license": "CC0-1.0",
+    "capabilities": [
+      "projects.templates"
+    ],
+    "dependencies": {},
+    "conflicts": {}
+  },
+  "contributions": [
+    {
+      "point": "projectTemplates",
+      "id": "example.python-tool/project",
+      "value": {
+        "format": "devforge.template",
+        "version": 1,
+        "id": "example.python-tool.project",
+        "kind": "project",
+        "name": {
+          "ru": "Мой Python-инструмент",
+          "en": "My Python tool"
+        },
+        "parameters": [
+          {
+            "id": "message",
+            "label": {
+              "ru": "Приветствие",
+              "en": "Greeting"
+            },
+            "type": "text",
+            "default": "Hello!"
+          }
+        ],
+        "requires": {
+          "addons": [
+            "studio.pack.essentials",
+            "studio.pack.python"
+          ],
+          "tools": [
+            "python"
+          ]
+        },
+        "files": [
+          {
+            "path": "main.py",
+            "text": "def main():\n    print({{message|json}})\n\n\nif __name__ == \"__main__\":\n    main()\n"
+          }
+        ],
+        "project": {
+          "projectType": "python",
+          "active": "main",
+          "profiles": [
+            {
+              "id": "python",
+              "name": "Python",
+              "kind": "interpreter",
+              "environment": {}
+            }
+          ],
+          "configurations": [
+            {
+              "id": "main",
+              "name": "Main",
+              "type": "python",
+              "profile": "python",
+              "target": "",
+              "source": "main.py",
+              "args": [],
+              "environment": {},
+              "workingDirectory": ".",
+              "executable": "",
+              "buildBeforeRun": false,
+              "actions": {
+                "run": {
+                  "provider": "python.run"
+                }
+              }
+            }
+          ],
+          "addons": {
+            "mode": "project",
+            "requested": [
+              "studio.pack.essentials",
+              "studio.pack.python"
+            ]
+          }
+        },
+        "entryFile": "main.py"
+      }
+    }
+  ]
+}

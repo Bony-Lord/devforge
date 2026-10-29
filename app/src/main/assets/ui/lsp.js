@@ -26,6 +26,7 @@ class ClangdClient {
     }
   }
   async start(){
+    if(!this.ide.state.root){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'No project open':'Проект не открыт','pending');return;}
     if(!this.ide.startupComplete||this.ide.setupOpen){this.startDeferred=true;return;}this.startDeferred=false;
     if(this.ide.state.trust?.trusted===false){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'Restricted mode':'Ограниченный режим','pending');return;}
     if(this.ide.addons?.host.lastFeatures&&!this.ide.addons.host.enabled('clangd')){this.ready=false;this.ide.lspStatus(this.ide.addons.text('Анализ отключён аддоном','Analysis disabled by addon'),'pending');return;}

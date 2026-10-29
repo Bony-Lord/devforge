@@ -1,0 +1,76 @@
+{
+  "format": "devforge.template",
+  "version": 1,
+  "id": "example.python-tool.project",
+  "kind": "project",
+  "name": {
+    "ru": "Мой Python-инструмент",
+    "en": "My Python tool"
+  },
+  "parameters": [
+    {
+      "id": "message",
+      "label": {
+        "ru": "Приветствие",
+        "en": "Greeting"
+      },
+      "type": "text",
+      "default": "Hello!"
+    }
+  ],
+  "requires": {
+    "addons": [
+      "studio.pack.essentials",
+      "studio.pack.python"
+    ],
+    "tools": [
+      "python"
+    ]
+  },
+  "files": [
+    {
+      "path": "main.py",
+      "text": "def main():\n    print({{message|json}})\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    }
+  ],
+  "project": {
+    "projectType": "python",
+    "active": "main",
+    "profiles": [
+      {
+        "id": "python",
+        "name": "Python",
+        "kind": "interpreter",
+        "environment": {}
+      }
+    ],
+    "configurations": [
+      {
+        "id": "main",
+        "name": "Main",
+        "type": "python",
+        "profile": "python",
+        "target": "",
+        "source": "main.py",
+        "args": [],
+        "environment": {},
+        "workingDirectory": ".",
+        "executable": "",
+        "buildBeforeRun": false,
+        "actions": {
+          "run": {
+            "provider": "python.run"
+          }
+        }
+      }
+    ],
+    "addons": {
+      "mode": "project",
+      "requested": [
+        "studio.pack.essentials",
+        "studio.pack.python"
+      ]
+    }
+  },
+  "entryFile": "main.py"
+}
