@@ -7,6 +7,10 @@ category/search navigation, and reachable controls at phone width. Icon inventor
 tests catch silent fallback to generic file symbols. Cell execution smoke selects
 the explicit run action rather than relying on its position among buttons.
 The exact beta results are in `verification-design-beta.json`.
+Temporary project ownership checks resolve real paths before comparing them:
+Windows CI can redirect TEMP through a junction to another drive. The dedicated
+fixture test covers such an alias and still rejects the fixture root and outside
+projects. This preserves the guard around the trash/restore test.
 
 The previous checks did not adequately cover complete user workflows. In
 particular, a disabled Create button, project transitions and modal geometry

@@ -180,7 +180,7 @@ async function main(){
   await evaluate("forge.projectLibrary.archive(StudioChoices.buttons.get(document.querySelector('#projectSelect')))");
   await check("Removed projects have a discoverable restore action","StudioPopover.current.element.textContent.includes('direct-create')&&StudioPopover.current.element.textContent.includes('Восстановить в списке')");
   await evaluate("(async()=>{StudioPopover.close();await forge.saveAll();await native('newFile',{path:'keep-exact.txt',text:'unique project data\\n'});})()");
-  const fixtureRoot=await evaluate('forge.state.root');const relative=path.relative(directory,fixtureRoot);assert(relative&&!relative.startsWith('..')&&!path.isAbsolute(relative),'Only the fresh fixture project may be moved');
+  const fixtureRoot=await evaluate('forge.state.root');await require('./test-fixtures.cjs').assertFixturePath(directory,fixtureRoot);
   await evaluate("forge.projectLibrary.menu(forge.state.project,StudioChoices.buttons.get(document.querySelector('#projectSelect')))");
   await evaluate("[...StudioPopover.current.element.querySelectorAll('button')].find(b=>b.textContent.includes('Переместить проект')).click()");
   await until("!!StudioPopover.current?.element.querySelector('.studio-danger')");
