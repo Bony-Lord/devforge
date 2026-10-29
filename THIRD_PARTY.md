@@ -46,3 +46,5 @@ Optional Python intelligence uses Jedi 0.20.1 and parso 0.8.7 (MIT). The separat
 ### Markdown rendering
 
 markdown-it 14.1.0 (MIT), bundled browser renderer. Source: https://github.com/markdown-it/markdown-it/tree/14.1.0 . License: licenses/markdown-it-LICENSE. Raw HTML is disabled; remote image loading is disabled in previews.
+
+Optional Vim editing uses monaco-vim 0.4.4 (MIT), including CodeMirror Vim code with its MIT notice. The pinned bundle and notices download as a separate asset pack; see licenses/monaco-vim-LICENSE and licenses/monaco-vim-codemirror-LICENSE.

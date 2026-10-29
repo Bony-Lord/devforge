@@ -101,5 +101,90 @@
         }
       }
     ]
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.vim",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Vim",
+        "en": "Vim"
+      },
+      "description": {
+        "ru": "Режимы Normal/Insert/Visual, движения и команды Vim в редакторе Monaco. Движок загружается отдельно.",
+        "en": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately."
+      },
+      "publisher": "DevForge",
+      "license": "MIT",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "installationGroup": "editing",
+      "tags": [
+        "vim",
+        "editor"
+      ],
+      "readme": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately.",
+      "externalTool": "vim-assets",
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
+      ]
+    },
+    "contributions": [],
+    "module": "return (async()=>{\n if(!window.StudioDesktop)throw Error('Vim requires the desktop Monaco editor');\n if(!window.__studioVimAlias){define('monaco-editor/esm/vs/editor/editor.api',[],()=>monaco);window.__studioVimAlias=true;}\n const library=await new Promise((resolve,reject)=>require(['vendor/monaco-vim.umd'],resolve,reject));\n const status=api.ui.element('span','','studio-vim-status');document.querySelector('.statusbar').prepend(status);api.use(()=>status.remove());\n const modes=new Map();let enabled=true;\n function attach(){if(!enabled)return;for(const editor of monaco.editor.getEditors?.()||[api.editor.active]){if(modes.has(editor)||!editor.getDomNode()?.isConnected||editor.getModel()?.isDisposed())continue;const mode=library.initVimMode(editor,status),listener=editor.onDidDispose(()=>{const entry=modes.get(editor);if(entry){modes.delete(editor);entry.listener.dispose();entry.mode.dispose();}});modes.set(editor,{mode,listener});}}\n function detach(){for(const entry of modes.values()){entry.listener.dispose();entry.mode.dispose();}modes.clear();status.textContent='';}\n api.use(detach);api.use(monaco.editor.onDidCreateEditor(()=>queueMicrotask(attach)));api.hook(api.raw.application,'openFile',async(next,...args)=>{const value=await next(...args);attach();return value;});\n api.commands.register('toggle',api.raw.application.settings.language==='en'?'Vim: toggle mode':'Vim: включить / выключить режим',()=>{enabled=!enabled;enabled?attach():detach();});\n api.ui.style('.studio-vim-status{color:#b6cbae;font:11px monospace;display:flex;align-items:center;gap:8px;min-width:50px}.studio-vim-status input{max-width:220px;height:21px;border:0;padding:0 3px}');attach();\n})();\n"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.code-map",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Карта функций",
+        "en": "Function map"
+      },
+      "description": {
+        "ru": "Карта определений и связей по именам в текущем файле C/C++ или Python. Переход к коду из карты.",
+        "en": "A map of definitions and name-based links in the current C/C++ or Python file, with navigation to code."
+      },
+      "publisher": "DevForge",
+      "license": "MIT",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "conflicts": {},
+      "kind": "feature",
+      "installationGroup": "editing",
+      "tags": [
+        "code-map",
+        "editor"
+      ],
+      "readme": "A map of definitions and name-based links in the current C/C++ or Python file, with navigation to code.",
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
+      ]
+    },
+    "contributions": [],
+    "module": "const names=new Map(),ru=api.raw.application.settings.language!=='en';\napi.commands.register('open',ru?'Визуализация кода: карта функций':'Code visualization: function map',()=>{\n const source=api.editor.document;if(!source||source.virtual){api.ui.toast(ru?'Откройте файл с кодом':'Open a source file');return;}\n const key=source.path.replace(/[^a-zA-Z0-9]/g,'').slice(-60);let view=names.get(key);\n if(!view){view=api.views.register(key,source.path.split(/[\\\\/]/).pop()+' · '+(ru?'Карта':'Map'),container=>{\n  const title=api.ui.element('h2',source.path.split(/[\\\\/]/).pop()),bar=api.ui.element('div',undefined,'code-map-toolbar'),refresh=api.ui.element('button',ru?'Обновить':'Refresh','primary'),hint=api.ui.element('small',ru?'Связи по именам в текущем файле':'Name-based links in the current file'),graph=api.ui.element('div',undefined,'code-map-graph');bar.append(refresh,hint);container.append(title,bar,graph);\n  function draw(){graph.replaceChildren();if(source.model.isDisposed())return;const text=source.model.getValue().slice(0,1000000),language=source.model.getLanguageId(),nodes=[];\n   const clean=text.replace(/\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'/g,s=>s.replace(/[^\\n]/g,' '));\n   const pattern=language==='python'?/^(\\s*)(?:async\\s+)?def\\s+([\\w]+)\\s*\\([^\\n]*\\)\\s*(?:->[^:\\n]+)?\\s*:/gm:/(?:[\\w:*&<>]+\\s+)+([\\w:~]+)\\s*\\([^;{}]*\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?(?:->[^{}]+)?\\s*\\{/g;\n   let match;while((match=pattern.exec(clean))&&nodes.length<100){const name=language==='python'?match[2]:match[1];if(['if','for','while','switch','catch'].includes(name))continue;const line=clean.slice(0,match.index).split('\\n').length;let end=clean.length;if(language!=='python'){let depth=1,index=pattern.lastIndex;while(index<clean.length&&depth){if(clean[index]==='{')depth++;if(clean[index]==='}')depth--;index++;}end=index;}else{const lines=clean.slice(pattern.lastIndex).split('\\n'),indent=match[1].length;let offset=pattern.lastIndex;for(const line of lines){if(line.trim()&&line.search(/\\S/)<=indent&&offset>pattern.lastIndex){end=offset;break;}offset+=line.length+1;}}nodes.push({name,line,body:clean.slice(pattern.lastIndex,end)});}\n   if(!nodes.length){graph.append(api.ui.element('p',ru?'Определений функций не найдено':'No function definitions found'));return;}\n   for(const node of nodes){const card=api.ui.element('article',undefined,'code-map-node'),open=api.ui.element('button',node.name+' · '+node.line);open.onclick=()=>api.workspace.open(source.path).then(()=>{api.editor.active.setPosition({lineNumber:node.line,column:1});api.editor.active.revealLineInCenter(node.line);});card.append(open);const calls=nodes.filter(other=>other!==node&&new RegExp('\\\\b'+other.name.split('::').pop()+'\\\\s*\\\\(').test(node.body));for(const target of calls){const link=api.ui.element('button','→ '+target.name,'code-map-link');link.onclick=()=>api.workspace.open(source.path).then(()=>{api.editor.active.setPosition({lineNumber:target.line,column:1});api.editor.active.revealLineInCenter(target.line);});card.append(link);}graph.append(card);}\n  }\n  refresh.onclick=draw;const changed=source.model.onDidChangeContent(draw);draw();return()=>changed.dispose();\n });names.set(key,view);}return view.open();\n});\napi.ui.style('.code-map-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}.code-map-graph{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;align-items:start}.code-map-node{border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:7px;background:var(--panel);padding:12px;display:flex;flex-direction:column;gap:7px}.code-map-node>button{text-align:left;justify-content:flex-start}.code-map-node>button:first-child{font-family:monospace;font-weight:600;color:var(--cyan);padding:4px}.code-map-link{color:var(--text);padding:4px 8px;border-left:1px solid var(--line);margin-left:8px}');\n"
   }
 ]

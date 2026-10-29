@@ -1,6 +1,6 @@
 {
   "name": "devforge-desktop",
-  "version": "0.6.0-beta.3",
+  "version": "0.7.0-alpha.1",
   "private": true,
   "description": "DevForge modular IDE for Windows, Linux and macOS",
   "license": "MIT",

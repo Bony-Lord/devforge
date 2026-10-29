@@ -27,7 +27,7 @@ class StudioAddons {
     return this.apply(this.profile,!!saved.safeMode||!!saved.activating);
   }
   adopt(library){
-    const manifests=[...this.builtinCatalog],factories=new Map(this.builtinFactories);for(const entry of library.packages){const pkg=StudioAddonPackages.parse(entry.package);manifests.push(pkg.manifest);factories.set(pkg.manifest.id+'@'+pkg.manifest.version,StudioAddonPackages.factory(pkg));}
+    const manifests=[...this.builtinCatalog],factories=new Map(this.builtinFactories);for(const entry of library.packages){const pkg=StudioAddonPackages.parse(entry.package);manifests.push(pkg.manifest);factories.set(pkg.manifest.id+'@'+pkg.manifest.version,StudioAddonPackages.factory(pkg,{ide:this.app,trusted:entry.accepted===true||entry.source==='bundled-catalog'}));}
     this.library=library;this.catalog=manifests;this.manager.catalog=manifests;this.manager.factories=factories;
   }
   pin(requested,safeMode=false){if(safeMode)return requested;const selected=new Map(StudioAddonCore.resolve(this.catalog,requested).map(m=>[m.id,m.version]));return requested.map(r=>{const id=typeof r==='string'?r:r.id;return {id,version:selected.get(id)};});}
@@ -43,7 +43,7 @@ class StudioAddons {
   commands(){return this.registry.list('commands').map(entry=>({label:this.local(entry.value.label),run:async()=>{try{switch(entry.value.action){case 'editor.focus':await this.app.editor.focus();break;case 'editor.resetZoom':this.app.setCodeScale(100);break;case 'ui.settings':this.app.openSettings();break;case 'ui.focusMode':this.app.toggleFocusMode();break;default:throw Error('Unknown addon action');}}catch(error){safeError(error);}}}));}
   toggle(id,version){return this.ready.then(()=>this.queue(async()=>{if(this.app.running||this.app.busy||this.app.projectActions?.running||this.app.debugger?.active)throw Error(this.text('Сначала остановите программу','Stop the program first'));this.projectScoped=false;const direct=this.baseProfile.some(r=>(typeof r==='string'?r:r.id)===id),active=this.manager.active.get(id)?.manifest.version,current=this.baseProfile.filter(r=>(typeof r==='string'?r:r.id)!==id);if(!direct||active!==version)current.push({id,version});await this.host.prepare(StudioAddonCore.resolve(this.catalog,current));return this.applyNow(current,false);}));}
   async transact(request){
-    const previous=await native('addonLibrary');let token;
+    const previous=await native('addonLibrary');request={...request,profile:{...previous.profile,...request.profile,resolved:request.profile.resolved||[]}};let token;
     try{const staged=await native('addonBegin',{...request,revision:previous.revision});token=staged.token;this.adopt(staged.library);await this.applyNow(request.profile.requested,request.profile.safeMode);this.library=await native('addonFinish',{token,commit:true});}
     catch(error){let restored=previous;if(token)try{restored=await native('addonFinish',{token,commit:false});}catch(rollback){this.errors.push({message:this.text('Не удалось записать откат; следующий запуск восстановит журнал. ','Rollback could not be saved; the next launch will recover the journal. ')+rollback.message});}this.adopt(restored);await this.applyNow(previous.profile.requested,previous.profile.safeMode).catch(recovery=>this.errors.push({message:recovery.message}));throw error;}
   }

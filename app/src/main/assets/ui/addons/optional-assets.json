@@ -21,5 +21,39 @@
       }
     ],
     "license": "MIT"
+  },
+  {
+    "id": "vim-assets",
+    "name": {
+      "ru": "Vim · движок Monaco Vim",
+      "en": "Vim · Monaco Vim engine"
+    },
+    "version": "0.4.4",
+    "platforms": [
+      "win32",
+      "linux",
+      "darwin"
+    ],
+    "files": [
+      {
+        "path": "vendor/monaco-vim.umd.js",
+        "url": "https://raw.githubusercontent.com/Bony-Lord/devforge/90fad88855ae96c20eda3c1d8c6f0fcf1ed0044c/app/src/main/assets/ui/vendor/monaco-vim.umd.js",
+        "bytes": 372835,
+        "sha256": "bb515631bfb70ea350534a39b2fc4ee73d9ab59bbe92cbc4d408614549518f96"
+      },
+      {
+        "path": "vendor/monaco-vim-LICENSE.txt",
+        "url": "https://raw.githubusercontent.com/Bony-Lord/devforge/90fad88855ae96c20eda3c1d8c6f0fcf1ed0044c/licenses/monaco-vim-LICENSE",
+        "bytes": 1053,
+        "sha256": "8dd241ac5dbf5d893eff457e4a26df55c360b30099f4f7848a858c1bf89e08ac"
+      },
+      {
+        "path": "vendor/monaco-vim-codemirror-LICENSE.txt",
+        "url": "https://raw.githubusercontent.com/Bony-Lord/devforge/90fad88855ae96c20eda3c1d8c6f0fcf1ed0044c/licenses/monaco-vim-codemirror-LICENSE",
+        "bytes": 1138,
+        "sha256": "23182c2093f18caa34d4a8539ccbb7a0fa0651e645e26a43833be2f9ef422d5f"
+      }
+    ],
+    "license": "MIT"
   }
 ]

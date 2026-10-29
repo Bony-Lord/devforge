@@ -1,6 +1,7 @@
 'use strict';
 const treeMethods={
   initTree(){
+    let timer;const schedule=()=>{clearTimeout(timer);if(this.settings.autoRefreshTree===false||document.hidden||!this.state.root)return;timer=setTimeout(()=>{if(this.treeMoving||this.treeRename||this.treeDrag){schedule();return;}this.refreshTree().catch(error=>console.warn('Project tree',error.message));},300);};onNative('treeChanged',event=>{if(event.root===this.state.root)schedule();});window.addEventListener('focus',schedule);document.addEventListener('visibilitychange',schedule);if(!window.StudioDesktop)setInterval(schedule,5000);
     this.treeSelection=this.state.session?.project===this.state.project?this.state.session.treeSelection:null;
     document.addEventListener('pointerdown',e=>{if(this.treeDrag)return;if(!e.target.closest('#sidebar,#menu,dialog,.studio-choice-popover,.studio-inline-popover'))this.clearTreeSelection();else if(e.target.closest('#tree')&&!e.target.closest('.tree-row'))this.clearTreeSelection();},true);
     onNative('editorDismissPopover',()=>this.clearTreeSelection());

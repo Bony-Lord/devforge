@@ -708,5 +708,25 @@
       "ru": "Window engine — Отдельно загружаемый движок группировки и привязки окон. Установите инструмент, затем включите соответствующую функцию IDE. На ПК доступность зависит от платформы и установленных системных инструментов.",
       "en": "Window engine — Separately downloaded engine for window grouping and docking. Install the tool, then enable its IDE integration. Desktop availability depends on the platform and installed system tools."
     }
+  },
+  "studio.vim": {
+    "summary": {
+      "ru": "Режимы Normal/Insert/Visual, движения и команды Vim в редакторе Monaco. Движок загружается отдельно.",
+      "en": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately."
+    },
+    "details": {
+      "ru": "Режимы Normal/Insert/Visual, движения и команды Vim в редакторе Monaco. Движок загружается отдельно. Включается и удаляется в каталоге дополнений.",
+      "en": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately. Enable and uninstall it in the extension catalog."
+    }
+  },
+  "studio.code-map": {
+    "summary": {
+      "ru": "Карта определений и связей по именам в текущем файле C/C++ или Python. Переход к коду из карты.",
+      "en": "A map of definitions and name-based links in the current C/C++ or Python file, with navigation to code."
+    },
+    "details": {
+      "ru": "Карта определений и связей по именам в текущем файле C/C++ или Python. Переход к коду из карты. Включается и удаляется в каталоге дополнений.",
+      "en": "A map of definitions and name-based links in the current C/C++ or Python file, with navigation to code. Enable and uninstall it in the extension catalog."
+    }
   }
 }

@@ -1,7 +1,7 @@
 /* Portable addon kernel. No DOM, Android bridge, filesystem or network access. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.StudioAddonCore=api;})(globalThis,()=>{
   'use strict';
-  const API_VERSION='0.1.1',ID=/^[a-z][a-z0-9-]*\.[a-z][a-z0-9.-]*$/;
+  const API_VERSION='0.1.2',ID=/^[a-z][a-z0-9-]*\.[a-z][a-z0-9.-]*$/;
   const fail=message=>{throw Error(message);};
   function version(value){if(typeof value!=='string'||! /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value))fail('Invalid version: '+value);const parts=value.split('.').map(Number);if(parts.some(n=>!Number.isSafeInteger(n)))fail('Version is too large');return parts;}
   function compare(a,b){const x=version(a),y=version(b);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]<y[i]?-1:1;return 0;}

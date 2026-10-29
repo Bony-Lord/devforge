@@ -53,3 +53,72 @@ button.primary,.studio-mini-form button.primary{background:#456884;color:#fff;bo
 .tree-row.tree-hidden{background:color-mix(in srgb,var(--yellow) 7%,transparent)}.tree-row.tree-hidden:hover{background:color-mix(in srgb,var(--yellow) 12%,transparent)}.tree-row.tree-hidden.selected{background:color-mix(in srgb,var(--yellow) 17%,var(--bg))}.tree-row.tree-hidden :is(.tree-label,.file-icon,svg){color:#c4beaf}.tree-row.tree-hidden .tree-label{opacity:1}.notebook-output[data-source=Runtime]:before{content:'[Runtime]';display:block;color:var(--red);font:11px Inter,sans-serif;margin-bottom:7px}
 .market-sidebar .market-filters{align-items:stretch;flex-wrap:nowrap}.market-sidebar .market-filters>input{flex:0 0 30px;min-height:30px;max-height:30px}.market-filter-options select{flex:1 1 0}
 .studio-resource-settings>label.resource-gpu{flex-direction:row;align-items:center;justify-content:space-between}.studio-resource-settings .resource-gpu>select{height:31px;text-align:left;max-width:270px}.studio-desktop .tree-drag-handle{display:none!important}
+
+/* Native scrollbars deliberately use the WebKit theme rather than Chromium's
+   standard scrollbar-color override, which suppresses the custom thumb rules. */
+:root{--green:#70bc91;--cyan:#87b6d1;--accent:#8babce;--radius:6px}
+*{scrollbar-width:auto;scrollbar-color:auto}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-track{background:#0000000b;border-radius:5px}
+*::-webkit-scrollbar-thumb{background:#777b8270;border:2px solid transparent;background-clip:padding-box;border-radius:6px;min-height:25px}
+*::-webkit-scrollbar-thumb:hover{background-color:#9399a1a0}
+*::-webkit-scrollbar-thumb:active{background-color:#a0aabac0}
+*::-webkit-scrollbar-button{display:none!important;width:0!important;height:0!important}
+*::-webkit-scrollbar-corner{background:transparent}
+.monaco-editor .scrollbar>.slider{background:#777b8270!important;border-radius:5px}
+.monaco-editor .scrollbar>.slider:hover{background:#9399a1a1!important}
+.studio-settings-document .settings-grid label{color:var(--text)}
+.studio-design input:not([type=range]):not([type=checkbox]):not([type=radio]),.studio-design select,.studio-design .studio-select{background:var(--surface-inset);color:var(--text);border-color:var(--line)}
+.studio-design input:disabled,.studio-design select:disabled,.studio-design button:disabled{opacity:.45}
+.studio-design .studio-select:disabled{color:var(--muted)}
+.studio-header #debugButton,.studio-header #debugButton svg{color:#70bc91}
+.studio-header #runButton{background:#365d47;color:#e6f4e9}
+.notebook-cells>.notebook-cell{width:var(--notebook-cell-width,90%);max-width:1500px;margin:12px auto;box-sizing:border-box}
+.notebook-markdown-preview{line-height:1.65}
+.markdown-callout p{white-space:pre-line}
+@media(max-width:700px){.notebook-cells>.notebook-cell{width:calc(100% - 8px);margin:8px auto}}
+
+.studio-header .toolbar{display:flex!important;flex:1 1 0!important;min-width:0!important;overflow:visible}
+.studio-header>.brand,.studio-header>#mainMenuToggle,.studio-header>#settingsButton,.studio-header>#paletteButton{flex-shrink:0}
+.studio-header .toolbar>.top-spacer{display:none}
+.design-command-slot{display:flex;justify-content:center;align-items:center;flex:1 1 0;min-width:0;height:100%}
+.design-command-slot .design-command-center{display:flex;width:var(--command-center-width,60%);max-width:600px;min-width:0;flex:0 1 auto;margin:0}
+.studio-header .design-run-group{flex:0 0 auto;min-width:0;margin-left:0;overflow:visible}
+.studio-header .project-switch{flex:0 1 185px;min-width:88px;max-width:210px}
+.studio-header #compilerSelect,.studio-header #standardSelect,.studio-header #buildModeSelect,.studio-header #buildMode,.studio-header .toolbar>[data-select=compilerSelect],.studio-header .toolbar>[data-select=standardSelect],.studio-header .toolbar>[data-select=buildMode]{display:none!important}
+.studio-header .studio-run-selectors{min-width:0;flex:0 1 auto!important}
+.studio-header .studio-run-selectors>#editRunConfigurations{box-sizing:border-box;flex:0 0 34px!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:32px!important;padding:7px!important;overflow:visible!important}
+.studio-header #editRunConfigurations svg{display:block;flex:0 0 20px!important;width:20px!important;height:20px!important;min-width:20px!important}
+.studio-header #runButton{flex:0 0 34px;width:34px;min-width:34px;padding:7px}
+.studio-header #runButton label{display:none!important}
+.studio-header .design-run-group>.icon-button{flex-shrink:0}
+@media(max-width:1100px){.studio-header .brand strong{display:none}.design-command-slot{display:none}.studio-header .project-switch{margin-right:auto}.design-run-group #cmakeProfileChoice{display:none}}
+@media(max-width:700px){.studio-header{gap:3px;padding:0 5px!important}.studio-header .brand{padding:0;gap:0}.studio-header .project-switch{flex:1 1 110px;min-width:62px;max-width:170px}.studio-header #paletteButton{display:none}.studio-header .studio-run-selectors #runConfigurationChoice{max-width:70px;min-width:34px}.studio-header .studio-run-selectors #cmakeProfileChoice{display:none}}
+
+body:not(.design-show-tools) .studio-header #compilerSelect+.studio-select,body:not(.design-show-tools) .studio-header #standardSelect+.studio-select{display:none!important}
+body.design-show-tools .studio-header #compilerSelect+.studio-select,body.design-show-tools .studio-header #standardSelect+.studio-select{flex:0 1 90px;max-width:90px;min-width:55px}
+@media(max-width:1100px){.studio-header #compilerSelect+.studio-select,.studio-header #standardSelect+.studio-select{display:none!important}}
+
+.notebook-resource-control input[type=text]{width:90px;text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+.resource-available{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.notebook-resource-control input[type=range]{appearance:none;height:4px;border:0;background:linear-gradient(to right,#7ca789 var(--resource-position,100%),#55595d var(--resource-position,100%));border-radius:2px}
+.notebook-resource-control input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:#aec6b7;border:1px solid #dde6df;cursor:pointer}
+
+.market-results .market-item{position:relative;border-left:3px solid transparent}
+.market-results .market-item[data-addon-state=enabled]{border-left-color:#70bc91;background:#70bc910b}
+.market-results .market-item[data-addon-state=enabled] .market-item-state{color:#83d4a4}
+.market-results .market-item[data-addon-state=installed]{border-left-color:#78a6dc;background:#78a6dc08}
+.market-results .market-item[data-addon-state=installed] .market-item-state{color:#91b7e0}
+.market-results .market-item[data-addon-state=available] .market-item-state{color:#b7b9be}
+.market-results .market-item[data-addon-state=incompatible]{border-left-color:#b49360;opacity:.7}
+.market-results .market-item.selected{background:#34404b}
+.market-results .market-row-remove{position:absolute;right:5px;bottom:5px;padding:4px;width:25px;height:25px;color:#d48e8e;background:transparent}
+.market-row-remove svg{width:14px;height:14px}.market-row-remove:hover,.market-uninstall:hover{background:#b34c4c28;color:#e8adad}
+.market-item-state{padding-right:22px}.market-filter-options{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px}.market-filter-options select,.market-filter-options .studio-select{width:100%;min-width:0;max-width:100%;color:var(--text)}
+.market-gallery-source{border:1px solid var(--line);background:var(--panel);height:29px;color:var(--text)}
+
+.studio-extension-document{overflow:auto;min-height:0;background:var(--bg);padding:16px;color:var(--text)}.addon-executable-notice{border-left:3px solid var(--yellow);padding:8px;background:#c7a65e12}
+
+.keymap-toolbar{display:flex;gap:8px;margin:12px 0}.keymap-toolbar input{flex:1;min-width:70px}.keymap-toolbar select{max-width:190px}.keymap-list{min-height:0}.keymap-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(140px,250px) 28px;gap:8px;align-items:center;padding:6px;border-bottom:1px solid var(--line)}.keymap-row input{width:100%;cursor:pointer}.keymap-row button{padding:5px}.keymap-row svg{width:15px;height:15px}@media(max-width:650px){.keymap-row{grid-template-columns:minmax(0,1fr) 28px}.keymap-row>span{grid-column:1/-1}.keymap-toolbar{flex-wrap:wrap}.keymap-toolbar input{flex-basis:100%}}
+
+.studio-header #settingsButton{display:inline-flex!important}.studio-header .project-switch>.studio-select{flex:1 1 auto;min-width:0;max-width:100%}@media(max-width:450px){.studio-header .project-switch{max-width:110px}.studio-header .brand{display:none}}
