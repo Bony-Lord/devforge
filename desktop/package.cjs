@@ -21,7 +21,7 @@ async function main(){
   for(const file of ['smoke.cjs','notebook-smoke.cjs','template-smoke.cjs','icon.png','main.cjs','preload.cjs','host.cjs','workspace.cjs','project-templates.cjs','tooling.cjs','project-config.cjs','debug-adapter.cjs','archive.cjs','assets.cjs','addons.cjs','python.cjs','runtime-faults.cjs'])await fs.copyFile(path.join(__dirname,file),path.join(appFolder,file));
   const pkg=JSON.parse(await fs.readFile(path.join(__dirname,'package.json'),'utf8'));delete pkg.devDependencies;delete pkg.scripts;await fs.writeFile(path.join(appFolder,'package.json'),JSON.stringify(pkg,null,2));
   for(const name of ['iconv-lite','safer-buffer'])await fs.cp(path.join(__dirname,'node_modules',name),path.join(appFolder,'node_modules',name),{recursive:true});
-  await fs.cp(path.join(root,'app/src/main/assets/ui'),path.join(appFolder,'ui'),{recursive:true});await fs.cp(path.join(root,'app/src/main/assets/python'),path.join(appFolder,'python'),{recursive:true});await fs.copyFile(path.join(root,'LICENSE'),path.join(appFolder,'LICENSE'));
+  await fs.cp(path.join(root,'app/src/main/assets/ui'),path.join(appFolder,'ui'),{recursive:true});await fs.cp(path.join(root,'app/src/main/assets/python'),path.join(appFolder,'python'),{recursive:true,filter:file=>!file.split(path.sep).includes('__pycache__')&&!file.endsWith('.pyc')});await fs.copyFile(path.join(root,'LICENSE'),path.join(appFolder,'LICENSE'));
   await fs.mkdir(path.join(output,'licenses'),{recursive:true});
   if(process.platform==='darwin')for(const name of ['LICENSE','LICENSES.chromium.html'])await fs.copyFile(path.join(path.dirname(dist),name),path.join(output,name));
   await fs.copyFile(path.join(__dirname,'THIRD_PARTY.md'),path.join(output,'THIRD_PARTY.md'));

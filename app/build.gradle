@@ -43,6 +43,7 @@ def studioAssets = tasks.register('prepareStudioAssets', Sync) {
     into layout.buildDirectory.dir('studio-assets')
     exclude 'runtime.zip', 'runtime-info.json', 'tool-packs.json'
     exclude 'modern-runtime.json', 'runtime-modern-data.zip'
+    exclude '**/__pycache__/**', '**/*.pyc'
 }
 tasks.named('preBuild').configure { dependsOn studioAssets }
 dependencies {
