@@ -254,7 +254,7 @@
     "requires": {
       "addons": [
         "studio.pack.essentials",
-        "studio.pack.python"
+        "studio.pack.python-quality"
       ],
       "tools": [
         "python"
@@ -299,7 +299,7 @@
         "mode": "project",
         "requested": [
           "studio.pack.essentials",
-          "studio.pack.python"
+          "studio.pack.python-quality"
         ]
       }
     },
@@ -324,7 +324,7 @@
     "requires": {
       "addons": [
         "studio.pack.essentials",
-        "studio.pack.notebooks"
+        "studio.pack.notebooks-quality"
       ],
       "tools": [
         "python"
@@ -369,7 +369,7 @@
         "mode": "project",
         "requested": [
           "studio.pack.essentials",
-          "studio.pack.notebooks"
+          "studio.pack.notebooks-quality"
         ]
       }
     },
@@ -625,8 +625,8 @@
       "notebook"
     ],
     "description": {
-      "ru": "Конфигурация pycodestyle/autopep8. Пакеты устанавливаются отдельно в выбранный Python.",
-      "en": "pycodestyle/autopep8 configuration. Install these packages separately into the selected Python."
+      "ru": "Настройки PEP 8, форматирование autopep8 и диагностика pycodestyle. Инструменты загружаются отдельно.",
+      "en": "PEP 8 settings, autopep8 formatting and pycodestyle diagnostics. Tools download separately."
     },
     "project": {
       "tooling": {
@@ -639,6 +639,14 @@
           "configuration": ".pep8"
         }
       }
+    },
+    "requires": {
+      "addons": [
+        "studio.python-style"
+      ],
+      "tools": [
+        "python"
+      ]
     }
   },
   {

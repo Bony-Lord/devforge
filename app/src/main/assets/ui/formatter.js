@@ -44,7 +44,7 @@ const formatterMethods={
     if(sameSelection&&selection.isEmpty()&&editor.getModel()===model){editor.setPosition(model.getPositionAt(result.cursor??cursor));if(this.editor===editor)editor.focus();}
     this.lsp.sync(model);NativeEditing.documentSettled(model);NativeEditing.decorations(model);await this.saveDoc(doc);
   },
-  async openFormatter(){if(!await this.requireToolPack('analysis'))return;
+  async openFormatter(){if(this.pythonStyle?.pythonDocument())return this.pythonStyle.openSettings();if(!await this.requireToolPack('analysis'))return;
     if($('#formatterDialog').open)return;await this.saveAll();this.formatterConfig=await native('formatterConfig');this.formatterPresets=await native('formatterPresets');await(this.formatterSchemaPromise??=this.loadFormatterSchema());
     this.formatterRaw=monaco.editor.createModel(this.formatterConfig.text,'yaml');this.formatterBefore=monaco.editor.createModel(FORMATTER_SAMPLE,'cpp');this.formatterAfter=monaco.editor.createModel('','cpp');this.formatterModels=[this.formatterRaw,this.formatterBefore,this.formatterAfter];
     $('#formatterPath').textContent=this.formatterConfig.path;$('#formatterPreset').value='current';$('#formatterSearch').value='';$('#formatterDialog').showModal();

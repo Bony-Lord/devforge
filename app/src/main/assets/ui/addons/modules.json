@@ -261,7 +261,8 @@
       "license": "MIT",
       "capabilities": [
         "host.features",
-        "settings.fields"
+        "settings.fields",
+        "editor.formatters"
       ],
       "dependencies": {
         "studio.tool.analysis": {
@@ -309,6 +310,19 @@
             "Microsoft",
             "GNU"
           ]
+        }
+      },
+      {
+        "point": "formatters",
+        "id": "studio.formatter/cpp",
+        "value": {
+          "id": "clang-format",
+          "languages": [
+            "c",
+            "cpp"
+          ],
+          "feature": "formatter",
+          "handler": "clang-format"
         }
       }
     ]
@@ -2682,6 +2696,254 @@
       "dependencies": {
         "studio.pack.python": {},
         "studio.project.notebook": {}
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.tool.python-style",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python · инструменты PEP 8",
+        "en": "Python · PEP 8 tools"
+      },
+      "description": {
+        "ru": "Python · инструменты PEP 8",
+        "en": "Python · PEP 8 tools"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "tools.runtime"
+      ],
+      "dependencies": {
+        "studio.tool.python": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "runtime",
+      "externalTool": "python-style",
+      "installationGroup": "tools"
+    },
+    "contributions": [
+      {
+        "point": "runtimes",
+        "id": "studio.tool.python-style/0",
+        "value": {
+          "id": "python-style"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.python-formatting",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python · форматирование",
+        "en": "Python · formatting"
+      },
+      "description": {
+        "ru": "Python · форматирование",
+        "en": "Python · formatting"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features",
+        "editor.formatters"
+      ],
+      "dependencies": {
+        "studio.python": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tool.python-style": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "installationGroup": "editing"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.python-formatting/0",
+        "value": {
+          "id": "pythonFormatting"
+        }
+      },
+      {
+        "point": "formatters",
+        "id": "studio.python-formatting/1",
+        "value": {
+          "id": "autopep8",
+          "languages": [
+            "python",
+            "notebook"
+          ],
+          "feature": "pythonFormatting",
+          "handler": "python-style"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.python-diagnostics",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python · диагностика PEP 8",
+        "en": "Python · PEP 8 diagnostics"
+      },
+      "description": {
+        "ru": "Python · диагностика PEP 8",
+        "en": "Python · PEP 8 diagnostics"
+      },
+      "license": "MIT",
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.python": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tool.python-style": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "installationGroup": "analysis"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.python-diagnostics/0",
+        "value": {
+          "id": "pythonDiagnostics"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.python-style",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python · стиль и диагностика",
+        "en": "Python · style and diagnostics"
+      },
+      "description": {
+        "ru": "Python · стиль и диагностика",
+        "en": "Python · style and diagnostics"
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.python-formatting": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.python-diagnostics": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.python-quality",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Python: удобный пакет",
+        "en": "Python: coding essentials"
+      },
+      "description": {
+        "ru": "Python: удобный пакет",
+        "en": "Python: coding essentials"
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.pack.python": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.python-style": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.notebooks-quality",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Notebook: удобный пакет",
+        "en": "Notebook: coding essentials"
+      },
+      "description": {
+        "ru": "Notebook: удобный пакет",
+        "en": "Notebook: coding essentials"
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.pack.notebooks": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.python-style": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
       },
       "conflicts": {},
       "kind": "pack"

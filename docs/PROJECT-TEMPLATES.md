@@ -78,8 +78,8 @@ and [the addon wrapper](../examples/templates/python-tool.studio-addon).
 
 Compilers/interpreters are reusable runtime providers. Templates configure them
 and declare dependencies instead of embedding binaries. The PEP 8 attachment is
-configuration for autopep8/pycodestyle; these Python packages and their complete
-editor integration are not bundled by this recipe. CMake tests are created under
+configuration for the optional autopep8/pycodestyle addons; accepting the recipe's
+requirements downloads their verified wheels separately. See [Python tools](PYTHON-TOOLS.md). CMake tests are created under
 `tests/`; add `add_subdirectory(tests)` explicitly to your root CMakeLists.txt.
 
 ## Review and concurrency
@@ -120,5 +120,5 @@ retained), uses maximum compression, and includes no system compiler/Python.
 The same translation pruning supports Linux/macOS package layouts, including
 `.lproj`; native installer size and GUI behavior there have not been verified
 on this Windows machine. General executable-addon SDK, real downloadable UI
-modules, full PEP 8 editor integration, and further document viewers remain work
+modules, Python type analysis/debugging, and further document viewers remain work
 in progress. This build does not claim a completed universal mod marketplace.

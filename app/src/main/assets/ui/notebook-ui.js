@@ -31,10 +31,11 @@ class StudioNotebookEditor {
       let r=previous.get(c)||(c.id&&byId.get(c.id))||(!c.id&&!prior[index]?.cell.id&&prior[index]);if(r&&(used.has(r)||r.cell.cell_type!==c.cell_type))r=null;
       if(!r){
         const row=this.element('section',undefined,'notebook-cell'),bar=this.element('div',undefined,'notebook-cell-bar'),label=this.element('span');r={row,label,cell:c,buttons:[]};bar.append(label);
-        const button=(icon,ru,en,work)=>{const b=this.button(icon,this.t(ru,en),work);r.buttons.push(b);bar.append(b);};
+        const button=(icon,ru,en,work)=>{const b=this.button(icon,this.t(ru,en),work);r.buttons.push(b);bar.append(b);return b;};
+        if(c.cell_type==='code'&&this.ide.addons.host.enabled('pythonFormatting'))r.styleFormatButton=button('format','Форматировать ячейку','Format cell',()=>this.ide.pythonStyle.formatCell(r.source));
         if(c.cell_type==='code')button('play','Выполнить ячейку','Run cell',()=>this.run(r.cell));
         button('arrow-up','Выше','Move up',()=>this.move(r.cell,-1));button('down','Ниже','Move down',()=>this.move(r.cell,1));button('trash','Удалить ячейку','Delete cell',()=>this.remove(r.cell));row.append(bar);
-        r.source=new StudioNotebookCellInput(this,r);r.input=r.source.input;r.output=this.element('pre',undefined,'notebook-output');r.output.hidden=true;r.lastOutputs=null;row.append(r.source.element,r.output);
+        r.source=new StudioNotebookCellInput(this,r);this.ide.pythonStyle?.watchCell(r.source);r.input=r.source.input;r.output=this.element('pre',undefined,'notebook-output');r.output.hidden=true;r.lastOutputs=null;row.append(r.source.element,r.output);
       }
       r.cell=c;next.set(c,r);used.add(r);r.source.sync();for(const button of r.buttons)button.disabled=this.busy||this.external||this.doc.readonly;
       const reference=this.body.children[index]||null;if(reference!==r.row){if(this.body.moveBefore&&r.row.parentElement===this.body)this.body.moveBefore(r.row,reference);else this.body.insertBefore(r.row,reference);}

@@ -17,3 +17,9 @@ of third-party components. System compilers/debuggers are installed separately.
 
 Source and patches: https://github.com/Bony-Lord/devforge/releases
 FFmpeg license information: https://ffmpeg.org/legal.html
+
+Optional Python style tools (autopep8 2.3.2, pycodestyle 2.15.0, tomli 2.5.0) are
+downloaded separately as verified wheels and retain their MIT licenses inside
+the wheel archives. License copies accompany this package. The pinned download
+manifest is in resources/app/python/style-manifest.json; no pip installation into
+the user's interpreter is performed.

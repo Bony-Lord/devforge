@@ -5,21 +5,27 @@ const {Tooling,capture}=require('./tooling.cjs');
 const {ProjectConfigurations}=require('./project-config.cjs');
 const {AddonLibrary}=require('./addons.cjs');
 const {PythonHost}=require('./python.cjs');
+const {PythonStyleHost}=require('./python-style.cjs');
 const {ProjectTemplateFiles}=require('./project-templates.cjs');
 const STYLE='BasedOnStyle: LLVM\nIndentWidth: 4\nTabWidth: 4\nUseTab: Never\nColumnLimit: 120\nBreakBeforeBraces: Attach\nAccessModifierOffset: -4\nNamespaceIndentation: None\nAllowShortFunctionsOnASingleLine: Empty\nAllowShortIfStatementsOnASingleLine: Never\nAllowShortLoopsOnASingleLine: false\nDerivePointerAlignment: false\nPointerAlignment: Right\nReferenceAlignment: Left\nSpaceBeforeParens: ControlStatements\nSpaceBeforeRangeBasedForLoopColon: true\n';
 const CLION_STYLE=STYLE.replace('ReferenceAlignment: Left','ReferenceAlignment: Right').replace('SpaceBeforeRangeBasedForLoopColon: true','SpaceBeforeRangeBasedForLoopColon: false');
 class DesktopHost {
-  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.configurations=new ProjectConfigurations(this);this.operations=new Map();this.settingsQueue=Promise.resolve();this.addons=new AddonLibrary(this);this.python=new PythonHost(this);this.templates=new ProjectTemplateFiles(this.ws);}
+  constructor(data,event=()=>{},system={}){this.ws=new Workspace(data,system.projectsDirectory);this.event=event;this.system=system;this.tools=new Tooling(this.ws,event);this.configurations=new ProjectConfigurations(this);this.operations=new Map();this.settingsQueue=Promise.resolve();this.addons=new AddonLibrary(this);this.python=new PythonHost(this);this.pythonStyle=new PythonStyleHost(this);this.templates=new ProjectTemplateFiles(this.ws);}
   async init(){await this.ws.init();await this.addons.init();await this.tools.discover();if(!this.ws.prefs.settings.compiler&&!this.tools.tools.gxx&&this.tools.tools.clangxx){this.ws.prefs.settings.compiler='clang';await this.ws.persist();}return this;}
   async state(){const hasProject=!!this.ws.prefs.projects[this.ws.prefs.current];return{project:this.ws.prefs.current,projectLabels:Object.fromEntries(Object.entries(this.ws.prefs.projects).map(([id,p])=>[id,p.label])),projects:Object.keys(this.ws.prefs.projects),root:hasProject?this.ws.root:'',external:hasProject,cache:portable(this.ws.cache),usr:portable(path.dirname(this.tools.tools.gxx||this.tools.tools.clangxx||process.execPath)),tree:hasProject?await this.ws.tree():[],settings:{keepAwake:false,...this.ws.prefs.settings},session:this.ws.prefs.session,abi:os.arch(),version:require('./package.json').version,trust:this.trust(),capabilities:{protocol:1,platform:process.platform,editor:'monaco',toolDelivery:'system',localExecution:'native-process',debugger:(!!this.tools.tools.gdb&&!!this.tools.tools.gdbserver)||!!this.tools.tools.lldbdap,debugProtocol:this.tools.tools.gdb&&this.tools.tools.gdbserver?'mi':'dap',systemAnimations:!this.system.reducedMotion?.()}};}
   async handle(op,d={}){
     if(typeof op!=='string'||!d||typeof d!=='object'||Array.isArray(d))throw Error('Invalid request');
     const executes=['pythonCheck','pythonRun','notebookStart','notebookExecute','build','run','runCommand','shell','git','lspStart','lspSend','cmakeConfigure','formatDocument','formatterOnType','formatterRange','dapStart','dapSend','gdbStart','gdbSend'].includes(op);
     if(executes&&!this.trust().trusted)throw Error('WORKSPACE_UNTRUSTED: Trust this folder before executing project tools');
+    if(op==='addonStateCommit'&&!d.resolved?.some(id=>['studio.python-formatting','studio.python-diagnostics'].includes(id)))this.pythonStyle.stop();
     if(op.startsWith('addon')&&['addonLibrary','addonState','addonCatalog','addonStateCommit','addonBegin','addonFinish'].includes(op))return this.addons.handle(op,d);
     if(op==='pythonInfo')return this.python.info();if(op==='pythonRun')return this.python.run(d);if(op==='pythonCheck')return this.python.check(d);
+    if(op==='pythonStyleInfo')return this.pythonStyle.info();
+    if(op==='pythonStyleInstall'||op==='pythonStyleRemove')return this.pythonStyle.manage(op==='pythonStyleInstall'?'install':'remove',d);
+    if(op==='pythonStyleAnalyze'||op==='pythonStyleFormat')return this.pythonStyle.request(op==='pythonStyleAnalyze'?'analyze':'format',d);
+    if(op==='pythonStyleCancel'){this.pythonStyle.stop();return true;}
     if(['notebookStart','notebookExecute'].includes(op)){if(!this.addons.enabled('studio.notebooks'))throw Error('Enable the notebook addon');return op==='notebookStart'?this.python.start(d):this.python.execute(d);}if(op==='notebookStop'){if(d.session!==undefined&&d.session!==this.python.generation)return false;await this.python.stop();return true;}
-    if(op==='workspaceTrust')return this.trust();if(op==='workspaceTrustSet'){this.ws.prefs.trustedRoots={...this.ws.prefs.trustedRoots,[this.ws.root]:!!d.trusted};await this.ws.persist();if(!d.trusted){this.python.stop();await this.tools.close();}return this.trust();}
+    if(op==='workspaceTrust')return this.trust();if(op==='workspaceTrustSet'){this.ws.prefs.trustedRoots={...this.ws.prefs.trustedRoots,[this.ws.root]:!!d.trusted};await this.ws.persist();if(!d.trusted){this.python.stop();this.pythonStyle.stop();await this.tools.close();}return this.trust();}
     if(['projectTemplateSnapshot','projectTemplateApply'].includes(op))return this.templates.handle(op,d);
     if(op.startsWith('editor'))return op==='editorSnapshot'?[]:op==='editorReset'?{}:true;
     switch(op){
@@ -30,7 +36,7 @@ class DesktopHost {
       case 'resolveConfiguration':return this.configurations.resolve(d);
       case 'settingsCommit':case 'settings':this.ws.prefs.settings=structuredClone(d);await this.ws.persist();await this.tools.discover();return d;
       case 'sessionCommit':case 'session':this.ws.prefs.session=structuredClone(d);await this.ws.persist();return true;
-      case 'project':this.python.stop();if(!this.ws.prefs.projects[d.name]||!await exists(this.ws.prefs.projects[d.name].path))throw Error('Project unavailable');this.tools.stopLsp();this.ws.prefs.current=d.name;await this.ws.persist();return this.state();
+      case 'project':this.python.stop();this.pythonStyle.stop();if(!this.ws.prefs.projects[d.name]||!await exists(this.ws.prefs.projects[d.name].path))throw Error('Project unavailable');this.tools.stopLsp();this.ws.prefs.current=d.name;await this.ws.persist();return this.state();
       case 'newProject':{const created=await this.ws.newProject(d.name,d.language,false);this.ws.prefs.trustedRoots={...this.ws.prefs.trustedRoots,[created.path]:true};await this.ws.persist();if(!['empty','template'].includes(d.language))await atomic(path.join(created.path,'.clang-format'),STYLE);return{...await this.state(),createdProject:created.project};}
       case 'tree':return this.ws.prefs.current?this.ws.tree():[];
       case 'read':return this.ws.read(d.path,d.encoding);
@@ -147,6 +153,6 @@ class DesktopHost {
   validateArgv(argv){if(!Array.isArray(argv)||!argv.length||argv.length>256||argv.some(v=>typeof v!=='string'||v.includes('\0')))throw Error('Invalid command argv');}
   async buildCustom(d){const tools=this.tools,options=d.options||{};if(tools.building||tools.execution||tools.gdb||tools.dap)throw Error('Stop the current process first');const context=await tools.executionContext({cwd:path.resolve(this.ws.root,options.workingDirectory||'.'),environment:options.environment||{}});if(!Array.isArray(options.buildCommands)||options.buildCommands.length>256)throw Error('Invalid build commands');for(const argv of options.buildCommands)this.validateArgv(argv);tools.cancelled=false;let code=0;for(const argv of options.buildCommands){code=await tools.buildCommand(argv[0],argv.slice(1),d.id,context);if(code)break;}return{code,id:d.id,exists:false,executable:''};}
   async runCommand(d){const options=d.options||{},argv=options.runCommand;this.validateArgv(argv);const tools=this.tools;if(tools.execution)throw Error('Stop the current program first');const context=await tools.executionContext({cwd:path.resolve(this.ws.root,options.workingDirectory||'.'),environment:options.environment||{}});const child=tools.track(require('./tooling.cjs').launch(argv[0],[...argv.slice(1),...options.args||[]],{cwd:context.cwd,env:{...tools.env(),...context.environment},detached:process.platform!=='win32'}));tools.execution=child;tools.output(child,d.id,'stdout',child.stdout);tools.output(child,d.id,'stderr',child.stderr);child.stdin.on('error',()=>{});child.once('close',(code,signal)=>{if(tools.execution===child)tools.execution=null;this.event('exit',{id:d.id,code:code??128,signal});});await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});return{id:d.id};}
-  async close(){await this.python.stop();await this.ws.persist();await this.tools.close();}
+  async close(){this.pythonStyle.stop();await this.python.stop();await this.ws.persist();await this.tools.close();}
 }
 module.exports={DesktopHost,STYLE};

@@ -56,8 +56,8 @@ class StudioNotebookCellInput {
     const colorize=window.monaco?.editor.colorize;if(!enabled||text.length>100000||input.rows===16&&text.split('\n').length>2000||!colorize){this.element.classList.remove('has-syntax');return;}
     // Only token HTML produced by Monaco is inserted, never notebook HTML output.
     this.element.classList.add('has-syntax');
-    Promise.resolve(colorize(text,language,{tabSize:tab})).then(html=>{if(this.disposed||ticket!==this.ticket)return;this.paint.innerHTML=html;this.scroll();}).catch(()=>{if(ticket===this.ticket)this.element.classList.remove('has-syntax');});
+    Promise.resolve(colorize(text,language,{tabSize:tab})).then(html=>{if(this.disposed||ticket!==this.ticket)return;this.paint.innerHTML=html;this.scroll();this.view.ide.pythonStyle?.paintCell(this);}).catch(()=>{if(ticket===this.ticket)this.element.classList.remove('has-syntax');});
   }
   scroll(){this.paint.scrollTop=this.input.scrollTop;this.paint.scrollLeft=this.input.scrollLeft;}
-  dispose(){this.disposed=true;this.ticket++;this.view.cellObserver?.unobserve(this.element);StudioNotebookCellInput.fields.delete(this.input);StudioNotebookCellInput.surfaces.delete(this.element);}
+  dispose(){this.view.ide.pythonStyle?.forgetCell(this);this.disposed=true;this.ticket++;this.view.cellObserver?.unobserve(this.element);StudioNotebookCellInput.fields.delete(this.input);StudioNotebookCellInput.surfaces.delete(this.element);}
 }

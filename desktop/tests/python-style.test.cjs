@@ -1,0 +1,14 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const {DesktopHost}=require('../host.cjs'),python=process.env.DEVFORGE_TEST_PYTHON;
+test('downloadable Python style tools format and analyze in the selected interpreter, honor trust/config and remove independently',{skip:!python,timeout:120000},async t=>{
+ const directory=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-python-style-')),host=await new DesktopHost(directory).init();await host.ws.newProject('fixture');host.ws.prefs.settings.pythonExecutable=python;host.addons.data.profile.resolved=['studio.python','studio.python-formatting','studio.python-diagnostics'];t.after(async()=>{await host.close();await fs.rm(directory,{recursive:true,force:true,maxRetries:5,retryDelay:200});});
+ assert.equal((await host.handle('pythonStyleInfo')).installed,false);const installed=await host.handle('pythonStyleInstall',{options:{pythonExecutable:python}});assert(installed.installed);assert(installed.bytes<100000);
+ const file=path.join(host.ws.root,'main.py');await host.ws.write(file,'x=1\n');const request={root:host.ws.root,path:file,text:'x=1\n',options:{pythonExecutable:python}};await assert.rejects(host.handle('pythonStyleAnalyze',request),/WORKSPACE_UNTRUSTED/);await host.handle('workspaceTrustSet',{trusted:true});
+ const analyzed=await host.handle('pythonStyleAnalyze',request);assert(analyzed.diagnostics.some(d=>d.code==='E225'));const formatted=await host.handle('pythonStyleFormat',request);assert.equal(formatted.text,'x = 1\n');assert.equal(await fs.readFile(file,'utf8'),'x=1\n','backend must not overwrite editor input');
+ await host.ws.write(path.join(host.ws.root,'.pep8'),'[pycodestyle]\nignore=E225\n');assert.deepEqual((await host.handle('pythonStyleAnalyze',request)).diagnostics,[]);
+ await assert.rejects(host.handle('pythonStyleAnalyze',{...request,root:directory}),/Project changed/);await assert.rejects(host.handle('pythonStyleAnalyze',{...request,path:path.join(directory,'outside.py')}),/Invalid Python style source/);
+ const book=path.join(host.ws.root,'test.ipynb');await host.ws.write(book,'{}');const notebook=await host.handle('pythonStyleFormat',{...request,path:book,text:'!echo unchanged\nx=1\n',notebook:true});assert(notebook.text.includes('!echo unchanged\n'));
+ const cells=await Promise.all(['one','two'].map(cell=>host.handle('pythonStyleAnalyze',{...request,path:book,text:'y=2\n',notebook:true,cell})));assert(cells.every(result=>Array.isArray(result.diagnostics)));
+ host.addons.data.profile.resolved=['studio.python'];await assert.rejects(host.handle('pythonStyleFormat',request),/Enable the Python style addon/);host.python.info=async()=>{throw Error('Interpreter removed');};assert.equal((await host.handle('pythonStyleRemove')).installed,false);assert.equal(await fs.readFile(file,'utf8'),'x=1\n');assert(host.addons.enabled('studio.python'));
+});

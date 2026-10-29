@@ -14,6 +14,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: android-actions/setup-android@v3
         with:
           packages: 'platforms;android-36'
@@ -37,10 +40,11 @@ jobs:
           node tests/setup-model.test.cjs
           node tests/addon-selection.test.cjs
           node tests/notebook-model.test.cjs
-          node --test tests/project-templates.test.cjs tests/project-paths.test.cjs tests/editor-lifecycle.test.cjs
+          node --test tests/python-style-model.test.cjs tests/project-templates.test.cjs tests/project-paths.test.cjs tests/editor-lifecycle.test.cjs
           node tests/project-policy.test.cjs
           node tests/project-actions.test.cjs
           python tests/python_kernel_test.py
+          python tests/python_style_test.py
           python tests/component-runtime.test.py
       - name: Python syntax
         run: python -m compileall -q tools tests

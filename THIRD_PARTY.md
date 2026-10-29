@@ -4,6 +4,7 @@
 
 | Компонент | Лицензия / источник |
 |---|---|
+| Optional autopep8 2.3.2 / pycodestyle 2.15.0 / tomli 2.5.0 | MIT; downloaded only when selected. Pinned origins/hashes: `app/src/main/assets/python/style-manifest.json`; license copies: `licenses/{autopep8,pycodestyle,tomli}-LICENSE`. No global pip installation. |
 | Monaco Editor 0.52.2 | MIT, [Microsoft](https://github.com/microsoft/monaco-editor) |
 | Sora Editor 0.24.4 | LGPL-2.1-or-later, [Rosemoe](https://github.com/Rosemoe/sora-editor/tree/0.24.4); нативный редактор, без изменений исходников библиотеки |
 | Lucide icons | ISC; часть иконок унаследована от Feather/MIT. Точный commit и SHA256 — `icons.lock.json` |

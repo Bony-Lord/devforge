@@ -15,6 +15,7 @@ final class IdeEngine {
     final ToolPacks toolPacks;
     final AddonPackages addons;
     final PythonEngine python;
+    final PythonStyleEngine pythonStyle;
     final WorkspaceFiles workspace;
     final LanguageTools languages;
     final File projects,usr,tmp;
@@ -41,7 +42,7 @@ final class IdeEngine {
         currentProject=prefs.getString("project","");
         try{if(currentProject.isEmpty()||!project(currentProject).isDirectory())currentProject="";}catch(IOException error){currentProject="";}
         if(currentProject.isEmpty()){File[] existing=projects.listFiles();if(existing!=null){Arrays.sort(existing,Comparator.comparing(File::getName));for(File folder:existing)if(folder.isDirectory()){currentProject=folder.getName();break;}}if(currentProject.isEmpty()){JSONObject links=workspace.bindings();for(Iterator<String> ids=links.keys();ids.hasNext();){String id=ids.next();if(project(id).isDirectory()){currentProject=id;break;}}}}
-        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);
+        tools=new ToolsEngine(this);toolPacks=new ToolPacks(this);addons=new AddonPackages(this);python=new PythonEngine(this);pythonStyle=new PythonStyleEngine(this);
     }
     Object handle(String op,JSONObject data)throws Exception {
         boolean executes=WorkspaceTrustPolicy.executesProject(op);if(executes){requireWorkspaceTrust();if(toolPacks.installing)throw new IOException("Finish the component operation before running project tools");}projectExecution.set(executes);
@@ -63,6 +64,12 @@ final class IdeEngine {
             case "performanceReport":return app.responsiveness.report();
             case "performanceEvent":app.responsiveness.record("Web UI",Math.min(60000,d.optLong("delayMs")),"");return true;
             case "pythonInfo":return python.info();
+            case "pythonStyleInfo":return pythonStyle.info();
+            case "pythonStyleInstall":return pythonStyle.manage("install",d);
+            case "pythonStyleRemove":return pythonStyle.manage("remove",d);
+            case "pythonStyleAnalyze":return pythonStyle.request("analyze",d);
+            case "pythonStyleFormat":return pythonStyle.request("format",d);
+            case "pythonStyleCancel":pythonStyle.stop();return true;
             case "pythonRun":return python.run(d);
             case "pythonCheck":return python.check(d);
             case "notebookStart":addons.require("studio.notebooks");return python.start(d);
@@ -72,7 +79,7 @@ final class IdeEngine {
             case "settings":case "settingsCommit":{var edit=prefs.edit().putString("settings",d.toString());if(op.equals("settingsCommit")){if(!edit.commit())throw new IOException("Cannot save settings");}else edit.apply();app.configureKeyboard(d);return d;}
             case "session":case "sessionCommit":{var edit=prefs.edit().putString("session",d.toString());if(op.equals("sessionCommit")){if(!edit.commit())throw new IOException("Cannot save session");}else edit.apply();return true;}
             case "addonState":return addons.stateProfile();
-            case "addonStateCommit":return addons.saveProfile(d);
+            case "addonStateCommit":if(!d.optString("resolved").contains("studio.python-formatting")&&!d.optString("resolved").contains("studio.python-diagnostics"))pythonStyle.stop();return addons.saveProfile(d);
             case "addonLibrary":return addons.state();
             case "addonCatalog":return addons.catalog();
             case "addonBegin":return addons.begin(d);
@@ -81,8 +88,8 @@ final class IdeEngine {
             case "addonDownload":{AddonDownload.Result result=AddonDownload.fetch(d.getString("url"),d.optString("sha256"));AddonPackages.pack(new JSONObject(result.text));return new JSONObject().put("text",result.text).put("sha256",result.sha256).put("url",result.url);}
             case "addonExport":app.exportAddon(d.getJSONObject("package"));return true;
             case "workspaceTrust":return workspaceTrust();
-            case "workspaceTrustSet":{boolean trusted=d.getBoolean("trusted");synchronized(workspaceTrustLock){if(!prefs.edit().putBoolean(trustKey(),trusted).commit())throw new IOException("Cannot save workspace trust");if(!trusted){for(Process p:projectProcesses)if(p.isAlive())p.destroyForcibly();projectProcesses.clear();}}if(!trusted){python.stop();stopLsp();stopExecution();}return workspaceTrust();}
-            case "project":python.stop(); {
+            case "workspaceTrustSet":{boolean trusted=d.getBoolean("trusted");synchronized(workspaceTrustLock){if(!prefs.edit().putBoolean(trustKey(),trusted).commit())throw new IOException("Cannot save workspace trust");if(!trusted){for(Process p:projectProcesses)if(p.isAlive())p.destroyForcibly();projectProcesses.clear();}}if(!trusted){python.stop();pythonStyle.stop();stopLsp();stopExecution();}return workspaceTrust();}
+            case "project":python.stop();pythonStyle.stop(); {
                 String name=d.getString("name");
                 File p=project(name);if(!p.isDirectory())throw new IOException("Проект не найден");
                 stopLsp();currentProject=name;prefs.edit().putString("project",name).apply();return state();
@@ -453,5 +460,5 @@ final class IdeEngine {
         }catch(Exception e){android.util.Log.d("Forge","Output stream closed",e);}
     }
     void stopExecution(){if(python!=null)python.stop();if(tools!=null)tools.stopDebug();buildCancelled=true;Process a=execution,b=building;if(a!=null)a.destroyForcibly();if(b!=null)b.destroyForcibly();}
-    void close(){closed=true;python.stop();toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
+    void close(){closed=true;pythonStyle.stop();python.stop();toolPacks.cancel();stopLsp();stopExecution();pool.shutdownNow();}
 }

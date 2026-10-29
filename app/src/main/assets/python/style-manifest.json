@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "id": "python-style",
+  "pythonMinimum": "3.10",
+  "packages": [
+    {
+      "name": "autopep8",
+      "version": "2.3.2",
+      "filename": "autopep8-2.3.2-py2.py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/9e/43/53afb8ba17218f19b77c7834128566c5bbb100a0ad9ba2e8e89d089d7079/autopep8-2.3.2-py2.py3-none-any.whl",
+      "bytes": 45807,
+      "sha256": "ce8ad498672c845a0c3de2629c15b635ec2b05ef8177a6e7c91c74f3e9b51128"
+    },
+    {
+      "name": "pycodestyle",
+      "version": "2.15.0",
+      "filename": "pycodestyle-2.15.0-py2.py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/56/e2/480bcdb153feecde4d736b18c908c7eee4846f11d7547d2e0c71499af630/pycodestyle-2.15.0-py2.py3-none-any.whl",
+      "bytes": 31583,
+      "sha256": "12fd2f73c7b8ee8845a0431111df8faf4c1a07d6e64e2ee7f0c74014dab14181"
+    },
+    {
+      "name": "tomli",
+      "version": "2.5.0",
+      "filename": "tomli-2.5.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/60/3f/3e3f8fd0919249b0200c80fbc4f9a1e70be19f9883da71dfb7f8b9ab8aca/tomli-2.5.0-py3-none-any.whl",
+      "bytes": 14765,
+      "sha256": "32a7b79ac57a2e83670ce329ccf675798bc5a2094783a63676866b70503f2e2b"
+    }
+  ]
+}
