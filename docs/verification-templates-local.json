@@ -1,0 +1,83 @@
+{
+  "version": "0.6.0-dev.1",
+  "codeCommit": "65e0c23bdb0b45caac1404091e70f34775c9d999",
+  "distribution": "local only; no push/release/PR",
+  "stability": "development, not declared stable",
+  "artifacts": [
+    {
+      "file": "DevForge-0.6.0-dev.1-modern-arm64.apk",
+      "bytes": 9307037,
+      "sha256": "2467d341709d8f7f30c3b48ec831a6158bfcd76d43b95c0d5a1aa4425020dffb"
+    },
+    {
+      "file": "DevForge-0.6.0-dev.1-compat-arm64.apk",
+      "bytes": 9431514,
+      "sha256": "f0ea4a309b397b56f92b04662e94829ec7ee3d903373d7a2c543d49515c78ba4"
+    },
+    {
+      "file": "DevForge-0.6.0-dev.1-win-x64-setup.exe",
+      "bytes": 116574561,
+      "sha256": "e8300f1317e96f957d2abb4a95f4bd4e832c0b0befab6b72482c50b8c570982d"
+    }
+  ],
+  "checks": {
+    "hostNode": 77,
+    "desktopBackendPassed": 20,
+    "desktopBackendSkipped": 1,
+    "skippedReason": "LLDB DAP unavailable on this Windows host",
+    "pythonKernel": 9,
+    "modernReleaseJVM": 8,
+    "modernLint": {
+      "errors": 0,
+      "warnings": 89
+    },
+    "sourceDesktopUI": 14,
+    "packagedPayloadUI_RU": 45,
+    "packagedPayloadUI_EN": 45,
+    "packagedRendererErrors": 0,
+    "lastExportIdentityChange": "validated separately by roundtrip unit test after UI runs",
+    "installer": {
+      "installerBytes": 116574561,
+      "installerSha256": "e8300f1317e96f957d2abb4a95f4bd4e832c0b0befab6b72482c50b8c570982d",
+      "matchingPayloadFiles": 511,
+      "systemInstallationTested": false,
+      "payloadUI": "45 checks through installed Electron runtime, not by executing the unsigned setup"
+    },
+    "androidSignatures": "expected certificate, zipalign16k passed"
+  },
+  "sizes": {
+    "previousWindowsInstaller": 125048954,
+    "windowsInstaller": 116574561,
+    "savedWindowsBytes": 8474393,
+    "removedChromiumTranslationBytes": 48275862
+  },
+  "scope": {
+    "templates": 13,
+    "projects": 5,
+    "attachments": 8,
+    "userLibrary": true,
+    "addonTemplateContributions": true,
+    "noProjectOnFreshInstall": true,
+    "defaultCppRunConfigurations": 1,
+    "buildDirectoryVisible": true,
+    "pythonHidesUndefinedBuildAction": true,
+    "windowsCmakePathFix": true,
+    "notebookShellAndMagics": true,
+    "runtime2": "unchanged"
+  },
+  "notVerified": [
+    "new build not installed or functionally tested on physical Android",
+    "new Android shell/magic execution not tested on device",
+    "Linux/macOS installers not built or GUI-tested in this Windows turn",
+    "NSIS installer not executed as a system installation; payload extracted and matched",
+    "full IPython, Python LSP/debugger and PEP8 editor integration unfinished",
+    "executable third-party SDK / downloadable implementation modules / marketplace unfinished"
+  ],
+  "tablet": {
+    "model": "Xiaomi Pad 6, HyperOS2 Android14",
+    "devforgeUnchanged": "alpha4 release kept installed; no project/data mutation",
+    "battery": "Smart charging was already enabled; only Full/Smart available, no configurable 100-to-80 hysteresis",
+    "screen": "Asleep confirmed after returning Home",
+    "securityAndTimeoutSettingsChanged": false
+  }
+}
