@@ -689,5 +689,43 @@
         "failures": 0
       }
     }
+  },
+  "codeCommit": "939e18229629f24efe4df816c8475d89b2127bcb",
+  "installerVerification": {
+    "offline": {
+      "matchingPayloadFiles": 533,
+      "artifacts": [
+        {
+          "file": "DevForge-0.6.0-dev.3-win-x64-setup.exe.blockmap",
+          "bytes": 122077,
+          "sha256": "0b96da20f5caa4a434810ac1ffe3ffa9c1b01dc573827495e0d7b39c35216309"
+        },
+        {
+          "file": "DevForge-0.6.0-dev.3-win-x64-setup.exe",
+          "bytes": 116420067,
+          "sha256": "eb4ae4f3192aea4e73f66e70cd5996a7653223820e4d37c742fe935d94bd0aa9"
+        }
+      ],
+      "systemInstallationTested": false
+    },
+    "bootstrap": {
+      "matchingPayloadFiles": 533,
+      "artifacts": [
+        {
+          "file": "devforge-desktop-0.6.0-dev.3-x64.nsis.7z",
+          "bytes": 116046328,
+          "sha256": "08a1e2e236e0f78131ffae68e99435bc30043892f035ce8e35ac676708c18cf5"
+        },
+        {
+          "file": "DevForge-0.6.0-dev.3-win-x64-web-setup.exe",
+          "bytes": 621508,
+          "sha256": "14e24edb42e804cb8137e744c6a4c5b80e4373c1f3022ff5db4a0c6074f744ce"
+        }
+      ],
+      "systemInstallationTested": false,
+      "payloadSha512": "0f36b0ff0dca054803099e3b96996ee09e1f1cb7b1f256844835987e0c51e8f1809f092e46122de123ac41927430380a0ee82c5b14f75ff15d82f270194d3968",
+      "standaloneOnlinePublished": false,
+      "requiresLocalSidecar": true
+    }
   }
 }
