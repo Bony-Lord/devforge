@@ -3,7 +3,7 @@ const {app,BrowserWindow,ipcMain,session,dialog,shell,nativeTheme,Menu}=require(
 const fs=require('node:fs/promises'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {DesktopHost}=require('./host.cjs');
 const {inside}=require('./workspace.cjs');
-let stores;const openWindows=new Set();
+let stores;const openWindows=new Set(),openingProjects=new Set();
 const {WindowStore}=require('./window-store.cjs');
 const smoke=process.argv.includes('--smoke');
 const headless=process.argv.includes('--headless-check');
@@ -11,9 +11,15 @@ if(headless){const port=process.argv.find(a=>a.startsWith('--cdp-port='))?.slice
 const dataArg=process.argv.find(a=>a.startsWith('--data-dir='));
 if(dataArg)app.setPath('userData',path.resolve(dataArg.slice('--data-dir='.length)));
 app.setName('DevForge');
+// A profile must have one writer process. Project windows share WindowStore in
+// that process; a repeated shortcut launch just focuses its existing window.
+const primaryInstance=app.requestSingleInstanceLock();
+if(!primaryInstance)app.quit();
+app.on('second-instance',()=>{const window=BrowserWindow.getFocusedWindow()||[...openWindows].find(r=>!r.window.isDestroyed())?.window;if(window){if(window.isMinimized())window.restore();if(!headless&&!smoke)window.show();window.focus();}});
 const ui=path.join(__dirname,'ui');
 const sourceUi=path.join(__dirname,'../app/src/main/assets/ui');
-async function openWindow(project,initial=false){
+async function openWindow(project,initial=false,readOnly=false){
+let reserved=false;
 let window,host,server,origin,base,quitting=false,record;
 function trusted(sender,frame){try{return window&&!window.isDestroyed()&&sender===window.webContents&&frame&&!frame.detached&&frame===sender.mainFrame&&frame.url.startsWith(base);}catch{return false;}}
 async function serve(){
@@ -33,11 +39,11 @@ async function serve(){
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin='http://127.0.0.1:'+server.address().port;base=origin+'/'+token+'/';return base+'index.html';
 }
 async function start(){
-  const existing=project&&[...openWindows].find(r=>r.host.ws.prefs.current===project);if(existing){existing.window.show();existing.window.focus();return true;}
-  const page=await serve();const workspace=await stores.workspace(project,initial);
+  const existing=project&&[...openWindows].find(r=>r.host.ws.prefs.current===project&&!r.host.ws.projectReadOnly);if((existing||openingProjects.has(project))&&!readOnly)return{conflict:true};if(project&&!readOnly){openingProjects.add(project);reserved=true;}
+  const page=await serve();const workspace=await stores.workspace(project,initial,readOnly);
   host=await new DesktopHost(app.getPath('userData'),(type,data)=>{if(window&&!window.isDestroyed())window.webContents.send('studio:event',type,data);},{
     workspace,projectsDirectory:smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'DevForge'),
-    pythonRuntimeInUse:directory=>[...openWindows].some(r=>r.host!==host&&[r.host.python.kernel,r.host.pythonIntelligence.child,r.host.tools.execution].some(child=>child?.spawnfile&&inside(path.resolve(child.spawnfile),directory))),openProjectWindow:id=>openWindow(id),projectInUse:id=>[...openWindows].some(r=>r.host!==host&&r.host.ws.prefs.current===id),
+    pythonRuntimeInUse:directory=>[...openWindows].some(r=>r.host!==host&&[r.host.python.kernel,r.host.pythonIntelligence.child,r.host.tools.execution].some(child=>child?.spawnfile&&inside(path.resolve(child.spawnfile),directory))),openProjectWindow:(id,readOnly)=>openWindow(id,false,readOnly),projectInUse:id=>[...openWindows].some(r=>r.host!==host&&r.host.ws.prefs.current===id),projectEditingElsewhere:id=>[...openWindows].some(r=>r.host!==host&&r.host.ws.prefs.current===id&&!r.host.ws.projectReadOnly),
     reducedMotion:()=>nativeTheme.prefersReducedMotion,
     chooseFolder:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openDirectory']});return r.canceled?null:r.filePaths[0];},
     chooseFile:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openFile']});return r.canceled?null:r.filePaths[0];},
@@ -76,8 +82,8 @@ async function start(){
   window.on('close',event=>{if(!quitting){event.preventDefault();quitting=true;host.close().finally(()=>{server.close();openWindows.delete(record);window.destroy();if(!openWindows.size&&process.platform!=='darwin')app.quit();});}});
   await require('./navigation.cjs').loadLocalPage(window,page);if(smoke){const {runSmoke}=require('./smoke.cjs');await runSmoke({app,window,host,base});quitting=true;await host.close();server.close();window.destroy();app.quit();}else if(!headless)window.show();
 }
-await start();return true;
+try{return await start();}finally{if(reserved)openingProjects.delete(project);}
 }
-app.whenReady().then(async()=>{stores=await new WindowStore(app.getPath('userData'),smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'DevForge')).init();await openWindow(undefined,true);}).catch(error=>{console.error(error);if(!smoke&&!headless)dialog.showErrorBox('DevForge',error.message);app.exit(1);});
+if(primaryInstance)app.whenReady().then(async()=>{stores=await new WindowStore(app.getPath('userData'),smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'DevForge')).init();await openWindow(undefined,true);}).catch(error=>{console.error(error);if(!smoke&&!headless)dialog.showErrorBox('DevForge',error.message);app.exit(1);});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
 app.on('activate',()=>{const record=[...openWindows].at(-1);if(record&&!record.window.isDestroyed())record.window.show();else if(stores)openWindow(undefined,true).catch(console.error);});

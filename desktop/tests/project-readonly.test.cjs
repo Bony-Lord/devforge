@@ -1,0 +1,14 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const {WindowStore}=require('../window-store.cjs'),{DesktopHost}=require('../host.cjs');
+test('a reader of an already edited project has an independent session and cannot mutate or execute it',async t=>{
+ const data=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-project-readonly-')),store=await new WindowStore(data).init(),writer=new DesktopHost(data,()=>{},{workspace:await store.workspace(undefined,true)});await writer.init();const id=(await writer.ws.newProject('project')).project,root=writer.ws.root,file=path.join(root,'main.cpp');const reader=new DesktopHost(data,()=>{},{workspace:await store.workspace(id,false,true),projectEditingElsewhere:project=>project===id});await reader.init();t.after(async()=>{await reader.close();await writer.close();await fs.rm(data,{recursive:true,force:true,maxRetries:10,retryDelay:100});});
+ assert((await reader.state()).capabilities.projectReadOnly);assert((await reader.handle('read',{path:file})).readonly);assert((await reader.handle('projectAccess',{id})).editingElsewhere);
+ for(const op of ['write','newFile','newFolder','createTreeItem','renameFile','deleteFile','build','notebookStart','git','projectDelete'])await assert.rejects(reader.handle(op,{path:file,text:'blocked'}),/PROJECT_READ_ONLY/);
+ await assert.rejects(reader.ws.write(file,'blocked'),/PROJECT_READ_ONLY/);await assert.rejects(reader.handle('project',{name:id}),/PROJECT_IN_USE/);
+ writer.ws.prefs.session={active:'writer.cpp'};reader.ws.prefs.session={active:'reader.cpp'};await Promise.all([writer.ws.persist(),reader.ws.persist()]);const main=JSON.parse(await fs.readFile(path.join(data,'window-sessions/main.json'),'utf8'));assert.equal(main.session.active,'writer.cpp');assert((await fs.readdir(path.join(data,'window-sessions'))).some(n=>n.startsWith('reader-')));
+ const changed='// changed by writer\n';await writer.ws.write(file,changed);assert.equal((await reader.handle('read',{path:file,observeOnly:true})).text,changed);
+});
+test('observing an external update does not acknowledge it or permit overwriting unsaved disk changes',async t=>{
+ const data=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-observe-')),host=await new DesktopHost(data).init();t.after(async()=>{await host.close();await fs.rm(data,{recursive:true,force:true,maxRetries:10,retryDelay:100});});await host.ws.newProject('project');const file=path.join(host.ws.root,'main.cpp');await host.handle('read',{path:file});await fs.writeFile(file,'external version\n');assert.equal((await host.handle('read',{path:file,observeOnly:true})).text,'external version\n');await assert.rejects(host.handle('write',{path:file,text:'local version\n'}),/changed outside/);assert.equal(await fs.readFile(file,'utf8'),'external version\n');
+});

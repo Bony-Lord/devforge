@@ -28,7 +28,7 @@ body.design-show-tools .studio-header #compilerSelect+.studio-select,body.design
 .studio-header .studio-run-selectors>#editRunConfigurations{box-sizing:border-box;flex:0 0 34px!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:32px!important;padding:7px!important;overflow:visible!important}
 .studio-header #editRunConfigurations svg{display:block;flex:0 0 20px!important;width:20px!important;height:20px!important;min-width:20px!important}
 .studio-header #runButton{flex:0 0 34px;width:34px;min-width:34px;padding:7px}
-.studio-header #runButton label{display:none!important}
+.studio-header #runButton label{display:none}
 .studio-header #settingsButton{display:inline-flex!important}
 .notebook-resource-control input[type=text]{width:90px;text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
 .resource-available{display:block;font-size:10px;color:var(--muted);margin-top:3px}
@@ -65,3 +65,32 @@ body.design-show-tools .studio-header #compilerSelect+.studio-select,body.design
 @media(max-width:700px){.studio-header .brand{display:none!important}.studio-header .project-switch{max-width:115px!important;min-width:55px!important;flex:1 1 90px!important}.studio-header .design-run-group{flex:0 0 auto!important;gap:2px!important}.studio-header>#settingsButton{order:20}.studio-header .toolbar{width:0!important}.studio-header .studio-run-selectors #runConfigurationChoice{max-width:65px!important;min-width:30px!important}}
 
 .market-advanced-filters>summary{cursor:pointer;padding:3px 0;color:var(--text);font-size:11px}.market-advanced-filters>.market-filter-options{margin-top:6px}
+
+/* Respect the menu toggle and preserve labels when there is room. */
+.studio-header .toolbar.hidden{display:none!important}
+.studio-header:has(#mainMenus:not(.hidden))>:is(#paletteButton,#settingsButton){display:none!important}
+@media(min-width:900px){.studio-header #runButton{flex:0 0 auto;width:auto;min-width:102px;gap:7px;padding:7px 12px}.studio-header #runButton label{display:block!important}}
+.notebook-status:empty{display:none}
+.tree-hidden-join-before{border-top-left-radius:0!important;border-top-right-radius:0!important}
+.tree-hidden-join-after{border-bottom-left-radius:0!important;border-bottom-right-radius:0!important}
+.operation-progress:not(:empty),[data-pack-progress]:not(:empty){display:flex;align-items:center;gap:7px}
+.operation-progress[data-loading=true]::before{content:'';width:13px;height:13px;flex:0 0 13px;border:2px solid var(--line);border-top-color:var(--cyan);border-radius:50%;animation:studio-working 1s linear infinite}
+@keyframes studio-working{to{transform:rotate(360deg)}}
+.gallery-compatibility{border-left:3px solid var(--yellow);padding:8px 10px;background:#b8964b12;color:var(--text)}
+.gallery-unavailable{border:1px solid #9b814d!important;color:#dfc793!important;opacity:1!important;cursor:help}
+@media(max-height:760px){.market-filters{padding:7px;gap:4px}.marketplace-mode>.dialog-heading{min-height:30px;height:30px}.market-filters>label{font-size:10px}.market-filters .market-advanced-filters>summary{padding:1px 0}}
+
+.notebook-syntax .md-token-heading{color:#c79ddc}.notebook-syntax .md-token-emphasis{color:#d6bc81}.notebook-syntax .md-token-link{color:#8cb4dd}.notebook-syntax .md-token-code{color:#ce9178}.notebook-syntax .md-token-math{color:#c5c88c}.notebook-syntax .md-token-marker{color:#81bca6}
+.markdown-math{font-size:1.12em;white-space:normal}.markdown-math[data-display=true]{display:block;text-align:center;margin:10px 0}.markdown-math math{max-width:100%}.markdown-math-enable{display:block;margin:6px 0;color:var(--cyan)}
+
+.quick-row>svg{width:17px;height:17px;flex:0 0 17px;color:var(--muted)}.quick-row>span{flex:1;min-width:0}.quick-empty{padding:12px;color:var(--muted)}.quick-row small{max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.studio-background-activity{display:inline-flex;align-items:center;gap:5px;max-width:260px;color:var(--cyan)}.studio-background-activity[hidden]{display:none}.studio-background-activity svg{width:12px;height:12px;animation:studio-working 1s linear infinite}.studio-header{position:relative}.studio-work-progress{position:absolute;left:0;right:0;bottom:0;height:2px;overflow:hidden;pointer-events:none}.studio-work-progress::before{content:'';position:absolute;left:-30%;width:30%;height:100%;background:var(--cyan);animation:studio-progress-sweep 1.6s ease-in-out infinite}@keyframes studio-progress-sweep{to{left:100%}}.studio-work-progress[hidden]{display:none}
+
+.tool-path-row{display:flex;gap:5px;min-width:0}.tool-path-row input{flex:1;min-width:0}.tool-path-row button{width:30px;flex:0 0 30px;padding:5px}.tool-path-row svg{width:17px;height:17px}.desktop-tools-grid small{overflow-wrap:anywhere;color:var(--muted);font-size:10px}
+.market-sidebar:has(.market-advanced-filters[open]){overflow-y:auto}
+.market-sidebar:has(.market-advanced-filters[open]) .market-results{flex:0 0 auto;overflow:visible}
+@media(max-height:760px){#addonsDialog.marketplace-mode>.dialog-heading{display:none!important}.market-sidebar .market-filters{gap:4px!important;padding:7px!important}.market-count{margin-top:1px;margin-bottom:3px}}
+.activitybar>.activity{display:flex;flex-direction:row;align-items:center;justify-content:center;width:37px;height:36px;min-height:36px;padding:7px;gap:0;border-left-width:0}
+.activitybar>.activity>.design-rail-label{display:none}
+
+.external-file-notice{position:fixed;right:12px;bottom:34px;max-width:min(550px,calc(100vw - 24px));padding:12px;background:var(--panel);border:1px solid var(--yellow);border-radius:6px;box-shadow:0 8px 24px #0005;z-index:1000}.external-file-notice p{margin:7px 0;font-size:12px}.external-file-notice button{margin-right:5px;background:var(--elev);border:1px solid var(--line);white-space:normal}

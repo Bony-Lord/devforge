@@ -25,3 +25,11 @@ test('a failed metadata save rolls a folder move back',async t=>{
  const host=await fixture(t),id=host.ws.prefs.current,project=await host.handle('projectDescribe',{id}),persist=host.ws.persist.bind(host.ws);host.ws.persist=async()=>{throw Error('simulated disk failure');};
  await assert.rejects(host.handle('projectRemove',{id,path:project.path,mode:'trash'}),/disk failure/);host.ws.persist=persist;assert((await fs.stat(project.path)).isDirectory());assert(host.ws.prefs.projects[id]);assert.equal(host.ws.prefs.current,id);assert.equal((await host.handle('projectArchive')).length,0);
 });
+
+test('trashing a project releases its idle notebook kernel before moving the working directory',{skip:!process.env.DEVFORGE_TEST_PYTHON,timeout:30000},async t=>{
+ const host=await fixture(t),id=host.ws.prefs.current,project=await host.handle('projectDescribe',{id}),file=path.join(project.path,'book.ipynb');
+ host.addons.data.profile.resolved=['studio.python','studio.notebooks'];await host.ws.write(file,'{}');await host.handle('workspaceTrustSet',{trusted:true});
+ await host.handle('notebookStart',{path:file,options:{pythonExecutable:process.env.DEVFORGE_TEST_PYTHON}});const child=host.python.kernel;assert(child&&child.exitCode===null);assert.equal(host.python.busy,false);
+ const moved=await host.handle('projectRemove',{id,path:project.path,mode:'trash'});assert.equal(host.python.kernel,null);assert(child.exitCode!==null||child.signalCode!==null);await assert.rejects(fs.access(project.path));
+ await host.handle('projectRestore',{id:moved.removed});assert.equal(await fs.readFile(file,'utf8'),'{}');
+});

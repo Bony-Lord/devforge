@@ -748,5 +748,25 @@
       "ru": "Отдельный отключаемый модуль. Полный Extension Host VS Code пока не реализован; неподдерживаемые пакеты не предлагаются как рабочие.",
       "en": "An independently switchable module. The complete VS Code Extension Host is not implemented; unsupported packages are not advertised as working."
     }
+  },
+  "studio.lib.katex": {
+    "summary": {
+      "ru": "Отдельная библиотека для отображения математических формул TeX как MathML. Загружается отдельно, без внешних шрифтов.",
+      "en": "Optional library rendering TeX mathematical formulas as MathML. Downloads separately and uses no external fonts."
+    },
+    "details": {
+      "ru": "Отдельная библиотека для отображения математических формул TeX как MathML. Загружается отдельно, без внешних шрифтов. Включается и удаляется через менеджер дополнений.",
+      "en": "Optional library rendering TeX mathematical formulas as MathML. Downloads separately and uses no external fonts. Enable or uninstall it through the extension manager."
+    }
+  },
+  "studio.markdown-math": {
+    "summary": {
+      "ru": "Отображает формулы в Markdown-файлах и ячейках notebook. Поддерживает встроенные и отдельные блоки; требует библиотеку KaTeX.",
+      "en": "Renders formulas in Markdown files and notebook cells. Supports inline and display math and requires the KaTeX library."
+    },
+    "details": {
+      "ru": "Отображает формулы в Markdown-файлах и ячейках notebook. Поддерживает встроенные и отдельные блоки; требует библиотеку KaTeX. Включается и удаляется через менеджер дополнений.",
+      "en": "Renders formulas in Markdown files and notebook cells. Supports inline and display math and requires the KaTeX library. Enable or uninstall it through the extension manager."
+    }
   }
 }

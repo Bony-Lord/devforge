@@ -3245,5 +3245,171 @@
       ]
     },
     "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "conflicts": {},
+      "id": "studio.lib.katex",
+      "name": {
+        "ru": "Библиотека KaTeX",
+        "en": "KaTeX library"
+      },
+      "description": {
+        "ru": "Отдельно загружаемый движок TeX → MathML для формул Markdown.",
+        "en": "Separately downloaded TeX to MathML renderer for Markdown formulas."
+      },
+      "capabilities": [],
+      "dependencies": {},
+      "kind": "library",
+      "installationGroup": "tools",
+      "externalTool": "markdown-math-assets"
+    },
+    "contributions": []
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "conflicts": {},
+      "id": "studio.markdown-math",
+      "name": {
+        "ru": "Markdown · математические формулы",
+        "en": "Markdown · mathematical formulas"
+      },
+      "description": {
+        "ru": "Формулы $…$, $$…$$, \\(…\\) и \\[…\\] в Markdown и notebook. Без загрузки внешних шрифтов.",
+        "en": "Render $…$, $$…$$, \\(…\\) and \\[…\\] formulas in Markdown and notebooks, without external fonts."
+      },
+      "capabilities": [
+        "host.features"
+      ],
+      "dependencies": {
+        "studio.lib.katex": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.language.markdown": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "kind": "feature",
+      "installationGroup": "editing"
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.markdown-math/enabled",
+        "value": {
+          "id": "markdownMath"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.pack.cpp-full",
+      "version": "1.1.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Полная C++ IDE",
+        "en": "Full C++ IDE"
+      },
+      "description": {
+        "ru": "Инструменты C/C++: GCC, CMake, clangd, форматирование, отладка и Git. Не меняет оформление и оконный режим.",
+        "en": "C/C++ tools: GCC, CMake, clangd, formatting, debugging and Git. Keeps the current appearance and window mode."
+      },
+      "license": "MIT",
+      "capabilities": [],
+      "dependencies": {
+        "studio.pack.cpp": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.pack.cmake": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.tool.gcc": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.clangd": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.formatter": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.debugger": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.git": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.smart-typing": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.console": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.terminal": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.run-configurations": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.file-templates": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.runtime-diagnostics": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.completion": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.diagnostics": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.semantic": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        },
+        "studio.inlay-hints": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "pack"
+    },
+    "contributions": []
   }
 ]

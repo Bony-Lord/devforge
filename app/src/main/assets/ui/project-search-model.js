@@ -1,0 +1,5 @@
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.StudioSearchText=api;})(globalThis,()=>{
+ 'use strict';
+ function find(text,query,options={}){if(!query)return[];const limit=Math.min(1000,options.limit||100),pattern=options.regex?query:query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),regex=new RegExp(pattern,'gu'+(options.caseSensitive?'':'i')),rows=[],lines=String(text).split('\n');for(let line=0;line<lines.length;line++){regex.lastIndex=0;let match;while((match=regex.exec(lines[line]))){const start=match.index,end=start+match[0].length;if(!options.wholeWord||!/[\p{L}\p{N}_]/u.test(lines[line][start-1]||'')&&!/[\p{L}\p{N}_]/u.test(lines[line][end]||''))rows.push({line:line+1,column:start+1,endColumn:end+1,preview:lines[line].slice(Math.max(0,start-70),start+150)});if(rows.length>=limit)return rows;if(!match[0].length)regex.lastIndex+=lines[line].codePointAt(regex.lastIndex)>0xffff?2:1;}}return rows;}
+ return Object.freeze({find});
+});

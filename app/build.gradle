@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.forgex'
     compileSdk 36
-    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 30; versionName '0.7.0-alpha.2'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
+    defaultConfig { applicationId 'com.forgex'; minSdk 28; targetSdk 36; versionCode 31; versionName '0.7.0-alpha.3'; testInstrumentationRunner 'dev.forge.ide.NativeInputInstrumentation' }
     buildFeatures { buildConfig true }
     flavorDimensions += 'runtime'
     productFlavors {
@@ -45,7 +45,7 @@ def studioAssets = tasks.register('prepareStudioAssets', Sync) {
     exclude 'modern-runtime.json', 'runtime-modern-data.zip'
     exclude '**/__pycache__/**', '**/*.pyc'
     // This optional Monaco adapter is desktop-only; Android uses native Sora.
-    exclude 'ui/vendor/monaco-vim*'
+    exclude 'ui/vendor/monaco-vim*', 'ui/vendor/katex.min.js'
 }
 tasks.named('preBuild').configure { dependsOn studioAssets }
 dependencies {

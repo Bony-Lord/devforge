@@ -82,15 +82,16 @@ class Workspace {
       const unloaded=dir&&['.git','node_modules','.cache','build'].includes(entry.name);result.push({name:entry.name,path:file,dir,...dir?{children:unloaded?[]:await this.tree(file,depth+1,budget),unloaded}:{size:(await fs.stat(file)).size}});
     }return result;
   }
-  async read(input,encoding){
+  async read(input,encoding,track=true){
     const file=await canonical(input);if(!inside(file,await canonical(this.root))&&!this.readRoots?.some(root=>inside(file,root)))throw Error('File outside project and compiler headers');
     if((await fs.stat(file)).size>4*1024*1024)throw Error('Editor opens files up to 4 MB');
     const bytes=await fs.readFile(file),decoded=decode(bytes,encoding||this.prefs.encodings[file]||'auto');
-    this.prefs.encodings[file]=decoded.encoding;this.readState.set(file,{hash:crypto.createHash('sha256').update(bytes).digest('hex'),bom:decoded.bom});
-    return {...decoded,path:file,readonly:!inside(file,await canonical(this.root))};
+    if(track){this.prefs.encodings[file]=decoded.encoding;this.readState.set(file,{hash:crypto.createHash('sha256').update(bytes).digest('hex'),bom:decoded.bom});}
+    return {...decoded,path:file,readonly:!!this.projectReadOnly||!inside(file,await canonical(this.root))};
   }
   historyDir(file){return path.join(this.cache,'history',Buffer.from(key(file)).toString('base64url'));}
   async write(input,text,encoding){
+    this.assertEditable();
     const file=await this.writable(input),previous=await exists(file)?await fs.readFile(file):null,read=this.readState.get(file);
     if(previous&&read&&crypto.createHash('sha256').update(previous).digest('hex')!==read.hash)throw Error('File changed outside the editor. Reopen it before saving; disk contents were preserved.');
     const format=encoding||this.prefs.encodings[file]||(previous?decode(previous).encoding:this.prefs.settings.defaultEncoding||'UTF-8'),bytes=encode(text,format,read?.bom);
@@ -103,10 +104,12 @@ class Workspace {
   }
   async history(input){const file=await this.writable(input),dir=this.historyDir(file);if(!await exists(dir))return[];return Promise.all((await fs.readdir(dir)).sort().reverse().map(async name=>JSON.parse(await fs.readFile(path.join(dir,name),'utf8'))));}
   async createTemplate(d,preview=false){const files=templates(d.kind,d.name,d.namespace||''),result=[],created=[];
+    if(!preview)this.assertEditable();
     for(const file of Object.keys(files))if(await exists(await this.writable(file)))throw Error('File already exists: '+file);
     try{for(const [name,text]of Object.entries(files)){const file=await this.writable(name);if(!preview){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,encode(text,this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});created.push(file);}result.push({path:preview?name:file,text});}}catch(error){for(const file of created)await fs.rm(file);throw error;}return result;
   }
   async createItem(d){
+    this.assertEditable();
     if(!/^[A-Za-z0-9_+.-]{0,24}$/.test(d.extension||''))throw Error('Invalid file extension');const dir=await canonical(path.join(this.root,d.directory||''));if(!inside(dir,await canonical(this.root)))throw Error('Path outside project');
     for(let n=1;n<10000;n++){
       const folder=d.kind==='folder',base=folder?'new_folder':d.kind==='cmakelists'?'CMakeLists':'new_file',suffix=n===1?'':n;
@@ -115,7 +118,8 @@ class Workspace {
       try{if(folder)await fs.mkdir(file);else await fs.writeFile(file,encode(Object.values(templates(d.kind,d.kind==='cmakelists'?'CMakeLists.txt':path.basename(file)))[0],this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});return{path:file,dir:folder};}catch(e){if(e.code!=='EEXIST')throw e;}
     }throw Error('Too many files with this name');
   }
-  async move(from,to){from=await this.writable(from);to=await this.writable(to);if(inside(to,from))throw Error('Cannot move a folder inside itself');if(await exists(to))throw Error('Destination exists');await fs.rename(from,to);
+  assertEditable(){if(this.projectReadOnly)throw Error('PROJECT_READ_ONLY: This project is open for editing in another window');}
+  async move(from,to){this.assertEditable();from=await this.writable(from);to=await this.writable(to);if(inside(to,from))throw Error('Cannot move a folder inside itself');if(await exists(to))throw Error('Destination exists');await fs.rename(from,to);
     for(const file of Object.keys(this.prefs.encodings))if(inside(file,from)){const target=to+file.slice(from.length);this.prefs.encodings[target]=this.prefs.encodings[file];delete this.prefs.encodings[file];if(this.readState.has(file)){this.readState.set(target,this.readState.get(file));this.readState.delete(file);}}
     await this.persist();return to;
   }

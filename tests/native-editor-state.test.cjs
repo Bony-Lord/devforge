@@ -95,15 +95,18 @@ async function formatterRace(kind){
     assert.equal(selected,1);assert.equal(activated,0,'A native shadow editor must not reactivate a notebook over a tool tab');checks++;
   }
   {
-    const{context,forge}=environment(),frames=[];let focused=0;
+    const{context,forge}=environment(),frames=[];let focused=0,within=false;
+    context.document.querySelector=()=>null;context.StudioPopover={current:null};
     context.requestAnimationFrame=fn=>frames.push(fn);context.getComputedStyle=element=>({visibility:element.visibility});
     vm.runInContext(fs.readFileSync(path.join(__dirname,'../app/src/main/assets/ui/notebook-ui.js'),'utf8')+';globalThis.notebookType=StudioNotebookEditor;globalThis.documentViews=StudioDocumentViews;',context);
     const panel={},otherPanel={},pane={id:'notebook'},input={isConnected:true,focus(){focused++;}},view=Object.create(context.notebookType.prototype);
-    Object.assign(view,{ide:forge,editor:{},dialog:{hidden:false,visibility:'hidden'},body:{querySelector:()=>input}});pane.documentView=view;
+    Object.assign(view,{ide:forge,editor:{},dialog:{hidden:false,visibility:'hidden',contains:()=>within},body:{querySelector:()=>input}});pane.documentView=view;
     context.documentViews.pane=()=>pane;forge.windows={api:{activePanel:panel},editorPanel:()=>panel};
     view.focus();assert.equal(focused,0);assert.equal(frames.length,0,'Native WebView focus must precede DOM focus');await Promise.resolve();view.dialog.visibility='visible';frames.shift()();assert.equal(focused,1,'Focus waits for Dockview to reveal the selected tab');checks++;
     view.focus();forge.windows.api.activePanel=otherPanel;await Promise.resolve();frames.shift()();assert.equal(focused,1,'An outdated focus request must not steal focus back from the console');checks++;
     forge.windows.api.activePanel=panel;view.focus();pane.documentView=null;await Promise.resolve();frames.shift()();assert.equal(focused,1,'A replaced document view must not regain input ownership');checks++;
+    pane.documentView=view;within=true;view.focus();await Promise.resolve();frames.shift()();assert.equal(focused,1,'An already focused cell or toolbar control keeps input ownership');checks++;
+    within=false;context.StudioPopover.current={};view.focus();await Promise.resolve();frames.shift()();assert.equal(focused,1,'A deferred notebook focus must not steal focus from a popup');checks++;
   }
   console.log(checks+' editor state and asynchronous formatting checks passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

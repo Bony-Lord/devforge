@@ -149,3 +149,6 @@ Windows: [состав ядра, отдельные загрузки и bootstra
 ## Снимки и отчёты об ошибках
 
 Публичные снимки захватывают только окно IDE через PixelCopy: системные часы, заряд и панель жестов не входят в изображение. Диагностический editorCapture доступен только debug-сборке. Кнопка сообщения об ошибке открывает GitHub Issue Form с версией, Android и моделью устройства. Код, пути проектов и журнал не отправляются автоматически.
+
+
+Storage: see [Development storage policy](DEVELOPMENT-STORAGE.md). Portable ZIPs are opt-in with `node desktop/package.cjs --portable`; the default prepares the installer payload only.

@@ -12,8 +12,8 @@ class StudioNotebookCellInput {
       if(input.readOnly||event.isComposing)return;
       this.before=this.snapshot();
       if(event.cancelable&&['historyUndo','historyRedo'].includes(event.inputType)){event.preventDefault();this.undo(event.inputType==='historyRedo');}
-      else if(event.cancelable&&['insertLineBreak','insertParagraph'].includes(event.inputType)){event.preventDefault();this.apply(StudioCellEditing.newline(input.value,input.selectionStart,input.selectionEnd,this.view.ide.settings,this.language()==='python'),'newline');}
-      else if(event.cancelable&&this.language()==='python'){const edit=event.inputType==='insertText'?StudioCellEditing.typed(input.value,input.selectionStart,input.selectionEnd,event.data,this.view.ide.settings):event.inputType==='deleteContentBackward'?StudioCellEditing.backspace(input.value,input.selectionStart,input.selectionEnd):null;if(edit){event.preventDefault();this.apply(edit,event.inputType);}}
+      else if(event.cancelable&&['insertLineBreak','insertParagraph'].includes(event.inputType)){event.preventDefault();this.apply(this.language()==='markdown'?StudioMarkdownEditing.newline(input.value,input.selectionStart,input.selectionEnd):StudioCellEditing.newline(input.value,input.selectionStart,input.selectionEnd,this.view.ide.settings,this.language()==='python'),'newline');}
+      else if(event.cancelable&&['python','markdown'].includes(this.language())){const engine=this.language()==='markdown'?StudioMarkdownEditing:StudioCellEditing,edit=event.inputType==='insertText'?engine.typed(input.value,input.selectionStart,input.selectionEnd,event.data,this.view.ide.settings):event.inputType==='deleteContentBackward'?engine.backspace(input.value,input.selectionStart,input.selectionEnd):null;if(edit){event.preventDefault();this.apply(edit,event.inputType);}}
     });
     input.addEventListener('input',event=>this.changed(this.synthetic?.kind||event.inputType||'input',this.synthetic?.remember!==false));
     input.addEventListener('scroll',()=>this.scroll());
@@ -40,7 +40,7 @@ class StudioNotebookCellInput {
     const before=this.snapshot(),edit=StudioCellEditing.delta(before.text,value.text);if(edit)input.setRangeText(edit.text,edit.start,edit.end,'preserve');input.setSelectionRange(value.start,value.end);
     this.before=before;this.synthetic={kind,remember};try{this.input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:kind==='undo'?'historyUndo':kind==='redo'?'historyRedo':'insertReplacementText'}));}finally{this.synthetic=null;}
   }
-  insert(text){const input=this.input;if(input.readOnly)return false;const start=input.selectionStart,end=input.selectionEnd,settings=this.view.ide.settings,smart=text==='\n'?StudioCellEditing.newline(input.value,start,end,settings,this.language()==='python'):this.language()==='python'?StudioCellEditing.typed(input.value,start,end,text,settings):null;this.apply(smart||{text:input.value.slice(0,start)+text+input.value.slice(end),start:start+text.length,end:start+text.length},'insertText');return true;}
+  insert(text){const input=this.input;if(input.readOnly)return false;const start=input.selectionStart,end=input.selectionEnd,settings=this.view.ide.settings,smart=this.language()==='markdown'?(text==='\n'?StudioMarkdownEditing.newline(input.value,start,end):StudioMarkdownEditing.typed(input.value,start,end,text)):text==='\n'?StudioCellEditing.newline(input.value,start,end,settings,this.language()==='python'):this.language()==='python'?StudioCellEditing.typed(input.value,start,end,text,settings):null;this.apply(smart||{text:input.value.slice(0,start)+text+input.value.slice(end),start:start+text.length,end:start+text.length},'insertText');return true;}
   changed(kind,remember=true){
     if(this.input.readOnly)return;
     const after=this.snapshot(),before=this.before||this.saved,source=this.record.cell.source;this.before=null;this.record.cell.source=after.text;
@@ -53,9 +53,9 @@ class StudioNotebookCellInput {
     const font=Math.max(10,Math.min(48,(Number(settings.fontSize)||14)*(Number(settings.codeScale)||100)/100));this.element.style.setProperty('--cell-font',font+'px');this.element.style.setProperty('--cell-tab',tab);
     input.rows=Math.max(1,Math.min(500,input.value.split('\n').length));
     this.measure();
-    const enabled=this.visible&&language!=='plaintext'&&(!host?.lastFeatures||host.language('cell.'+(language==='python'?'py':'md'))===language),text=input.value,key=[text,enabled,tab,settings.theme].join('\u0000');
+    const enabled=this.visible&&language!=='plaintext'&&(!host?.lastFeatures||language==='markdown'&&host.enabled('notebooks')||host.language('cell.'+(language==='python'?'py':'md'))===language),text=input.value,key=[text,enabled,tab,settings.theme].join('\u0000');
     if(key===this.paintKey)return;this.paintKey=key;const ticket=++this.ticket;this.paint.textContent=this.visible?text+'\n':'';this.scroll();
-    const colorize=window.monaco?.editor.colorize;if(!enabled||text.length>100000||input.rows===500&&text.split('\n').length>2000||!colorize){this.element.classList.remove('has-syntax');return;}
+    if(enabled&&language==='markdown'&&text.length<=100000){this.element.classList.add('has-syntax');this.paint.innerHTML=StudioMarkdownEditing.highlight(text)+'\n';this.scroll();return;}const colorize=window.monaco?.editor.colorize;if(!enabled||text.length>100000||input.rows===500&&text.split('\n').length>2000||!colorize){this.element.classList.remove('has-syntax');return;}
     // Only token HTML produced by Monaco is inserted, never notebook HTML output.
     this.element.classList.add('has-syntax');
     Promise.resolve(colorize(text,language,{tabSize:tab})).then(html=>{if(this.disposed||ticket!==this.ticket)return;this.paint.innerHTML=html;this.scroll();this.view.ide.pythonStyle?.paintCell(this);}).catch(()=>{if(ticket===this.ticket)this.element.classList.remove('has-syntax');});

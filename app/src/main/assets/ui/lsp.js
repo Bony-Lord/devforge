@@ -25,7 +25,7 @@ class ClangdClient {
       else this.send({jsonrpc:'2.0',id:m.id,result:null});
     }
   }
-  async start(){
+  async start(){if(this.ide?.state.capabilities.projectReadOnly)return;
     if(!this.ide.state.root){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'No project open':'Проект не открыт','pending');return;}
     if(!this.ide.startupComplete||this.ide.setupOpen){this.startDeferred=true;return;}this.startDeferred=false;
     if((['python','notebook'].includes(this.ide.configurations?.document?.projectType)||['python','notebook'].includes(this.ide.active?.model.getLanguageId())&&!['cmake-cpp','cmake-c','cmake'].includes(this.ide.configurations?.document?.projectType))&&![...this.ide.docs.values()].some(d=>['c','cpp'].includes(d.model.getLanguageId()))){this.ready=false;await native('lspStop');this.ide.pythonIntelligence?.sync();return;}

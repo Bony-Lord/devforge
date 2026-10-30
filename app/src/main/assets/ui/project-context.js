@@ -5,7 +5,7 @@ Object.assign(StudioConfigurations.prototype,{
   async applyProjectContext(startup=false){
     const ide=this.ide,addons=ide.addons,doc=this.document||{};this.loadingProject=true;
     try{
-      const requested=StudioProjectPolicy.profile(doc,addons.baseProfile||[]);const scoped=doc.addons?.mode==='project';
+      const requested=StudioProjectPolicy.profile(doc,addons.baseProfile||[],addons.catalog);const scoped=doc.addons?.mode==='project';
       try{const resolved=StudioAddonCore.resolve(addons.catalog,requested);if(addons.host.missing(resolved).some(pack=>!pack.optional))throw Error(addons.text('Для профиля проекта нужны инструменты. Откройте аддоны и примените состав для установки.','Project profile requires tools. Open Addons and apply its selection to install.'));addons.projectScoped=scoped;await addons.apply(requested,false);}catch(error){addons.projectScoped=true;await addons.apply([],false);addons.errors.push({message:error.message});ide.toast(error.message);}
       const s=ide.settings;s.projectDefaultInterface??={mode:s.interfaceMode||'simple',layout:structuredClone(s.layout||{}),dockWindows:structuredClone(s.dockWindows||null)};
       const ui=s.projectInterfaces?.[ide.state.root]||s.projectDefaultInterface,wanted=doc.interface?.mode&&doc.interface.mode!=='inherit'?doc.interface.mode:ui.mode;
@@ -13,7 +13,7 @@ Object.assign(StudioConfigurations.prototype,{
       s.interfaceMode=wanted;s.layout=structuredClone(ui.layout||{});s.dockWindows=structuredClone(ui.dockWindows||null);this.contextRoot=ide.state.root;
       if(startup){addons.host.bootWindows=useWindows;addons.host.needsReload=false;}
       document.body.classList.toggle('sidebar-hidden',!!s.layout.sidebarHidden);document.body.classList.toggle('panel-hidden',!!s.layout.panelHidden);await ide.applyUIScale();await native('settingsCommit',s);this.render();ide.registerCommands();
-      if(changed){await ide.persistSession(true);location.reload();return{reloading:true};}
+      if(changed){await ide.saveAll();await ide.persistSession(true);this.rememberInterface();await native('settingsCommit',s);location.reload();return{reloading:true};}
       return{reloading:false};
     }finally{this.loadingProject=false;}
   }

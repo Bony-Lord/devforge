@@ -13,7 +13,6 @@ const compactMethods={
     $('#mainMenus').addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const buttons=[...$('#mainMenus').children],at=buttons.indexOf(document.activeElement);buttons[event.key==='Home'?0:event.key==='End'?buttons.length-1:(at+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length].focus();});
     document.addEventListener('pointerdown',event=>{if(!event.target.closest('#mainMenus,#mainMenuToggle,#menu'))this.toggleMainMenu(false);},true);
     onNative('editorDismissPopover',()=>{this.toggleMainMenu(false);$('#menu').classList.add('hidden');});
-    $('#tabs').addEventListener('dblclick',event=>{if(event.target.closest('.tab')&&!event.target.closest('.tab-close'))this.toggleFocusMode();});
     $('.panel-heading').addEventListener('dblclick',event=>{if(!event.target.closest('button'))this.maximizePanel();});
     const keyboardRevision=e=>NativeEditing.keyboardRevision=Math.max(NativeEditing.keyboardRevision||0,e.revision||0);
     onNative('floatingKeyboardModifiers',e=>{keyboardRevision(e);this.settings.keyboardModifiers=e.mode;this.saveWorkspaceSettings();});

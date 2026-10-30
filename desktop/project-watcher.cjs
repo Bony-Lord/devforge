@@ -5,8 +5,8 @@ class ProjectWatcher {
  watch(root){
   root=root?path.resolve(root):'';if(root===this.root)return;this.close();if(!root)return;
   this.root=root;
-  try{this.watcher=fs.watch(root,{recursive:true},(event,name)=>{if(event!=='rename')return;const parts=String(name||'').split(/[\\/]/);if(parts.length>1&&parts.some(p=>['.git','node_modules','build','.cache'].includes(p)||p.startsWith('cmake-build-')))return;clearTimeout(this.timer);this.timer=setTimeout(()=>{if(this.root===root)this.changed({root:root.replaceAll('\\','/')});},350);this.timer.unref?.();});this.watcher.unref?.();this.watcher.on('error',()=>this.close());}catch{this.close();}
+  try{this.watcher=fs.watch(root,{recursive:true},(event,name)=>{const parts=String(name||'').split(/[\\/]/);if(parts.some(p=>['.git','.forge','node_modules','build','.cache','__pycache__'].includes(p)||p.startsWith('cmake-build-')))return;this.pending??=new Set();if(name&&this.pending.size<256)this.pending.add(path.join(root,String(name)).replaceAll('\\','/'));clearTimeout(this.timer);this.timer=setTimeout(()=>{const files=[...this.pending];this.pending.clear();if(this.root===root)this.changed({root:root.replaceAll('\\','/'),files});},350);this.timer.unref?.();});this.watcher.unref?.();this.watcher.on('error',()=>this.close());}catch{this.close();}
  }
- close(){clearTimeout(this.timer);this.watcher?.close();this.watcher=null;this.root='';}
+ close(){clearTimeout(this.timer);this.pending?.clear();this.watcher?.close();this.watcher=null;this.root='';}
 }
 module.exports={ProjectWatcher};

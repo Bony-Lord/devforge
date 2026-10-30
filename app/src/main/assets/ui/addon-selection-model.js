@@ -17,17 +17,20 @@
   }
   function toggle(catalog,requested,manifest,checked){
     if(checked){const next=[...requested.filter(r=>id(r)!==manifest.id),request(manifest)];core.resolve(catalog,next);return next;}
-    // Expand packs before removing a component so unrelated workload features survive.
-    const roots=manual(catalog,requested);
-    if(manifest.kind==='pack'){const owned=new Set(members(catalog,manifest).map(m=>m.id));return roots.filter(r=>!owned.has(id(r)));}
-    return roots.filter(r=>!core.resolve(catalog,[r]).some(m=>m.id===manifest.id));
+    const removed=manifest.kind==='pack'?new Set(members(catalog,manifest).map(m=>m.id)):new Set([manifest.id]);
+    return subtract(catalog,requested,removed);
+  }
+  function subtract(catalog,requested,removed){
+    const affected=r=>core.resolve(catalog,[r]).some(m=>removed.has(m.id)),roots=new Map();
+    // Expand only roots that actually depend on a removed component. Unrelated
+    // workload identities and their choices must survive a window/tool toggle.
+    for(const r of requested)if(!affected(r))roots.set(id(r),r);else for(const part of manual(catalog,[r]))if(!affected(part))roots.set(id(part),part);
+    return [...roots.values()];
   }
   function groupState(members,resolved){const active=new Map(resolved.map(m=>[m.id,m.version])),count=members.filter(m=>active.get(m.id)===m.version).length,total=members.length;return{checked:total>0&&count===total,partial:count>0&&count<total,count,total};}
   function toggleGroup(catalog,requested,members,checked){
     if(!members.length)return requested;const selected=new Set(members.map(m=>m.id));if(checked){const next=[...requested.filter(r=>!selected.has(id(r))),...members.map(request)];core.resolve(catalog,next);return next;}
-    const roots=manual(catalog,requested),resolved=new Map(core.resolve(catalog,roots).map(m=>[m.id,m])),memo=new Map();
-    function depends(name){if(memo.has(name))return memo.get(name);const yes=selected.has(name)||Object.keys(resolved.get(name)?.dependencies||{}).some(depends);memo.set(name,yes);return yes;}
-    return roots.filter(r=>!depends(id(r)));
+    return subtract(catalog,requested,selected);
   }
   function groups(catalog){
     const latest=new Map();for(const m of catalog){if(m.kind==='pack'||!core.satisfies(core.API_VERSION,m.api)||m.platforms&&!m.platforms.includes(core.currentPlatform()))continue;const old=latest.get(m.id);if(!old||core.compare(m.version,old.version)>0)latest.set(m.id,m);}

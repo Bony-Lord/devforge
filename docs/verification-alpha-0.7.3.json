@@ -1,0 +1,841 @@
+{
+  "version": "0.7.0-alpha.3",
+  "date": "2026-10-30",
+  "channel": "alpha prerelease; unstable; do not promote latest",
+  "gui": {
+    "packagedInteractions": 174,
+    "checks": [
+      {
+        "test": "A second application process cannot edit the same profile",
+        "passed": true
+      },
+      {
+        "test": "Saved interface language is applied before static and dynamic UI initialization",
+        "passed": true
+      },
+      {
+        "test": "DevForge raster mark loads fully within its header slot",
+        "passed": true
+      },
+      {
+        "test": "Create is enabled before requesting a preview",
+        "passed": true
+      },
+      {
+        "test": "One Create click creates and opens the selected project",
+        "passed": true
+      },
+      {
+        "test": "An empty project name blocks creation",
+        "passed": true
+      },
+      {
+        "test": "Extensions open as a normal editor tab without a modal or backdrop",
+        "passed": true
+      },
+      {
+        "test": "Utility tabs do not show a file-only read-only badge or internal URI",
+        "passed": true
+      },
+      {
+        "test": "Extensions page stays within its editor pane",
+        "passed": true
+      },
+      {
+        "test": "Marketplace search filters packs without rebuilding its focused search field",
+        "passed": true
+      },
+      {
+        "test": "Extension catalog keeps a usable result list at 1024 by 720",
+        "passed": true
+      },
+      {
+        "test": "Marketplace search is a compact field and the catalog has its own scroll region",
+        "passed": true
+      },
+      {
+        "test": "Official catalog descriptions explain behavior rather than repeating names",
+        "passed": true
+      },
+      {
+        "test": "Marketplace details stay in the editor and list dependencies",
+        "passed": true
+      },
+      {
+        "test": "Extension details and retained list share one editor tab",
+        "passed": true
+      },
+      {
+        "test": "Marketplace retains its search after returning from extension details",
+        "passed": true
+      },
+      {
+        "test": "Project picker has one inner scrollbar and no outer overflow",
+        "passed": true
+      },
+      {
+        "test": "Open VSX search renders real registry results inside the extension tab",
+        "passed": true
+      },
+      {
+        "test": "Registry download is reviewed before its snippets can activate",
+        "passed": true
+      },
+      {
+        "test": "Accepted registry snippets activate through the normal addon transaction",
+        "passed": true
+      },
+      {
+        "test": "Upgrading the legacy VSIX module keeps the new gallery methods active",
+        "passed": true
+      },
+      {
+        "test": "VSIX integration is installed for the application rather than one project",
+        "passed": true
+      },
+      {
+        "test": "Open VSX cards load publisher icons rather than generic marks",
+        "passed": true
+      },
+      {
+        "test": "Disabling a registry extension survives project-context application",
+        "passed": true
+      },
+      {
+        "test": "Registry detail exposes Enable, Settings and Uninstall according to real state",
+        "passed": true
+      },
+      {
+        "test": "Registry addon uninstall removes its snippet registrations",
+        "passed": true
+      },
+      {
+        "test": "Ordinary Markdown line breaks remain distinct rendered lines",
+        "passed": true
+      },
+      {
+        "test": "Shortcut editor includes IDE commands, Monaco actions and platform presets",
+        "passed": true
+      },
+      {
+        "test": "Changing a shortcut persists an explicit command binding",
+        "passed": true
+      },
+      {
+        "test": "Project settings have a dedicated entry point and distinct run/global icons",
+        "passed": true
+      },
+      {
+        "test": "Attach is available without requesting a preview",
+        "passed": true
+      },
+      {
+        "test": "A single Attach click writes the selected EditorConfig template",
+        "passed": true
+      },
+      {
+        "test": "Conflicting attachments keep a usable explicit replacement review",
+        "passed": true
+      },
+      {
+        "test": "Confirmed template replacement completes without a mandatory Preview click",
+        "passed": true
+      },
+      {
+        "test": "Run configuration icon fits entirely in its header button",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens console pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens terminal pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens problems pane",
+        "passed": true
+      },
+      {
+        "test": "Simple interface opens debug pane",
+        "passed": true
+      },
+      {
+        "test": "Explorer and code start in separate groups",
+        "passed": true
+      },
+      {
+        "test": "Extensions rail action belongs to the navigator group above consoles",
+        "passed": true
+      },
+      {
+        "test": "Desktop does not show an unavailable on-screen keyboard action",
+        "passed": true
+      },
+      {
+        "test": "Initial horizontal editor to project ratio is between four and six",
+        "passed": true
+      },
+      {
+        "test": "Three-dot file actions remain open after the opening click bubbles",
+        "passed": true
+      },
+      {
+        "test": "Build directories are hidden by default",
+        "passed": true
+      },
+      {
+        "test": "Showing build directories marks the whole generated row",
+        "passed": true
+      },
+      {
+        "test": "External file creation updates the project tree without a refresh click",
+        "passed": true
+      },
+      {
+        "test": "Official executable extension registers a real code-map command",
+        "passed": true
+      },
+      {
+        "test": "Extension settings edit and persist a module configuration schema",
+        "passed": true
+      },
+      {
+        "test": "Code visualization opens in an editor tab with function links",
+        "passed": true
+      },
+      {
+        "test": "Removing an executable extension unregisters its commands and views",
+        "passed": true
+      },
+      {
+        "test": "Optional Vim addon loads its engine and status only when enabled",
+        "passed": true
+      },
+      {
+        "test": "Disabling a shared library warns which active addon depends on it",
+        "passed": true
+      },
+      {
+        "test": "Cancelling a dependency review preserves the active extension",
+        "passed": true
+      },
+      {
+        "test": "Vim normal-mode dd deletes a line through real keyboard events",
+        "passed": true
+      },
+      {
+        "test": "Confirming a dependency warning disables the dependent extension and library together",
+        "passed": true
+      },
+      {
+        "test": "Re-enabling a dependent extension restores its required library",
+        "passed": true
+      },
+      {
+        "test": "Applying a bulk component removal also reviews dependencies before changing state",
+        "passed": true
+      },
+      {
+        "test": "Vim disable and uninstall restore the editor and remove downloaded assets",
+        "passed": true
+      },
+      {
+        "test": "C++ run actions fit the header at 390",
+        "passed": true
+      },
+      {
+        "test": "C++ run actions fit the header at 720",
+        "passed": true
+      },
+      {
+        "test": "C++ run actions fit the header at 900",
+        "passed": true
+      },
+      {
+        "test": "C++ run actions fit the header at 1100",
+        "passed": true
+      },
+      {
+        "test": "C++ run actions fit the header at 1694",
+        "passed": true
+      },
+      {
+        "test": "Opening code after clearing the previous project cannot join the explorer group",
+        "passed": true
+      },
+      {
+        "test": "Extensions tab does not become the current-file build source",
+        "passed": true
+      },
+      {
+        "test": "Desktop tree omits touch-only drag grips but retains native row dragging",
+        "passed": true
+      },
+      {
+        "test": "Notebook project retains the application window manager",
+        "passed": true
+      },
+      {
+        "test": "Notebook projects also begin with four to six times more editor width than navigator",
+        "passed": true
+      },
+      {
+        "test": "Ordinary application extensions remain active across project specialization",
+        "passed": true
+      },
+      {
+        "test": "Notebook typing produces real Python completions without a hotkey",
+        "passed": true
+      },
+      {
+        "test": "Editing a notebook cell clears diagnostics for its previous source immediately",
+        "passed": true
+      },
+      {
+        "test": "Notebook mouse hover shows a real function signature and docstring without stealing input focus",
+        "passed": true
+      },
+      {
+        "test": "Ctrl Q pins documentation and exposes a close control",
+        "passed": true
+      },
+      {
+        "test": "Escape closes notebook documentation",
+        "passed": true
+      },
+      {
+        "test": "Function parameter help marks the active argument and keeps its description",
+        "passed": true
+      },
+      {
+        "test": "Untrusted function docstrings render as selectable text, never HTML",
+        "passed": true
+      },
+      {
+        "test": "Notebook retains its previous full-width layout without unrequested centering",
+        "passed": true
+      },
+      {
+        "test": "Notebook Enter indents Python blocks through actual input events",
+        "passed": true
+      },
+      {
+        "test": "Notebook automatically pairs an opening parenthesis",
+        "passed": true
+      },
+      {
+        "test": "Typing the matching closing parenthesis skips it without duplicating",
+        "passed": true
+      },
+      {
+        "test": "Each notebook limit has a slider and an editable numeric field",
+        "passed": true
+      },
+      {
+        "test": "Unlimited resources use infinity at the slider endpoint and host capacities",
+        "passed": true
+      },
+      {
+        "test": "Notebook memory maximum uses total physical RAM rather than free RAM",
+        "passed": true
+      },
+      {
+        "test": "Manual limits and sliders synchronize in both directions",
+        "passed": true
+      },
+      {
+        "test": "Notebook resource limits persist in its standard metadata",
+        "passed": true
+      },
+      {
+        "test": "Markdown cells render headings, tables, tasks and callouts after leaving edit mode",
+        "passed": true
+      },
+      {
+        "test": "Markdown task preview updates notebook source without leaving a stale preview",
+        "passed": true
+      },
+      {
+        "test": "Markdown completion offers a table template inside the notebook cell",
+        "passed": true
+      },
+      {
+        "test": "Accepting Markdown completion persists source and renders a real table",
+        "passed": true
+      },
+      {
+        "test": "Raw notebook JSON exposes a visible labeled return-to-cells action",
+        "passed": true
+      },
+      {
+        "test": "Return-to-cells restores the existing notebook without changing its content",
+        "passed": true
+      },
+      {
+        "test": "Code cells have no artificial trailing empty row",
+        "passed": true
+      },
+      {
+        "test": "Python environment path expands or wraps with no horizontal scrollbar",
+        "passed": true
+      },
+      {
+        "test": "Python source files use indentation and paired brackets in the real editor",
+        "passed": true
+      },
+      {
+        "test": "Python file function documentation uses the top overlay with signature and docstring",
+        "passed": true
+      },
+      {
+        "test": "Exact shortcut modifiers separate outline/focus/completion and preserve Ctrl+Y redo",
+        "passed": true
+      },
+      {
+        "test": "Run configuration glyph is fully reachable at width 720",
+        "passed": true
+      },
+      {
+        "test": "Run configuration glyph is fully reachable at width 900",
+        "passed": true
+      },
+      {
+        "test": "Run configuration glyph is fully reachable at width 1100",
+        "passed": true
+      },
+      {
+        "test": "Run settings remain accessible in a narrower desktop header",
+        "passed": true
+      },
+      {
+        "test": "New palette survives UI scaling and differs between editor and panels",
+        "passed": true
+      },
+      {
+        "test": "Settings have a category navigator with one visible page",
+        "passed": true
+      },
+      {
+        "test": "Clearing settings search restores every category",
+        "passed": true
+      },
+      {
+        "test": "Phone header keeps run and configuration actions within the screen",
+        "passed": true
+      },
+      {
+        "test": "Build can be shown and large generated folders load on demand",
+        "passed": true
+      },
+      {
+        "test": "Hidden directory descendants inherit their yellow marker",
+        "passed": true
+      },
+      {
+        "test": "The desktop Run button retains a readable text label",
+        "passed": true
+      },
+      {
+        "test": "Run configuration glyph is complete inside its SVG viewBox",
+        "passed": true
+      },
+      {
+        "test": "Main menu replaces the entire run/project/search toolbar",
+        "passed": true
+      },
+      {
+        "test": "Hidden folder and descendants have joined corners within one background block",
+        "passed": true
+      },
+      {
+        "test": "Background work has a visible spinner and header progress strip",
+        "passed": true
+      },
+      {
+        "test": "Quick Access fuzzy search accepts non-contiguous filename words",
+        "passed": true
+      },
+      {
+        "test": "The same field finds IDE commands by prefix",
+        "passed": true
+      },
+      {
+        "test": "Quick Access routes settings without switching to a different search form",
+        "passed": true
+      },
+      {
+        "test": "Quick Access searches both native addons and the enabled registry",
+        "passed": true
+      },
+      {
+        "test": "Quick Access line and column navigation moves the real editor cursor",
+        "passed": true
+      },
+      {
+        "test": "Project content search returns actual matching lines through its worker",
+        "passed": true
+      },
+      {
+        "test": "Notebook Markdown closes brackets through real text input",
+        "passed": true
+      },
+      {
+        "test": "Markdown editing has immediate heading/emphasis/math colors",
+        "passed": true
+      },
+      {
+        "test": "The optional math library renders real MathML in notebook Markdown",
+        "passed": true
+      },
+      {
+        "test": "Disabling Markdown math restores editable formula source in the existing preview",
+        "passed": true
+      },
+      {
+        "test": "Enabling another addon keeps an explicitly disabled visual addon disabled",
+        "passed": true
+      },
+      {
+        "test": "A second click on a popup opener closes it instead of reopening it",
+        "passed": true
+      },
+      {
+        "test": "Disabling the window manager preserves the same addon catalog, query and details",
+        "passed": true
+      },
+      {
+        "test": "Simple: rail icons are centered without overlapping captions",
+        "passed": true
+      },
+      {
+        "test": "Simple: real double click selects notebook.ipynb without toggling other panels",
+        "passed": true
+      },
+      {
+        "test": "Simple: real double click selects smart.py without toggling other panels",
+        "passed": true
+      },
+      {
+        "test": "Simple: real double click selects Addons without toggling other panels",
+        "passed": true
+      },
+      {
+        "test": "Simple: a late document read cannot override the last selected file",
+        "passed": true
+      },
+      {
+        "test": "Simple: Open VSX opens from its visible button",
+        "passed": true
+      },
+      {
+        "test": "Simple: nested popup stays beside the selected menu item when its default anchor is hidden",
+        "passed": true
+      },
+      {
+        "test": "Simple: a popup without an anchor opens in the center",
+        "passed": true
+      },
+      {
+        "test": "Window-mode changes preserve the theme and other enabled addon IDs",
+        "passed": true
+      },
+      {
+        "test": "Console text survives disabling the window manager",
+        "passed": true
+      },
+      {
+        "test": "Re-enabling the window manager retains the same addon page and console data",
+        "passed": true
+      },
+      {
+        "test": "Windows: rail icons are centered without overlapping captions",
+        "passed": true
+      },
+      {
+        "test": "Windows: real double click selects notebook.ipynb without toggling other panels",
+        "passed": true
+      },
+      {
+        "test": "Windows: real double click selects smart.py without toggling other panels",
+        "passed": true
+      },
+      {
+        "test": "Windows: real double click selects Addons without toggling other panels",
+        "passed": true
+      },
+      {
+        "test": "Windows: a late document read cannot override the last selected file",
+        "passed": true
+      },
+      {
+        "test": "Windows: Open VSX opens from its visible button",
+        "passed": true
+      },
+      {
+        "test": "Windows: nested popup stays beside the selected menu item when its default anchor is hidden",
+        "passed": true
+      },
+      {
+        "test": "Windows: a popup without an anchor opens in the center",
+        "passed": true
+      },
+      {
+        "test": "Notebook kernel variables survive both window-mode changes",
+        "passed": true
+      },
+      {
+        "test": "External file contents automatically update the clean editor",
+        "passed": true
+      },
+      {
+        "test": "External changes preserve unsaved edits and pause automatic saving",
+        "passed": true
+      },
+      {
+        "test": "Choosing the disk version resolves the external conflict",
+        "passed": true
+      },
+      {
+        "test": "Choosing local edits saves only after acknowledging the external version",
+        "passed": true
+      },
+      {
+        "test": "Opening an already edited project reports a conflict before creating a second writer",
+        "passed": true
+      },
+      {
+        "test": "Project conflict offers Close or Read only",
+        "passed": true
+      },
+      {
+        "test": "Closing the conflict prompt leaves the existing editor unchanged",
+        "passed": true
+      },
+      {
+        "test": "The second real project window loads source read-only and disables execution",
+        "passed": true
+      },
+      {
+        "test": "Native writes are rejected even if the read-only UI is bypassed",
+        "passed": true
+      },
+      {
+        "test": "Opening another desktop project offers this window or a new window",
+        "passed": true
+      },
+      {
+        "test": "Second project opens independently and inherits application extensions",
+        "passed": true
+      },
+      {
+        "test": "The new window opens the selected project with the same global extensions",
+        "passed": true
+      },
+      {
+        "test": "Files created in the other project do not appear in the first project",
+        "passed": true
+      },
+      {
+        "test": "Extensions tab works in windowed mode too",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens console pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens terminal pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens problems pane",
+        "passed": true
+      },
+      {
+        "test": "Windowed interface opens debug pane",
+        "passed": true
+      },
+      {
+        "test": "Touch hold opens the existing file context menu",
+        "passed": true
+      },
+      {
+        "test": "Scrolling motion cancels the context-menu hold",
+        "passed": true
+      },
+      {
+        "test": "A second finger cancels a pending long press",
+        "passed": true
+      },
+      {
+        "test": "Project list exposes visible actions without first opening that project",
+        "passed": true
+      },
+      {
+        "test": "Project actions keep the project selector open behind the child menu",
+        "passed": true
+      },
+      {
+        "test": "Moving project files requires an explicit confirmation showing the exact path",
+        "passed": true
+      },
+      {
+        "test": "Cancel keeps the project registered",
+        "passed": true
+      },
+      {
+        "test": "Removed projects have a discoverable restore action",
+        "passed": true
+      },
+      {
+        "test": "Trashing the active project opens the empty workspace",
+        "passed": true
+      },
+      {
+        "test": "Restoring a trashed project preserves its exact saved bytes",
+        "passed": true
+      },
+      {
+        "test": "No renderer exceptions or console errors",
+        "passed": true
+      }
+    ],
+    "localizedSmokes": {
+      "ru": 45,
+      "en": 45
+    },
+    "rendererErrors": [],
+    "scenarios": [
+      "real Open VSX search, detail, checked VSIX download, consent, activation and uninstall",
+      "optional Vim engine download, actual dd key events, removal and editor restoration",
+      "code-map extension command/view activation and disposal",
+      "Markdown soft line breaks, tasks and callouts",
+      "resource infinity controls and manual limits",
+      "external filesystem creation updates tree",
+      "build folder visibility",
+      "keyboard binding recorder and preset catalog",
+      "header bounds at narrow and desktop widths",
+      "window manager off/on preserves addon page, palette, output and live Python kernel variables",
+      "Markdown math install, disable and inline re-enable through real addon controls",
+      "Quick Access files, commands, settings, extensions, line/column and worker content search",
+      "idle notebook kernel closes before project trash/restore",
+      "native activity spinner, joined hidden-folder corners and full toolbar replacement",
+      "legacy VSIX1.0.0 upgrade to1.0.2 retains active gallery methods",
+      "real double-click file switching and delayed-open protection in both window modes",
+      "nested popup placement and total physical RAM maximum",
+      "second application process exits; duplicate project warns and real second window is read-only",
+      "external clean-buffer updates and explicit disk/local conflict resolution"
+    ]
+  },
+  "rootNode": {
+    "passed": 118,
+    "failed": 0
+  },
+  "backend": {
+    "passed": 51,
+    "failed": 0,
+    "skipped": [
+      "LLDB unavailable on this Windows host",
+      "managed Python network download opt-in; not repeated for this alpha"
+    ]
+  },
+  "android": {
+    "apks": [
+      {
+        "flavor": "modern",
+        "bytes": 9870605,
+        "sha256": "eff3d1702d181724fc8f5aa03b5363239e13823e6c2e60782bb971fb41d9bea2",
+        "targetSdk": 36,
+        "versionCode": 31,
+        "jvmTests": 8,
+        "matchingSourceAssets": 475,
+        "launcherPngMatches": true,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      },
+      {
+        "flavor": "compat",
+        "bytes": 9995074,
+        "sha256": "09daf312afc7342ac7651808d02669dc420d1098a57522cc3a64211d00666539",
+        "targetSdk": 28,
+        "versionCode": 31,
+        "jvmTests": 8,
+        "matchingSourceAssets": 475,
+        "launcherPngMatches": true,
+        "signatureSha256": "2eb5efee4fc3acf2390456fa7d79e3bb2ccd54c2dd7d92ed7eb602a4b409883c"
+      }
+    ],
+    "lintErrors": 0,
+    "lintWarnings": 90,
+    "physicalDeviceTested": false,
+    "desktopVimEngineExcluded": true
+  },
+  "windowsInstaller": {
+    "version": "0.7.0-alpha.3",
+    "matchingPayloadFiles": 598,
+    "matchingSourceFiles": 501,
+    "artifacts": [
+      {
+        "file": "DevForge-0.7.0-alpha.3-win-x64-setup.exe.blockmap",
+        "bytes": 122864,
+        "sha256": "ce106bbee276fbe983d3606b12ac1229fd06c4a5548f66d6466f84357ca319d5"
+      },
+      {
+        "file": "DevForge-0.7.0-alpha.3-win-x64-setup.exe",
+        "bytes": 117281572,
+        "sha256": "5fc7bfe7d195339b101d2c9429ead9ba024fea309574629fc40b6279f23bf578"
+      }
+    ],
+    "unsignedSystemInstallTested": true,
+    "guiRuntime": "existing Electron runtime on packaged resources/app",
+    "optionalWindowEngineExcluded": true
+  },
+  "installedWindows": {
+    "version": "0.7.0-alpha.3",
+    "matchingInstalledFiles": 598,
+    "registeredProjects": 10,
+    "settingsReset": false,
+    "profileFilesUnchanged": 4,
+    "executableIcon": {
+      "iconGroups": 1,
+      "iconSizes": 7
+    },
+    "installedByUserRequest": true,
+    "isolatedExecutableChecks": 45
+  },
+  "requestedLocalAddonChanges": {
+    "officialVsixVersion": "1.0.2",
+    "added": [],
+    "removed": [],
+    "windowManagerUnchanged": true,
+    "registeredProjects": 10,
+    "retainedOldVsixVersion": true,
+    "optionalMathAssetsChecked": true,
+    "projectFilesModified": false
+  },
+  "notPerformed": [
+    "physical Android/IME/Bluetooth checks",
+    "Linux/macOS native installers and GUI",
+    "full executable VS Code extension-host compatibility",
+    "TextMate grammars and arbitrary language/debug adapter extensions",
+    "Vim inside notebook textarea cells",
+    "semantic cross-project call graph",
+    "recorder for every notebook text gesture and multi-key chord"
+  ],
+  "previousSourceBackup": "Previous beta.3 source archive retained locally; private settings snapshots verified before installation. Actual user projects/settings excluded from public artifacts.",
+  "developmentStorage": {
+    "removedTargets": 156,
+    "logicalBytesRemoved": 62234444386,
+    "observedFreeBytesChange": 61847719936,
+    "preserved": [
+      "source and Git history",
+      "signing keys",
+      "private user backups",
+      "current release binaries and verification logs",
+      "emulator configuration files",
+      "SDK/JDK junction to D:"
+    ],
+    "scope": "regenerable local build and emulator test data; no user projects"
+  }
+}

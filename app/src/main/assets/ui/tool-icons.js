@@ -33,3 +33,6 @@ for(const[name,paths]of Object.entries({
  'studio-keyboard-float':'<rect x="3" y="8" width="16" height="12" rx="2"/><path d="M7 12h1m3 0h1m3 0h1M7 16h7m1-12h6v6m0-6-4 4"/>',
  'studio-placement':'<path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z"/>'
 }))STUDIO_ICONS[name]='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths+'</svg>';
+
+// Complete list/play glyph, contained inside the 24px viewBox.
+STUDIO_ICONS["studio-run-settings"]=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h4M7 16h3"/><path d="m15 12 4 3-4 3z"/></svg>`;

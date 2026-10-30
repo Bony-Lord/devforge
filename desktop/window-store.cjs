@@ -7,15 +7,15 @@ const localKeys=new Set(['current','session','window','projectSelectionCleared',
 class WindowStore {
  constructor(data,projectsDirectory){this.data=data;this.projectsDirectory=projectsDirectory;this.queue=Promise.resolve();this.sessions=new Map();}
  async init(){const workspace=await new Workspace(this.data,this.projectsDirectory).init();this.global={projectArchive:[],trustedRoots:{},configurationSelection:{},...workspace.prefs};this.legacy=Object.fromEntries([...localKeys].map(k=>[k,workspace.prefs[k]]));for(const key of localKeys)delete this.global[key];this.file=workspace.file;return this;}
- async workspace(project,initial=false){
+ async workspace(project,initial=false,readOnly=false){
   if(project&&!this.global.projects[project])throw Error('Project unavailable');
-  const key=initial?'main':crypto.createHash('sha256').update(project||'empty').digest('hex').slice(0,24),file=path.join(this.data,'window-sessions',key+'.json');
+  const key=readOnly?'reader-'+crypto.randomUUID():initial?'main':crypto.createHash('sha256').update(project||'empty').digest('hex').slice(0,24),file=path.join(this.data,'window-sessions',key+'.json');
   let local={current:project||'',session:{}};if(await exists(file)){try{local=JSON.parse(await fs.readFile(file,'utf8'));}catch{}}else if(initial)local={...this.legacy};if(project)local.current=project;
   if(!this.global.projects[local.current]){local.current='';local.session={};}
   const ws=new Workspace(this.data,this.projectsDirectory);let prefs;
   const bind=value=>{const object={};for(const k of localKeys)if(value[k]!==undefined)object[k]=value[k];for(const k of new Set([...Object.keys(this.global),...Object.keys(value).filter(k=>!localKeys.has(k))]))Object.defineProperty(object,k,{enumerable:true,configurable:true,get:()=>this.global[k],set:v=>{this.global[k]=v;}});return object;};
   prefs=bind({...this.global,...local});Object.defineProperty(ws,'prefs',{get:()=>prefs,set:value=>{for(const k of Object.keys(value))if(!localKeys.has(k))this.global[k]=value[k];prefs=bind(value);}});
-  ws.init=async()=>ws;
+  ws.projectReadOnly=readOnly;ws.init=async()=>ws;
   ws.persist=()=>{const snapshot=Object.fromEntries([...localKeys].filter(k=>ws.prefs[k]!==undefined).map(k=>[k,structuredClone(ws.prefs[k])]));const task=this.queue.catch(()=>{}).then(async()=>{await atomic(file,JSON.stringify(snapshot,null,2));if(initial)this.legacy=snapshot;await atomic(this.file,JSON.stringify({...this.global,...this.legacy},null,2));});this.queue=task;return task;};
   return ws;
  }
