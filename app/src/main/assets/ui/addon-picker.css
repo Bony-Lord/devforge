@@ -47,3 +47,20 @@
 .addon-package-list{display:grid;gap:8px}.addons-dialog .component-picker-status{display:none}
 @media(max-width:620px){.component-picker-packs{grid-template-columns:minmax(0,1fr)}.component-row>small{font-size:9px}.component-group>summary{font-size:11px;padding:9px!important}.component-group-list{padding-left:13px}.addons-dialog.addon-composer .addon-composer-layout{display:flex;flex-direction:column}.addon-composer-main,.addon-selection-summary{width:100%}.addons-dialog .addon-selection-summary{order:1;max-height:none;padding:10px}.component-picker-tabs button{font-size:11px;padding:7px}.setup-dialog[open]{padding:12px}.component-row>label{font-size:11px}}
 @media(prefers-reduced-motion:no-preference){body:not(.studio-no-motion) .component-group-caret{transition:transform .12s ease}body:not(.studio-no-motion) .component-pack{transition:border-color .12s ease}}
+.setup-dialog[open]:has(.component-picker-market){width:min(1040px,calc(100vw - 24px));height:min(740px,92dvh)}
+.component-picker-layout{display:grid;grid-template-columns:minmax(250px,.9fr) minmax(260px,1.1fr);flex:1;min-height:0;gap:16px}
+.component-picker-market .component-picker-viewport{max-height:none;min-height:0;scrollbar-gutter:auto}
+.component-picker-market .component-picker-packs{display:flex;flex-direction:column;gap:2px;padding:0}
+.component-picker-market .component-pack{border:0;border-radius:3px;padding:12px;border-left:3px solid transparent}
+.component-picker-market .component-pack.selected{border-left-color:var(--green)}
+.component-picker-market .component-pack.partial{border-left-color:var(--muted)}
+.component-picker-market .inspected{background:var(--accent-bg)}
+.component-picker-market .component-pack-count{margin:5px 0 0 27px}
+.component-picker-detail{min-width:0;overflow:auto;border-left:1px solid var(--line);padding:12px 20px;overflow-wrap:anywhere}
+.component-picker-detail h3{font-size:20px;margin:12px 0 6px;line-height:1.3}
+.component-picker-detail>small{color:var(--muted);font-size:11px}
+.component-picker-detail p{font-size:13px;line-height:1.6;margin:15px 0}
+.component-picker-detail h4{font-size:12px;margin-top:24px}
+.component-detail-icon svg{width:38px;height:38px;color:var(--accent)}
+.component-detail-members{display:flex;flex-wrap:wrap;gap:6px}.component-detail-members button{font-size:11px;padding:5px 8px;white-space:normal}
+@media(max-width:700px){.component-picker-layout{grid-template-columns:minmax(0,1fr)}.component-picker-detail{display:none}.component-picker-market .component-picker-viewport{max-height:none}.setup-dialog[open]:has(.component-picker-market){width:calc(100vw - 20px)}}

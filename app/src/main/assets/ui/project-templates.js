@@ -47,7 +47,10 @@
     if(new TextEncoder().encode(JSON.stringify(result)).length>1048576)fail('Expanded template exceeds 1 MiB');return result;
   }
   function merge(base,patch){const out=clone(base||{});for(const[k,v]of Object.entries(patch||{})){if(['__proto__','prototype','constructor'].includes(k))fail('Unsafe project key');out[k]=object(v)?merge(object(out[k])?out[k]:{},v):clone(v);}return out;}
-  function compatible(t,projectType){return t.kind==='project'||!t.appliesTo?.length||t.appliesTo.includes('*')||t.appliesTo.includes(projectType);}
+  // Attachments add capabilities to mixed/manual projects. appliesTo describes
+  // their usual specialization; it must not hide them from other project types.
+  function compatible(t,projectType){return t.kind==='project'||t.kind==='attachment';}
+  function recommended(t,projectType){return !t.appliesTo?.length||t.appliesTo.includes('*')||t.appliesTo.includes(projectType);}
   function plan(instance,{current={},document=null,replace=[]}={}){
     if(!compatible(instance,document?.projectType))fail('Template is incompatible with this project type');
     const changes=[],conflicts=[],unchanged=[];
@@ -59,5 +62,5 @@
     if(project){project.templates??=[];if(!Array.isArray(project.templates))fail('Invalid project template history');const receipt={id:instance.id,parameters:Object.fromEntries(Object.entries(instance.values).filter(([k])=>k!=='projectName'))};project.templates=project.templates.filter(r=>r.id!==receipt.id);project.templates.push(receipt);}
     return {changes,conflicts,unchanged,project,requirements:clone(instance.requires),entryFile:instance.entryFile};
   }
-  return Object.freeze({FORMAT,VERSION,parse,instantiate,plan,compatible,path,merge});
+  return Object.freeze({FORMAT,VERSION,parse,instantiate,plan,compatible,recommended,path,merge});
 });

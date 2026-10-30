@@ -34,6 +34,11 @@ jobs:
       - name: Run real isolated Electron interactions
         working-directory: desktop
         run: npm run test:ui
+      - name: Project folders, attachments and addon lifecycle regressions
+        working-directory: desktop
+        env:
+          DEVFORGE_REPAIR_REPORT: test-results/project-template-addons.json
+        run: node stability-regressions.cjs --with-build
       - uses: actions/upload-artifact@v4
         if: always()
         with:

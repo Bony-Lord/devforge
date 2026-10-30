@@ -160,6 +160,209 @@
             }
           ]
         }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardPrimary",
+        "value": {
+          "key": "keyboardPrimary",
+          "label": {
+            "ru": "Основная клавиатура",
+            "en": "Primary keyboard"
+          },
+          "default": "floating",
+          "type": "choice",
+          "options": [
+            {
+              "value": "system",
+              "label": {
+                "ru": "Системная Android",
+                "en": "System"
+              }
+            },
+            {
+              "value": "floating",
+              "label": {
+                "ru": "Плавающая DevForge",
+                "en": "DevForge"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardLayout",
+        "value": {
+          "key": "keyboardLayout",
+          "label": {
+            "ru": "Раскладка плавающей клавиатуры",
+            "en": "Keyboard layout"
+          },
+          "default": "pc",
+          "type": "choice",
+          "options": [
+            {
+              "value": "pc",
+              "label": {
+                "ru": "Полная PC",
+                "en": "Full PC"
+              }
+            },
+            {
+              "value": "android",
+              "label": {
+                "ru": "Компактная Android",
+                "en": "Compact"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardModifiers",
+        "value": {
+          "key": "keyboardModifiers",
+          "label": {
+            "ru": "Модификаторы",
+            "en": "Modifier keys"
+          },
+          "default": "sticky",
+          "type": "choice",
+          "options": [
+            {
+              "value": "sticky",
+              "label": {
+                "ru": "Закреплять на следующее нажатие",
+                "en": "Latch for next key"
+              }
+            },
+            {
+              "value": "hold",
+              "label": {
+                "ru": "Удерживать пальцем",
+                "en": "Hold"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardNumpad",
+        "value": {
+          "key": "keyboardNumpad",
+          "label": {
+            "ru": "Цифровой блок PC",
+            "en": "PC number pad"
+          },
+          "default": true,
+          "type": "toggle"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardPcWidth",
+        "value": {
+          "key": "keyboardPcWidth",
+          "label": {
+            "ru": "Ширина клавиатуры PC",
+            "en": "PC keyboard width, %"
+          },
+          "default": 95,
+          "type": "number",
+          "min": 15,
+          "max": 100,
+          "step": 1,
+          "presentation": "range",
+          "unit": "%"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardPcHeight",
+        "value": {
+          "key": "keyboardPcHeight",
+          "label": {
+            "ru": "Высота клавиатуры PC",
+            "en": "PC keyboard height, %"
+          },
+          "default": 48,
+          "type": "number",
+          "min": 15,
+          "max": 95,
+          "step": 1,
+          "presentation": "range",
+          "unit": "%"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardAndroidWidth",
+        "value": {
+          "key": "keyboardAndroidWidth",
+          "label": {
+            "ru": "Ширина клавиатуры Android",
+            "en": "Compact keyboard width, %"
+          },
+          "default": 65,
+          "type": "number",
+          "min": 15,
+          "max": 100,
+          "step": 1,
+          "presentation": "range",
+          "unit": "%"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardAndroidHeight",
+        "value": {
+          "key": "keyboardAndroidHeight",
+          "label": {
+            "ru": "Высота клавиатуры Android",
+            "en": "Compact keyboard height, %"
+          },
+          "default": 42,
+          "type": "number",
+          "min": 15,
+          "max": 95,
+          "step": 1,
+          "presentation": "range",
+          "unit": "%"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardExtraKeys",
+        "value": {
+          "key": "keyboardExtraKeys",
+          "label": {
+            "ru": "Панель стрелок и символов над клавиатурой",
+            "en": "Extra keys above keyboard"
+          },
+          "default": true,
+          "type": "toggle"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.keyboard/preferences/keyboardOverlap",
+        "value": {
+          "key": "keyboardOverlap",
+          "label": {
+            "ru": "Перекрытие интерфейса",
+            "en": "Keyboard overlay, %"
+          },
+          "default": 100,
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "presentation": "range",
+          "unit": "%"
+        }
       }
     ]
   },
@@ -223,7 +426,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {
         "studio.tool.analysis": {
@@ -241,6 +445,19 @@
         "id": "studio.clangd/0",
         "value": {
           "id": "clangd"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.clangd/preferences/clangTidy",
+        "value": {
+          "key": "clangTidy",
+          "label": {
+            "ru": "Расширенный анализ clang-tidy (медленнее)",
+            "en": "Extended clang-tidy analysis"
+          },
+          "default": false,
+          "type": "toggle"
         }
       }
     ]
@@ -327,6 +544,19 @@
           ],
           "feature": "formatter",
           "handler": "clang-format"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.formatter/preferences/smartFormatOnClose",
+        "value": {
+          "key": "smartFormatOnClose",
+          "label": {
+            "ru": "Форматировать блок при вводе }",
+            "en": "Format block on closing brace"
+          },
+          "default": true,
+          "type": "toggle"
         }
       }
     ]
@@ -1562,7 +1792,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {},
       "conflicts": {},
@@ -1576,6 +1807,19 @@
         "id": "studio.indent-guides/service",
         "value": {
           "id": "indentGuides"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.indent-guides/preferences/indentGuides",
+        "value": {
+          "key": "indentGuides",
+          "label": {
+            "ru": "Направляющие отступов",
+            "en": "Indent guides"
+          },
+          "default": true,
+          "type": "toggle"
         }
       }
     ]
@@ -1599,7 +1843,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {},
       "conflicts": {},
@@ -1613,6 +1858,19 @@
         "id": "studio.autosave/service",
         "value": {
           "id": "autosave"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.autosave/preferences/autosave",
+        "value": {
+          "key": "autosave",
+          "label": {
+            "ru": "Автосохранение",
+            "en": "Autosave"
+          },
+          "default": true,
+          "type": "toggle"
         }
       }
     ]
@@ -1823,12 +2081,7 @@
       "capabilities": [
         "host.features"
       ],
-      "dependencies": {
-        "studio.clangd": {
-          "min": "1.0.0",
-          "maxExclusive": "2.0.0"
-        }
-      },
+      "dependencies": {},
       "conflicts": {},
       "kind": "feature",
       "introduced": 2,
@@ -2173,7 +2426,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {
         "studio.clangd": {
@@ -2192,6 +2446,19 @@
         "id": "studio.semantic/service",
         "value": {
           "id": "semantic"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.semantic/preferences/semanticHighlighting",
+        "value": {
+          "key": "semanticHighlighting",
+          "label": {
+            "ru": "Семантическая подсветка",
+            "en": "Semantic highlighting"
+          },
+          "default": true,
+          "type": "toggle"
         }
       }
     ]
@@ -2215,7 +2482,8 @@
       },
       "license": "MIT",
       "capabilities": [
-        "host.features"
+        "host.features",
+        "settings.fields"
       ],
       "dependencies": {
         "studio.clangd": {
@@ -2234,6 +2502,19 @@
         "id": "studio.inlay-hints/service",
         "value": {
           "id": "inlayHints"
+        }
+      },
+      {
+        "point": "settingsFields",
+        "id": "studio.inlay-hints/preferences/inlayHints",
+        "value": {
+          "key": "inlayHints",
+          "label": {
+            "ru": "Подсказки типов и параметров",
+            "en": "Type and parameter hints"
+          },
+          "default": true,
+          "type": "toggle"
         }
       }
     ]

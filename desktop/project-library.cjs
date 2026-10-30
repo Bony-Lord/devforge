@@ -9,7 +9,20 @@ class ProjectLibrary {
   for(const [other,p]of Object.entries(this.ws.prefs.projects))if(other!==id&&inside(await canonical(p.path),root))throw Error('Folder contains another registered project');
   if((await fs.lstat(root)).isSymbolicLink()||!(await fs.stat(root)).isDirectory())throw Error('Select a regular project folder');
  }
- handle(action,d){const task=this.queue.catch(()=>{}).then(async()=>{if(action==='restore')return this.restore(d.id);if(action!=='delete')return this.remove(d);const project=await this.describe(d.id);if(d.confirmName!==project.label)throw Error('Type the project name to confirm permanent deletion');const result=await this.remove({...d,mode:'trash'}),record=this.ws.prefs.projectArchive.find(r=>r.id===result.removed);const base=await canonical(path.join(path.dirname(record.path),'.devforge-project-trash')),stored=await canonical(record.stored);if(stored===base||!inside(stored,base))throw Error('Invalid project trash path');try{await fs.rm(stored,{recursive:true,force:false,maxRetries:3,retryDelay:150});}catch(error){return{...result,deleteError:error.message};}this.ws.prefs.projectArchive=this.ws.prefs.projectArchive.filter(r=>r.id!==record.id);await this.ws.persist();return{state:await this.host.state(),deleted:true};});this.queue=task;return task;}
+ handle(action,d){const task=this.queue.catch(()=>{}).then(async()=>{if(action==='restore')return this.restore(d.id);if(action==='empty')return this.empty(d);if(action!=='delete')return this.remove(d);const project=await this.describe(d.id);if(d.confirmName!==project.label)throw Error('Type the project name to confirm permanent deletion');const result=await this.remove({...d,mode:'trash'}),record=this.ws.prefs.projectArchive.find(r=>r.id===result.removed);const stored=await this.trashPath(record);try{await fs.rm(stored,{recursive:true,force:false,maxRetries:3,retryDelay:150});}catch(error){return{...result,deleteError:error.message};}this.ws.prefs.projectArchive=this.ws.prefs.projectArchive.filter(r=>r.id!==record.id);await this.ws.persist();return{state:await this.host.state(),deleted:true};});this.queue=task;return task;}
+ async trashPath(record){
+  if(record.mode!=='trash'||!/^[a-f0-9-]{36}$/i.test(record.id))throw Error('Invalid project trash record');
+  const parent=await canonical(path.dirname(record.path)),base=parent+'/.devforge-project-trash',expected=base+'/'+record.id+'/'+path.basename(record.path),stored=await canonical(record.stored);
+  if(await canonical(base)!==base||stored!==expected||!inside(stored,base))throw Error('Invalid project trash path');
+  for(const project of Object.values(this.ws.prefs.projects))if(inside(await canonical(project.path),stored))throw Error('Trash contains a registered project');return stored;
+ }
+ async empty(d){
+  if(d.confirm!==true||!Array.isArray(d.ids)||!d.ids.length||d.ids.length>1000)throw Error('Confirm the trash entries to remove');
+  const records=d.ids.map(id=>(this.ws.prefs.projectArchive||[]).find(r=>r.id===id));if(records.some(r=>!r||r.mode!=='trash'))throw Error('Trash changed; review it again');
+  const targets=[];for(const record of records)targets.push({record,path:await this.trashPath(record)});
+  const removed=[],errors=[];for(const item of targets){try{try{await fs.rm(item.path,{recursive:true,force:false,maxRetries:3,retryDelay:100});}catch(error){if(error.code!=='ENOENT')throw error;}this.ws.prefs.projectArchive=this.ws.prefs.projectArchive.filter(r=>r.id!==item.record.id);await this.ws.persist();removed.push(item.record.id);await fs.rmdir(path.dirname(item.path)).catch(()=>{});}catch(error){errors.push({id:item.record.id,message:error.message});}}
+  return{removed,errors,records:this.list()};
+ }
  busy(){const t=this.host.tools;return t.building||t.execution||t.gdb||t.dap||this.host.python.busy;}
  async releaseFolder(){
   const h=this.host,children=new Set([...h.tools.children,...h.pythonStyle.jobs.values(),h.python.kernel,h.pythonIntelligence.child,h.tools.lsp].filter(Boolean));

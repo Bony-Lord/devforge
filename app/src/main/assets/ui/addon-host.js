@@ -15,6 +15,10 @@ class StudioAddonHost {
   enabled(feature){return this.addons.registry.list('features').some(e=>e.value.id===feature);}
   runtimeEnabled(id){return this.addons.registry.list('runtimes').some(e=>e.value.id===id);}
   language(path){const name=path.split('/').pop();for(const e of [...this.addons.registry.list('languages')].reverse().sort((a,b)=>(b.value.priority||0)-(a.value.priority||0))){const rule=e.value;if(rule.filenames.includes(name)||rule.extensions.some(ext=>name.endsWith(ext)))return rule.language;}return 'plaintext';}
+  async prepareLanguage(language){
+    if(!window.monaco||!['python','markdown','yaml','shell','cpp','c'].includes(language))return;
+    this.grammars??=new Map();if(!this.grammars.has(language))this.grammars.set(language,new Promise((resolve,reject)=>{const grammar=language==='c'?'cpp':language;if(!monaco.languages.getLanguages().some(l=>l.id===language))monaco.languages.register({id:language});require(['vs/basic-languages/'+grammar+'/'+grammar],definition=>{if(definition.language)monaco.languages.setMonarchTokensProvider(language,definition.language);if(definition.conf)monaco.languages.setLanguageConfiguration(language,definition.conf);resolve();},reject);}).catch(error=>{this.grammars.delete(language);throw error;}));return this.grammars.get(language);
+  }
   initialFile(files){const rules=[...this.addons.registry.list('languages')].reverse().sort((a,b)=>(b.value.priority||0)-(a.value.priority||0)).map(e=>e.value);for(const rule of rules){const entry=files.find(f=>(rule.entryFiles||[]).includes(f.name));if(entry)return entry;}return files.find(f=>rules.some(rule=>rule.extensions.some(ext=>f.name.endsWith(ext))||rule.filenames.includes(f.name)))||files.find(f=>!f.name.startsWith('.'));}
   types(){return [{id:'empty',base:'empty',name:{ru:'Пустой / вручную',en:'Empty / manual'},settings:{buildMode:'custom'}},...this.addons.registry.list('projectTypes').map(e=>e.value)];}
   async prepare(resolved){
@@ -53,11 +57,13 @@ class StudioAddonHost {
     const outputAvailable=flags.python||flags.console||flags.terminal||flags.debugger||flags.diagnostics||this.runtimeEnabled('gcc')||this.runtimeEnabled('clang');if(!outputAvailable){if(this.app.windows)this.app.windows.hide(this.app.windows.outputMode);else this.app.togglePanel(false);}
     if(previous&&previous.notebooks&&!flags.notebooks)for(const pane of NativeEditing.panes.values())for(const view of pane.documentViews?.values()||[])await view.stop();
     if(!flags.autosave)for(const doc of this.app.docs.values())clearTimeout(doc.saveTimer);
-    for(const model of monaco.editor.getModels()){model.__analysisCancel?.cancel();if(!flags.runtimeDiagnostics)monaco.editor.setModelMarkers(model,'runtime-warning',[]);if(!flags.diagnostics){monaco.editor.setModelMarkers(model,'clangd',[]);this.app.diagnosticMap.delete(model.uri.toString());}}
+    for(const model of monaco.editor.getModels()){model.__analysisCancel?.cancel();if(!flags.runtimeDiagnostics)monaco.editor.setModelMarkers(model,'runtime-warning',[]);if(!flags.diagnostics){monaco.editor.setModelMarkers(model,'clangd',[]);this.app.diagnosticMap.delete(model.uri.toString());this.app.applyUnused(model,[]);}}
+    await Promise.all([...new Set(this.addons.registry.list('languages').map(e=>e.value.language))].map(language=>this.prepareLanguage(language)));
     for(const doc of this.app.docs.values()){const lang=this.language(doc.path);if(doc.model.getLanguageId()!==lang){this.app.lsp.close(doc.model);const uri=doc.model.uri.toString();monaco.editor.setModelMarkers(doc.model,'clangd',[]);await native('editorAnalysis',{uri,revision:NativeEditing.revisions.get(uri),diagnostics:[],styles:[],unusedStyles:[],hints:[]});monaco.editor.setModelLanguage(doc.model,lang);NativeEditing.invalidate(doc.model);}}
     StudioDocumentViews.optionsChanged();NativeEditing.queueLayout();this.app.registerCommands();
     if(previous&&previous.clangd!==flags.clangd){if(flags.clangd)await this.app.lsp.start();else await this.suspendAnalysis();}
     else if(previous){for(const doc of this.app.docs.values()){await NativeEditing.publishDiagnostics(doc.model);await NativeEditing.analysis(doc.model);}if(!flags.runtimeDiagnostics){this.app.runtimeWarnings=[];this.app.renderProblems();}}
+    if(previous&&(previous.semantic!==flags.semantic||previous.inlayHints!==flags.inlayHints))this.app.lsp.refreshProviders();
     this.app.configurations?.render();this.app.updateRunButtons();this.app.renderTree?.();this.updateViewButton();this.app.pythonStyle?.sync();this.app.pythonIntelligence?.sync();StudioAddonDocument.rail(this.app);
   }
   async suspendAnalysis(){

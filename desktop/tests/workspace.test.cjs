@@ -10,6 +10,10 @@ test('saves are atomic, history survives and external edits cannot be overwritte
   await fs.writeFile(file,'// externally changed\n');await assert.rejects(ws.write(file,'// stale buffer'),/changed outside/);assert.equal(await fs.readFile(file,'utf8'),'// externally changed\n');
   await ws.read(file);await ws.write(file,'// reopened and saved\n');assert.equal(await fs.readFile(file,'utf8'),'// reopened and saved\n');
 });
+test('long project paths keep bounded history names and retain old history records',async t=>{
+ const ws=await fixture(t),relative='long-project-folder-'.repeat(5)+'/source-file-with-long-name.cpp',file=await ws.writable(relative);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,'original');await ws.read(file);await ws.write(file,'changed');assert(path.basename(ws.historyDir(file)).length<=80);assert((await ws.history(file)).some(r=>r.text==='original'));
+ const short=path.join(ws.root,'main.cpp'),legacy=path.join(ws.cache,'history',Buffer.from(require('../workspace.cjs').key(short)).toString('base64url'));await fs.mkdir(legacy,{recursive:true});await fs.writeFile(path.join(legacy,'legacy.json'),JSON.stringify({text:'legacy record',time:1}));await ws.read(short);await ws.write(short,'new history');const records=await ws.history(short);assert(records.some(r=>r.text==='legacy record'));assert(records.some(r=>r.text.includes('Hello')));
+});
 test('project containment rejects traversal and junction/symlink escapes',async t=>{
   const ws=await fixture(t);await assert.rejects(ws.writable('../private.txt'),/outside project/);await assert.rejects(ws.writable(ws.root),/outside project/);
   const outside=path.join(ws.data,'outside');await fs.mkdir(outside);const link=path.join(ws.root,'escape');await fs.symlink(outside,link,process.platform==='win32'?'junction':'dir');

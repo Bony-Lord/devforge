@@ -1,11 +1,12 @@
 'use strict';
 // Real Electron UI regressions. All projects and settings belong to this fixture.
-const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),net=require('node:net'),assert=require('node:assert/strict'),{spawn}=require('node:child_process');
+const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),net=require('node:net'),assert=require('node:assert/strict'),{spawn}=require('node:child_process'),crypto=require('node:crypto');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function main(){
  const reportFile=path.resolve(process.env.DEVFORGE_UI_REPORT||path.join(__dirname,'test-results/ui-regressions.json')),directory=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-ui-')),target=path.resolve(process.argv.find(a=>a.startsWith('--app='))?.slice(6)||__dirname),checks=[],exceptions=[],consoleErrors=[],pending=new Map();let sequence=0,ws,child,output='',failed,failureState;
  const port=await new Promise(resolve=>{const server=net.createServer();server.listen(0,'127.0.0.1',()=>{const port=server.address().port;server.close(()=>resolve(port));});});
  const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
+ const cachedTools=[];if(process.env.DEVFORGE_TEST_TOOL_CACHE){for(const name of ['style-manifest.json','intelligence-manifest.json']){const manifest=JSON.parse(await fs.readFile(path.join(__dirname,'../app/src/main/assets/python',name),'utf8'));for(const pkg of manifest.packages){const source=path.join(process.env.DEVFORGE_TEST_TOOL_CACHE,manifest.id,pkg.filename),bytes=await fs.readFile(source);if(bytes.length!==pkg.bytes||crypto.createHash('sha256').update(bytes).digest('hex')!==pkg.sha256)throw Error('Invalid cached test archive: '+pkg.filename);const destination=path.join(directory,manifest.id);await fs.mkdir(destination,{recursive:true});await fs.copyFile(source,path.join(destination,pkg.filename));cachedTools.push(pkg.filename);}}}
  const legacyVsix=require('./tests/fixtures/vsix-1.0.0.json');await fs.writeFile(path.join(directory,'addons.json'),JSON.stringify({schemaVersion:1,revision:0,packages:[{package:legacyVsix,source:'bundled-catalog',accepted:false}],profile:{schemaVersion:1,modulesVersion:0,requested:[],resolved:[],activating:false,safeMode:false}}));
  child=spawn(require('electron'),[target,'--isolated','--headless-check','--cdp-port='+port,'--data-dir='+directory],{env,windowsHide:true,stdio:['ignore','pipe','pipe']});child.stdout.on('data',b=>output+=b.toString());child.stderr.on('data',b=>output+=b.toString());
  const command=(method,params={},sessionId)=>new Promise((resolve,reject)=>{const id=++sequence,timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP timed out: '+method));},60000);pending.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params,...sessionId?{sessionId}:{}}));});
@@ -63,6 +64,7 @@ async function main(){
   await evaluate("(()=>{const select=document.querySelector('#projectSelect');for(let n=0;n<25;n++){const o=document.createElement('option');o.value='geometry-'+n;o.textContent='Geometry fixture '+n;o.title='C:/fixture/long-path/'+n;select.append(o);}StudioChoices.open(select);})()");await delay(180);
   await check('Project picker has one inner scrollbar and no outer overflow',"(()=>{const p=StudioChoices.active.popover,l=p.querySelector('.studio-choice-list');return p.scrollHeight<=p.clientHeight+1&&p.scrollWidth<=p.clientWidth+1&&l.scrollHeight>l.clientHeight&&p.getBoundingClientRect().bottom<=innerHeight;})()");
   const choicesPreview=await command('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await fs.writeFile(reportFile.replace(/\.json$/,'-project-picker.png'),Buffer.from(choicesPreview.data,'base64'));await evaluate("StudioChoices.close();[...document.querySelector('#projectSelect').options].filter(o=>o.value.startsWith('geometry-')).forEach(o=>o.remove())");
+  if(!process.argv.includes('--offline-gallery')){
   await evaluate("(async()=>{forge.addons.projectScoped=false;await forge.addons.apply([...forge.addons.baseProfile,{id:'studio.vsix',version:'1.0.0'}]);await forge.addons.install(forge.addons.available.find(p=>p.manifest.id==='studio.vsix'));forge.addons.galleryQuery='markdown snippets';forge.addons.openExternalGallery();})()");await until("!![...document.querySelectorAll('.market-item')].find(r=>r.textContent.includes('Amerey'))",60);
   await check('Open VSX search renders real registry results inside the extension tab',"!!document.querySelector('.market-sidebar input[type=search]')&&[...document.querySelectorAll('.market-item')].some(r=>r.textContent.includes('Amerey'))&&!document.querySelector('dialog[open]')");
   await evaluate("[...document.querySelectorAll('.market-item')].find(r=>r.textContent.includes('Amerey')).click()");await until("!!document.querySelector('.market-detail .notebook-markdown-preview')",60);
@@ -82,6 +84,7 @@ async function main(){
   await check('Registry detail exposes Enable, Settings and Uninstall according to real state',"[...document.querySelectorAll('.market-detail-actions button')].some(b=>b.textContent==='Настройки')&&[...document.querySelectorAll('.market-detail-actions button')].some(b=>b.textContent==='Удалить')");
   await until("(()=>{const b=[...document.querySelectorAll('.market-detail-actions button')].find(b=>b.textContent==='Удалить');if(!b||b.disabled||forge.addons.operationBusy)return false;b.click();return true;})()");await until("!!document.querySelector('[data-addon-change-confirm]')");await evaluate("document.querySelector('[data-addon-change-confirm]').click()");await until("!forge.addons.library.packages.some(p=>p.package.manifest.id===importedRegistryAddon)");await evaluate("forge.addons.externalGallery=false;forge.addons.tab='catalog';forge.addons.render()");
   await check('Registry addon uninstall removes its snippet registrations',"!forge.addons.manager.active.has(importedRegistryAddon)&&!forge.addons.registry.list('snippets').some(s=>s.owner===importedRegistryAddon)");
+  }else console.log('SKIP External Open VSX lifecycle (--offline-gallery)');
   await check('Ordinary Markdown line breaks remain distinct rendered lines',"StudioMarkdown.parser().render('first\\nsecond\\nthird').match(/<br>/g)?.length===2");
   await evaluate("(()=>{const text=forge.settings.language==='en'?'test':'test';const m=forge.active;window.beforeKeymapBindings=structuredClone(forge.settings.keybindings||{});})()");
   await evaluate("void forge.keymap.open()");await until("forge.active?.virtual==='extension'&&!!document.querySelector('.keymap-list')");
@@ -126,7 +129,7 @@ async function main(){
   await evaluate("(async()=>{await native('newFolder',{path:forge.state.root+'/build'});await forge.refreshTree();})()");
   await evaluate("[...document.querySelectorAll('.tree-row')].find(r=>r.dataset.path.endsWith('/example.cpp')).querySelector('.tree-file-menu').click()");
   await check('Three-dot file actions remain open after the opening click bubbles',"!document.querySelector('#menu').classList.contains('hidden')&&document.querySelector('#menu').textContent.includes('Переименовать')");await evaluate("document.querySelector('#menu').classList.add('hidden')");
-  await check('Build directories are hidden by default',"![...document.querySelectorAll('.tree-row')].some(r=>r.dataset.path===forge.state.root+'/build')");
+  await check('Build directories remain visible by default and have generated-folder highlighting',"[...document.querySelectorAll('.tree-row')].some(r=>r.dataset.path===forge.state.root+'/build'&&r.classList.contains('tree-hidden'))");
   await evaluate("forge.changeSettings({showBuildFolders:true})");
   await check('Showing build directories marks the whole generated row',"[...document.querySelectorAll('.tree-row')].some(r=>r.dataset.path===forge.state.root+'/build'&&r.classList.contains('tree-hidden'))");
   await evaluate("forge.changeSettings({showBuildFolders:false})");
@@ -302,7 +305,7 @@ async function main(){
   if(ws?.readyState===WebSocket.OPEN){try{ws.send(JSON.stringify({id:++sequence,method:'Browser.close'}));}catch{}ws.close();}
   const deadline=Date.now()+15000;while(child.exitCode===null&&Date.now()<deadline)await delay(100);
   if(child.exitCode===null){if(process.platform==='win32')await new Promise(resolve=>spawn('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'}).once('exit',resolve));else child.kill('SIGTERM');}
-  await fs.mkdir(path.dirname(reportFile),{recursive:true});await fs.writeFile(reportFile,JSON.stringify({checks,exceptions,consoleErrors,error:failed?.message||null,failureState,fixture:directory,editorLog:output},null,2));
+  await fs.mkdir(path.dirname(reportFile),{recursive:true});await fs.writeFile(reportFile,JSON.stringify({cachedTools,skipped:process.argv.includes('--offline-gallery')?['External Open VSX lifecycle explicitly excluded']:[],checks,exceptions,consoleErrors,error:failed?.message||null,failureState,fixture:directory,editorLog:output},null,2));
   // Delete only the fresh fixture directory owned by this invocation.
   const resolved=await fs.realpath(directory),temporary=await fs.realpath(os.tmpdir());if(path.dirname(resolved)!==temporary||!path.basename(resolved).startsWith('devforge-ui-'))throw Error('Unexpected test fixture path');await fs.rm(resolved,{recursive:true,force:true,maxRetries:20,retryDelay:150});
  }

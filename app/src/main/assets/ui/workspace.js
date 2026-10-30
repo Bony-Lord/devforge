@@ -18,7 +18,7 @@ const workspaceMethods={
   },
   toggleSide(name){const visible=innerWidth<=620?document.body.classList.contains('sidebar-mobile-open'):!document.body.classList.contains('sidebar-hidden');if(visible&&this.currentSide===name){document.body.classList.add('sidebar-hidden');document.body.classList.remove('sidebar-mobile-open');$$('.activity.active').forEach(b=>b.classList.remove('active'));this.settings.layout.sidebarHidden=true;this.layoutEditors();this.saveWorkspaceSettings();return;}if(name==='git')this.showGit().catch(safeError);else this.showSide(name);this.settings.layout.sidebarHidden=false;this.layoutEditors();this.saveWorkspaceSettings();},
   attachWorkspaceEditor(editor){
-    StudioEditorLifecycle.attach(editor);
+    StudioEditorLifecycle.attach(editor);const cppTyping=StudioCppEditing.attach(editor);editor.onDidDispose(()=>cppTyping.dispose());
     const container=editor.getDomNode();
     editor.onDidFocusEditorWidget(()=>{this.editor=editor;const model=editor.getModel(),doc=model&&this.docs.get(model.uri.toString());if(doc){this.active=doc;this.renderTabs();this.updateStandard();$('#breadcrumb').textContent=relative(doc.path,this.state.root).replaceAll('/','  ›  ');$('#readonlyBadge').classList.toggle('hidden',!doc.readonly);}});
     editor.onDidChangeCursorPosition(e=>{$('#cursorStatus').textContent=`Стр ${e.position.lineNumber}, стлб ${e.position.column}`;this.revealCaretAboveKeyboard(editor);});
@@ -60,7 +60,7 @@ const workspaceMethods={
     if(box.top+caret.top+caret.height>bottom)editor.setScrollTop(editor.getScrollTop()+box.top+caret.top+caret.height-bottom);
   },
   setUIScale(value,persist=true){this.settings.uiScale=Math.max(65,Math.min(180,Math.round(value)));this.applyUIScale();if(persist)this.saveWorkspaceSettings();},
-  setCodeScale(value,persist=true){this.settings.codeScale=Math.max(50,Math.min(250,Number.isFinite(Number(value))?Number(value):100));const size=this.settings.fontSize*this.settings.codeScale/100;for(const editor of [...NativeEditing.panes.values()].map(p=>p.editor))editor?.updateOptions({fontSize:size,lineHeight:Math.round(size*1.6)});StudioDocumentViews.optionsChanged();$('#fontStatus').textContent=Math.round(this.settings.codeScale)+'%';$('#fontStatus').title=`Код: ${Math.round(this.settings.codeScale)}% · ${size.toFixed(1)} px`;if(persist)this.saveWorkspaceSettings();},
+  setCodeScale(value,persist=true){this.settings.codeScale=Math.max(50,Math.min(250,Number.isFinite(Number(value))?Number(value):100));const size=this.settings.fontSize*this.settings.codeScale/100;for(const editor of [...NativeEditing.panes.values()].map(p=>p.editor))editor?.updateOptions({fontSize:size,lineHeight:Math.round(size*1.6),suggestFontSize:Math.max(12,Math.round(size)),suggestLineHeight:Math.max(24,Math.round(size*1.7))});StudioDocumentViews.optionsChanged();$('#fontStatus').textContent=Math.round(this.settings.codeScale)+'%';$('#fontStatus').title=`Код: ${Math.round(this.settings.codeScale)}% · ${size.toFixed(1)} px`;if(persist)this.saveWorkspaceSettings();},
   saveWorkspaceSettings(immediate=false){this.configurations?.rememberInterface();clearTimeout(this.workspaceSaveTimer);if(immediate)return native('settingsCommit',this.settings);this.workspaceSaveTimer=setTimeout(()=>native('settings',this.settings).catch(safeError),220);},
   splitEditor(direction,persist=true){
     const model=this.editor.getModel();
@@ -76,7 +76,7 @@ const workspaceMethods={
   resetLayout(){this.unsplitEditor();this.settings.layout={};document.documentElement.style.removeProperty('--sidebar');document.documentElement.style.removeProperty('--panel-height');document.body.classList.remove('sidebar-hidden','panel-hidden','sidebar-mobile-open');this.applyUIScale();this.saveWorkspaceSettings();this.toast('Размеры и расположение окон сброшены');},
   applyUnused(model,diagnostics){
     const doc=this.docs.get(model.uri.toString());if(!doc)return;
-    const unused=(diagnostics||[]).filter(d=>d.tags?.includes(1)||/unused|unneeded-internal|unreachable/.test(String(d.code||'')));
+    const unused=(diagnostics||[]).filter(d=>StudioDiagnosticStyle.unused(d));
     doc.unusedDecorations=model.deltaDecorations(doc.unusedDecorations||[],unused.map(d=>({range:this.lsp.range(d.range),options:{inlineClassName:'forge-unused-symbol',inlineClassNameAffectsLetterSpacing:false,hoverMessage:{value:d.message,isTrusted:false}}})));
   },
   workspaceKeydown(e){

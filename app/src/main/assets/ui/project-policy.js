@@ -17,5 +17,14 @@
   }
   function action(document,kind){const c=document?.configurations?.find(c=>c.id===document.active);return c?.actions?.[kind]||null;}
   function profile(document,base,catalog=[]){if(document?.addons?.mode!=='project')return base;const application=new Set(catalog.filter(m=>m.scope==='application').map(m=>m.id)),merged=new Map(base.map(r=>[typeof r==='string'?r:r.id,r]));for(const r of document.addons.requested){const id=typeof r==='string'?r:r.id;if(!application.has(id))merged.set(id,r);}return [...merged.values()];}
-  return Object.freeze({kinds,defaults,validate,action,profile});
+  // A missing project dependency must not blank unrelated application features.
+  // Keep desired profiles intact; this plan only decides what can run now.
+  function activationPlan(requested,resolve,missing){
+    const inspect=entries=>{const tools=missing(resolve(entries)).filter(p=>!p.optional);if(tools.length){const error=Error(tools.map(t=>t.name||t.id).join(', '));error.tools=tools;throw error;}};
+    try{inspect(requested);return{requested,blocked:[]};}catch{}
+    const available=[],blocked=[];
+    for(const request of requested)try{inspect([...available,request]);available.push(request);}catch(error){blocked.push({id:typeof request==='string'?request:request.id,message:error.message,tools:error.tools||[]});}
+    return{requested:available,blocked};
+  }
+  return Object.freeze({kinds,defaults,validate,action,profile,activationPlan});
 });

@@ -13,11 +13,12 @@ test('attachments preserve custom actions, unknown project fields, profiles and 
   const again=templates.plan(instance,{document:p.project,current:{'.clangd':instance.files[0].text}});assert.equal(again.changes.length,0);assert.equal(again.project.templates.length,1);assert.deepEqual(again.unchanged,['.clangd']);
   const compiler=templates.plan(templates.instantiate(byId('clang')),{document:original});assert.equal(compiler.project.profiles[0].compiler,'clang');assert.equal(compiler.project.profiles[1].compiler,'gcc');assert.equal(original.profiles[0].compiler,'gcc');assert.deepEqual(compiler.project.configurations,original.configurations);runs.validate(compiler.project);
 });
-test('existing files require explicit replacement, type mismatches and project replacement fail',()=>{
+test('existing files require explicit replacement; attachments work with manual and mixed projects',()=>{
   const t=templates.instantiate(byId('clang-format')),document=runs.defaults();const p=templates.plan(t,{document,current:{'.clang-format':'custom'}});assert.deepEqual(p.conflicts,['.clang-format']);assert.equal(p.changes.length,0);
   const replace=templates.plan(t,{document,current:{'.clang-format':'custom'},replace:['.clang-format']});assert.equal(replace.changes[0].before,'custom');assert.equal(replace.conflicts.length,0);
-  assert.throws(()=>templates.plan(t,{document:{projectType:'python'}}),/incompatible/);assert.throws(()=>templates.plan(templates.instantiate(byId('python')),{document}),/cannot replace/);
+  for(const projectType of ['python','notebook','empty','custom.language']){const attached=templates.plan(t,{document:{projectType}});assert.equal(attached.project.projectType,projectType);assert(attached.changes.some(f=>f.path==='.clang-format'));}assert.throws(()=>templates.plan(templates.instantiate(byId('python')),{document}),/cannot replace/);
 });
+test('project specialization recommends matching and general attachments without hiding the rest',()=>{const all=catalog.filter(t=>t.kind==='attachment');for(const type of ['empty','python','cmake']){const sorted=all.toSorted((a,b)=>Number(templates.recommended(b,type))-Number(templates.recommended(a,type)));assert.equal(sorted.length,all.length);assert(templates.recommended(sorted[0],type));if(type==='empty')assert.equal(sorted[0].id,'studio.template.editorconfig');}assert.equal(templates.compatible(byId('gcc'),'python'),true);assert.equal(templates.recommended(byId('gcc'),'python'),false);});
 test('untrusted parameters cannot escape the project; literals and JSON escaping are predictable',()=>{
   const t=byId('editorconfig');t.parameters=[{id:'directory',label:'Directory',type:'relativePath',default:'config'}];t.files=[{path:'{{directory}}/style.txt',text:'{{directory}}'}];
   for(const value of ['../outside','/tmp/escape','C:/escape','a\\b','a/../b','.git/config','CON','a/.forge/x'])assert.throws(()=>templates.instantiate(t,{directory:value}));

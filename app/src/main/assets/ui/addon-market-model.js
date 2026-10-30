@@ -21,5 +21,14 @@
   return matches.sort((a,b)=>(sort==='enabled'?Number(enabled.has(b.manifest.id))-Number(enabled.has(a.manifest.id)):sort==='publisher'?String(a.manifest.publisher||'DevForge').localeCompare(b.manifest.publisher||'DevForge'):sort==='version'?b.manifest.version.localeCompare(a.manifest.version,undefined,{numeric:true}):0)||local(a.manifest.name,locale).localeCompare(local(b.manifest.name,locale)));
  }
  function screenshot(value){return typeof value==='string'&&(/^(?:addons\/previews\/[a-zA-Z0-9._-]+\.(?:png|jpg|webp))$/.test(value)||value.length<=131072&&/^data:image\/(?:png|jpeg|webp);base64,[a-zA-Z0-9+/]+=*$/.test(value));}
- return Object.freeze({entries,search,compatible,screenshot,local});
+ function removal(entry){
+  if(entry.packageInstalled)return{allowed:true,kind:'package'};
+  const tool=entry.tool;
+  if(tool?.installed&&!tool.system&&!tool.bundled&&!tool.aliasOf)return{allowed:true,kind:'tool'};
+  if(tool?.aliasOf)return{allowed:false,reason:'shared',owner:tool.aliasOf};
+  if(tool?.system)return{allowed:false,reason:'system'};
+  if(entry.installed===false)return{allowed:false,reason:'not-installed'};
+  return{allowed:false,reason:'builtin'};
+ }
+ return Object.freeze({entries,search,compatible,screenshot,local,removal});
 });

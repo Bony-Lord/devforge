@@ -6,7 +6,9 @@ Object.assign(StudioConfigurations.prototype,{
     const ide=this.ide,addons=ide.addons,doc=this.document||{};this.loadingProject=true;
     try{
       const requested=StudioProjectPolicy.profile(doc,addons.baseProfile||[],addons.catalog);const scoped=doc.addons?.mode==='project';
-      try{const resolved=StudioAddonCore.resolve(addons.catalog,requested);if(addons.host.missing(resolved).some(pack=>!pack.optional))throw Error(addons.text('Для профиля проекта нужны инструменты. Откройте аддоны и примените состав для установки.','Project profile requires tools. Open Addons and apply its selection to install.'));addons.projectScoped=scoped;await addons.apply(requested,false);}catch(error){addons.projectScoped=true;await addons.apply([],false);addons.errors.push({message:error.message});ide.toast(error.message);}
+      const activation=StudioProjectPolicy.activationPlan(requested,entries=>StudioAddonCore.resolve(addons.catalog,entries),resolved=>addons.host.missing(resolved));
+      addons.projectScoped=scoped;await addons.apply(activation.requested,false);addons.errors=addons.errors.filter(e=>e.kind!=='project-profile');
+      if(activation.blocked.length){const message=addons.text('Не удалось включить дополнения проекта: ','Could not enable project addons: ')+activation.blocked.map(e=>e.id+' — '+e.message).join('; ');addons.errors.push({kind:'project-profile',message,blocked:activation.blocked});ide.toast(message);}
       const s=ide.settings;s.projectDefaultInterface??={mode:s.interfaceMode||'simple',layout:structuredClone(s.layout||{}),dockWindows:structuredClone(s.dockWindows||null)};
       const ui=s.projectInterfaces?.[ide.state.root]||s.projectDefaultInterface,wanted=doc.interface?.mode&&doc.interface.mode!=='inherit'?doc.interface.mode:ui.mode;
       const useWindows=addons.host.enabled('windows')&&addons.host.windowsAvailable!==false&&wanted==='windows',changed=!startup&&(!!ide.windows!==useWindows||this.contextRoot!==ide.state.root&&!!ide.windows);

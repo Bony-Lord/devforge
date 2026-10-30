@@ -1,0 +1,2 @@
+const test=require('node:test'),assert=require('node:assert/strict'),style=require('../app/src/main/assets/ui/diagnostic-style.js');
+test('unused diagnostics support LSP tags, compiler code strings and structured codes',()=>{assert(style.unused({tags:[1]}));assert(style.unused({code:'-Wunused-variable'}));assert(style.unused({code:{value:'-Wunused-function'}}));assert(style.unused({message:"Unused variable 'res'"}));assert(!style.unused({code:'-Wconversion',message:'Possible loss of data'}));assert(!style.unused({message:'Unknown unused_handler method'}));});

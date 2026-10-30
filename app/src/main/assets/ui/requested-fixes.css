@@ -94,3 +94,20 @@ body.design-show-tools .studio-header #compilerSelect+.studio-select,body.design
 .activitybar>.activity>.design-rail-label{display:none}
 
 .external-file-notice{position:fixed;right:12px;bottom:34px;max-width:min(550px,calc(100vw - 24px));padding:12px;background:var(--panel);border:1px solid var(--yellow);border-radius:6px;box-shadow:0 8px 24px #0005;z-index:1000}.external-file-notice p{margin:7px 0;font-size:12px}.external-file-notice button{margin-right:5px;background:var(--elev);border:1px solid var(--line);white-space:normal}
+/* Project tools use the same surfaces and density in both workspace layouts. */
+#sideSearch{min-width:0;overflow:auto;padding:10px;box-sizing:border-box}
+#sideSearch>input,#sideSearch>details>input{width:100%;box-sizing:border-box;margin-bottom:6px;min-width:0}
+.project-search-controls{display:flex;gap:4px;margin:0 0 8px}.project-search-controls select{min-width:0;flex:1}.project-search-controls button{padding:4px 7px;min-width:28px}.project-search-controls button[aria-pressed=true]{background:var(--accent-bg);border-color:var(--accent)}
+#sideSearch>details{font-size:12px;margin-bottom:8px}#sideSearch>details>summary{padding:6px 0;cursor:pointer}#sideSearch>details>label{display:flex;gap:6px;align-items:center;font-size:11px;margin:6px 0}
+.project-search-status{font-size:11px;color:var(--muted);overflow-wrap:anywhere}.project-search-file summary{font-size:12px;cursor:pointer;padding:6px 0;overflow-wrap:anywhere}.project-search-hit{display:block;width:100%;text-align:left;font:11px/1.5 monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 7px;border:0;background:transparent}
+.studio-project-manager{padding:20px;max-width:1100px;margin:auto;box-sizing:border-box;min-width:0}.studio-project-manager-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.studio-project-manager>input{width:100%;box-sizing:border-box;margin-bottom:12px}.studio-project-card{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}.studio-project-card>strong{min-width:120px}.studio-project-card>.studio-project-path{flex:1;min-width:150px;overflow-wrap:anywhere}.studio-project-card>button{width:auto;font-size:12px}.studio-project-manager-toolbar>button{width:auto}.outline-row>svg{width:15px;height:15px;flex-shrink:0}
+.monaco-editor .forge-unused-symbol,.monaco-editor .forge-unused-symbol *{color:#6f737a!important;font-style:normal!important;opacity:1!important}
+body.light .monaco-editor .forge-unused-symbol,body.light .monaco-editor .forge-unused-symbol *{color:#a0a3a8!important}
+#outline{overflow:auto;min-width:0;padding:0!important}
+.outline-toolbar{position:sticky;top:0;z-index:2;display:flex;gap:3px;align-items:center;background:var(--panel);padding:6px;border-bottom:1px solid var(--line)}
+.outline-toolbar input{flex:1;min-width:0;width:100%;height:28px;padding:4px 7px;font-size:12px}.outline-toolbar button{width:27px;height:27px;padding:5px;flex-shrink:0}.outline-toolbar svg{width:16px;height:16px}
+.outline-entry{display:flex;align-items:center;min-width:0;height:24px;box-sizing:border-box}.outline-entry:hover{background:var(--hover)}
+.outline-caret{width:18px;min-width:18px;height:22px;padding:3px;border:0;background:transparent}.outline-caret[hidden]{display:block!important;visibility:hidden}.outline-caret svg{width:12px;height:12px}
+.outline-symbol-link{display:flex;gap:7px;align-items:center;height:24px;min-height:24px;padding:2px 5px 2px 0;min-width:0;flex:1;border:0;background:transparent;font-size:12px;text-align:left;white-space:nowrap;border-radius:0}.outline-symbol-link:hover{background:transparent}
+.outline-symbol-icon{width:18px;height:18px;flex:0 0 18px;display:flex;align-items:center;justify-content:center}.outline-symbol-icon svg{width:17px;height:17px}
+.outline-symbol-name{flex-shrink:0}.outline-symbol-detail{color:var(--muted);overflow:hidden;text-overflow:ellipsis;font-size:11px}.symbol-type,.symbol-enum{color:#b8a0ce}.symbol-method,.symbol-function{color:#83b6dc}.symbol-field,.symbol-constant{color:#c78fba}.symbol-variable{color:#9ab8a4}

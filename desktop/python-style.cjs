@@ -4,7 +4,7 @@ const {launch}=require('./tooling.cjs'),{inside,canonical}=require('./workspace.
 class PythonStyleHost {
   constructor(host,{id='python-style',manifest='style-manifest.json',script='style_tools.py'}={}){this.host=host;this.id=id;this.script=script;this.cache=path.join(host.ws.data,id);this.jobs=new Map();this.admin=Promise.resolve();this.installing=false;this.manifest=require(require('./assets.cjs').assets+'/python/'+manifest);}
   async info(){const packages=[];for(const p of this.manifest.packages){let installed=false;try{const file=path.join(this.cache,p.filename);if((await fs.stat(file)).size!==p.bytes)throw Error('Size mismatch');const bytes=await fs.readFile(file);installed=bytes.length===p.bytes&&crypto.createHash('sha256').update(bytes).digest('hex')===p.sha256;}catch{}packages.push({...p,installed});}return{id:this.id,installed:packages.every(p=>p.installed),packages,bytes:packages.reduce((n,p)=>n+p.bytes,0),path:this.cache};}
-  stop(){for(const job of this.jobs.values())this.host.tools.terminate(job);this.jobs.clear();}
+  stop({includeAdmin=false}={}){for(const[key,job]of this.jobs){if(!includeAdmin&&['admin-install','admin-remove'].includes(key))continue;this.host.tools.terminate(job);this.jobs.delete(key);}}
   manage(action,d){const operation=this.admin.catch(()=>{}).then(async()=>{this.installing=true;this.stop();try{if(action==='remove'){for(const p of this.manifest.packages)await fs.unlink(path.join(this.cache,p.filename)).catch(e=>{if(e.code!=='ENOENT')throw e;});return this.info();}return await this.run(action,d);}finally{this.installing=false;}});this.admin=operation;return operation;}
   async request(action,d){
     if(this.installing)throw Error('Finish the Python style component operation first');

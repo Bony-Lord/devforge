@@ -1,8 +1,8 @@
 'use strict';
-const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),StudioDiagnosticStyle=require('../app/src/main/assets/ui/diagnostic-style.js');
 let checks=0;
 function environment(){
-  const calls=[],forge={settings:{smartFormatOnClose:true},diagnosticMap:new Map()},context={console,Map,Set,Promise,setTimeout,clearTimeout,requestAnimationFrame(){},window:{forge,addEventListener(){}},document:{documentElement:{}},MutationObserver:class{observe(){}},onNative(){},safeError(){},native:async(op,data)=>{calls.push({op,data});if(op==='editorSnapshot')return[];return true;},monaco:{editor:{getModelMarkers(){return[];}}}};
+  const calls=[],forge={settings:{smartFormatOnClose:true},diagnosticMap:new Map()},context={StudioDiagnosticStyle,console,Map,Set,Promise,setTimeout,clearTimeout,requestAnimationFrame(){},window:{forge,addEventListener(){}},document:{documentElement:{}},MutationObserver:class{observe(){}},onNative(){},safeError(){},native:async(op,data)=>{calls.push({op,data});if(op==='editorSnapshot')return[];return true;},monaco:{editor:{getModelMarkers(){return[];}}}};
   vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../app/src/main/assets/ui/native-editor.js'),'utf8')+'\nglobalThis.editing=NativeEditing;',context);
   return{context,editing:context.editing,forge,calls};
 }
