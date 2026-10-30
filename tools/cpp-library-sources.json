@@ -1,0 +1,56 @@
+[
+  {
+    "id": "fmt",
+    "repository": "fmtlib/fmt",
+    "tag": "12.2.0",
+    "target": "fmt::fmt",
+    "url": "https://codeload.github.com/fmtlib/fmt/tar.gz/refs/tags/12.2.0",
+    "sha256": "8b852bb5aa6e7d8564f9e81394055395dd1d1936d38dfd3a17792a02bebd7af0",
+    "sourceBytes": 738355
+  },
+  {
+    "id": "spdlog",
+    "repository": "gabime/spdlog",
+    "tag": "v1.17.0",
+    "target": "spdlog::spdlog",
+    "url": "https://codeload.github.com/gabime/spdlog/tar.gz/refs/tags/v1.17.0",
+    "sha256": "d8862955c6d74e5846b3f580b1605d2428b11d97a410d86e2fb13e857cd3a744",
+    "sourceBytes": 281801
+  },
+  {
+    "id": "json",
+    "repository": "nlohmann/json",
+    "tag": "v3.12.0",
+    "target": "nlohmann_json::nlohmann_json",
+    "url": "https://codeload.github.com/nlohmann/json/tar.gz/refs/tags/v3.12.0",
+    "sha256": "4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187",
+    "sourceBytes": 9678593
+  },
+  {
+    "id": "catch2",
+    "repository": "catchorg/Catch2",
+    "tag": "v3.16.1",
+    "target": "Catch2::Catch2WithMain",
+    "url": "https://codeload.github.com/catchorg/Catch2/tar.gz/refs/tags/v3.16.1",
+    "sha256": "d16bd1b8b2364918bd472cb216394acb93bde6784890df0d91bccfb3f28d777d",
+    "sourceBytes": 1228880
+  },
+  {
+    "id": "doctest",
+    "repository": "doctest/doctest",
+    "tag": "v2.5.3",
+    "target": "doctest::doctest",
+    "url": "https://codeload.github.com/doctest/doctest/tar.gz/refs/tags/v2.5.3",
+    "sha256": "174ebc4e769928959614789c5b4e9c3d0a0f81a62bb608756b127bfebfb21331",
+    "sourceBytes": 2245013
+  },
+  {
+    "id": "googletest",
+    "repository": "google/googletest",
+    "tag": "v1.18.0",
+    "target": "GTest::gtest_main",
+    "url": "https://codeload.github.com/google/googletest/tar.gz/refs/tags/v1.18.0",
+    "sha256": "6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5",
+    "sourceBytes": 894741
+  }
+]

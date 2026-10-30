@@ -16,7 +16,7 @@ test('attachments preserve custom actions, unknown project fields, profiles and 
 test('existing files require explicit replacement, type mismatches and project replacement fail',()=>{
   const t=templates.instantiate(byId('clang-format')),document=runs.defaults();const p=templates.plan(t,{document,current:{'.clang-format':'custom'}});assert.deepEqual(p.conflicts,['.clang-format']);assert.equal(p.changes.length,0);
   const replace=templates.plan(t,{document,current:{'.clang-format':'custom'},replace:['.clang-format']});assert.equal(replace.changes[0].before,'custom');assert.equal(replace.conflicts.length,0);
-  assert.throws(()=>templates.plan(t,{document:{projectType:'python'}}),/incompatible/);assert.throws(()=>templates.plan(templates.instantiate(byId('python')),{document}),/cannot replace/);
+  const mixed=templates.plan(t,{document:{...document,projectType:'python'}});assert(mixed.changes.some(f=>f.path==='.clang-format'));assert.equal(mixed.project.projectType,'python');assert.throws(()=>templates.plan(templates.instantiate(byId('python')),{document}),/cannot replace/);
 });
 test('untrusted parameters cannot escape the project; literals and JSON escaping are predictable',()=>{
   const t=byId('editorconfig');t.parameters=[{id:'directory',label:'Directory',type:'relativePath',default:'config'}];t.files=[{path:'{{directory}}/style.txt',text:'{{directory}}'}];

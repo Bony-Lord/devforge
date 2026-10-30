@@ -79,7 +79,7 @@ class Workspace {
     entries.sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name));
     for(const entry of entries){if(budget.remaining--<=0)break;if(entry.isSymbolicLink()||entry.name.startsWith('.studio-write-'))continue;
       const file=portable(path.join(folder,entry.name)),dir=entry.isDirectory();if(!dir&&!entry.isFile())continue;
-      const unloaded=dir&&['.git','node_modules','.cache','build'].includes(entry.name);result.push({name:entry.name,path:file,dir,...dir?{children:unloaded?[]:await this.tree(file,depth+1,budget),unloaded}:{size:(await fs.stat(file)).size}});
+      const unloaded=dir&&(['.git','node_modules','.cache','build','.venv','venv','__pycache__','.pytest_cache','.mypy_cache','.ruff_cache'].includes(entry.name)||entry.name.startsWith('cmake-build-'));result.push({name:entry.name,path:file,dir,...dir?{children:unloaded?[]:await this.tree(file,depth+1,budget),unloaded}:{size:(await fs.stat(file)).size}});
     }return result;
   }
   async read(input,encoding,track=true){
@@ -89,7 +89,7 @@ class Workspace {
     if(track){this.prefs.encodings[file]=decoded.encoding;this.readState.set(file,{hash:crypto.createHash('sha256').update(bytes).digest('hex'),bom:decoded.bom});}
     return {...decoded,path:file,readonly:!!this.projectReadOnly||!inside(file,await canonical(this.root))};
   }
-  historyDir(file){return path.join(this.cache,'history',Buffer.from(key(file)).toString('base64url'));}
+  historyDir(file){return path.join(this.cache,'history','sha256-'+crypto.createHash('sha256').update(key(file)).digest('hex'));}
   async write(input,text,encoding){
     this.assertEditable();
     const file=await this.writable(input),previous=await exists(file)?await fs.readFile(file):null,read=this.readState.get(file);
@@ -102,7 +102,7 @@ class Workspace {
     if(!previous||!previous.equals(bytes))await atomic(file,bytes);
     this.prefs.encodings[file]=format;this.readState.set(file,{hash:crypto.createHash('sha256').update(bytes).digest('hex'),bom:format==='UTF-8-BOM'||!!read?.bom});await this.persist();return true;
   }
-  async history(input){const file=await this.writable(input),dir=this.historyDir(file);if(!await exists(dir))return[];return Promise.all((await fs.readdir(dir)).sort().reverse().map(async name=>JSON.parse(await fs.readFile(path.join(dir,name),'utf8'))));}
+  async history(input){const file=await this.writable(input),dirs=[this.historyDir(file)],legacy=Buffer.from(key(file)).toString('base64url');if(legacy.length<=255)dirs.push(path.join(this.cache,'history',legacy));const records=[];for(const dir of dirs)if(await exists(dir))for(const name of await fs.readdir(dir))if(name.endsWith('.json'))records.push(JSON.parse(await fs.readFile(path.join(dir,name),'utf8')));return records.sort((a,b)=>Number(b.time)-Number(a.time));}
   async createTemplate(d,preview=false){const files=templates(d.kind,d.name,d.namespace||''),result=[],created=[];
     if(!preview)this.assertEditable();
     for(const file of Object.keys(files))if(await exists(await this.writable(file)))throw Error('File already exists: '+file);

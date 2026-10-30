@@ -92,5 +92,17 @@ body.design-show-tools .studio-header #compilerSelect+.studio-select,body.design
 @media(max-height:760px){#addonsDialog.marketplace-mode>.dialog-heading{display:none!important}.market-sidebar .market-filters{gap:4px!important;padding:7px!important}.market-count{margin-top:1px;margin-bottom:3px}}
 .activitybar>.activity{display:flex;flex-direction:row;align-items:center;justify-content:center;width:37px;height:36px;min-height:36px;padding:7px;gap:0;border-left-width:0}
 .activitybar>.activity>.design-rail-label{display:none}
+/* The rail and its grid track must have the same width in both layouts. */
+body:not(.studio-docking) .work-area{grid-template-columns:54px var(--sidebar) 6px minmax(0,1fr)}
+body.sidebar-hidden:not(.studio-docking) .work-area{grid-template-columns:54px 0 0 minmax(0,1fr)}
+body:not(.studio-docking) .work-area>.activitybar{grid-row:1 / -1;box-sizing:border-box;overflow-x:hidden;min-width:0}
+body:not(.studio-docking) .work-area>#panel,body:not(.studio-docking) .work-area>#panelResizer{grid-column:2/-1}
+.market-results{align-content:start;grid-auto-rows:max-content}
+.market-results>.market-item{align-self:start;min-height:0}
+/* Author display rules must never defeat the visibility of a cached document. */
+.notebook-document[hidden],.studio-settings-document[hidden],.studio-extension-document[hidden]{display:none!important}
+.notebook-raw-return{position:absolute;top:7px;right:21px;z-index:25;display:flex;gap:6px;align-items:center;padding:5px 9px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:4px}.notebook-raw-return svg{width:16px;height:16px}.notebook-raw-return[hidden]{display:none!important}
+@media(max-width:760px){body:not(.studio-docking) .work-area{grid-template-columns:45px var(--sidebar) 6px minmax(0,1fr)}body.sidebar-hidden:not(.studio-docking) .work-area{grid-template-columns:45px 0 0 minmax(0,1fr)}}
+@media(max-width:620px){body:not(.studio-docking) .work-area,body.sidebar-hidden:not(.studio-docking) .work-area{grid-template-columns:0 0 0 minmax(0,1fr)}}
 
 .external-file-notice{position:fixed;right:12px;bottom:34px;max-width:min(550px,calc(100vw - 24px));padding:12px;background:var(--panel);border:1px solid var(--yellow);border-radius:6px;box-shadow:0 8px 24px #0005;z-index:1000}.external-file-notice p{margin:7px 0;font-size:12px}.external-file-notice button{margin-right:5px;background:var(--elev);border:1px solid var(--line);white-space:normal}

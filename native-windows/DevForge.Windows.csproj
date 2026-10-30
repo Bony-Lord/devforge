@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>DevForge.Native.NativeEntry</StartupObject>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>DevForge.Native</AssemblyName>
+    <RootNamespace>DevForge.Native</RootNamespace>
+    <Version>0.8.0</Version>
+    <ApplicationIcon>../desktop/icon.ico</ApplicationIcon>
+    <RollForward>LatestMajor</RollForward>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.1.120" />
+    <PackageReference Include="Dirkster.AvalonDock" Version="4.74.1" />
+    <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.74.1" />
+    <PackageReference Include="Markdig" Version="1.5.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="../desktop/icon.png" Link="Assets/icon.png" />
+  </ItemGroup>
+</Project>

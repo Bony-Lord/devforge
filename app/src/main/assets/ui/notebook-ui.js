@@ -75,6 +75,7 @@ const StudioDocumentViews={
   optionsChanged(){for(const pane of NativeEditing.panes.values())for(const view of pane.documentViews?.values()||[])view.optionsChanged();},
   attach(editor,id){
     const pane=NativeEditing.panes.get(id);pane.documentViews=new Map();pane.rawModels=new WeakSet();pane.sourceVisibility=pane.container.style.visibility;
+    if(!this.jsonTokens&&monaco.languages.setMonarchTokensProvider){this.jsonTokens=true;if(!monaco.languages.getLanguages().some(l=>l.id==='notebook'))monaco.languages.register({id:'notebook'});monaco.languages.setMonarchTokensProvider('notebook',{defaultToken:'',tokenPostfix:'.json',tokenizer:{root:[[/[{}\[\]]/,'delimiter.bracket'],[/[,:]/,'delimiter'],[/\b(?:true|false|null)\b/,'keyword'],[/-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/,'number'],[/"/,{token:'string.quote',next:'@string'}]],string:[[/[^\\"]+/,'string'],[/\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4})/,'string.escape'],[/"/,{token:'string.quote',next:'@pop'}]]}});}
     const set=editor.setModel.bind(editor),focus=editor.focus.bind(editor),dispose=editor.dispose.bind(editor);
     editor.setModel=model=>{this.update(editor,model);return set(model);};
     editor.focus=()=>pane.documentView?pane.documentView.focus():focus();
@@ -84,13 +85,15 @@ const StudioDocumentViews={
   activate(editor,doc){const ide=window.forge;if(!ide)return;ide.editor=editor;ide.active=doc;const pane=this.pane(editor);ide.windows?.activateEditor(pane.id);ide.renderTabs();ide.updateFileOptions();document.querySelector('#breadcrumb').textContent=doc.virtual?doc.title:relative(doc.path,ide.state.root);},
   update(editor,model){
     const current=this.pane(editor);if(model&&current?.documentView?.doc.model===model&&!current.rawModels.has(model)&&(current.documentView.doc.virtual||window.forge?.addons.host.enabled('notebooks'))){NativeEditing.queueLayout();return;}
-    const pane=this.pane(editor);if(!pane)return;for(const[model,view]of pane.documentViews)if(model.isDisposed()){view.dispose();pane.documentViews.delete(model);}else view.dialog.hidden=true;pane.documentView=null;pane.container.style.visibility=pane.sourceVisibility;pane.container.classList.remove('studio-document-host');
+    const pane=this.pane(editor);if(!pane)return;if(pane.rawReturn)pane.rawReturn.hidden=true;for(const[model,view]of pane.documentViews)if(model.isDisposed()){view.dispose();pane.documentViews.delete(model);}else view.dialog.hidden=true;pane.documentView=null;pane.container.style.visibility=pane.sourceVisibility;pane.container.classList.remove('studio-document-host');
     const ide=window.forge,doc=model&&ide?.docs.get(model.uri.toString());
     if(doc?.virtual)this.show(editor,doc);else if(doc?.path.endsWith('.ipynb')&&ide.addons.host.enabled('notebooks')&&!pane.rawModels.has(model))this.show(editor,doc);
+    if(doc?.path.endsWith('.ipynb')&&pane.rawModels.has(model)){if(!pane.rawReturn){const button=document.createElement('button');button.type='button';button.className='notebook-raw-return';button.innerHTML=svg('studio-notebook')+'<span></span>';button.onclick=()=>{const active=editor.getModel(),target=active&&ide.docs.get(active.uri.toString());if(target){this.show(editor,target);ide.addons.host.updateViewButton();}};pane.container.append(button);pane.rawReturn=button;}pane.rawReturn.querySelector('span').textContent=ide.settings.language==='ru'?'Ячейки':'Cells';pane.rawReturn.title=ide.settings.language==='ru'?'Вернуться к ячейкам notebook':'Return to notebook cells';pane.rawReturn.hidden=false;}
     NativeEditing.queueLayout();
   },
   show(editor,doc){
     const pane=this.pane(editor);if(!pane)return;pane.rawModels.delete(doc.model);for(const view of pane.documentViews.values())view.dialog.hidden=true;let view=pane.documentViews.get(doc.model);
+    if(pane.rawReturn)pane.rawReturn.hidden=true;
     if(!view){try{view=doc.virtual==='addons'?new StudioAddonDocument(window.forge,doc):doc.virtual==='extension'?StudioExtensionAPI.document(window.forge,doc):new StudioNotebookEditor(window.forge,doc);view.open(pane.container,editor);pane.documentViews.set(doc.model,view);}catch(error){safeError(error);return;}}
     pane.documentView=view;pane.container.classList.add('studio-document-host');pane.container.style.visibility='inherit';view.dialog.hidden=false;NativeEditing.queueLayout();return view;
   },

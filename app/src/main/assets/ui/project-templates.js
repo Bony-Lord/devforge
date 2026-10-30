@@ -26,7 +26,7 @@
     t.requires??={};keys(t.requires,['addons','tools']);for(const field of ['addons','tools']){t.requires[field]??=[];if(!Array.isArray(t.requires[field])||t.requires[field].length>64||t.requires[field].some(s=>typeof s!=='string'||!(field==='addons'?ID:/^[a-z][a-z0-9-]*$/).test(s)))fail('Invalid template requirements');}
     if(t.appliesTo!==undefined&&(!Array.isArray(t.appliesTo)||t.appliesTo.length>64||t.appliesTo.some(s=>typeof s!=='string'||!s||s.length>100)))fail('Invalid template project types');
     if(!Array.isArray(t.files)||t.files.length>128)fail('Invalid template files');
-    for(const f of t.files){keys(f,['path','text']);if(typeof f.path!=='string'||typeof f.text!=='string'||f.text.includes('\0'))fail('Invalid template file');path(substitute(f.path,Object.fromEntries([...names].map(k=>[k,'value']))));checkTokens(f.text,names);checkTokens(f.path,names);}
+    for(const f of t.files){keys(f,['path','text','mode']);if(typeof f.path!=='string'||typeof f.text!=='string'||f.text.includes('\0')||f.mode!==undefined&&!['replace','append'].includes(f.mode))fail('Invalid template file');path(substitute(f.path,Object.fromEntries([...names].map(k=>[k,'value']))));checkTokens(f.text,names);checkTokens(f.path,names);}
     if(t.project!==undefined){keys(t.project,t.kind==='project'?['projectType','profiles','configurations','active','tooling','addons','interface']:['tooling']);checkTokens(JSON.stringify(t.project),names);if(t.kind==='project'&&(!Array.isArray(t.project.profiles)||!Array.isArray(t.project.configurations)||typeof t.project.active!=='string'||typeof t.project.projectType!=='string'))fail('Project template needs profiles and run configurations');}
     if(t.kind==='project'&&!t.project)fail('Missing project configuration');
     if(t.profile!==undefined){if(t.kind!=='attachment')fail('Profile patch belongs to attachments');keys(t.profile,['compiler','cppStandard','cStandard','flags','cmakeOptions','pythonExecutable','environment']);checkTokens(JSON.stringify(t.profile),names);}
@@ -41,17 +41,19 @@
     const t=parse(input);if(!object(parameters)||Object.keys(parameters).some(k=>!t.parameters.some(p=>p.id===k)))fail('Unknown template parameter');
     if(typeof projectName!=='string'||!projectName||projectName.length>80||/[\x00-\x1f\x7f]/.test(projectName))fail('Invalid project name');
     const values={projectName};for(const p of t.parameters)values[p.id]=parameter(p,parameters[p.id]??p.default??'');
-    const seen=new Set(),files=t.files.map(f=>{const file={path:path(substitute(f.path,values)),text:substitute(f.text,values)},key=file.path.toLowerCase();if(seen.has(key))fail('Duplicate template file: '+file.path);seen.add(key);return file;});
+    const seen=new Set(),files=t.files.map(f=>{const file={path:path(substitute(f.path,values)),text:substitute(f.text,values),...(f.mode?{mode:f.mode}:{})},key=file.path.toLowerCase();if(seen.has(key))fail('Duplicate template file: '+file.path);seen.add(key);return file;});
     const result={...clone(t),files,project:t.project?expandObject(t.project,values):undefined,profile:t.profile?expandObject(t.profile,values):undefined,entryFile:t.entryFile?path(substitute(t.entryFile,values)):undefined,values};
     if(result.entryFile&&!files.some(f=>f.path===result.entryFile))fail('Template entry file must be generated');
     if(new TextEncoder().encode(JSON.stringify(result)).length>1048576)fail('Expanded template exceeds 1 MiB');return result;
   }
   function merge(base,patch){const out=clone(base||{});for(const[k,v]of Object.entries(patch||{})){if(['__proto__','prototype','constructor'].includes(k))fail('Unsafe project key');out[k]=object(v)?merge(object(out[k])?out[k]:{},v):clone(v);}return out;}
-  function compatible(t,projectType){return t.kind==='project'||!t.appliesTo?.length||t.appliesTo.includes('*')||t.appliesTo.includes(projectType);}
+  // A project may contain multiple languages. appliesTo is a recommendation,
+  // not a restriction on attaching declarative files to a manual/mixed project.
+  function compatible(t,projectType){return t.kind==='project'||t.kind==='attachment';}
   function plan(instance,{current={},document=null,replace=[]}={}){
     if(!compatible(instance,document?.projectType))fail('Template is incompatible with this project type');
     const changes=[],conflicts=[],unchanged=[];
-    for(const file of instance.files){const before=Object.hasOwn(current,file.path)?current[file.path]:null;if(before!==null&&typeof before!=='string')fail('Invalid template snapshot');if(before===file.text){unchanged.push(file.path);continue;}if(before!==null&&!replace.includes(file.path)){conflicts.push(file.path);continue;}changes.push({...file,before});}
+    for(const file of instance.files){const before=Object.hasOwn(current,file.path)?current[file.path]:null;if(before!==null&&typeof before!=='string')fail('Invalid template snapshot');if(before===file.text||file.mode==='append'&&before?.includes(file.text.trim())){unchanged.push(file.path);continue;}if(before!==null&&file.mode!=='append'&&!replace.includes(file.path)){conflicts.push(file.path);continue;}changes.push({...file,text:file.mode==='append'&&before!==null?before+(before.endsWith('\n')?'':'\n')+file.text:file.text,before});}
     let project=document?clone(document):null;
     if(instance.kind==='project'){if(document)fail('Project template cannot replace an existing project configuration');project={version:1,...clone(instance.project)};}
     else if(instance.project){if(!project)fail('Open a configured project first');project=merge(project,instance.project);}

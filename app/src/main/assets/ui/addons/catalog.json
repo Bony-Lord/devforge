@@ -237,5 +237,551 @@
     },
     "contributions": [],
     "module": "const previous={};for(const key of ['openExternalGallery','galleryAddonId','galleryIcon','renderExternalGallery'])previous[key]=StudioAddons.prototype[key];\n\n'use strict';\nObject.assign(StudioAddons.prototype,{\n openExternalGallery(){this.tab='catalog';this.externalGallery=true;this.render();},\n galleryAddonId(entry){return 'vscode.'+entry.namespace.toLowerCase().replace(/[^a-z0-9-]/g,'-')+'.'+entry.name.toLowerCase().replace(/[^a-z0-9-]/g,'-');},\n galleryIcon(entry,size=33){const box=this.marketIcon('vscode.extension');box.style.width=box.style.height=size+'px';if(!entry.icon)return box;this.galleryIcons??=new Map();let promise=this.galleryIcons.get(entry.icon);if(!promise){promise=native('extensionGalleryIcon',{url:entry.icon}).catch(()=>null);this.galleryIcons.set(entry.icon,promise);}promise.then(src=>{if(src&&box.isConnected){const image=this.element('img',undefined,'market-gallery-icon');image.width=image.height=size;image.style.width=image.style.height=size+'px';image.alt=entry.title||entry.name;image.src=src;box.replaceChildren(image);}});return box;},\n renderExternalGallery(container){\n  const section=this.element('section',undefined,'studio-marketplace'),side=this.element('aside',undefined,'market-sidebar'),detail=this.element('section',undefined,'market-detail-host');section.append(side,detail);container.append(section);const back=this.element('button','← DevForge','market-back');back.onclick=()=>{this.externalGallery=false;this.render();};const title=this.element('strong','Open VSX'),search=this.element('input');search.type='search';search.placeholder=this.text('Искать расширения VS Code','Search VS Code extensions');search.value=this.galleryQuery||'';const filters=this.element('div',undefined,'market-filter-options'),category=this.element('select'),sort=this.element('select');for(const[value,label]of [['all',this.text('Все категории','All categories')],['Snippets','Snippets'],['Themes','Themes'],['Programming Languages','Languages'],['Formatters','Formatters'],['Extension Packs','Packs']]){const o=this.element('option',label);o.value=value;category.append(o);}for(const[value,ru,en]of [['relevance','Релевантность','Relevance'],['downloadCount','Загрузки','Downloads'],['rating','Оценка','Rating'],['timestamp','Новые','Newest']]){const o=this.element('option',this.text(ru,en));o.value=value;sort.append(o);}filters.append(category,sort);const run=this.element('button',this.text('Найти','Search'),'primary'),status=this.element('small'),list=this.element('div',undefined,'market-results'),toolbar=this.element('div',undefined,'market-filters');toolbar.append(back,title,search,filters,run,status);side.append(toolbar,list);let sequence=0;\n  const show=async entry=>{this.gallerySelected=entry;const current=++sequence;detail.textContent=this.text('Загрузка…','Loading…');try{const data=await native('extensionGalleryInfo',entry);if(!detail.isConnected||current!==sequence)return;detail.replaceChildren();const id=this.galleryAddonId(data),local=this.marketplaceEntries().find(e=>e.manifest.id===id&&e.installed),active=this.manager.active.has(id),article=this.element('article',undefined,'market-detail'),head=this.element('div',undefined,'market-detail-heading'),heading=this.element('div');heading.append(this.element('h2',data.title),this.element('p',data.publisher),this.element('p',data.description));head.append(this.galleryIcon(data,72),heading);article.append(head);\n   const reasons=[];if(data.executable)reasons.push(this.text('Нужна среда выполнения расширений VS Code — она ещё не реализована.','The VS Code extension runtime is required and is not implemented yet.'));if(data.contributions.includes('grammars'))reasons.push(this.text('Загрузка грамматик TextMate ещё не поддерживается.','Loading TextMate grammars is not supported yet.'));if(data.contributions.includes('debuggers'))reasons.push(this.text('Адаптеры отладки VS Code ещё не подключаются.','VS Code debug adapters are not supported yet.'));if(!data.supported&&!reasons.length)reasons.push(this.text('В пакете нет совместимых сниппетов или JSON-цветов интерфейса.','The package contains no compatible snippets or JSON interface colors.'));const compatibility=this.element('p',(data.supported?this.text('Можно установить только сниппеты и JSON-цвета интерфейса. ','Only snippets and JSON interface colors can be installed. '):this.text('Установить это расширение сейчас нельзя. ','This extension cannot be installed currently. '))+reasons.join(' ')),actions=this.element('div',undefined,'market-detail-actions'),error=this.element('p',undefined,'inline-error');compatibility.className='gallery-compatibility';compatibility.setAttribute('role','status');article.append(actions,compatibility,error);\n   const act=(label,callback,primary=false)=>{const button=this.element('button',label,primary?'primary':'');button.type='button';button.onclick=async()=>{button.disabled=true;error.textContent='';try{await callback();}catch(e){error.textContent=e.message;this.app.toast(e.message);}finally{button.disabled=false;}};actions.append(button);return button;};\n   if(local){act(active?this.text('Отключить','Disable'):this.text('Включить','Enable'),async()=>{await this.marketToggle(local,!active);this.render();},!active);act(this.text('Настройки','Settings'),()=>this.openExtensionSettings(id));act(this.text('Удалить','Uninstall'),async()=>{await this.marketRemove(local);this.render();});}\n   else if(data.supported)act((data.executable?this.text('Импортировать совместимую часть…','Import compatible parts…'):this.text('Установить…','Install…')),async()=>{const pkg=await native('extensionGalleryPrepare',data);this.externalGallery=false;this.review(pkg.text,false,{url:pkg.url,sha256:pkg.sha256});},true);\n   if(!local&&!data.supported){const unavailable=act(this.text('Несовместимо с DevForge','Incompatible with DevForge'),()=>{},false);unavailable.disabled=true;unavailable.className='gallery-unavailable';unavailable.title=compatibility.textContent;}\n   if(data.license)article.append(this.element('p',data.license));const readme=this.element('div',undefined,'notebook-markdown-preview');StudioMarkdown.render(readme,data.readme||data.description,this.app);article.append(readme);detail.append(article);section.classList.add('market-detail-open');const backToList=this.element('button',this.text('← Результаты','← Results'),'market-back');backToList.onclick=()=>{this.gallerySelected=null;section.classList.remove('market-detail-open');};article.prepend(backToList);}catch(error){detail.textContent=error.message;}};\n  const find=async()=>{run.disabled=true;this.galleryQuery=search.value;status.textContent=this.text('Поиск…','Searching…');try{const response=await native('extensionGallerySearch',{query:search.value,category:category.value,sort:sort.value});if(!list.isConnected)return;list.replaceChildren();status.textContent=this.text('Найдено: ','Found: ')+response.total;for(const entry of response.extensions){const row=this.element('article',undefined,'market-item'),body=this.element('div',undefined,'market-item-info'),button=this.element('button',entry.title,'market-title'),id=this.galleryAddonId(entry),installed=this.library.packages.some(p=>p.package.manifest.id===id);row.dataset.addonState=this.manager.active.has(id)?'enabled':installed?'installed':'available';body.append(button,this.element('p',entry.description),this.element('small',entry.namespace+' · '+entry.downloads.toLocaleString()));row.append(this.galleryIcon(entry),body);row.onclick=()=>show(entry);list.append(row);}}catch(error){status.textContent=error.message;}finally{run.disabled=false;}};run.onclick=find;search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();find();}};category.onchange=find;sort.onchange=find;find();if(this.gallerySelected)show(this.gallerySelected);\n }\n});\n\nconst installed=Object.fromEntries(Object.keys(previous).map(key=>[key,StudioAddons.prototype[key]]));\napi.commands.register('open',api.raw.application.settings.language==='ru'?'Open VSX: расширения':'Open VSX: extensions',()=>api.raw.application.addons.openExternalGallery());\napi.use(()=>{api.raw.application.addons.externalGallery=false;for(const[key,value]of Object.entries(previous)){if(StudioAddons.prototype[key]!==installed[key])continue;if(value)StudioAddons.prototype[key]=value;else delete StudioAddons.prototype[key];}api.raw.application.addons.render();});\n"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.library.fmt",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "kind": "library",
+      "scope": "application",
+      "name": {
+        "ru": "fmt · C++ библиотека",
+        "en": "fmt · C++ library"
+      },
+      "description": {
+        "ru": "Форматирование строк C++. Добавляет шаблон подключения CMake; исходники загружаются только при конфигурации проекта.",
+        "en": "C++ string formatting. Adds a CMake attachment template; source is downloaded only when configuring that project."
+      },
+      "readme": {
+        "ru": "Версия 12.2.0. Включите дополнение для всего приложения, затем выберите «Подключить к проекту» → fmt. Шаблон добавит файл в cmake/devforge-libraries и строку include в CMakeLists.txt, сохранив существующий текст. Укажите имя существующей цели. Исходники проверяются по SHA-256; каждый проект хранит свою зависимость в build/_deps. Удаление дополнения не удаляет файлы ваших проектов.\n\nИсточник и лицензия библиотеки: https://github.com/fmtlib/fmt",
+        "en": "Pinned 12.2.0. Enable for the application, then use Attach to project → fmt. The template adds a module under cmake/devforge-libraries and appends an include to CMakeLists.txt without replacing existing text. Select an existing target. Sources are SHA-256 verified and live in each project's build/_deps. Uninstalling the addon retains project files.\n\nLibrary source and license: https://github.com/fmtlib/fmt"
+      },
+      "license": "MIT (integration template); upstream library license applies separately",
+      "publisher": "DevForge",
+      "tags": [
+        "cpp",
+        "cmake",
+        "library",
+        "fmt"
+      ],
+      "capabilities": [
+        "projects.templates"
+      ],
+      "dependencies": {},
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "projectTemplates",
+        "id": "studio.library.fmt/cmake",
+        "value": {
+          "format": "devforge.template",
+          "version": 1,
+          "id": "studio.library.fmt.cmake",
+          "kind": "attachment",
+          "name": {
+            "ru": "fmt · подключить библиотеку",
+            "en": "fmt · attach library"
+          },
+          "description": {
+            "ru": "12.2.0, цель {{target}}. Загрузка исходников при конфигурации CMake.",
+            "en": "12.2.0, target {{target}}. Source download occurs during CMake configuration."
+          },
+          "category": "C++ libraries",
+          "parameters": [
+            {
+              "id": "target",
+              "label": {
+                "ru": "Цель CMake",
+                "en": "CMake target"
+              },
+              "type": "identifier",
+              "default": "app"
+            }
+          ],
+          "requires": {
+            "addons": [
+              "studio.project.cmake"
+            ],
+            "tools": [
+              "cmake"
+            ]
+          },
+          "files": [
+            {
+              "path": "cmake/devforge-libraries/fmt.cmake",
+              "text": "# fmtlib/fmt 12.2.0\ninclude_guard(GLOBAL)\ninclude(FetchContent)\nset(FMT_TEST OFF CACHE BOOL \"\" FORCE)\nFetchContent_Declare(devforge_fmt\n  URL https://codeload.github.com/fmtlib/fmt/tar.gz/refs/tags/12.2.0\n  URL_HASH SHA256=8b852bb5aa6e7d8564f9e81394055395dd1d1936d38dfd3a17792a02bebd7af0\n  TIMEOUT 60\n  INACTIVITY_TIMEOUT 20\n  DOWNLOAD_EXTRACT_TIMESTAMP TRUE\n)\nFetchContent_MakeAvailable(devforge_fmt)\nif(TARGET {{target}})\n  target_link_libraries({{target}} PRIVATE fmt::fmt)\nelse()\n  message(WARNING \"DevForge: target {{target}} does not exist before including fmt.cmake\")\nendif()\n"
+            },
+            {
+              "path": "CMakeLists.txt",
+              "mode": "append",
+              "text": "\n# DevForge: fmt\ninclude(\"${CMAKE_CURRENT_LIST_DIR}/cmake/devforge-libraries/fmt.cmake\")\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.library.spdlog",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "kind": "library",
+      "scope": "application",
+      "name": {
+        "ru": "spdlog · C++ библиотека",
+        "en": "spdlog · C++ library"
+      },
+      "description": {
+        "ru": "Быстрое журналирование C++. Добавляет шаблон подключения CMake; исходники загружаются только при конфигурации проекта.",
+        "en": "Fast C++ logging. Adds a CMake attachment template; source is downloaded only when configuring that project."
+      },
+      "readme": {
+        "ru": "Версия v1.17.0. Включите дополнение для всего приложения, затем выберите «Подключить к проекту» → spdlog. Шаблон добавит файл в cmake/devforge-libraries и строку include в CMakeLists.txt, сохранив существующий текст. Укажите имя существующей цели. Исходники проверяются по SHA-256; каждый проект хранит свою зависимость в build/_deps. Удаление дополнения не удаляет файлы ваших проектов.\n\nИсточник и лицензия библиотеки: https://github.com/gabime/spdlog",
+        "en": "Pinned v1.17.0. Enable for the application, then use Attach to project → spdlog. The template adds a module under cmake/devforge-libraries and appends an include to CMakeLists.txt without replacing existing text. Select an existing target. Sources are SHA-256 verified and live in each project's build/_deps. Uninstalling the addon retains project files.\n\nLibrary source and license: https://github.com/gabime/spdlog"
+      },
+      "license": "MIT (integration template); upstream library license applies separately",
+      "publisher": "DevForge",
+      "tags": [
+        "cpp",
+        "cmake",
+        "library",
+        "spdlog"
+      ],
+      "capabilities": [
+        "projects.templates"
+      ],
+      "dependencies": {},
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "projectTemplates",
+        "id": "studio.library.spdlog/cmake",
+        "value": {
+          "format": "devforge.template",
+          "version": 1,
+          "id": "studio.library.spdlog.cmake",
+          "kind": "attachment",
+          "name": {
+            "ru": "spdlog · подключить библиотеку",
+            "en": "spdlog · attach library"
+          },
+          "description": {
+            "ru": "v1.17.0, цель {{target}}. Загрузка исходников при конфигурации CMake.",
+            "en": "v1.17.0, target {{target}}. Source download occurs during CMake configuration."
+          },
+          "category": "C++ libraries",
+          "parameters": [
+            {
+              "id": "target",
+              "label": {
+                "ru": "Цель CMake",
+                "en": "CMake target"
+              },
+              "type": "identifier",
+              "default": "app"
+            }
+          ],
+          "requires": {
+            "addons": [
+              "studio.project.cmake"
+            ],
+            "tools": [
+              "cmake"
+            ]
+          },
+          "files": [
+            {
+              "path": "cmake/devforge-libraries/spdlog.cmake",
+              "text": "# gabime/spdlog v1.17.0\ninclude_guard(GLOBAL)\ninclude(FetchContent)\nset(SPDLOG_BUILD_TESTS OFF CACHE BOOL \"\" FORCE)\nFetchContent_Declare(devforge_spdlog\n  URL https://codeload.github.com/gabime/spdlog/tar.gz/refs/tags/v1.17.0\n  URL_HASH SHA256=d8862955c6d74e5846b3f580b1605d2428b11d97a410d86e2fb13e857cd3a744\n  TIMEOUT 60\n  INACTIVITY_TIMEOUT 20\n  DOWNLOAD_EXTRACT_TIMESTAMP TRUE\n)\nFetchContent_MakeAvailable(devforge_spdlog)\nif(TARGET {{target}})\n  target_link_libraries({{target}} PRIVATE spdlog::spdlog)\nelse()\n  message(WARNING \"DevForge: target {{target}} does not exist before including spdlog.cmake\")\nendif()\n"
+            },
+            {
+              "path": "CMakeLists.txt",
+              "mode": "append",
+              "text": "\n# DevForge: spdlog\ninclude(\"${CMAKE_CURRENT_LIST_DIR}/cmake/devforge-libraries/spdlog.cmake\")\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.library.json",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "kind": "library",
+      "scope": "application",
+      "name": {
+        "ru": "nlohmann/json · C++ библиотека",
+        "en": "nlohmann/json · C++ library"
+      },
+      "description": {
+        "ru": "JSON для современного C++. Добавляет шаблон подключения CMake; исходники загружаются только при конфигурации проекта.",
+        "en": "JSON for modern C++. Adds a CMake attachment template; source is downloaded only when configuring that project."
+      },
+      "readme": {
+        "ru": "Версия v3.12.0. Включите дополнение для всего приложения, затем выберите «Подключить к проекту» → nlohmann/json. Шаблон добавит файл в cmake/devforge-libraries и строку include в CMakeLists.txt, сохранив существующий текст. Укажите имя существующей цели. Исходники проверяются по SHA-256; каждый проект хранит свою зависимость в build/_deps. Удаление дополнения не удаляет файлы ваших проектов.\n\nИсточник и лицензия библиотеки: https://github.com/nlohmann/json",
+        "en": "Pinned v3.12.0. Enable for the application, then use Attach to project → nlohmann/json. The template adds a module under cmake/devforge-libraries and appends an include to CMakeLists.txt without replacing existing text. Select an existing target. Sources are SHA-256 verified and live in each project's build/_deps. Uninstalling the addon retains project files.\n\nLibrary source and license: https://github.com/nlohmann/json"
+      },
+      "license": "MIT (integration template); upstream library license applies separately",
+      "publisher": "DevForge",
+      "tags": [
+        "cpp",
+        "cmake",
+        "library",
+        "json"
+      ],
+      "capabilities": [
+        "projects.templates"
+      ],
+      "dependencies": {},
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "projectTemplates",
+        "id": "studio.library.json/cmake",
+        "value": {
+          "format": "devforge.template",
+          "version": 1,
+          "id": "studio.library.json.cmake",
+          "kind": "attachment",
+          "name": {
+            "ru": "nlohmann/json · подключить библиотеку",
+            "en": "nlohmann/json · attach library"
+          },
+          "description": {
+            "ru": "v3.12.0, цель {{target}}. Загрузка исходников при конфигурации CMake.",
+            "en": "v3.12.0, target {{target}}. Source download occurs during CMake configuration."
+          },
+          "category": "C++ libraries",
+          "parameters": [
+            {
+              "id": "target",
+              "label": {
+                "ru": "Цель CMake",
+                "en": "CMake target"
+              },
+              "type": "identifier",
+              "default": "app"
+            }
+          ],
+          "requires": {
+            "addons": [
+              "studio.project.cmake"
+            ],
+            "tools": [
+              "cmake"
+            ]
+          },
+          "files": [
+            {
+              "path": "cmake/devforge-libraries/json.cmake",
+              "text": "# nlohmann/json v3.12.0\ninclude_guard(GLOBAL)\ninclude(FetchContent)\nset(JSON_BuildTests OFF CACHE BOOL \"\" FORCE)\nFetchContent_Declare(devforge_json\n  URL https://codeload.github.com/nlohmann/json/tar.gz/refs/tags/v3.12.0\n  URL_HASH SHA256=4b92eb0c06d10683f7447ce9406cb97cd4b453be18d7279320f7b2f025c10187\n  TIMEOUT 60\n  INACTIVITY_TIMEOUT 20\n  DOWNLOAD_EXTRACT_TIMESTAMP TRUE\n)\nFetchContent_MakeAvailable(devforge_json)\nif(TARGET {{target}})\n  target_link_libraries({{target}} PRIVATE nlohmann_json::nlohmann_json)\nelse()\n  message(WARNING \"DevForge: target {{target}} does not exist before including json.cmake\")\nendif()\n"
+            },
+            {
+              "path": "CMakeLists.txt",
+              "mode": "append",
+              "text": "\n# DevForge: nlohmann/json\ninclude(\"${CMAKE_CURRENT_LIST_DIR}/cmake/devforge-libraries/json.cmake\")\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.library.catch2",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "kind": "library",
+      "scope": "application",
+      "name": {
+        "ru": "Catch2 · C++ библиотека",
+        "en": "Catch2 · C++ library"
+      },
+      "description": {
+        "ru": "Тесты C++ с Catch2. Добавляет шаблон подключения CMake; исходники загружаются только при конфигурации проекта.",
+        "en": "C++ tests with Catch2. Adds a CMake attachment template; source is downloaded only when configuring that project."
+      },
+      "readme": {
+        "ru": "Версия v3.16.1. Включите дополнение для всего приложения, затем выберите «Подключить к проекту» → Catch2. Шаблон добавит файл в cmake/devforge-libraries и строку include в CMakeLists.txt, сохранив существующий текст. Укажите имя существующей цели. Исходники проверяются по SHA-256; каждый проект хранит свою зависимость в build/_deps. Удаление дополнения не удаляет файлы ваших проектов.\n\nИсточник и лицензия библиотеки: https://github.com/catchorg/Catch2",
+        "en": "Pinned v3.16.1. Enable for the application, then use Attach to project → Catch2. The template adds a module under cmake/devforge-libraries and appends an include to CMakeLists.txt without replacing existing text. Select an existing target. Sources are SHA-256 verified and live in each project's build/_deps. Uninstalling the addon retains project files.\n\nLibrary source and license: https://github.com/catchorg/Catch2"
+      },
+      "license": "MIT (integration template); upstream library license applies separately",
+      "publisher": "DevForge",
+      "tags": [
+        "cpp",
+        "cmake",
+        "library",
+        "catch2"
+      ],
+      "capabilities": [
+        "projects.templates"
+      ],
+      "dependencies": {},
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "projectTemplates",
+        "id": "studio.library.catch2/cmake",
+        "value": {
+          "format": "devforge.template",
+          "version": 1,
+          "id": "studio.library.catch2.cmake",
+          "kind": "attachment",
+          "name": {
+            "ru": "Catch2 · подключить библиотеку",
+            "en": "Catch2 · attach library"
+          },
+          "description": {
+            "ru": "v3.16.1, цель {{target}}. Загрузка исходников при конфигурации CMake.",
+            "en": "v3.16.1, target {{target}}. Source download occurs during CMake configuration."
+          },
+          "category": "C++ libraries",
+          "parameters": [
+            {
+              "id": "target",
+              "label": {
+                "ru": "Цель CMake",
+                "en": "CMake target"
+              },
+              "type": "identifier",
+              "default": "app"
+            }
+          ],
+          "requires": {
+            "addons": [
+              "studio.project.cmake"
+            ],
+            "tools": [
+              "cmake"
+            ]
+          },
+          "files": [
+            {
+              "path": "cmake/devforge-libraries/catch2.cmake",
+              "text": "# catchorg/Catch2 v3.16.1\ninclude_guard(GLOBAL)\ninclude(FetchContent)\nset(CATCH_BUILD_TESTING OFF CACHE BOOL \"\" FORCE)\nFetchContent_Declare(devforge_catch2\n  URL https://codeload.github.com/catchorg/Catch2/tar.gz/refs/tags/v3.16.1\n  URL_HASH SHA256=d16bd1b8b2364918bd472cb216394acb93bde6784890df0d91bccfb3f28d777d\n  TIMEOUT 60\n  INACTIVITY_TIMEOUT 20\n  DOWNLOAD_EXTRACT_TIMESTAMP TRUE\n)\nFetchContent_MakeAvailable(devforge_catch2)\nif(TARGET {{target}})\n  target_link_libraries({{target}} PRIVATE Catch2::Catch2WithMain)\nelse()\n  message(WARNING \"DevForge: target {{target}} does not exist before including catch2.cmake\")\nendif()\n"
+            },
+            {
+              "path": "CMakeLists.txt",
+              "mode": "append",
+              "text": "\n# DevForge: Catch2\ninclude(\"${CMAKE_CURRENT_LIST_DIR}/cmake/devforge-libraries/catch2.cmake\")\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.library.doctest",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "kind": "library",
+      "scope": "application",
+      "name": {
+        "ru": "doctest · C++ библиотека",
+        "en": "doctest · C++ library"
+      },
+      "description": {
+        "ru": "Компактные тесты C++. Добавляет шаблон подключения CMake; исходники загружаются только при конфигурации проекта.",
+        "en": "Lightweight C++ tests. Adds a CMake attachment template; source is downloaded only when configuring that project."
+      },
+      "readme": {
+        "ru": "Версия v2.5.3. Включите дополнение для всего приложения, затем выберите «Подключить к проекту» → doctest. Шаблон добавит файл в cmake/devforge-libraries и строку include в CMakeLists.txt, сохранив существующий текст. Укажите имя существующей цели. Исходники проверяются по SHA-256; каждый проект хранит свою зависимость в build/_deps. Удаление дополнения не удаляет файлы ваших проектов.\n\nИсточник и лицензия библиотеки: https://github.com/doctest/doctest",
+        "en": "Pinned v2.5.3. Enable for the application, then use Attach to project → doctest. The template adds a module under cmake/devforge-libraries and appends an include to CMakeLists.txt without replacing existing text. Select an existing target. Sources are SHA-256 verified and live in each project's build/_deps. Uninstalling the addon retains project files.\n\nLibrary source and license: https://github.com/doctest/doctest"
+      },
+      "license": "MIT (integration template); upstream library license applies separately",
+      "publisher": "DevForge",
+      "tags": [
+        "cpp",
+        "cmake",
+        "library",
+        "doctest"
+      ],
+      "capabilities": [
+        "projects.templates"
+      ],
+      "dependencies": {},
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "projectTemplates",
+        "id": "studio.library.doctest/cmake",
+        "value": {
+          "format": "devforge.template",
+          "version": 1,
+          "id": "studio.library.doctest.cmake",
+          "kind": "attachment",
+          "name": {
+            "ru": "doctest · подключить библиотеку",
+            "en": "doctest · attach library"
+          },
+          "description": {
+            "ru": "v2.5.3, цель {{target}}. Загрузка исходников при конфигурации CMake.",
+            "en": "v2.5.3, target {{target}}. Source download occurs during CMake configuration."
+          },
+          "category": "C++ libraries",
+          "parameters": [
+            {
+              "id": "target",
+              "label": {
+                "ru": "Цель CMake",
+                "en": "CMake target"
+              },
+              "type": "identifier",
+              "default": "app"
+            }
+          ],
+          "requires": {
+            "addons": [
+              "studio.project.cmake"
+            ],
+            "tools": [
+              "cmake"
+            ]
+          },
+          "files": [
+            {
+              "path": "cmake/devforge-libraries/doctest.cmake",
+              "text": "# doctest/doctest v2.5.3\ninclude_guard(GLOBAL)\ninclude(FetchContent)\nset(DOCTEST_WITH_TESTS OFF CACHE BOOL \"\" FORCE)\nFetchContent_Declare(devforge_doctest\n  URL https://codeload.github.com/doctest/doctest/tar.gz/refs/tags/v2.5.3\n  URL_HASH SHA256=174ebc4e769928959614789c5b4e9c3d0a0f81a62bb608756b127bfebfb21331\n  TIMEOUT 60\n  INACTIVITY_TIMEOUT 20\n  DOWNLOAD_EXTRACT_TIMESTAMP TRUE\n)\nFetchContent_MakeAvailable(devforge_doctest)\nif(TARGET {{target}})\n  target_link_libraries({{target}} PRIVATE doctest::doctest)\nelse()\n  message(WARNING \"DevForge: target {{target}} does not exist before including doctest.cmake\")\nendif()\n"
+            },
+            {
+              "path": "CMakeLists.txt",
+              "mode": "append",
+              "text": "\n# DevForge: doctest\ninclude(\"${CMAKE_CURRENT_LIST_DIR}/cmake/devforge-libraries/doctest.cmake\")\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.library.googletest",
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.1",
+        "maxExclusive": "0.2.0"
+      },
+      "kind": "library",
+      "scope": "application",
+      "name": {
+        "ru": "GoogleTest · C++ библиотека",
+        "en": "GoogleTest · C++ library"
+      },
+      "description": {
+        "ru": "Тесты C++ с GoogleTest. Добавляет шаблон подключения CMake; исходники загружаются только при конфигурации проекта.",
+        "en": "C++ tests with GoogleTest. Adds a CMake attachment template; source is downloaded only when configuring that project."
+      },
+      "readme": {
+        "ru": "Версия v1.18.0. Включите дополнение для всего приложения, затем выберите «Подключить к проекту» → GoogleTest. Шаблон добавит файл в cmake/devforge-libraries и строку include в CMakeLists.txt, сохранив существующий текст. Укажите имя существующей цели. Исходники проверяются по SHA-256; каждый проект хранит свою зависимость в build/_deps. Удаление дополнения не удаляет файлы ваших проектов.\n\nИсточник и лицензия библиотеки: https://github.com/google/googletest",
+        "en": "Pinned v1.18.0. Enable for the application, then use Attach to project → GoogleTest. The template adds a module under cmake/devforge-libraries and appends an include to CMakeLists.txt without replacing existing text. Select an existing target. Sources are SHA-256 verified and live in each project's build/_deps. Uninstalling the addon retains project files.\n\nLibrary source and license: https://github.com/google/googletest"
+      },
+      "license": "MIT (integration template); upstream library license applies separately",
+      "publisher": "DevForge",
+      "tags": [
+        "cpp",
+        "cmake",
+        "library",
+        "googletest"
+      ],
+      "capabilities": [
+        "projects.templates"
+      ],
+      "dependencies": {},
+      "conflicts": {}
+    },
+    "contributions": [
+      {
+        "point": "projectTemplates",
+        "id": "studio.library.googletest/cmake",
+        "value": {
+          "format": "devforge.template",
+          "version": 1,
+          "id": "studio.library.googletest.cmake",
+          "kind": "attachment",
+          "name": {
+            "ru": "GoogleTest · подключить библиотеку",
+            "en": "GoogleTest · attach library"
+          },
+          "description": {
+            "ru": "v1.18.0, цель {{target}}. Загрузка исходников при конфигурации CMake.",
+            "en": "v1.18.0, target {{target}}. Source download occurs during CMake configuration."
+          },
+          "category": "C++ libraries",
+          "parameters": [
+            {
+              "id": "target",
+              "label": {
+                "ru": "Цель CMake",
+                "en": "CMake target"
+              },
+              "type": "identifier",
+              "default": "app"
+            }
+          ],
+          "requires": {
+            "addons": [
+              "studio.project.cmake"
+            ],
+            "tools": [
+              "cmake"
+            ]
+          },
+          "files": [
+            {
+              "path": "cmake/devforge-libraries/googletest.cmake",
+              "text": "# google/googletest v1.18.0\ninclude_guard(GLOBAL)\ninclude(FetchContent)\nset(gtest_force_shared_crt ON CACHE BOOL \"\" FORCE)\nFetchContent_Declare(devforge_googletest\n  URL https://codeload.github.com/google/googletest/tar.gz/refs/tags/v1.18.0\n  URL_HASH SHA256=6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5\n  TIMEOUT 60\n  INACTIVITY_TIMEOUT 20\n  DOWNLOAD_EXTRACT_TIMESTAMP TRUE\n)\nFetchContent_MakeAvailable(devforge_googletest)\nif(TARGET {{target}})\n  target_link_libraries({{target}} PRIVATE GTest::gtest_main)\nelse()\n  message(WARNING \"DevForge: target {{target}} does not exist before including googletest.cmake\")\nendif()\n"
+            },
+            {
+              "path": "CMakeLists.txt",
+              "mode": "append",
+              "text": "\n# DevForge: GoogleTest\ninclude(\"${CMAKE_CURRENT_LIST_DIR}/cmake/devforge-libraries/googletest.cmake\")\n"
+            }
+          ]
+        }
+      }
+    ]
   }
 ]

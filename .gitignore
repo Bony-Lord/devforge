@@ -32,3 +32,8 @@ desktop/.cache/
 app/src/components/
 
 app/src/bundle-components/
+native-windows/**/bin/
+native-windows/**/obj/
+native-windows/dist/
+native-windows/test-results/
+CONTINUE-NATIVE-WINDOWS.md

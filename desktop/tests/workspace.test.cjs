@@ -21,3 +21,13 @@ test('inline creation resolves collisions, moves preserve encoding and templates
   await ws.createTemplate({kind:'class',name:'model/Node',namespace:'demo'});await assert.rejects(ws.createTemplate({kind:'class',name:'model/Node'}),/already exists/);assert.match(await fs.readFile(path.join(ws.root,'model/Node.cpp'),'utf8'),/namespace demo/);
   assert.throws(()=>templates('cpp','C:/escape'));assert.throws(()=>templates('class','../Bad'));assert.ok(inside(moved,ws.root));
 });
+test('deep project paths save history without exceeding a filename component limit',async t=>{
+ const ws=await fixture(t),folder=path.join(ws.root,'long-project-location-'.repeat(6)),file=path.join(folder,'source.cpp');await fs.mkdir(folder);await fs.writeFile(file,'before');
+ assert(Buffer.from(file).toString('base64url').length>255,'regression needs a path that exceeds the old history directory limit');
+ await ws.read(file);await ws.write(file,'after');assert.equal(await fs.readFile(file,'utf8'),'after');assert.equal((await ws.history(file))[0].text,'before');
+});
+test('hashed history storage retains readable legacy history without moving or deleting it',async t=>{
+ const ws=await fixture(t),file=path.join(ws.root,'main.cpp'),normalized=file.replaceAll('\\','/'),legacyKey=process.platform==='win32'?normalized.toLowerCase():normalized;
+ const old=path.join(ws.cache,'history',Buffer.from(legacyKey).toString('base64url'));await fs.mkdir(old,{recursive:true});await fs.writeFile(path.join(old,'old.json'),JSON.stringify({text:'legacy retained',time:1}));
+ await ws.read(file);await ws.write(file,'new content');const records=await ws.history(file);assert(records.some(r=>r.text==='legacy retained'));assert(records.some(r=>r.text.includes('Hello')));assert.equal(JSON.parse(await fs.readFile(path.join(old,'old.json'),'utf8')).text,'legacy retained');
+});

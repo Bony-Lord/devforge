@@ -1,0 +1,41 @@
+name: Native Windows checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install backend dependencies without Electron
+        working-directory: desktop
+        run: npm ci --omit=dev --ignore-scripts
+      - name: Restore locked native UI dependencies
+        run: dotnet restore native-windows/DevForge.Windows.csproj --locked-mode
+      - name: Build native Windows interface
+        run: dotnet build native-windows/DevForge.Windows.csproj --no-restore --nologo
+      - name: Project, addon and browser-free transport regressions
+        run: node --test tests/*.test.cjs native-windows/backend.test.cjs
+      - name: Native UI and real Python notebook interactions
+        shell: pwsh
+        run: |
+          $result=Join-Path $env:RUNNER_TEMP 'native-results'
+          $profile=Join-Path $env:RUNNER_TEMP 'native-profile'
+          $process=Start-Process native-windows/bin/Debug/net8.0-windows/DevForge.Native.exe -ArgumentList '--self-test','--isolated',"--data-dir=$profile","--test-results=$result" -WindowStyle Hidden -PassThru
+          if(-not $process.WaitForExit(90000)){Stop-Process -Id $process.Id;throw 'Native UI check timed out'}
+          $report=Get-Content "$result/native-ui.json" -Raw | ConvertFrom-Json
+          if($process.ExitCode -ne 0 -or -not $report.passed){throw ($report|ConvertTo-Json -Depth 8)}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-ui-evidence
+          path: ${{ runner.temp }}/native-results

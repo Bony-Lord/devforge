@@ -1,4 +1,5 @@
 'use strict';
+// The native Windows frontend reuses this grammar without creating browser UI.
 // GNU MI grammar: quoted C strings, result tuples and lists, including repeated
 // frame= entries. No debugger output is evaluated as JavaScript.
 function parseMI(text){
@@ -8,6 +9,7 @@ function parseMI(text){
   function results(end){const o={};while(i<text.length&&text[i]!==end){if(text[i]===','){i++;continue;}const start=i;while(i<text.length&&text[i]!=='='&&text[i]!==end&&text[i]!==',')i++;const key=text.slice(start,i);if(text[i]!=='=')break;i++;const v=value();if(key in o)o[key]=Array.isArray(o[key])?[...o[key],v]:[o[key],v];else o[key]=v;}return o;}
   return results('\0');
 }
+if(typeof module==='object'&&module.exports)module.exports={parseMI};
 class GdbClient{
   constructor(ide){this.ide=ide;this.pending=new Map();this.seq=0;this.active=false;this.paused=false;this.breakpoints=new Map();this.chain=Promise.resolve();this.watches=[];this.stopSerial=0;
     for(const[path,lines]of Object.entries(ide.settings.breakpoints||{}))this.breakpoints.set(path,new Map(lines.map(line=>[line,null])));

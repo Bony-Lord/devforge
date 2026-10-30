@@ -10,8 +10,10 @@
 аддоном, редактор сочетаний, каталог Open VSX; Vim и карта функций — дополнения.
 Совместимость с VSIX пока частичная, полного Extension Host VS Code нет.
 [Возможности и ограничения](docs/ALPHA-0.7.md) · [API модулей](docs/EXTENSION-API.md).
-На ПК пока остаётся Electron/Chromium; переход оболочки на системный WebView
-запланирован отдельно. Стабильный статус не заявляется.
+Ветка разработки переносит Windows-интерфейс на WPF без Chromium и WebView:
+[нативная Windows preview](native-windows/README.md). На время переноса основной
+фокус — Windows. Опубликованная 0.7 использует Electron; нативная preview пока
+не обладает всеми её возможностями. Стабильный статус не заявляется.
 
 **[0.6.0-beta.1](https://github.com/Bony-Lord/devforge/releases/tag/v0.6.0-beta.1)
 — экспериментальная бета для Windows x64 и Android ARM64.** Стабильной не

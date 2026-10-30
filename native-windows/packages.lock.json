@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0-windows7.0": {
+      "AvalonEdit": {
+        "type": "Direct",
+        "requested": "[6.3.1.120, )",
+        "resolved": "6.3.1.120",
+        "contentHash": "6ASBKPzAg64BLDlFOJo4Ypr1sA/6hB5+TfHLJaZYUSTE0jgxvKlVqKeo/ISTG9qEMxu604qUu6BGugmJkfdrNw=="
+      },
+      "Dirkster.AvalonDock": {
+        "type": "Direct",
+        "requested": "[4.74.1, )",
+        "resolved": "4.74.1",
+        "contentHash": "Wf3tjZmN8cjepp5m3dlI68TzDGBnkbxLmbdGD4BkgmbpTPHC0SUSiCTI/BY55KFwWXov714DDbebSCUnl2w97Q=="
+      },
+      "Dirkster.AvalonDock.Themes.VS2013": {
+        "type": "Direct",
+        "requested": "[4.74.1, )",
+        "resolved": "4.74.1",
+        "contentHash": "CDEvJeUM10m96BnffmqkjEKb8ipgHlimkrSyxAhHyer/v03rBU3h/NoB9UI/vUv3NqsJKl3Yof8XsgSkU0cvvA==",
+        "dependencies": {
+          "Dirkster.AvalonDock": "4.74.1"
+        }
+      },
+      "Markdig": {
+        "type": "Direct",
+        "requested": "[1.5.1, )",
+        "resolved": "1.5.1",
+        "contentHash": "NtHwU5t5yKr6Gnylhs8/hlR0mOAftTFQURDz2ID8bkunxps1neOzKw0dYKKlwNuwiYIGLHjJTXK91f809Ko1ww=="
+      }
+    }
+  }
+}

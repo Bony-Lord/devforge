@@ -8,6 +8,7 @@ app/src/main/assets/ui/vendor/** -text -whitespace linguist-vendored
 app/src/main/assets/ui/icons.js text eol=lf linguist-generated
 icons.lock.json text eol=lf linguist-generated
 licenses/** -text -whitespace
+native-windows/licenses/** -text -whitespace
 gradle/wrapper/** linguist-generated
 native-packages.lock.json linguist-generated
 verification*.json linguist-generated
