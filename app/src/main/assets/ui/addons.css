@@ -5,3 +5,5 @@
 .addon-file-view{width:min(800px,calc(100vw - 30px));max-height:80dvh;overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:18px}.addon-file-view details{margin-left:16px;font-family:ForgeMono,monospace;font-size:12px}.addon-file-view summary{padding:4px;cursor:pointer}.addon-json-leaf{margin:4px 0 4px 20px;white-space:pre-wrap;overflow-wrap:anywhere}
 
 body.studio-no-motion *,body.studio-no-motion *::before,body.studio-no-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+
+.studio-bundle-review{display:flex;flex-wrap:wrap;gap:8px;width:min(600px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:14px;overflow:auto}.studio-bundle-review h3,.studio-bundle-review .inline-error{flex-basis:100%;margin:0}.studio-bundle-components{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:8px;flex-basis:100%;max-height:55dvh;overflow:auto}.studio-bundle-components label{display:flex;align-items:center;gap:8px;min-height:28px}.studio-bundle-components input{flex:0 0 16px}

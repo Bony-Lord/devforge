@@ -11,12 +11,11 @@
     return {checked:total>0?count===total:direct,partial:count>0&&count<total,count,total,direct};
   }
   function manual(catalog,requested){
-    const resolved=core.resolve(catalog,requested),selected=new Map(resolved.map(m=>[m.id,m])),roots=new Map();
-    function expand(name){const m=selected.get(name);if(!m)return;if(m.kind==='pack')for(const dependency of Object.keys(m.dependencies||{}))expand(dependency);else roots.set(name,request(m));}
-    for(const r of requested)expand(id(r));return [...roots.values()];
+    const versions=catalog.map(core.manifest).filter(m=>core.satisfies(core.API_VERSION,m.api)&&(!m.platforms||m.platforms.includes(core.currentPlatform()))).sort((a,b)=>core.compare(b.version,a.version)),roots=new Map(),resolved=new Map(core.resolve(catalog,requested).map(m=>[m.id,m]));
+    const expand=(request,seen=new Set())=>{const name=id(request),manifest=versions.find(m=>m.id===name&&core.satisfies(m.version,typeof request==='string'?{}:request.version??{}));if(manifest?.kind==='pack'){if(seen.has(name))throw Error('Bundle cycle');const next=new Set(seen);next.add(name);for(const[member,version]of Object.entries(manifest.includes))expand({id:member,version},next);}else if(resolved.has(name))roots.set(name,{id:name,version:resolved.get(name).version});};for(const request of requested)expand(request);return [...roots.values()];
   }
   function toggle(catalog,requested,manifest,checked){
-    if(checked){const next=[...requested.filter(r=>id(r)!==manifest.id),request(manifest)];core.resolve(catalog,next);return next;}
+    if(checked){const next=manual(catalog,[...requested,request(manifest)]);core.resolve(catalog,next);return next;}
     const removed=manifest.kind==='pack'?new Set(members(catalog,manifest).map(m=>m.id)):new Set([manifest.id]);
     return subtract(catalog,requested,removed);
   }
@@ -24,7 +23,7 @@
     const affected=r=>core.resolve(catalog,[r]).some(m=>removed.has(m.id)),roots=new Map();
     // Expand only roots that actually depend on a removed component. Unrelated
     // workload identities and their choices must survive a window/tool toggle.
-    for(const r of requested)if(!affected(r))roots.set(id(r),r);else for(const part of manual(catalog,[r]))if(!affected(part))roots.set(id(part),part);
+    for(const r of manual(catalog,requested))if(!affected(r))roots.set(id(r),r);else for(const part of manual(catalog,[r]))if(!affected(part))roots.set(id(part),part);
     return [...roots.values()];
   }
   function groupState(members,resolved){const active=new Map(resolved.map(m=>[m.id,m.version])),count=members.filter(m=>active.get(m.id)===m.version).length,total=members.length;return{checked:total>0&&count===total,partial:count>0&&count<total,count,total};}
@@ -33,7 +32,7 @@
     return subtract(catalog,requested,selected);
   }
   function groups(catalog){
-    const latest=new Map();for(const m of catalog){if(m.kind==='pack'||!core.satisfies(core.API_VERSION,m.api)||m.platforms&&!m.platforms.includes(core.currentPlatform()))continue;const old=latest.get(m.id);if(!old||core.compare(m.version,old.version)>0)latest.set(m.id,m);}
+    const latest=new Map();for(const m of catalog){if(m.kind==='core'||m.kind==='pack'||!core.satisfies(core.API_VERSION,m.api)||m.platforms&&!m.platforms.includes(core.currentPlatform()))continue;const old=latest.get(m.id);if(!old||core.compare(m.version,old.version)>0)latest.set(m.id,m);}
     const order=['languages','projects','editing','analysis','workspace','tools','extensions'],result=new Map(order.map(id=>[id,[]]));
     for(const m of latest.values()){const group=m.nativePack?'tools':m.kind==='language'?'languages':m.kind==='project'?'projects':m.installationGroup||((m.kind==='feature'||m.kind==='view')?'editing':'extensions');(result.get(group)||result.get('extensions')).push(m);}return [...result].filter(([,members])=>members.length).map(([id,members])=>({id,members}));
   }

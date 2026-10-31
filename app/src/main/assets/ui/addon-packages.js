@@ -10,7 +10,7 @@
     const text=typeof input==='string'?input:JSON.stringify(input);if(typeof text!=='string'||new TextEncoder().encode(text).length>262144)fail('Addon package exceeds 256 KiB');let pkg;try{pkg=JSON.parse(text);}catch{fail('Invalid addon JSON');}
     if(!object(pkg)||pkg.format!=='cppstudio.addon'||pkg.formatVersion!==1||Object.keys(pkg).some(k=>!['format','formatVersion','manifest','contributions','module'].includes(k)))fail('Unsupported data addon format');
     const m=core.manifest(pkg.manifest);if(m.id.length>100||!label(m.name)||typeof m.license!=='string'||!m.license||m.license.length>100)fail('Addon name or license is missing');
-    if(m.capabilities.some(c=>!['ui.commands','ui.theme','projects.templates','editor.snippets','extensions.full-access'].includes(c)))fail('Executable or unsupported addon capability');
+    if(m.capabilities.some(c=>!['ui.commands','ui.theme','projects.templates','editor.snippets','editor.languages','extensions.full-access'].includes(c)))fail('Executable or unsupported addon capability');
     if(pkg.module!==undefined&&(typeof pkg.module!=='string'||!pkg.module.trim()||pkg.module.length>131072||pkg.module.includes('\0')||!m.capabilities.includes('extensions.full-access')))fail('Executable modules require extensions.full-access');
     if(!Array.isArray(pkg.contributions)||pkg.contributions.length>128)fail('Invalid addon contributions');const ids=new Set();
     for(const c of pkg.contributions){

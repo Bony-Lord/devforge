@@ -52,7 +52,7 @@ class StudioNotebookEditor {
   optionsChanged(){for(const r of this.rows.values()){r.source.refresh();StudioMarkdown.refresh(r.source);}}
   async run(c,next=false){
     if(this.busy)throw Error(this.t('Ядро занято','Kernel is busy'));if(this.external||this.doc.readonly)throw Error(this.t('Выполнение недоступно','Execution unavailable'));
-    if(!this.ide.addons.host.enabled('notebooks')||!this.ide.addons.host.enabled('python')){this.ide.addons.open();return;}
+    if(!this.ide.addons.host.enabled('python'))await this.ide.addons.host.ensureFileSupport(this.doc.path,true);if(!this.ide.addons.host.enabled('notebooks')||!this.ide.addons.host.enabled('python')){this.ide.addons.open();return;}
     const kernelLanguage=this.value.metadata.kernelspec?.language||this.value.metadata.language_info?.name||'python';if(kernelLanguage.toLowerCase()!=='python')throw Error(this.t('В этой версии доступно ядро Python','This version supports the Python kernel'));
     this.resourceError='';this.busy=true;this.runAllButton.disabled=true;const id='cell-'+Date.now()+'-'+Math.random().toString(36).slice(2);let finish;
     try{
@@ -72,7 +72,7 @@ class StudioNotebookEditor {
   async stop(){for(const p of this.pending.values())p.reject(Error(this.t('Ядро перезапущено','Kernel restarted')));this.pending.clear();const session=this.session;this.session=null;await native('notebookStop',session===null?{}:{session});this.status.textContent=this.t('Ядро остановлено · переменные сброшены','Kernel stopped · variables cleared');}
 }
 const StudioDocumentViews={
-  optionsChanged(){for(const pane of NativeEditing.panes.values())for(const view of pane.documentViews?.values()||[])view.optionsChanged();},
+  optionsChanged(){for(const pane of NativeEditing.panes.values()){for(const view of [...pane.documentViews?.values()||[]]){if(view instanceof StudioNotebookEditor&&!window.forge?.addons.host.enabled('notebooks'))view.dispose();else view.optionsChanged();}this.update(pane.editor,pane.editor.getModel());}},
   attach(editor,id){
     const pane=NativeEditing.panes.get(id);pane.documentViews=new Map();pane.rawModels=new WeakSet();pane.sourceVisibility=pane.container.style.visibility;
     const set=editor.setModel.bind(editor),focus=editor.focus.bind(editor),dispose=editor.dispose.bind(editor);

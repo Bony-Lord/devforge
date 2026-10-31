@@ -741,12 +741,12 @@
   },
   "studio.vsix": {
     "summary": {
-      "ru": "Поиск Open VSX, значки, загрузка VSIX и управление совместимыми сниппетами/темами.",
-      "en": "Open VSX search, icons, VSIX download and compatible snippet/theme management."
+      "ru": "Магазин Open VSX, импорт VSIX и Node-хост совместимых расширений с проверкой ограничений перед установкой.",
+      "en": "Open VSX marketplace, VSIX import and a Node host for compatible extensions with compatibility review before installation."
     },
     "details": {
-      "ru": "Отдельный отключаемый модуль. Полный Extension Host VS Code пока не реализован; неподдерживаемые пакеты не предлагаются как рабочие.",
-      "en": "An independently switchable module. The complete VS Code Extension Host is not implemented; unsupported packages are not advertised as working."
+      "ru": "Поддерживает сниппеты, базовые цвета и описание языков, команды, настройки и ряд редакторных API VS Code. Перед установкой показывает неподдерживаемые возможности и предлагает совмещение анализа с аддонами IDE. Исполняемым расширениям нужен отдельный допуск частичной совместимости. Полная поддержка API VS Code пока не реализована; TextMate, браузерные расширения, отладочные адаптеры и большинство API интерфейса остаются неподдерживаемыми.",
+      "en": "Supports snippets, basic interface colors and language definitions, commands, settings and selected VS Code editor APIs. Reviews unsupported capabilities and native addon overlap before installation. Executable extensions require separate acceptance of partial compatibility. Full VS Code API compatibility is not implemented; TextMate, browser extensions, debug adapters and most workbench APIs remain unsupported."
     }
   },
   "studio.lib.katex": {
@@ -767,6 +767,16 @@
     "details": {
       "ru": "Отображает формулы в Markdown-файлах и ячейках notebook. Поддерживает встроенные и отдельные блоки; требует библиотеку KaTeX. Включается и удаляется через менеджер дополнений.",
       "en": "Renders formulas in Markdown files and notebook cells. Supports inline and display math and requires the KaTeX library. Enable or uninstall it through the extension manager."
+    }
+  },
+  "studio.function-docs": {
+    "summary": {
+      "ru": "Показывает комментарии рядом с объявлением функции в подсказке и структуре файла.",
+      "en": "Shows adjacent function comments in editor hover and the file structure view."
+    },
+    "details": {
+      "ru": "Учитывает несколько строк комментариев сразу после объявления или в начале тела функции, а также комментарии перед объявлением и docstring Python. Работает с локальными открытыми файлами; отключение убирает дополнительные подсказки и описания.",
+      "en": "Reads consecutive comments immediately after declarations or at the start of function bodies, preceding line comments, and Python docstrings. Uses local open documents; disabling removes the extra hover provider and outline descriptions."
     }
   }
 }

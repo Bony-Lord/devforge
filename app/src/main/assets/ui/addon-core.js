@@ -17,20 +17,21 @@
     if(m.tags!==undefined&&(!Array.isArray(m.tags)||m.tags.length>40||m.tags.some(t=>typeof t!=='string'||t.length>80)))fail('Invalid addon tags');
     if(m.screenshots!==undefined&&(!Array.isArray(m.screenshots)||m.screenshots.length>8||m.screenshots.some(s=>typeof s!=='string'||s.length>131072)))fail('Invalid addon screenshots');
     if(m.readme!==undefined&&(typeof m.readme!=='string'&&(!m.readme||typeof m.readme!=='object'||Array.isArray(m.readme)||Object.values(m.readme).some(s=>typeof s!=='string'))||JSON.stringify(m.readme).length>24000))fail('Invalid addon readme');
+    if(m.kind==='pack'){m.includes??=m.dependencies;if(!m.includes||typeof m.includes!=='object'||Array.isArray(m.includes)||Object.keys(m.includes).length>128)fail('Invalid bundle contents');for(const[id,r]of Object.entries(m.includes)){if(!ID.test(id)||id===m.id)fail('Invalid bundle member');range(r);}m.dependencies={};}
     return frozen(m); // Unknown fields survive for future schemas and author tooling.
   }
-  function order(selected){const result=[],visiting=new Set(),done=new Set();function visit(id){if(visiting.has(id))fail('Dependency cycle: '+id);if(done.has(id))return;visiting.add(id);for(const dep of Object.keys(selected.get(id).dependencies))visit(dep);visiting.delete(id);done.add(id);result.push(selected.get(id));}for(const id of selected.keys())visit(id);return result;}
+  function order(selected,links=m=>Object.keys(m.dependencies)){const result=[],visiting=new Set(),done=new Set();function visit(id){if(visiting.has(id))fail('Dependency cycle: '+id);if(done.has(id))return;visiting.add(id);for(const dep of links(selected.get(id)))visit(dep);visiting.delete(id);done.add(id);result.push(selected.get(id));}for(const id of selected.keys())visit(id);return result;}
   function currentPlatform(){return globalThis.StudioDesktop?.platform||'android';}
   function resolve(catalog,requested,{apiVersion=API_VERSION,platform=currentPlatform(),maxSteps=10000,prefer={}}={}){
     version(apiVersion);if(!Array.isArray(catalog)||catalog.length>512||!Array.isArray(requested)||requested.length>128)fail('Addon resolver limit exceeded');
     const groups=new Map(),seen=new Set();for(const input of catalog){const m=manifest(input),key=m.id+'@'+m.version;if(seen.has(key))fail('Duplicate addon version: '+key);seen.add(key);if(!satisfies(apiVersion,m.api)||m.platforms&&!m.platforms.includes(platform))continue;if(!groups.has(m.id))groups.set(m.id,[]);groups.get(m.id).push(m);}for(const list of groups.values())list.sort((a,b)=>Number(b.version===prefer[b.id])-Number(a.version===prefer[a.id])||compare(b.version,a.version));
-    const constraints=new Map();function require(map,id,r){if(!ID.test(id))fail('Invalid addon id');range(r);if(!map.has(id))map.set(id,[]);map.get(id).push(r);}
+    const constraints=new Map();function require(map,id,r,visiting=new Set()){if(!ID.test(id))fail('Invalid addon id');range(r);const versions=groups.get(id)||[];if(versions.some(m=>m.kind==='core')){if(!versions.some(m=>m.kind==='core'&&satisfies(m.version,r)))fail('Core compatibility alias unavailable: '+id);return;}if(versions.some(m=>m.kind==='pack')){if(visiting.has(id))fail('Bundle inclusion cycle: '+id);const bundle=versions.find(m=>m.kind==='pack'&&satisfies(m.version,r));if(!bundle)fail('Bundle version unavailable: '+id);const next=new Set(visiting);next.add(id);for(const[part,version]of Object.entries(bundle.includes))require(map,part,version,next);return;}if(!map.has(id))map.set(id,[]);map.get(id).push(r);}
     for(const item of requested)require(constraints,typeof item==='string'?item:item.id,typeof item==='string'?{}:item.version??{});
     let steps=0;
     function search(selected,needs){
       if(++steps>maxSteps)fail('Addon resolver search limit exceeded');
       for(const [id,m]of selected){if(!(needs.get(id)||[]).every(r=>satisfies(m.version,r)))return null;for(const [other,r]of Object.entries(m.conflicts))if(selected.has(other)&&satisfies(selected.get(other).version,r))return null;}
-      const unresolved=[...needs.keys()].filter(id=>!selected.has(id));if(!unresolved.length){try{return order(selected);}catch{return null;}}
+      const unresolved=[...needs.keys()].filter(id=>!selected.has(id));if(!unresolved.length){try{return order(selected,m=>{const parts=new Map();for(const[id,r]of Object.entries(m.dependencies))require(parts,id,r);return parts.keys();});}catch{return null;}}
       unresolved.sort((a,b)=>(groups.get(a)?.length||0)-(groups.get(b)?.length||0));const id=unresolved[0];
       for(const m of groups.get(id)||[]){if(!needs.get(id).every(r=>satisfies(m.version,r)))continue;const next=new Map(selected),requirements=new Map([...needs].map(([k,v])=>[k,[...v]]));next.set(id,m);for(const [dep,r]of Object.entries(m.dependencies))require(requirements,dep,r);const result=search(next,requirements);if(result)return result;}return null;
     }

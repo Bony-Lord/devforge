@@ -1,0 +1,15 @@
+'use strict';
+// A report is a capability inventory, never a claim that arbitrary JS will run.
+const groups=new Set(['commands','configuration','configurationDefaults','snippets','themes','languages']);
+const apiPaths=new Set(`commands.registerCommand commands.registerTextEditorCommand commands.executeCommand commands.getCommands workspace.getConfiguration workspace.onDidChangeConfiguration workspace.onDidOpenTextDocument workspace.onDidChangeTextDocument workspace.onDidCloseTextDocument workspace.openTextDocument workspace.applyEdit workspace.asRelativePath workspace.getWorkspaceFolder workspace.workspaceFolders workspace.textDocuments workspace.rootPath workspace.isTrusted workspace.fs window.activeTextEditor window.visibleTextEditors window.onDidChangeActiveTextEditor window.showInformationMessage window.showWarningMessage window.showErrorMessage window.showTextDocument window.createOutputChannel languages.registerCompletionItemProvider languages.registerHoverProvider languages.registerDefinitionProvider languages.registerReferenceProvider languages.registerDocumentSymbolProvider languages.registerDocumentFormattingEditProvider languages.registerDocumentRangeFormattingEditProvider languages.registerRenameProvider languages.registerSignatureHelpProvider languages.createDiagnosticCollection languages.getDiagnostics languages.match env.clipboard env.openExternal extensions.getExtension extensions.all`.split(' '));
+const classes=new Set('Position Range Selection Uri Disposable EventEmitter MarkdownString Hover CompletionItem CompletionList SnippetString Diagnostic DiagnosticSeverity CompletionItemKind SymbolKind DocumentSymbol SymbolInformation Location TextEdit WorkspaceEdit CancellationTokenSource EndOfLine ConfigurationTarget ViewColumn ExtensionMode StatusBarAlignment'.split(' '));
+function report(manifest,sources=[]){
+ const unsupported=Object.keys(manifest.contributes||{}).filter(k=>!groups.has(k)).map(k=>'contributes.'+k);
+ if(manifest.browser&&!manifest.main)unsupported.push('browser-only extension host');
+ if(manifest.enabledApiProposals?.length)unsupported.push(...manifest.enabledApiProposals.map(k=>'proposed API: '+k));
+ if(manifest.extensionDependencies?.length)unsupported.push('extensionDependencies: '+manifest.extensionDependencies.join(', '));
+ if(manifest.extensionPack?.length)unsupported.push('extensionPack: '+manifest.extensionPack.join(', '));
+ const observed=new Set();for(const source of sources)for(const match of source.matchAll(/\bvscode\.([A-Za-z_$][\w$]*)(?:\.([A-Za-z_$][\w$]*))?/g)){const name=match[1]+(match[2]?'.'+match[2]:'');observed.add(name);if(!classes.has(match[1])&&!apiPaths.has(name)&&![...apiPaths].some(p=>p.startsWith(name+'.')))unsupported.push('vscode.'+name);}
+ return{mode:manifest.main?'node':manifest.browser?'browser':'declarative',partial:!!(manifest.main||manifest.browser||unsupported.length),supportedGroups:Object.keys(manifest.contributes||{}).filter(k=>groups.has(k)),unsupported:[...new Set(unsupported)],observedApis:[...observed].sort(),requiresRuntimeCheck:!!manifest.main};
+}
+module.exports={report};

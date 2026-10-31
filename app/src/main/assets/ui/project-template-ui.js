@@ -39,7 +39,7 @@ class StudioTemplates {
     const current=Object.fromEntries(Object.entries(snapshot?.files||{}).filter(([,value])=>value!==null).map(([path,value])=>[path,value.text]));let doc=document,conflicts=[],changes=new Map(),unchanged=[],requirements={addons:[],tools:[]};
     for(const instance of instances){const p=StudioProjectTemplates.plan(instance,{current,document:doc,replace});doc=p.project;conflicts.push(...p.conflicts);unchanged.push(...p.unchanged);for(const file of p.changes){if(changes.has(file.path)&&changes.get(file.path).text!==file.text)throw Error(this.text('Шаблоны меняют один и тот же файл: ','Templates change the same file: ')+file.path);changes.set(file.path,file);current[file.path]=file.text;}for(const key of ['addons','tools'])requirements[key].push(...p.requirements[key]);}
     for(const key of ['addons','tools'])requirements[key]=[...new Set(requirements[key])];
-    if(doc&&requirements.addons.length){const requested=[...(doc.addons?.mode==='project'?doc.addons.requested:[])],seen=new Set(requested.map(r=>typeof r==='string'?r:r.id));for(const id of requirements.addons)if(!seen.has(id)){requested.push(id);seen.add(id);}doc.addons={mode:'project',requested};}
+    const templateRequirements=[...requirements.addons,...requirements.tools.map(id=>'studio.tool.'+id)];if(doc&&templateRequirements.length){const requested=[...(doc.addons?.mode==='project'?doc.addons.requested:[])],seen=new Set(requested.map(r=>typeof r==='string'?r:r.id));for(const id of templateRequirements)if(!seen.has(id)){requested.push(id);seen.add(id);}doc.addons={mode:'project',requested};}
     if(doc)StudioRunProfiles.validate(doc);return {changes:[...changes.values()],conflicts:[...new Set(conflicts)],unchanged,project:doc,requirements,entryFile:instances[0].entryFile};
   }
   async prepare(id,parameters,projectName,attachments=[],kind='attachment'){
@@ -52,7 +52,9 @@ class StudioTemplates {
   async apply(view,{install=false}={}){
     if(view.plan.conflicts.length)throw Error('Resolve template file conflicts first');if(view.root!==this.ide.state.root)throw Error('Project changed; preview the template again');
     if([...this.ide.docs.values()].some(doc=>doc.model.getValue()!==doc.saved))throw Error(this.text('Есть несохранённые изменения. Обновите предпросмотр.','Unsaved edits exist. Refresh the preview.'));
-    if(install){const ids=[...view.plan.requirements.addons,...view.plan.requirements.tools.map(id=>'studio.tool.'+id)],requested=[...new Set(ids)],resolved=StudioAddonCore.resolve(this.ide.addons.catalog,requested);await this.ide.addons.host.prepare(resolved);}
+    const required=[...view.plan.requirements.addons,...view.plan.requirements.tools.map(id=>'studio.tool.'+id)],addons=this.ide.addons;
+    if(install)await addons.host.prepare(StudioAddonCore.resolve(addons.catalog,required));
+
     // A tool download can outlive a project switch or further typing. The
     // reviewed snapshot must still belong to the same project when we commit.
     if(view.root!==this.ide.state.root)throw Error('Project changed; preview the template again');
