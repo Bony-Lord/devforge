@@ -22,6 +22,7 @@
  }
  function screenshot(value){return typeof value==='string'&&(/^(?:addons\/previews\/[a-zA-Z0-9._-]+\.(?:png|jpg|webp))$/.test(value)||value.length<=131072&&/^data:image\/(?:png|jpeg|webp);base64,[a-zA-Z0-9+/]+=*$/.test(value));}
  function removal(entry){
+  if(entry.installed===false||entry.manifest?.kind==='pack'&&!entry.packageInstalled)return{allowed:false,reason:'not-installed'};
   if(entry.packageInstalled)return{allowed:true,kind:'package'};
   const tool=entry.tool;
   if(tool?.installed&&!tool.system&&!tool.bundled&&!tool.aliasOf)return{allowed:true,kind:'tool'};

@@ -3,7 +3,7 @@ const sdk=require('../app/src/main/assets/ui/addon-core.js');
 const m=(id,extra={})=>({schemaVersion:1,id,version:'1.0.0',api:{min:'0.1.0',maxExclusive:'0.2.0'},capabilities:['ui.commands'],dependencies:{},conflicts:{},...extra});
 test('strict versions, ranges, API and manifest validation; preserves unknown fields',()=>{
   assert(sdk.satisfies('1.2.0',{min:'1.1.0',maxExclusive:'2.0.0'}));assert(!sdk.satisfies('2.0.0',{maxExclusive:'2.0.0'}));assert(sdk.satisfies('1.0.0','1.0.0'));assert(!sdk.satisfies('1.0.1','1.0.0'));
-  for(const bad of ['01.0.0','1.0','1.0.0-beta','9007199254740992.0.0'])assert.throws(()=>sdk.version(bad));
+  for(const bad of ['01.0.0','1.0','1.0.0-01','9007199254740992.0.0'])assert.throws(()=>sdk.version(bad));
   for(const bad of [{min:0},{min:'2.0.0',maxExclusive:'1.0.0'},{wat:'1.0.0'}])assert.throws(()=>sdk.satisfies('1.0.0',bad));
   assert.throws(()=>sdk.manifest(m('bad')));assert.throws(()=>sdk.manifest(m('test.one',{api:null})));assert.throws(()=>sdk.manifest(m('test.one',{schemaVersion:2})));
   const parsed=sdk.manifest(m('test.one',{future:{data:42}}));assert.equal(parsed.future.data,42);assert(Object.isFrozen(parsed.future));
@@ -53,3 +53,5 @@ test('late live contributions during asynchronous activation are preserved and a
   let first;const {manager,registry}=setup([m('test.one'),m('test.two')],async ctx=>{if(ctx.manifest.id==='test.one')first=ctx;else{first.contribute('commands','test.one/late',{});await Promise.resolve();}ctx.contribute('commands',ctx.manifest.id+'/x',{});});
   await manager.setProfile(['test.one']);await assert.rejects(manager.setProfile(['test.one','test.two']),/changed during activation/);assert.equal(registry.list('commands').length,2);assert.equal(manager.status().active.length,1);await manager.dispose();assert.equal(registry.entries.size,0);
 });
+
+test("SemVer prerelease and build identities retain their standard precedence",()=>{assert.equal(sdk.compare("1.0.0-alpha.2","1.0.0-alpha.10"),-1);assert.equal(sdk.compare("1.0.0-beta","1.0.0"),-1);assert.equal(sdk.compare("1.0.0+build.1","1.0.0+build.2"),0);assert.deepEqual(sdk.version("1.2.3-rc.1+win32"),[1,2,3]);});

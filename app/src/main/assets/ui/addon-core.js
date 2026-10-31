@@ -3,13 +3,13 @@
   'use strict';
   const API_VERSION='0.1.2',ID=/^[a-z][a-z0-9-]*\.[a-z][a-z0-9.-]*$/;
   const fail=message=>{throw Error(message);};
-  function version(value){if(typeof value!=='string'||! /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value))fail('Invalid version: '+value);const parts=value.split('.').map(Number);if(parts.some(n=>!Number.isSafeInteger(n)))fail('Version is too large');return parts;}
-  function compare(a,b){const x=version(a),y=version(b);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]<y[i]?-1:1;return 0;}
+  function version(value){const match=typeof value==='string'&&/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/.exec(value);if(!match)fail('Invalid version: '+value);const parts=match.slice(1,4).map(Number),pre=match[4]?.split('.')||[];if(parts.some(n=>!Number.isSafeInteger(n))||pre.some(n=>/^\d+$/.test(n)&&n.length>1&&n[0]==='0'))fail('Invalid version: '+value);Object.defineProperty(parts,'prerelease',{value:pre});return parts;}
+  function compare(a,b){const x=version(a),y=version(b);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]<y[i]?-1:1;const p=x.prerelease,q=y.prerelease;if(!p.length||!q.length)return p.length?-1:q.length?1:0;for(let i=0;i<Math.max(p.length,q.length);i++){if(p[i]===q[i])continue;if(p[i]===undefined)return-1;if(q[i]===undefined)return 1;const pn=/^\d+$/.test(p[i]),qn=/^\d+$/.test(q[i]);if(pn!==qn)return pn?-1:1;if(pn&&p[i].length!==q[i].length)return p[i].length<q[i].length?-1:1;return p[i]<q[i]?-1:1;}return 0;}
   function range(value={}){if(typeof value==='string'){version(value);return {exact:value};}if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['min','maxExclusive'].includes(k)))fail('Invalid version range');if('min'in value)version(value.min);if('maxExclusive'in value)version(value.maxExclusive);if(value.min&&value.maxExclusive&&compare(value.min,value.maxExclusive)>=0)fail('Empty version range');return value;}
   function satisfies(value,requirement={}){const r=range(requirement);return r.exact?compare(value,r.exact)===0:(!r.min||compare(value,r.min)>=0)&&(!r.maxExclusive||compare(value,r.maxExclusive)<0);}
   function frozen(value){if(value&&typeof value==='object'){Object.values(value).forEach(frozen);Object.freeze(value);}return value;}
   function manifest(input){
-    const encoded=JSON.stringify(input);if(!encoded||encoded.length>65536)fail('Manifest is too large');const m=JSON.parse(encoded);
+    const encoded=JSON.stringify(input);if(!encoded||encoded.length>(input.vscode?2*1024*1024:65536))fail('Manifest is too large');const m=JSON.parse(encoded);
     if(!ID.test(m.id||''))fail('Invalid addon id');version(m.version);if(m.schemaVersion!==1)fail('Unsupported manifest schema');if(!m.api)fail('Missing API compatibility');range(m.api);
     if(!Array.isArray(m.capabilities)||m.capabilities.length>64||m.capabilities.some(c=>typeof c!=='string'||!ID.test(c)))fail('Invalid capabilities');
     for(const field of ['dependencies','conflicts']){m[field]??={};if(!m[field]||typeof m[field]!=='object'||Array.isArray(m[field])||Object.keys(m[field]).length>64)fail('Invalid '+field);for(const [id,r]of Object.entries(m[field])){if(!ID.test(id)||id===m.id)fail('Invalid dependency: '+id);range(r);}}

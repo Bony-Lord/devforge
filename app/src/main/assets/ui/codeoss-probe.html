@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><title>DevForge compatibility regression</title><style>html,body,#workbench{margin:0;width:100%;height:100%;overflow:hidden}#editor{height:500px;width:900px}</style></head><body><div id="workbench"><div id="editor"></div><div id="extensionEditor" style="height:320px;width:900px"></div></div><script src="bridge.js"></script><script>StudioDesktop.onResult(__nativeResult);StudioDesktop.onEvent(__nativeEvent);</script><script type="module">
+try{
+ const info=await native('codeossInfo');window.codeossInfo=info;
+ const {boot}=await import('./vendor/codeoss/codeoss.js');
+ const assets=await(await fetch('./vendor/codeoss/.vite/manifest.json')).json(),entry=Object.values(assets).find(e=>e.isEntry&&e.file==='codeoss.js');for(const file of entry.css||[assets['style.css'].file]){const css=document.createElement('link');css.rel='stylesheet';css.href='./vendor/codeoss/'+file;document.head.append(css);}
+ const api=await boot({info,root:new URLSearchParams(location.search).get('root')||undefined,container:document.querySelector('#workbench'),trusted:true});
+ window.codeoss=api;window.monaco=api.monaco;
+ window.codeossEditor=api.monaco.editor.create(document.querySelector('#editor'),{model:null,automaticLayout:true});
+ api.renderEditorPart(document.querySelector('#extensionEditor'));window.codeossProbe=true;
+}catch(error){console.error(error);window.codeossError=error.stack||String(error);}
+</script></body></html>

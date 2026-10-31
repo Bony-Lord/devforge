@@ -32,3 +32,11 @@ desktop/.cache/
 app/src/components/
 
 app/src/bundle-components/
+
+# Reproducible Code OSS client assets and pinned remote runtime.
+app/src/main/assets/ui/vendor/codeoss/
+desktop/compat/node_modules/
+desktop/compat/server/
+desktop/compat/server-stage-*/
+desktop/compat/*.tar.gz
+CONTINUE-VSX.md

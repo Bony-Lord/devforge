@@ -6,7 +6,7 @@ const StudioExtensionAPI={
  descriptor(path){return this.views.get(path);},
  create(ide,scope){
   const owner=scope.manifest.id,track=value=>scope.use(value),id=value=>{if(!/^[a-zA-Z0-9._-]{1,80}$/.test(value))throw Error('Invalid extension identifier');return owner+'/'+value;};
-  const api={version:this.version,manifest:scope.manifest,signal:scope.signal,subscriptions:{push:(...items)=>items.forEach(track)},use:track,
+  const api={version:this.version,manifest:scope.manifest,signal:scope.signal,vscode:globalThis.StudioCodeOSS?.nativeApis.get(owner),subscriptions:{push:(...items)=>items.forEach(track)},use:track,
    contribute:(point,name,value)=>scope.contribute(point,id(name),value),
    raw:{application:ide,get windows(){return ide.windows;},get editor(){return ide.editor;},document,monaco},
    host:{request:(op,data)=>native(op,data),on:(name,callback)=>track(onNative(name,callback))},

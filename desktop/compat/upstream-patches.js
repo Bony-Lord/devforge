@@ -1,0 +1,20 @@
+function replace(source,before,after,label){if(!source.includes(before))throw Error('Pinned upstream patch no longer applies: '+label);return source.replace(before,after);}
+export function upstreamPatches(){return{name:'devforge-upstream-integration',enforce:'pre',transform(source,file){const id=file.replaceAll('\\','/');
+ if(id.endsWith('/@codingame/monaco-vscode-views-service-override/index.js')){
+  source=replace(source,'const observer = new ResizeObserver(() => layoutPart(part));','let frame; const observer = new ResizeObserver(() => { if (frame === undefined) frame = requestAnimationFrame(() => { frame = undefined; layoutPart(part); }); });','defer workbench layout outside ResizeObserver delivery');
+  return replace(source,'return observer.disconnect();','if (frame !== undefined) cancelAnimationFrame(frame); return observer.disconnect();','cancel detached workbench layout');
+ }
+ if(id.endsWith('/@xterm/addon-ligatures/lib/addon-ligatures.mjs'))return replace(source,'import{tracingChannel as $p,channel as Xp}from"node:diagnostics_channel";var Ce=Xp("lru-cache:metrics"),Mn=$p("lru-cache"),','import{metrics as Ce,tracing as Mn}from"devforge-terminal-cache-browser";var ','use the cache publisher browser diagnostics implementation in the ligatures browser bundle');
+ if(id.endsWith('/@codingame/monaco-vscode-api/extensions.js')){
+  source=replace(source,'const location = URI.from({ scheme: CustomSchemas.extensionFile, authority: id, path });','const location = URI.from({ scheme: extHostKind === ExtensionHostKind.Remote ? Schemas.vscodeRemote : CustomSchemas.extensionFile, authority: extHostKind === ExtensionHostKind.Remote ? StandaloneServices.get(IWorkbenchEnvironmentService).remoteAuthority : id, path });','remote registration identity');
+  source=replace(source,'...extension,\n                    manifest: await translator.translateManifest','...extension,\n                    location: realLocation,\n                    manifest: await translator.translateManifest','remote resource location');
+  return replace(source,'await deltaExtensions({ toAdd: [localizedExtension]','extension.location = realLocation;\n                await deltaExtensions({ toAdd: [localizedExtension]','remote removal identity');
+ }
+ if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.js'))return replace(source,'const extensions = await this.getExtensions(extensionsToFetch.map(e => ({\n                id: e.identifier.value,\n                uuid: e.uuid\n            })), CancellationToken.None);','const extensions = await this.getResourceExtensions(extensionsToFetch.map(e => e.extensionLocation), true);','local registered extensions do not require a gallery connection');
+ if(id.endsWith('/backgroundTokenization/textMateWorkerTokenizerController.js')){
+  const start=source.indexOf('        if (!this._applyStateStackDiffFn || !this._initialState) {');const end=source.indexOf('        for (const d of stateDeltas)',start);if(start<0||end<start)throw Error('Pinned upstream tokenizer initialization changed');const initialization=source.slice(start,end);source=source.slice(0,start)+source.slice(end);
+  return replace(source,'        let tokens = ContiguousMultilineTokensBuilder.deserialize',initialization+'        if (this._model.isDisposed()) return;\n        let tokens = ContiguousMultilineTokensBuilder.deserialize','load TextMate state implementation before rebasing pending edits');
+ }
+ if(id.endsWith('/vs/workbench/api/browser/mainThreadStorage.js'))return replace(source,'this._extensionStorageService.setExtensionState(key, value, shared);','this._extensionStorageService.setExtensionState(key, value, shared);\n        await this._storageService.flush();','await persisted extension mementos');
+ if(id.endsWith('/vs/workbench/api/browser/mainThreadDiagnostics.js'))return replace(source,'if (marker.origin === undefined) {','if (!marker.source) marker.source = "VSX / " + owner;\n                    if (marker.origin === undefined) {','diagnostic source labels');
+}};}

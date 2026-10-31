@@ -7,8 +7,8 @@
   function object(value){return value&&typeof value==='object'&&!Array.isArray(value);}
   function label(value){if(typeof value==='string')return value.length>0&&value.length<=240;if(!object(value)||!Object.keys(value).length)return false;return Object.entries(value).every(([k,v])=>/^[a-z]{2}(-[A-Za-z]{2,4})?$/.test(k)&&typeof v==='string'&&v.length>0&&v.length<=240);}
   function parse(input){
-    const text=typeof input==='string'?input:JSON.stringify(input);if(typeof text!=='string'||new TextEncoder().encode(text).length>262144)fail('Addon package exceeds 256 KiB');let pkg;try{pkg=JSON.parse(text);}catch{fail('Invalid addon JSON');}
-    if(!object(pkg)||pkg.format!=='cppstudio.addon'||pkg.formatVersion!==1||Object.keys(pkg).some(k=>!['format','formatVersion','manifest','contributions','module'].includes(k)))fail('Unsupported data addon format');
+    const text=typeof input==='string'?input:JSON.stringify(input);if(typeof text!=='string'||new TextEncoder().encode(text).length>4*1024*1024)fail('Addon package exceeds 4 MiB');let pkg;try{pkg=JSON.parse(text);}catch{fail('Invalid addon JSON');}
+    if(!pkg?.manifest?.vscode&&new TextEncoder().encode(text).length>262144)fail('Addon package exceeds 256 KiB');if(!object(pkg)||pkg.format!=='cppstudio.addon'||pkg.formatVersion!==1||Object.keys(pkg).some(k=>!['format','formatVersion','manifest','contributions','module'].includes(k)))fail('Unsupported data addon format');
     const m=core.manifest(pkg.manifest);if(m.id.length>100||!label(m.name)||typeof m.license!=='string'||!m.license||m.license.length>100)fail('Addon name or license is missing');
     if(m.capabilities.some(c=>!['ui.commands','ui.theme','projects.templates','editor.snippets','editor.languages','extensions.full-access'].includes(c)))fail('Executable or unsupported addon capability');
     if(pkg.module!==undefined&&(typeof pkg.module!=='string'||!pkg.module.trim()||pkg.module.length>131072||pkg.module.includes('\0')||!m.capabilities.includes('extensions.full-access')))fail('Executable modules require extensions.full-access');
@@ -31,7 +31,8 @@
     pkg.manifest=m;return freeze(pkg);
   }
   function freeze(value){if(object(value)||Array.isArray(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
-  function factory(input,host={}){const pkg=parse(input);return ctx=>{for(const c of pkg.contributions)ctx.contribute(c.point,c.id,c.value);if(pkg.module){if(!host.trusted||!host.ide||!globalThis.StudioExtensionAPI)throw Error('Executable extension has not been reviewed');const activate=new Function('api','\"use strict\";\n'+pkg.module+'\n//# sourceURL=devforge-addon:'+pkg.manifest.id);return activate(StudioExtensionAPI.create(host.ide,ctx));}};}
+  function factory(input,host={}){const pkg=parse(input);return ctx=>{if(globalThis.StudioCodeOSS?.api&&pkg.manifest.vscode){if(!host.trusted)throw Error('Executable extension has not been reviewed');return StudioCodeOSS.activate(StudioExtensionAPI.create(host.ide,ctx));}for(const c of pkg.contributions)ctx.contribute(c.point,c.id,c.value);if(pkg.module){if(!host.trusted||!host.ide||!globalThis.StudioExtensionAPI)throw Error('Executable extension has not been reviewed');const activate=()=>new Function('api','"use strict";\n'+pkg.module+'\n//# sourceURL=devforge-addon:'+pkg.manifest.id)(StudioExtensionAPI.create(host.ide,ctx));return globalThis.StudioCodeOSS?.api?StudioCodeOSS.native(ctx).then(activate):activate();}};}
+
   function plan({builtins=[],installed=[],available=[],candidate,profile=[],enable=true,safeMode=false}){
     const pack=parse(candidate),existing=installed.map(e=>parse(e.package||e)),offerings=available.map(parse),byKey=new Map();
     for(const p of [...offerings,...existing,pack])byKey.set(p.manifest.id+'@'+p.manifest.version,p);

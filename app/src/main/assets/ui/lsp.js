@@ -1,7 +1,7 @@
 'use strict';
 class ClangdClient {
   constructor(ide){this.ide=ide;this.seq=0;this.pending=new Map();this.opened=new Map();this.changes=new Map();this.chain=Promise.resolve();this.ready=false;this.capabilities={};this.disposables=[];this.epoch=0;onNative('lsp',m=>this.receive(m));onNative('lspExit',e=>{this.ready=false;if(['python','notebook'].includes(ide.active?.model.getLanguageId()))ide.pythonIntelligence?.sync();else ide.lspStatus('clangd остановлен','error');for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd завершился'));}this.pending.clear();});onNative('lspLog',s=>console.warn('clangd:',s));}
-  send(m){this.chain=this.chain.catch(()=>{}).then(()=>native('lspSend',{message:m}));return this.chain;}
+  send(m){if(globalThis.StudioCodeOSS?.api)m=StudioCodeOSS.translate(m,true);this.chain=this.chain.catch(()=>{}).then(()=>native('lspSend',{message:m}));return this.chain;}
   notify(method,params){return this.send({jsonrpc:'2.0',method,params}).catch(e=>console.warn('LSP',method,e.message));}
   request(method,params,token){
     if(!this.ready&&method!=='initialize')return Promise.resolve(null);
@@ -15,6 +15,7 @@ class ClangdClient {
     });
   }
   receive(m){
+    if(globalThis.StudioCodeOSS?.api)m=StudioCodeOSS.translate(m,false);
     if(m.id!==undefined&&!m.method){const p=this.pending.get(m.id);if(!p)return;this.pending.delete(m.id);clearTimeout(p.timer);m.error?p.reject(new Error(m.error.message)):p.resolve(m.result);return;}
     if(m.method==='textDocument/publishDiagnostics'){if(this.ready&&(!this.ide.addons?.host.lastFeatures||this.ide.addons.host.enabled('diagnostics')))this.ide.diagnostics(m.params);return;}
     if(m.method==='textDocument/clangd.fileStatus'&&m.params.uri===this.ide.active?.model.uri.toString()){const parsing=m.params.state!=='idle';this.ide.lspStatus(parsing?'Подготовка заголовков…':'clangd готов',parsing?'pending':'ready');return;}

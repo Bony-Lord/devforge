@@ -3,7 +3,7 @@ Object.assign(StudioConfigurations.prototype,{
   rememberInterface(){const s=this.ide.settings;if(!this.ide.state.root)return;s.projectInterfaces??={};s.projectInterfaces[this.ide.state.root]={mode:s.interfaceMode||'simple',layout:structuredClone(s.layout||{}),dockWindows:structuredClone(s.dockWindows||null)};},
   async captureInterface(){await this.ide.windows?.persist(true);this.rememberInterface();await native('settingsCommit',this.ide.settings);},
   async applyProjectContext(startup=false){
-    const ide=this.ide,addons=ide.addons,doc=this.document||{};this.loadingProject=true;
+    const ide=this.ide,addons=ide.addons,doc=this.document||{};this.loadingProject=true;await globalThis.StudioCodeOSS?.workspace(ide.state);
     try{
       const requested=StudioProjectPolicy.profile(doc,addons.baseProfile||[],addons.catalog);const scoped=doc.addons?.mode==='project';
       const activation=StudioProjectPolicy.activationPlan(requested,entries=>StudioAddonCore.resolve(addons.catalog,entries),resolved=>addons.host.missing(resolved));

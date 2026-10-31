@@ -1,0 +1,11 @@
+{
+  "clientPackage": "38.1.3",
+  "clientApi": "1.142.0",
+  "serverVersion": "1.143.17232",
+  "serverCommit": "c072cf642cbbadabefa22f39c58cc902a8b7427f",
+  "serverArchive": "vscodium-reh-win32-x64-1.143.17232.tar.gz",
+  "serverBytes": 82771249,
+  "serverSha256": "63b6b364a7ed9a845d6a4d1ef44bad1fc00ce2188b39f044f7475e5ea5c09d72",
+  "serverUrl": "https://github.com/VSCodium/vscodium/releases/download/1.143.17232/vscodium-reh-win32-x64-1.143.17232.tar.gz",
+  "licenseUrl": "https://raw.githubusercontent.com/VSCodium/vscodium/1.143.17232/LICENSE"
+}

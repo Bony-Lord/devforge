@@ -28,6 +28,7 @@ class StudioAddonHost {
   runtimeEnabled(id){return this.addons.registry.list('runtimes').some(e=>e.value.id===id);}
   language(path){const name=path.split('/').pop();for(const e of [...this.addons.registry.list('languages')].reverse().sort((a,b)=>(b.value.priority||0)-(a.value.priority||0))){const rule=e.value;if(rule.filenames.includes(name)||rule.extensions.some(ext=>name.endsWith(ext)))return rule.language;}return 'plaintext';}
   async prepareLanguage(language){
+    if(globalThis.StudioCodeOSS?.api)return StudioCodeOSS.api.prepareLanguage(language);
     if(!window.monaco||!['python','markdown','yaml','shell','cpp','c'].includes(language))return;
     this.grammars??=new Map();if(!this.grammars.has(language))this.grammars.set(language,new Promise((resolve,reject)=>{const grammar=language==='c'?'cpp':language;if(!monaco.languages.getLanguages().some(l=>l.id===language))monaco.languages.register({id:language});require(['vs/basic-languages/'+grammar+'/'+grammar],definition=>{if(definition.language)monaco.languages.setMonarchTokensProvider(language,definition.language);if(definition.conf)monaco.languages.setLanguageConfiguration(language,definition.conf);resolve();},reject);}).catch(error=>{this.grammars.delete(language);throw error;}));return this.grammars.get(language);
   }

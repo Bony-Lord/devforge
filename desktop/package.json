@@ -1,6 +1,6 @@
 {
   "name": "devforge-desktop",
-  "version": "0.7.0-alpha.6",
+  "version": "0.7.0-alpha.7",
   "private": true,
   "description": "DevForge modular IDE for Windows, Linux and macOS",
   "license": "MIT",
@@ -12,11 +12,14 @@
     "test": "node --test tests/*.test.cjs",
     "package": "node package.cjs",
     "installers": "node installers.cjs",
-    "test:ui": "node ui-regressions.cjs"
+    "test:ui": "node ui-regressions.cjs",
+    "prepare:codeoss": "node compat/prepare.cjs"
   },
   "dependencies": {
     "iconv-lite": "0.7.3",
-    "json5": "2.2.3"
+    "json5": "2.2.3",
+    "semver": "7.8.5",
+    "yauzl": "3.4.0"
   },
   "devDependencies": {
     "electron": "44.9.1",
