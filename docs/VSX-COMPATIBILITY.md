@@ -1,6 +1,6 @@
-# Code OSS extension runtime — Windows alpha.8
+# Code OSS extension runtime — Windows alpha.9
 
-Windows alpha.8 uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
+Windows alpha.9 uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
 Code OSS services and VSCodium Node Extension Host. Dockview remains DevForge's
 window engine; source files and extension views share its documents and models.
 `studio.vsix` still supplies the removable gallery/import workflow. Existing native
@@ -39,6 +39,38 @@ safe declarative resources and block writes through both file-service and direct
 provider paths. Disabling an extension restarts only the affected upstream host
 kind and removes its commands, diagnostics and providers; native API registrations
 in the local host survive. Project trash/delete releases tasks and terminals first.
+
+## Alpha.9 editor and lifecycle integration
+
+Ordinary file opening now uses the upstream editor resolver before reading text.
+Contributed custom editors and notebooks, user editor associations, virtual URI
+schemes, untitled documents, diff/merge inputs and explicit editor choices retain
+upstream resolution. `showTextDocument` respects EXCLUSIVE_ONLY and opens ordinary
+sources in native Dockview tabs even when a custom editor is visible. Temporary
+fallback model references are released; native documents keep their own reference.
+Side-by-side extension documents use real upstream editor groups and the configured
+split direction.
+
+Native focus changes no longer reveal the previous extension editor. Dockview tab
+focus targets the embedded editor instead of its hidden placeholder. Hidden panel
+contents use content-visibility and inert: descendants that set visibility:visible
+cannot paint over or intercept the selected source, and reopening retains their
+models. Extension editor snapshots and visibility events exclude hidden editors,
+native view placeholders and inactive notebook widgets. The notebook performance
+timer handles its own cancellation without hiding
+unrelated errors.
+
+Engine validation uses the client API, including locally imported bundles and old
+cached reports. Unsupported versions can be stored without enabling; reviews state
+the required version. Registration is verified in the actual extension service;
+a skipped registration is rolled back instead of counted as enabled. This does
+not remove the client/server revision difference documented above.
+
+Evidence: `work/vsx-alpha9-20261101`. Real integrated checks include custom editor,
+notebook cells, virtual query-preserving and untitled documents, real side groups,
+Node active-editor state, source opening from extensions, actual diff controls,
+hidden-panel hit testing and reopening. The preceding runtime and public-extension
+checks remain separate from a universal compatibility claim.
 
 ## Alpha.8 repairs and additional verification
 
