@@ -1,6 +1,6 @@
-# Code OSS extension runtime — Windows candidate
+# Code OSS extension runtime — Windows alpha.8
 
-Windows alpha.7 uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
+Windows alpha.8 uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
 Code OSS services and VSCodium Node Extension Host. Dockview remains DevForge's
 window engine; source files and extension views share its documents and models.
 `studio.vsix` still supplies the removable gallery/import workflow. Existing native
@@ -39,6 +39,33 @@ safe declarative resources and block writes through both file-service and direct
 provider paths. Disabling an extension restarts only the affected upstream host
 kind and removes its commands, diagnostics and providers; native API registrations
 in the local host survive. Project trash/delete releases tasks and terminals first.
+
+## Alpha.8 repairs and additional verification
+
+Installation/enable/disable reviews have independent document layout. Marketplace
+styles no longer hide their text or clip their controls. Long source URLs and
+checksums wrap in expandable details; repeated permission notices are removed.
+Geometry is checked at 390, 720, 900 and 1360 pixels. Package publishers are retained.
+
+Settings writes are serialized, resetting removes prior user overrides, and changes
+made by extension APIs synchronize back to DevForge. Structured/nullable settings
+and JSON schema composition fields are preserved. Old partial-runtime metadata
+cannot disable the Install button in the upstream runtime.
+
+The worker host has its upstream network policy on its own entry/iframe responses;
+the main editor policy remains restricted. HTTPS/WSS and loopback network requests
+are available to browser extensions under normal browser CORS rules. The VS Code
+clipboard service uses Electron's Windows clipboard instead of browser permissions.
+TextMate state diffs initialize synchronously so first worker replies cannot race.
+When upstream auto-reload and disk already agree, native file refresh accepts those
+bytes as saved instead of reporting a false edit conflict.
+
+`work/vsx-alpha8-20261101` adds checks of the actual public Pyrefly 1.4.0 Windows
+server (type errors in strict mode, hover, live settings, reset, API changes and
+unload), native clipboard save/restore, worker networking, virtual filesystem
+providers, SCM resources and completed test runs. A three-window scenario checks
+one shared agent, independent workspaces, read-only execution suppression and
+global disable/re-enable without closing sibling source documents.
 
 ## Verification and limits
 

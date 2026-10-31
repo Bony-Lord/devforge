@@ -7,7 +7,7 @@ class StudioPythonIntelligence {
     $('#compilerSelect').studioOpen=anchor=>{if(!['python','notebook'].includes(ide.configurations.current()?.configuration.type))return false;this.chooseInterpreter(anchor).catch(safeError);return true;};
     onNative('notebook',e=>{if(e.type==='environmentChanged'){this.hide();this.queue.clear();this.sync();}});
     document.addEventListener('pointerdown',e=>{if(this.popup&&!this.popup.element.contains(e.target)&&e.target!==this.popup.source?.input)this.hide();},true);
-    document.addEventListener('scroll',e=>{if(this.popup&&!this.popup.element.contains(e.target))this.hide();},true);window.addEventListener('resize',()=>this.hide());
+    document.addEventListener('scroll',e=>{const popup=this.popup;if(popup&&!popup.element.contains(e.target)&&(e.target===document||e.target.contains?.(popup.source?.input)))this.hide();},true);window.addEventListener('resize',()=>this.hide());
   }
   t(ru,en){return this.ide.settings.language==='ru'?ru:en;}
   enabled(){return this.ide.addons.host.enabled('pythonIntelligence')&&this.ide.addons.host.intelligenceState?.installed&&this.ide.state.trust?.trusted;}
