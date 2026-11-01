@@ -11,7 +11,7 @@ function options(argv){
  for(let index=0;index<argv.length;index++){
   const argument=argv[index];if(!argument.startsWith('--'))throw Error('Unknown argument: '+argument);
   const [raw,...rest]=argument.slice(2).split('='),key=raw.replace(/-([a-z])/g,(_m,c)=>c.toUpperCase());
-  if(['help','stop','selfCheck','noRegressions','list'].includes(key)){result[key]=true;continue;}
+  if(['help','stop','selfCheck','noRegressions','noKeepAwake','list'].includes(key)){result[key]=true;continue;}
   if(!numeric.has(key)&&!['seed','app','reportRoot','replay','toolCache','suite'].includes(key))throw Error('Unknown option: '+raw);
   const value=rest.length?rest.join('='):argv[++index];if(!value||value.startsWith('--'))throw Error('Missing value: '+raw);
   result[key]=numeric.has(key)?Number(value):value;
@@ -21,7 +21,7 @@ function options(argv){
  for(const key of ['steps','cycles','cycleSteps','visualEvery'])if(!Number.isInteger(result[key]))throw Error('Expected a whole number: '+key);
  if(!result.durationMs&&!result.steps&&!result.cycles&&!result.stop&&!result.help&&!result.list)throw Error('Choose a duration, step limit or cycle limit');
  if(result.maxDiskMb<32||result.maxMemoryMb<256||result.cycleSteps<1||result.visualEvery<1||result.restartMinutes<=0)throw Error('Budgets too small: disk >=32 MB, memory >=256 MB, cycle/visual steps >=1, restart minutes >0');
- result.regressions=!result.noRegressions;return result;
+ result.regressions=!result.noRegressions;result.keepAwake=!result.noKeepAwake;return result;
 }
 async function atomic(file,value){await fs.mkdir(path.dirname(file),{recursive:true});const temporary=file+'.tmp-'+crypto.randomUUID();await fs.writeFile(temporary,typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value,null,2));await fs.rename(temporary,file);}
 async function sizeOf(root){let size=0;const entries=await fs.readdir(root,{withFileTypes:true}).catch(error=>{if(error.code==='ENOENT')return[];throw error;});for(const entry of entries){if(entry.isSymbolicLink())continue;const file=path.join(root,entry.name),stat=await fs.lstat(file).catch(error=>{if(error.code==='ENOENT')return null;throw error;});if(!stat||stat.isSymbolicLink())continue;if(stat.isDirectory())size+=await sizeOf(file);else if(stat.isFile())size+=stat.size;}return size;}

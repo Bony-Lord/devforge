@@ -25,7 +25,7 @@ async function main(argv=process.argv.slice(2)){
   '  --minutes N --steps N --cycles N --cycle-steps 120 --delay 450\n'+
   '  --max-memory-mb 2048 --max-disk-mb 512 --report-root directory\n'+
   '  --no-regressions --tool-cache directory --suite-every-minutes 90\n'+
-  '  --replay finding/replay.json --suite "Editors and windows"\n  --self-check --list --stop\n'+
+  '  --replay finding/replay.json --suite "Editors and windows"\n  --self-check --no-keep-awake --list --stop\n'+
   'Default reports: '+defaultRoot());return;}
  if(config.list){console.log(names.join('\n'));return;}
  if(config.stop){try{console.log('Stop requested: '+(await requestStop(config.reportRoot)).run);}catch(error){if(error.code==='ENOENT')console.log('No active tester in '+config.reportRoot);else throw error;}return;}
@@ -37,7 +37,7 @@ async function main(argv=process.argv.slice(2)){
  const adapter=await fs.readFile(path.join(__dirname,'adapter.js'),'utf8'),visual=await fs.readFile(path.join(__dirname,'visual.js'),'utf8');
  const state={format:'devforge.soak.status/1',status:'running',seed:config.seed,startedAt:new Date(started).toISOString(),app:config.app,steps:0,cycles:0,coverage:Object.fromEntries(names.map(n=>[n,{passed:0,failed:0,unavailable:0}])),suites:[],limits:{diskMb:config.maxDiskMb,memoryMb:config.maxMemoryMb},adapterHash:hash(adapter),visualHash:hash(visual)};
  if(replay)state.replay={expectedSteps:replay.actions.length,expectedFinding:replay.finding,recordedVersion:replay.appVersion,recordedAdapterHash:replay.adapterHash,completed:false,targetObserved:false};
- let app,fixture,actions=[],step=0,cycle=0,stop=false,lastResource=0,lastSuite=0,suiteIndex=0,unsupported=new Set(),lastReport=0;
+ let app,fixture,awake,actions=[],step=0,cycle=0,stop=false,lastResource=0,lastSuite=0,suiteIndex=0,unsupported=new Set(),lastReport=0;
  const interrupt=()=>{stop=true;};process.on('SIGINT',interrupt);process.on('SIGTERM',interrupt);
  const shouldStop=async()=>stop||Date.now()>=deadline||!!(config.steps&&state.steps>=config.steps)||!!(config.cycles&&cycle>=config.cycles)||await fs.stat(store.stopFile).then(()=>true,()=>false);
  const report=async(force=false)=>{if(!force&&Date.now()-lastReport<5000)return;lastReport=Date.now();state.elapsedSeconds=Math.round((Date.now()-started)/1000);state.findingCounts=Object.fromEntries(['bug','visual','adapter','resource','infrastructure'].map(k=>[k,[...store.findings.values()].filter(f=>f.kind===k).length]));state.diskMb=Math.round(store.bytes/1048576*10)/10;await store.report(state);};
@@ -73,6 +73,7 @@ async function main(argv=process.argv.slice(2)){
   }finally{await app.cdp.evaluate("document.querySelector('#soak-baseline-style')?.remove()").catch(()=>{});}
  }
  try{
+  if(config.keepAwake){awake=await require('./power.cjs').keepAwake();state.power={active:awake.active,pid:awake.pid,method:awake.method};}
   await report(true);console.log('REPORT '+path.join(store.run,'index.html'));console.log('SEED '+config.seed);
   const runRegression=async(index,name)=>{const {runSuite}=require('./suites.cjs');const result=await runSuite({store,config,index,name,shouldStop:async()=>stop||Date.now()>=deadline||await fs.stat(store.stopFile).then(()=>true,()=>false),onFailure:async(title,detail,kind='bug',suite)=>finding(kind,title,detail,{suiteName:suite?.name})});state.suites.push(result);};
   if(config.suite)await runRegression(0,config.suite);
@@ -113,7 +114,7 @@ async function main(argv=process.argv.slice(2)){
   state.status=state.fatal?'failed':state.reason?'stopped':'completed';if(!state.fatal&&(stop||await fs.stat(store.stopFile).then(()=>true,()=>false))){state.status='stopped';state.reason||='Stop requested';}
  }catch(error){state.status=error.code==='DISK_BUDGET'?'budget-reached':'failed';state.reason=error.stack||error.message;console.error(state.reason);}
  finally{
-  if(app)await app.close().catch(()=>{});if(fixture)await store.removeProfile(fixture.profile).catch(e=>{state.cleanupError=e.message;});state.finishedAt=new Date().toISOString();
+  if(app)await app.close().catch(()=>{});if(fixture)await store.removeProfile(fixture.profile).catch(e=>{state.cleanupError=e.message;});if(awake){state.power.release=await awake.release();state.power.active=false;}state.finishedAt=new Date().toISOString();
   if(replay){state.replay.completed=replay.suiteName?!!state.suites[0]?.passed:state.steps===replay.actions.length;state.replay.executedSteps=state.steps;state.replay.targetObserved=[...store.findings.values()].some(f=>f.kind===replay.finding?.kind&&f.title===replay.finding?.title);if(!state.replay.completed&&state.status==='completed'){state.status='interrupted';state.reason='Replay ended before all recorded actions were executed; the target finding has not been verified';}}
   try{await report(true);}catch(error){console.error('Final report: '+error.message);/* reserved space is for this final small status */await atomic(path.join(store.run,'final-status.json'),state);}
   await store.close();process.off('SIGINT',interrupt);process.off('SIGTERM',interrupt);
