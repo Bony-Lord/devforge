@@ -1,0 +1,51 @@
+'use strict';
+const fs=require('node:fs/promises'),path=require('node:path'),crypto=require('node:crypto');
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const inside=(file,root)=>{const relative=path.relative(path.resolve(root),path.resolve(file));return !!relative&&!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative);};
+const hash=value=>crypto.createHash('sha256').update(typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value)).digest('hex');
+const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+function random(seed){let state=parseInt(hash(String(seed)).slice(0,8),16);return()=>{state+=0x6D2B79F5;let t=state;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function options(argv){
+ const result={hours:8,steps:0,cycles:0,seed:crypto.randomBytes(6).toString('hex'),delay:450,cycleSteps:120,restartMinutes:15,maxDiskMb:512,maxMemoryMb:2048,visualEvery:10,regressions:true,suiteEveryMinutes:90};
+ const numeric=new Set(['hours','minutes','steps','cycles','delay','cycleSteps','restartMinutes','maxDiskMb','maxMemoryMb','visualEvery','suiteEveryMinutes']);
+ for(let index=0;index<argv.length;index++){
+  const argument=argv[index];if(!argument.startsWith('--'))throw Error('Unknown argument: '+argument);
+  const [raw,...rest]=argument.slice(2).split('='),key=raw.replace(/-([a-z])/g,(_m,c)=>c.toUpperCase());
+  if(['help','stop','selfCheck','noRegressions','list'].includes(key)){result[key]=true;continue;}
+  if(!numeric.has(key)&&!['seed','app','reportRoot','replay','toolCache','suite'].includes(key))throw Error('Unknown option: '+raw);
+  const value=rest.length?rest.join('='):argv[++index];if(!value||value.startsWith('--'))throw Error('Missing value: '+raw);
+  result[key]=numeric.has(key)?Number(value):value;
+  if(numeric.has(key)&&(!Number.isFinite(result[key])||result[key]<0))throw Error('Invalid number: '+raw);
+ }
+ result.durationMs=result.minutes!==undefined?result.minutes*60000:result.hours*3600000;
+ for(const key of ['steps','cycles','cycleSteps','visualEvery'])if(!Number.isInteger(result[key]))throw Error('Expected a whole number: '+key);
+ if(!result.durationMs&&!result.steps&&!result.cycles&&!result.stop&&!result.help&&!result.list)throw Error('Choose a duration, step limit or cycle limit');
+ if(result.maxDiskMb<32||result.maxMemoryMb<256||result.cycleSteps<1||result.visualEvery<1||result.restartMinutes<=0)throw Error('Budgets too small: disk >=32 MB, memory >=256 MB, cycle/visual steps >=1, restart minutes >0');
+ result.regressions=!result.noRegressions;return result;
+}
+async function atomic(file,value){await fs.mkdir(path.dirname(file),{recursive:true});const temporary=file+'.tmp-'+crypto.randomUUID();await fs.writeFile(temporary,typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value,null,2));await fs.rename(temporary,file);}
+async function sizeOf(root){let size=0;const entries=await fs.readdir(root,{withFileTypes:true}).catch(error=>{if(error.code==='ENOENT')return[];throw error;});for(const entry of entries){if(entry.isSymbolicLink())continue;const file=path.join(root,entry.name),stat=await fs.lstat(file).catch(error=>{if(error.code==='ENOENT')return null;throw error;});if(!stat||stat.isSymbolicLink())continue;if(stat.isDirectory())size+=await sizeOf(file);else if(stat.isFile())size+=stat.size;}return size;}
+class Store{
+ constructor(root,maxDiskMb){this.root=path.resolve(root);this.maxBytes=maxDiskMb*1048576;this.findings=new Map();this.bytes=0;}
+ async start(config){
+  await fs.mkdir(this.root,{recursive:true});const marker=path.join(this.root,'.devforge-soak-root.json');
+  try{const value=JSON.parse(await fs.readFile(marker,'utf8'));if(value.format!=='devforge.soak.root/1')throw Error('Unrecognized report folder');}catch(error){if(error.code!=='ENOENT')throw error;const names=await fs.readdir(this.root);if(names.length)throw Error('Choose an empty report folder, or an existing DevForge soak report folder');await atomic(marker,{format:'devforge.soak.root/1'});}
+  this.token=crypto.randomUUID();this.lock=path.join(this.root,'.runner-lock.json');
+  try{await fs.writeFile(this.lock,JSON.stringify({pid:process.pid,token:this.token}),{flag:'wx'});}catch(error){if(error.code!=='EEXIST')throw error;const lock=JSON.parse(await fs.readFile(this.lock,'utf8'));let alive=true;try{process.kill(lock.pid,0);}catch{alive=false;}if(alive)throw Error('A tester is already running in this report folder (PID '+lock.pid+')');await fs.unlink(this.lock);return this.start(config);}
+  this.id=new Date().toISOString().replace(/[:.]/g,'-')+'-'+this.token.slice(0,8);this.run=path.join(this.root,this.id);await fs.mkdir(this.run);this.stopFile=path.join(this.run,'STOP');this.config=config;
+  this.bytes=await sizeOf(this.root);if(this.bytes>=this.maxBytes){await this.close();throw Error('Existing reports already reach the disk budget. Choose a different report folder or a larger --max-disk-mb.');}
+  await atomic(path.join(this.root,'active.json'),{pid:process.pid,token:this.token,run:this.run,stopFile:this.stopFile});await this.write('run.json',{format:'devforge.soak.run/1',id:this.id,startedAt:new Date().toISOString(),config});return this;
+ }
+ async checkSpace(extra=0){this.bytes=await sizeOf(this.root);if(this.bytes+extra>this.maxBytes-2*1048576){const error=Error('Disk budget reached; unique evidence is retained');error.code='DISK_BUDGET';throw error;}}
+ async write(relative,value){const file=path.resolve(this.run,relative);if(!inside(file,this.run))throw Error('Report path escaped its run');const bytes=Buffer.isBuffer(value)?value:Buffer.from(typeof value==='string'?value:JSON.stringify(value,null,2));const previous=await fs.stat(file).then(s=>s.size,()=>0);if(this.bytes+bytes.length-previous>this.maxBytes-1048576){const error=Error('Disk budget reached');error.code='DISK_BUDGET';throw error;}await atomic(file,bytes);this.bytes+=bytes.length-previous;return file;}
+ async append(relative,value){const file=path.resolve(this.run,relative);if(!inside(file,this.run))throw Error('Journal path escaped its run');const line=JSON.stringify(value)+'\n';if(this.bytes+Buffer.byteLength(line)>this.maxBytes-2*1048576){const error=Error('Journal disk budget reached');error.code='DISK_BUDGET';throw error;}await fs.mkdir(path.dirname(file),{recursive:true});await fs.appendFile(file,line);this.bytes+=Buffer.byteLength(line);}
+ async profile(cycle){const profile=path.join(this.run,'profiles','cycle-'+cycle);await fs.mkdir(profile,{recursive:true});await atomic(path.join(profile,'.devforge-soak-owned.json'),{format:'devforge.soak.fixture/1',token:this.token,cycle});return profile;}
+ async removeProfile(profile){const [real,run]=await Promise.all([fs.realpath(profile),fs.realpath(this.run)]);if(!inside(real,path.join(run,'profiles'))||path.dirname(real)!==path.join(run,'profiles'))throw Error('Refusing profile cleanup outside the owned fixture folder');const marker=JSON.parse(await fs.readFile(path.join(real,'.devforge-soak-owned.json'),'utf8'));if(marker.token!==this.token||marker.format!=='devforge.soak.fixture/1')throw Error('Refusing to remove an unowned profile');await fs.rm(real,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
+ async finding(value){const fingerprint=hash([value.kind,value.title,value.signature||value.detail]).slice(0,20);const old=this.findings.get(fingerprint);if(old){old.count++;old.lastSeen=new Date().toISOString();return{finding:old,fresh:false};}const finding={id:fingerprint,count:1,firstSeen:new Date().toISOString(),lastSeen:new Date().toISOString(),status:'needs-review',...value};this.findings.set(fingerprint,finding);return{finding,fresh:true};}
+ async report(state){const findings=[...this.findings.values()];await this.write('status.json',{...state,findings});const cards=findings.map(f=>`<article class="${escape(f.kind)}"><h2>${escape(f.kind)} · ${escape(f.title)}</h2><p>${escape(f.detail)}</p><small>Повторений: ${f.count} · цикл ${f.cycle??'?'} · шаг ${f.step??'?'}</small><div>${(f.images||[]).map(file=>`<a href="${encodeURI(file)}"><img loading="lazy" src="${encodeURI(file)}"></a>`).join('')}</div><details><summary>Доказательства и воспроизведение</summary><pre>${escape(JSON.stringify(f,null,2))}</pre></details>${f.replay?`<p><code>node desktop/soak/run.cjs --replay "${escape(path.join(this.run,f.replay))}"</code></p>`:''}</article>`).join('');
+  await this.write('index.html','<!doctype html><meta charset="utf-8"><title>DevForge — длительное тестирование</title><style>body{background:#181b21;color:#e5e9ef;font:15px system-ui;margin:24px;max-width:1400px}h1{font-size:25px}article{padding:18px;margin:16px 0;background:#242a33;border-left:4px solid #e7bd65;border-radius:6px}article.bug{border-color:#f48080}article.adapter{border-color:#8daee7}h2{font-size:18px}small{color:#b0bdcc}img{max-width:46%;max-height:420px;vertical-align:top;margin:8px 12px 8px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}code{overflow-wrap:anywhere}a{color:#9cc8ff}input{padding:9px;width:400px;max-width:80%;background:#242a33;color:inherit;border:1px solid #64748b}summary{cursor:pointer}</style><h1>DevForge — длительное тестирование</h1><p>Сбои проверок и визуальные подозрения показаны раздельно. Подозрение требует проверки человеком.</p><pre>'+escape(JSON.stringify(state,null,2))+'</pre><p><input placeholder="Фильтр находок" oninput="for(const e of document.querySelectorAll(\'article\'))e.hidden=!e.textContent.toLowerCase().includes(this.value.toLowerCase())"></p>'+cards+(cards?'':'<p>Находок пока нет. Это не доказательство отсутствия ошибок.</p>'));
+  await atomic(path.join(this.root,'latest.json'),{run:this.run,report:path.join(this.run,'index.html'),status:state.status});
+ }
+ async close(){if(!this.lock)return;const lock=await fs.readFile(this.lock,'utf8').then(JSON.parse,()=>null);if(lock?.token===this.token){await fs.unlink(this.lock).catch(()=>{});const active=path.join(this.root,'active.json'),value=await fs.readFile(active,'utf8').then(JSON.parse,()=>null);if(value?.token===this.token)await fs.unlink(active).catch(()=>{});}this.lock=null;}
+}
+module.exports={sleep,inside,hash,escape,random,options,atomic,sizeOf,Store};
