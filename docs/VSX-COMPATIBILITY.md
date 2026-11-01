@@ -1,6 +1,6 @@
-# Code OSS extension runtime — Windows alpha.9
+# Code OSS extension runtime — Windows alpha.10
 
-Windows alpha.9 uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
+Windows alpha.10 uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
 Code OSS services and VSCodium Node Extension Host. Dockview remains DevForge's
 window engine; source files and extension views share its documents and models.
 `studio.vsix` still supplies the removable gallery/import workflow. Existing native
@@ -39,6 +39,46 @@ safe declarative resources and block writes through both file-service and direct
 provider paths. Disabling an extension restarts only the affected upstream host
 kind and removes its commands, diagnostics and providers; native API registrations
 in the local host survive. Project trash/delete releases tasks and terminals first.
+
+## Alpha.10 native file, save and workspace lifecycle
+
+Native creation (including generated/template files), folder creation, file import,
+rename, batch copy/move, project trash and restoration now run the actual Code OSS
+working-copy file participants around the native commit. Extensions receive the
+real will/did create, rename and delete events and can contribute WorkspaceEdits.
+The native backend still owns encoding, path/junction checks, trash and rollback;
+paths and read-only state are checked again after participation. Closing the owning
+window rejects outstanding operations. Internal cleanup and trash emptying do not
+pretend to be user file operations.
+
+Edits from onWillRenameFiles move with the dirty working copy into its destination.
+Pending native saves are suspended for the source, so the old path is not recreated.
+WorkspaceEdits initiated by an extension also update native tabs, breakpoints and
+encoding metadata; synthetic native events are identified to avoid duplicate work.
+Native Save and TextDocument.save run the genuine save participants and didSave
+state changes, then commit through DevForge's writer with history, original encoding
+and external-edit conflict checks. Automatic saves report the Auto reason. Errors
+use upstream save-error handling and propagate to native callers without retrying
+through an unguarded filesystem path. Delayed DI bound-method caches are evicted
+before replacing the writer and guarded IFileService methods.
+
+vscode.openFolder and vscode.newWindow use native project windows. In-place project
+changes keep the hosting page alive instead of asking the browser lifecycle to shut
+it down. Existing editing conflicts use the usual read-only choice. Explicit empty
+windows do not restore a former project. Each window retains separate per-project
+source-tab sessions when switching away and back. showTextDocument preserveFocus
+keeps focus on the previous native control. Accepted upstream disk reloads update
+the native saved state and refresh its external-edit baseline.
+
+Evidence: work/vsx-alpha10-20261101. The real fixture VSIX checks file event ordering
+against actual disk existence, participant edits and exact file bytes, both save
+entry points/history/conflicts, explicit versus automatic save reasons, native
+windows and returning project sessions. This does not certify multi-root workspace
+files, all extension-managed installation flows or the remaining revision/API/ABI
+limits below. Multi-root opening reports a direct error instead of a silent refusal. All native
+window HTTP listeners reject Chromium-restricted ephemeral ports before loading
+the page; an actual ERR_UNSAFE_PORT failure at 6566 exposed this on a customized
+Windows ephemeral range. The browser policy is preserved.
 
 ## Alpha.9 editor and lifecycle integration
 

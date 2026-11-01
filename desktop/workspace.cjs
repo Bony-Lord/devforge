@@ -106,8 +106,9 @@ class Workspace {
   async createTemplate(d,preview=false){const files=templates(d.kind,d.name,d.namespace||''),result=[],created=[];
     if(!preview)this.assertEditable();
     for(const file of Object.keys(files))if(await exists(await this.writable(file)))throw Error('File already exists: '+file);
-    try{for(const [name,text]of Object.entries(files)){const file=await this.writable(name);if(!preview){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,encode(text,this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});created.push(file);}result.push({path:preview?name:file,text});}}catch(error){for(const file of created)await fs.rm(file);throw error;}return result;
+    const commit=async()=>{try{for(const [name,text]of Object.entries(files)){const file=await this.writable(name);if(!preview){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,encode(text,this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});created.push(file);}result.push({path:preview?name:file,text});}}catch(error){for(const file of created)await fs.rm(file);throw error;}return result;};return preview?commit():this.withFileOperation('create',await Promise.all(Object.keys(files).map(async name=>({target:await this.writable(name)}))),commit);
   }
+  withFileOperation(operation,files,commit){return this.fileOperationEvents?this.fileOperationEvents.run(operation,files,commit):commit();}
   async createItem(d){
     this.assertEditable();
     if(!/^[A-Za-z0-9_+.-]{0,24}$/.test(d.extension||''))throw Error('Invalid file extension');const dir=await canonical(path.join(this.root,d.directory||''));if(!inside(dir,await canonical(this.root)))throw Error('Path outside project');
@@ -115,13 +116,16 @@ class Workspace {
       const folder=d.kind==='folder',base=folder?'new_folder':d.kind==='cmakelists'?'CMakeLists':'new_file',suffix=n===1?'':n;
       const ext=folder?'':d.kind==='cmakelists'?'.txt':d.kind==='empty'?(d.extension?(d.extension.startsWith('.')?'':'.')+d.extension:''):'.'+d.kind;
       const file=await this.writable(path.join(dir,base+suffix+ext));
-      try{if(folder)await fs.mkdir(file);else await fs.writeFile(file,encode(Object.values(templates(d.kind,d.kind==='cmakelists'?'CMakeLists.txt':path.basename(file)))[0],this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});return{path:file,dir:folder};}catch(e){if(e.code!=='EEXIST')throw e;}
+      if(await exists(file))continue;return this.withFileOperation('create',[{target:file}],async()=>{if(folder)await fs.mkdir(file);else await fs.writeFile(file,encode(Object.values(templates(d.kind,d.kind==='cmakelists'?'CMakeLists.txt':path.basename(file)))[0],this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});return{path:file,dir:folder};});
     }throw Error('Too many files with this name');
   }
   assertEditable(){if(this.projectReadOnly)throw Error('PROJECT_READ_ONLY: This project is open for editing in another window');}
-  async move(from,to){this.assertEditable();from=await this.writable(from);to=await this.writable(to);if(inside(to,from))throw Error('Cannot move a folder inside itself');if(await exists(to))throw Error('Destination exists');await fs.rename(from,to);
+  async move(from,to,suppressEvents=false){this.assertEditable();from=await this.writable(from);to=await this.writable(to);if(inside(to,from))throw Error('Cannot move a folder inside itself');if(await exists(to))throw Error('Destination exists');const commit=async()=>{if(await exists(to))throw Error('Destination exists');await fs.rename(from,to);
+    await this.recordMove(from,to);return to;};return suppressEvents?commit():this.withFileOperation('move',[{source:from,target:to}],commit);
+  }
+  async recordMove(from,to){
     for(const file of Object.keys(this.prefs.encodings))if(inside(file,from)){const target=to+file.slice(from.length);this.prefs.encodings[target]=this.prefs.encodings[file];delete this.prefs.encodings[file];if(this.readState.has(file)){this.readState.set(target,this.readState.get(file));this.readState.delete(file);}}
-    await this.persist();return to;
+    await this.persist();
   }
   async browse(input){const folder=await canonical(input||os.homedir()),entries=[];
     for(const entry of (await fs.readdir(folder,{withFileTypes:true})).sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name))){if(entries.length>=3000)break;if(entry.isSymbolicLink())continue;entries.push({name:entry.name,path:portable(path.join(folder,entry.name)),dir:entry.isDirectory()});}

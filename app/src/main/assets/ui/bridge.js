@@ -6,7 +6,7 @@ const nativePending=new Map(),nativeListeners=new Map();
 function native(op,data={}){
   return new Promise((resolve,reject)=>{
     const id=String(++nativeSequence);
-    const timer=setTimeout(()=>{nativePending.delete(id);StudioNativeActivity.finish(id);reject(new Error('Истекло время ожидания: '+op));},['toolPackInstall','toolPackInstallMany','toolPackRemove','toolEngineRemove','extensionGalleryPrepare','extensionGalleryPrepareSelection'].includes(op)?1800000:['pythonStyleInstall','pythonIntelligenceInstall','optionalAssetInstall','extensionGalleryInfo','extensionGalleryPrepare'].includes(op)?210000:op==='build'?390000:45000);
+    const timer=setTimeout(()=>{nativePending.delete(id);StudioNativeActivity.finish(id);reject(new Error('Истекло время ожидания: '+op));},(globalThis.StudioCodeOSS?.api&&['newFile','newFolder','createTreeItem','createTemplate','moveProjectItem','renameFile','deleteFile','projectTransferItems','projectTrashItems','projectTrashRestore','projectTemplateApply','importFile'].includes(op))?1800000:['toolPackInstall','toolPackInstallMany','toolPackRemove','toolEngineRemove','extensionGalleryPrepare','extensionGalleryPrepareSelection'].includes(op)?1800000:['pythonStyleInstall','pythonIntelligenceInstall','optionalAssetInstall','extensionGalleryInfo','extensionGalleryPrepare'].includes(op)?210000:op==='build'?390000:45000);
     nativePending.set(id,{resolve,reject,timer,op});StudioNativeActivity.start(id,op);
     try{ForgeNative.request(JSON.stringify({id,op,data}));}catch(e){clearTimeout(timer);nativePending.delete(id);StudioNativeActivity.finish(id);reject(e);}
   });

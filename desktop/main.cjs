@@ -52,7 +52,7 @@ async function serve(){
     }catch{if(smoke)console.error('Missing UI asset: '+String(req.url).replace('/'+token+'/',''));res.statusCode=404;res.end('Not found');}
   });
   server.on('upgrade',(req,socket,head)=>{try{const url=new URL(req.url,origin);if(!codeoss?.info||req.headers.host!==new URL(origin).host||req.headers.origin!==origin||!url.pathname.startsWith('/'+token+'/_codeoss/'))throw Error('Denied');const target=new URL('http://'+codeoss.info.authority+'/'+url.pathname.slice(token.length+11)+url.search),headers={...req.headers,host:target.host};delete headers.origin;const upstream=http.request(target,{headers});upstream.on('upgrade',(response,agent,agentHead)=>{socket.write('HTTP/1.1 101 Switching Protocols\r\n'+Object.entries(response.headers).map(([k,v])=>k+': '+v).join('\r\n')+'\r\n\r\n');if(agentHead.length)socket.write(agentHead);if(head.length)agent.write(head);socket.pipe(agent);agent.pipe(socket);socket.on('error',()=>agent.destroy());agent.on('error',()=>socket.destroy());socket.on('close',()=>agent.destroy());});upstream.on('error',()=>socket.destroy());upstream.end();}catch{socket.destroy();}});
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin='http://127.0.0.1:'+server.address().port;base=origin+'/'+token+'/';return base+'index.html';
+  await require('./browser-server.cjs').listenBrowserServer(server);origin='http://127.0.0.1:'+server.address().port;base=origin+'/'+token+'/';return base+'index.html';
 }
 async function start(){
   const existing=project&&[...openWindows].find(r=>r.host.ws.prefs.current===project&&!r.host.ws.projectReadOnly);if((existing||openingProjects.has(project))&&!readOnly)return{conflict:true};if(project&&!readOnly){openingProjects.add(project);reserved=true;}

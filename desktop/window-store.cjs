@@ -2,7 +2,7 @@
 const fs=require('node:fs/promises'),path=require('node:path'),crypto=require('node:crypto');
 const {Workspace,atomic,exists}=require('./workspace.cjs');
 const {AddonLibrary}=require('./addons.cjs');
-const localKeys=new Set(['current','session','window','projectSelectionCleared','windowAddonProfile']);
+const localKeys=new Set(['current','session','projectSessions','window','projectSelectionCleared','windowAddonProfile']);
 /** One global library, separate editor/execution sessions. All writes share a queue. */
 class WindowStore {
  constructor(data,projectsDirectory){this.data=data;this.projectsDirectory=projectsDirectory;this.queue=Promise.resolve();this.sessions=new Map();}
@@ -11,6 +11,7 @@ class WindowStore {
   if(project&&!this.global.projects[project])throw Error('Project unavailable');
   const key=readOnly?'reader-'+crypto.randomUUID():initial?'main':crypto.createHash('sha256').update(project||'empty').digest('hex').slice(0,24),file=path.join(this.data,'window-sessions',key+'.json');
   let local={current:project||'',session:{}};if(await exists(file)){try{local=JSON.parse(await fs.readFile(file,'utf8'));}catch{}}else if(initial)local={...this.legacy};if(project)local.current=project;
+  if(project===''){local.current='';local.session={};local.projectSelectionCleared=true;}
   if(!this.global.projects[local.current]){local.current='';local.session={};}
   const ws=new Workspace(this.data,this.projectsDirectory);let prefs;
   const bind=value=>{const object={};for(const k of localKeys)if(value[k]!==undefined)object[k]=value[k];for(const k of new Set([...Object.keys(this.global),...Object.keys(value).filter(k=>!localKeys.has(k))]))Object.defineProperty(object,k,{enumerable:true,configurable:true,get:()=>this.global[k],set:v=>{this.global[k]=v;}});return object;};

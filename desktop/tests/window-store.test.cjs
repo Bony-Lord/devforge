@@ -1,5 +1,18 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {WindowStore}=require('../window-store.cjs'),{DesktopHost}=require('../host.cjs');
+
+test('explicit empty windows do not restore a former project, and sessions follow in-window project switches',async t=>{
+ const directory=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-session-switch-')),store=await new WindowStore(directory).init();let host;
+ t.after(async()=>{await host?.close();await fs.rm(directory,{recursive:true,force:true});});
+ host=await new DesktopHost(directory,()=>{},{workspace:await store.workspace(undefined,true)}).init();
+ const a=(await host.ws.newProject('alpha','empty')).project,b=(await host.ws.newProject('beta','empty',false)).project;
+ await host.handle('sessionCommit',{project:a,tabs:['alpha.cpp'],active:'alpha.cpp'});
+ await host.handle('project',{name:b});assert.deepEqual(host.ws.prefs.session,{});
+ await host.handle('sessionCommit',{project:b,tabs:['beta.cpp'],active:'beta.cpp'});
+ await host.handle('project',{name:a});assert.equal(host.ws.prefs.session.active,'alpha.cpp');
+ await host.handle('project',{name:'',close:true});assert.equal(host.ws.prefs.current,'');assert.deepEqual(host.ws.prefs.session,{});
+ const empty=await store.workspace('');empty.prefs.current=a;await empty.persist();const reopened=await store.workspace('');assert.equal(reopened.prefs.current,'');assert.deepEqual(reopened.prefs.session,{});
+});
 test('old per-window VSX pins follow the deduplicated official migration after restart',async t=>{
  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-window-migration-'));t.after(()=>fs.rm(directory,{recursive:true,force:true,maxRetries:10,retryDelay:100}));const store=await new WindowStore(directory).init(),ws=await store.workspace(undefined,true),facade=store.addonFacade({ws});await facade.init();const current=store.addons.catalog().find(p=>p.manifest.id==='studio.vsix'),old=structuredClone(current);old.manifest.version='1.0.0';store.addons.data.packages=[{source:'bundled-catalog',package:old},{source:'bundled-catalog',package:current}];await store.addons.save();ws.prefs.windowAddonProfile={requested:[{id:'studio.vsix',version:'1.0.0'}],defaultRequested:[{id:'studio.vsix',version:'1.0.0'}],resolved:[],safeMode:false};await ws.persist();const restarted=await new WindowStore(directory).init(),restored=restarted.addonFacade({ws:await restarted.workspace(undefined,true)});await restored.init();assert.equal(restored.state().packages.filter(e=>e.package.manifest.id==='studio.vsix').length,1);assert.equal(restored.profile.requested[0].version,current.manifest.version);assert.equal(restored.profile.defaultRequested[0].version,current.manifest.version);
 });

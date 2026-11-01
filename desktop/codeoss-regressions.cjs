@@ -27,6 +27,7 @@ async function main(){
  async function codeossReadOnly(){
   await evaluate(`codeoss.setWorkspace(${JSON.stringify(root)},{trusted:true,readOnly:true})`);
   await check('Read-only workspace rejects direct extension API writes',`(async()=>{try{await codeoss.vscode.workspace.fs.writeFile(codeoss.uri(${JSON.stringify(path.join(root,'main.cpp'))}),new TextEncoder().encode('overwrite'));return false;}catch(e){return /READ_ONLY/.test(String(e));}})()`);
+  await check('Read-only workspace also rejects writes through the upstream file service',`(async()=>{try{const service=await codeoss.getService(codeoss.IFileService);await service.writeFile(codeoss.uri(${JSON.stringify(path.join(root,'main.cpp'))}),{buffer:new TextEncoder().encode('overwrite'),byteLength:9});return false;}catch(e){return /READ_ONLY/.test(String(e));}})()`);
   checks.push({name:'Read-only protection preserves original disk contents',passed:await fs.readFile(path.join(root,'main.cpp'),'utf8')==='int fixture;\n'});
  }
  try{

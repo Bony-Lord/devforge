@@ -17,6 +17,7 @@ class ProjectTemplateFiles {
     // All paths and original bytes are checked before the first write. Retain originals
     // in normal local history too, so an intentional replacement remains recoverable.
     for(const entry of batch)if(entry.before!==null&&!entry.before.equals(entry.after)){const dir=this.ws.historyDir(entry.file);await fs.mkdir(dir,{recursive:true});await fs.writeFile(path.join(dir,Date.now()+'-template-'+crypto.randomUUID()+'.json'),JSON.stringify({text:require('./workspace.cjs').decode(entry.before).text,time:Date.now()}));}
+    return this.ws.withFileOperation('create',batch.filter(entry=>entry.before===null).map(entry=>({target:entry.file})),async()=>{
     const written=[],directories=[];
     try{
       for(const entry of batch){await this.root(d);const actual=await this.bytes(entry.file);if((actual===null?null:hash(actual))!==(entry.before===null?null:hash(entry.before)))throw Error('File changed since preview: '+entry.path);
@@ -26,7 +27,7 @@ class ProjectTemplateFiles {
         if(entry.before===null)await fs.writeFile(entry.file,entry.after,{flag:'wx'});else await atomic(entry.file,entry.after);written.push(entry);
       }
     }catch(error){for(const entry of written.reverse()){const actual=await this.bytes(entry.file);if(actual!==null&&hash(actual)===hash(entry.after)){if(entry.before===null)await fs.unlink(entry.file);else await atomic(entry.file,entry.before);}}for(const dir of directories.reverse())await fs.rmdir(dir).catch(()=>{});throw error;}
-    for(const entry of batch){delete this.ws.prefs.encodings[entry.file];this.ws.readState.delete(entry.file);}await this.ws.persist();return {paths:batch.map(e=>portable(e.file))};
+    for(const entry of batch){delete this.ws.prefs.encodings[entry.file];this.ws.readState.delete(entry.file);}await this.ws.persist();return {paths:batch.map(e=>portable(e.file))};});
   }
 }
 module.exports={ProjectTemplateFiles};
