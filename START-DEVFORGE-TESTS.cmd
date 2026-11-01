@@ -1,14 +1,20 @@
 @echo off
+setlocal
 chcp 65001 >nul
-cd /d "%~dp0"
+pushd "%~dp0"
+if errorlevel 1 exit /b 1
 node --version >nul 2>&1
 if errorlevel 1 (
-  echo Требуется Node.js 22 или новее.
-  pause
+  echo Node.js 22 or newer is required.
+  popd
+  if not defined DEVFORGE_TEST_NO_PAUSE pause
   exit /b 1
 )
-echo DevForge: тестирование до 8 часов. Остановка: STOP-DEVFORGE-TESTS.cmd или Ctrl+C.
-node desktop\soak\run.cjs %*
+echo DevForge tests: up to 8 hours. Stop: STOP-DEVFORGE-TESTS.cmd or Ctrl+C.
+node "%~dp0desktop\soak\run.cjs" %*
+set "testExit=%ERRORLEVEL%"
 echo.
-echo Отчёты: %%USERPROFILE%%\DevForgeTests
-pause
+echo Reports: "%USERPROFILE%\DevForgeTests"
+popd
+if not defined DEVFORGE_TEST_NO_PAUSE pause
+exit /b %testExit%

@@ -1,5 +1,7 @@
 @echo off
+setlocal
 chcp 65001 >nul
-cd /d "%~dp0"
-node desktop\soak\run.cjs --stop %*
-pause
+node "%~dp0desktop\soak\run.cjs" --stop %*
+set "testExit=%ERRORLEVEL%"
+if not defined DEVFORGE_TEST_NO_PAUSE pause
+exit /b %testExit%

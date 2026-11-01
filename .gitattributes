@@ -2,6 +2,7 @@
 gradlew text eol=lf
 *.sh text eol=lf
 *.bat text eol=crlf
+*.cmd text eol=crlf
 app/src/main/assets/ui/vs/** -text -whitespace linguist-vendored
 app/src/main/assets/ui/icons/** -text -whitespace linguist-vendored
 app/src/main/assets/ui/vendor/** -text -whitespace linguist-vendored
