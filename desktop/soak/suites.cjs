@@ -15,7 +15,7 @@ async function runSuite({store,config,index=0,name,shouldStop,onFailure}){
   if(reason)await killOwned(child);
   const report=await fs.readFile(reportFile,'utf8').then(JSON.parse,()=>null),checks=report?.checks||[];
   const result={name:suite.name,report:relative,passed:!reason&&child.exitCode===0&&!!report&&!report.error&&checks.every(c=>c.passed),checks:checks.length,reason:reason||report?.error,seconds:Math.round((Date.now()-started)/1000),availableSuites:available.map(s=>s.name),fullUiCacheAvailable:cached,externalGallery:'Not exercised; offline fixtures only'};
-  await store.write(relative+'.runner.log',log);if(!report){result.partialPassed=(log.match(/^PASS .+$/gm)||[]).length;await store.write(relative,{format:'devforge.soak.suite-interrupted/1',...result,runnerLog:relative+'.runner.log'});}if(!result.passed&&reason!=='Stopped')await onFailure('Regression suite · '+suite.name,result.reason||'Failed checks; see '+relative,/memory budget/.test(reason||'')?'resource':reason?'infrastructure':'bug',result);return result;
+  await store.write(relative+'.runner.log',log);if(!report){result.partialPassed=(log.match(/^PASS .+$/gm)||[]).length;await store.write(relative,{format:'devforge.soak.suite-interrupted/1',...result,runnerLog:relative+'.runner.log'});}if(!result.passed&&reason!=='Stopped')await onFailure('Regression suite · '+suite.name,result.reason||'Failed checks; see '+relative,/memory budget/.test(reason||'')?'resource':reason||/Object reference chain is too long|could not be cloned|CDP (?:timeout|disconnected|is not connected)/i.test(result.reason||'')?'infrastructure':'bug',result);return result;
  }finally{await killOwned(child);await store.removeProfile(profile);}
 }
 module.exports={runSuite};

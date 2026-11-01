@@ -1,0 +1,5 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+function methods(platform){const context=vm.createContext({window:{StudioDesktop:{platform}}});vm.runInContext(fs.readFileSync(path.join(__dirname,'../app/src/main/assets/ui/tree-interaction.js'),'utf8'),context);return vm.runInContext('treeMethods',context);}
+test('Windows explorer operations match documents and descendants across drive/path spelling',()=>{const m=methods('win32');assert(m.treePathWithin('c:/Projects/Example/Code.cpp','C:/projects/example/code.cpp'));assert(m.treePathWithin('c:\\Projects\\Example\\nested\\a.cpp','C:/projects/example'));assert(!m.treePathWithin('C:/projects/example-other/a.cpp','c:/projects/example'));assert(!m.treePathWithin('C:/projects/example','c:/projects/example/a.cpp'));});
+test('case-sensitive platforms keep distinct source names',()=>{const m=methods('linux');assert(m.treePathWithin('/project/Code.cpp','/project'));assert(!m.treePathWithin('/project/code.cpp','/project/Code.cpp'));});

@@ -1,5 +1,19 @@
 // Resolve extension editors before the standalone Monaco fallback can consume
 // their text model. Keep URI schemes intact: a virtual document is not a file.
+// Always ask the native layout to reveal a source. Upstream wrapOpenEditor
+// returns any cached standalone editor, even a hidden tab, and ignores Beside.
+// openEditor owns the supplied reference on every path, as the views fallback does.
+export function nativeEditorOpener({textModels,openEditor,applyOptions}){
+ return async(input,optionsOrGroup,group)=>{
+  const preferred=group??(typeof optionsOrGroup==='number'||optionsOrGroup&&'id'in optionsOrGroup?optionsOrGroup:undefined);
+  const options=optionsOrGroup&&typeof optionsOrGroup==='object'&&!('id'in optionsOrGroup)?optionsOrGroup:input.options;
+  const resource=input.resource;if(!resource||!textModels.canHandleResource(resource))return;
+  const reference=await textModels.createModelReference(resource),editor=await openEditor(reference,options,preferred===-2,preferred);
+  if(!editor)return;
+  if(options)applyOptions(options,editor);
+  return{input,getControl:()=>editor,focus:()=>editor.focus(),hasFocus:()=>editor.hasWidgetFocus(),isVisible:()=>true};
+ };
+}
 export function installEditorRouting({editorService,resolver,groups,extensions,showEditor,openWorkbench,openNative,sideGroup=()=>groups.mainPart.sideGroup}) {
  const normalOpen=openNative||editorService.openEditor.bind(editorService);
  const textTypes=new Set(['workbench.editors.resourceEditorInput','workbench.editors.files.fileEditorInput','workbench.editors.untitledEditorInput']);

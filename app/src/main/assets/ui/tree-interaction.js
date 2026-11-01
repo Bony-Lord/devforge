@@ -1,5 +1,7 @@
 'use strict';
 const treeMethods={
+  treePathKey(path){const value=path.replaceAll('\\','/');return window.StudioDesktop?.platform==='win32'?value.toLowerCase():value;},
+  treePathWithin(path,root){const value=this.treePathKey(path),parent=this.treePathKey(root);return value===parent||value.startsWith(parent+'/');},
   initTree(){
     let timer;const schedule=()=>{clearTimeout(timer);if(this.settings.autoRefreshTree===false||document.hidden||!this.state.root)return;timer=setTimeout(()=>{if(this.treeMoving||this.treeRename||this.treeDrag){schedule();return;}this.refreshTree().catch(error=>console.warn('Project tree',error.message));},300);};onNative('treeChanged',event=>{if(event.root===this.state.root)schedule();});window.addEventListener('focus',schedule);document.addEventListener('visibilitychange',schedule);if(!window.StudioDesktop)setInterval(schedule,5000);
     this.treeSelection=this.state.session?.project===this.state.project?this.state.session.treeSelection:null;
@@ -32,11 +34,11 @@ const treeMethods={
   },
   async relocateTreeItem(source,destination,notify=true){
     if(this.treeMoving)return;if(this.running||this.busy||this.debugger?.active)throw Error(tr('Сначала остановите запущенную программу'));const directory=destination.slice(0,destination.lastIndexOf('/'));if(source===destination)return;if(directory===source||directory.startsWith(source+'/'))throw Error(tr('Нельзя переместить папку внутрь самой себя'));
-    this.treeMoving=true;this.updateRunButtons();const affected=[...this.docs.values()].filter(d=>d.path===source||d.path.startsWith(source+'/')),activePath=this.active?.path,position=this.editor.getPosition(),newPath=p=>destination+p.slice(source.length);const reopen=affected.filter(d=>this.tabs.includes(d)).map(d=>newPath(d.path));
+    this.treeMoving=true;this.updateRunButtons();const affected=[...this.docs.values()].filter(d=>this.treePathWithin(d.path,source)),activePath=this.active?.path,position=this.editor.getPosition(),newPath=p=>destination+p.slice(source.length);const reopen=affected.filter(d=>this.tabs.includes(d)).map(d=>newPath(d.path));
     try{await native('editorReadOnly',{paths:affected.map(d=>d.path),readonly:true});await NativeEditing.sync();await this.saveAll();for(const doc of affected){clearTimeout(doc.saveTimer);clearTimeout(doc.syncTimer);}await native('moveProjectItem',{path:source,to:destination});
       // Move breakpoints with every descendant, including files that are not open.
-      for(const[path,points]of [...this.debugger.breakpoints])if(path===source||path.startsWith(source+'/')){this.debugger.breakpoints.delete(path);this.debugger.breakpoints.set(newPath(path),points);}this.settings.breakpoints=Object.fromEntries([...this.debugger.breakpoints].map(([p,m])=>[p,[...m.keys()]]));
-      for(const doc of affected)if(this.tabs.includes(doc))await this.closeTab(doc);for(const path of reopen)await this.openFile(path);if(activePath&&(activePath===source||activePath.startsWith(source+'/')))await this.openFile(newPath(activePath),position);else if(activePath&&this.tabs.some(d=>d.path===activePath))await this.openFile(activePath);
+      for(const[path,points]of [...this.debugger.breakpoints])if(this.treePathWithin(path,source)){this.debugger.breakpoints.delete(path);this.debugger.breakpoints.set(newPath(path),points);}this.settings.breakpoints=Object.fromEntries([...this.debugger.breakpoints].map(([p,m])=>[p,[...m.keys()]]));
+      for(const doc of affected)if(this.tabs.includes(doc))await this.closeTab(doc);for(const path of reopen)await this.openFile(path);if(activePath&&this.treePathWithin(activePath,source))await this.openFile(newPath(activePath),position);else if(activePath&&this.tabs.some(d=>d.path===activePath))await this.openFile(activePath);
       const isDir=this.treeData.some(f=>f.path===source&&f.dir)||affected.some(d=>d.path.startsWith(source+'/'));await this.refreshTree();const find=items=>{for(const f of items){if(f.path===destination)return f;const nested=f.dir&&find(f.children);if(nested)return nested;}return null;};this.selectTreeItem(find(this.treeData)||{path:destination,dir:isDir});await native('settings',this.settings);await this.persistSession();await this.lsp.start();this.debugger.renderBreakpoints();if(notify)this.toast('Перемещено. Проверьте пути в CMake и #include.');
     }finally{await native('editorReadOnly',{paths:affected.filter(d=>!d.readonly).flatMap(d=>[d.path,newPath(d.path)]),readonly:false});this.treeMoving=false;this.updateRunButtons();}
   },

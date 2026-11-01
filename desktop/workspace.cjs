@@ -75,11 +75,12 @@ class Workspace {
   }
   async writable(input){const file=await canonical(path.isAbsolute(input)?input:path.join(this.root,input)),root=await canonical(this.root);if(!inside(file,root)||key(file)===key(root))throw Error('Path outside project');return file;}
   async tree(folder=this.root,depth=0,budget={remaining:12000}){
-    if(depth>16)return[];const entries=await fs.readdir(folder,{withFileTypes:true}),result=[];
+    if(depth>16)return[];const entries=await fs.readdir(folder,{withFileTypes:true}).catch(error=>{if(['ENOENT','ENOTDIR'].includes(error.code))return[];throw error;}),result=[];
     entries.sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name));
     for(const entry of entries){if(budget.remaining--<=0)break;if(entry.isSymbolicLink()||entry.name.startsWith('.studio-write-'))continue;
       const file=portable(path.join(folder,entry.name)),dir=entry.isDirectory();if(!dir&&!entry.isFile())continue;
-      const unloaded=dir&&(['.git','node_modules','.cache','build','.venv','venv','__pycache__','.pytest_cache','.mypy_cache','.ruff_cache'].includes(entry.name)||entry.name.startsWith('cmake-build-'));result.push({name:entry.name,path:file,dir,...dir?{children:unloaded?[]:await this.tree(file,depth+1,budget),unloaded}:{size:(await fs.stat(file)).size}});
+      const stat=!dir?await fs.stat(file).catch(error=>{if(error.code==='ENOENT')return null;throw error;}):null;if(!dir&&!stat)continue;
+      const unloaded=dir&&(['.git','node_modules','.cache','build','.venv','venv','__pycache__','.pytest_cache','.mypy_cache','.ruff_cache'].includes(entry.name)||entry.name.startsWith('cmake-build-'));result.push({name:entry.name,path:file,dir,...dir?{children:unloaded?[]:await this.tree(file,depth+1,budget),unloaded}:{size:stat.size}});
     }return result;
   }
   async read(input,encoding,track=true){

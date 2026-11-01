@@ -7,3 +7,4 @@
 .notebook-source.has-syntax textarea{color:transparent;-webkit-text-fill-color:transparent}.notebook-source.has-syntax textarea::selection{background:#548af74d;color:transparent}
 .notebook-output{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 'JetBrains Mono',monospace;max-height:40dvh;overflow:auto;user-select:text}.notebook-document button{touch-action:manipulation}
 .notebook-document .notebook-toolbar{flex-shrink:0;border-bottom:1px solid var(--line);padding-bottom:5px}.studio-document-host{position:relative!important;height:100%;min-height:0}.editor-area.split-stacked #editor.studio-document-host{height:0}.studio-document-host>.monaco-editor{visibility:hidden}
+.notebook-document .notebook-toolbar>.icon-button{flex:none}.notebook-document .notebook-toolbar>.notebook-run-all{width:max-content;min-width:max-content}

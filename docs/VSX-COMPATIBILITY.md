@@ -1,6 +1,6 @@
-# Code OSS extension runtime — Windows alpha.10
+# Code OSS extension runtime — Windows alpha.11
 
-Windows alpha.10 uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
+Windows uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
 Code OSS services and VSCodium Node Extension Host. Dockview remains DevForge's
 window engine; source files and extension views share its documents and models.
 `studio.vsix` still supplies the removable gallery/import workflow. Existing native
@@ -39,6 +39,41 @@ safe declarative resources and block writes through both file-service and direct
 provider paths. Disabling an extension restarts only the affected upstream host
 kind and removes its commands, diagnostics and providers; native API registrations
 in the local host survive. Project trash/delete releases tasks and terminals first.
+
+## Alpha.11 native source groups and direct filesystem operations
+
+`showTextDocument` reveals cached native source tabs through Dockview as well as
+new ones. Beside retains the left editor, reuses the neighboring group and applies
+the requested selection to the returned editor. With preserveFocus, keyboard focus
+stays in the original editor while the new source is visible beside it. Opening
+an existing hidden source no longer returns its model without revealing the tab.
+
+Direct `workspace.fs.rename` and `workspace.fs.delete` reconcile native tabs,
+breakpoints and encoding/history metadata. Unsaved contents move into the renamed
+document. Failed operations clear pending guards; ordinary WorkspaceEdits retain
+their own participants without duplicated reconciliation or invented file events.
+
+The pinned remote runtime contains one narrowly scoped change: local-file
+`workspace.fs.delete` uses its genuine main-thread filesystem RPC, rather than
+deleting directly inside the Node extension host. This allows native tabs to
+observe the deletion before a watcher misclassifies it as an external conflict.
+Other providers and read fast paths remain upstream-owned. The transform checks
+the full original SHA-256, refuses unknown upstream code and is idempotent.
+Its source is `desktop/compat/server-patches.cjs`; the packaged runtime includes
+`DEVFORGE-PATCHES.json` with exact original/patched hashes and replacement text.
+
+Evidence: `work/vsx-alpha11-20261101`, actual isolated VSIX/Node-host operations,
+source editor groups, preserveFocus, selections, unsaved rename, deletion and
+conflict checks. Multi-root workspace files and universal extension/ABI support
+remain outside the verified scope.
+
+The user's unattended trace also exposed a Windows native-rename failure: drive
+letters in the project root and model URI could differ in case. The explorer
+failed to close the old document, leaving a stale moved-file guard that skipped
+later saves. Rename, batch move and deletion now share Windows path comparisons;
+case-sensitive platforms retain distinct names. The saved 40-action trace was
+replayed before and after the repair against exact disk bytes. Tree refresh also
+tolerates files disappearing during rename/delete enumeration.
 
 ## Alpha.10 native file, save and workspace lifecycle
 
