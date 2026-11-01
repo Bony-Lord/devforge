@@ -14,7 +14,7 @@ export function nativeEditorOpener({textModels,openEditor,applyOptions}){
   return{input,getControl:()=>editor,focus:()=>editor.focus(),hasFocus:()=>editor.hasWidgetFocus(),isVisible:()=>true};
  };
 }
-export function installEditorRouting({editorService,resolver,groups,extensions,showEditor,openWorkbench,openNative,sideGroup=()=>groups.mainPart.sideGroup}) {
+export function installEditorRouting({editorService,resolver,groups,extensions,showEditor,openWorkbench,openNative,columnGroup,sideGroup=()=>groups.mainPart.sideGroup}) {
  const normalOpen=openNative||editorService.openEditor.bind(editorService);
  const textTypes=new Set(['workbench.editors.resourceEditorInput','workbench.editors.files.fileEditorInput','workbench.editors.untitledEditorInput']);
  async function usesWorkbench(input,options) {
@@ -35,7 +35,8 @@ export function installEditorRouting({editorService,resolver,groups,extensions,s
  async function open(input,optionsOrGroup,group) {
   await showEditor();
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  const preferred=group??(typeof optionsOrGroup==='number'?optionsOrGroup:undefined);
+  const column=input.options?.devforgeViewColumn??optionsOrGroup?.devforgeViewColumn;
+  const preferred=column!==undefined&&columnGroup?await columnGroup(column):group??(typeof optionsOrGroup==='number'?optionsOrGroup:undefined);
   const target=preferred===-2?await sideGroup():groups.mainPart.getGroup(preferred?.id??preferred)||groups.mainPart.activeGroup;
   const options=optionsOrGroup&&typeof optionsOrGroup==='object'&&!('openEditor'in optionsOrGroup)?optionsOrGroup:undefined;
   return openWorkbench(input,options,target);

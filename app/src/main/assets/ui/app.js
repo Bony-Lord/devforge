@@ -72,7 +72,7 @@ class ForgeIDE {
     const request=this.documentOpenRequest=(this.documentOpenRequest||0)+1,root=this.state.root;
     await this.addons?.host.ensureFileSupport(path);if(!options.text&&await StudioCodeOSS.openResource(path,selection))return this.active;const model=await this.ensureModel(path),doc=this.docs.get(model.uri.toString());if(request!==this.documentOpenRequest||root!==this.state.root||!doc||model.isDisposed())return doc;if(!doc.virtual)this.lastSourcePath=doc.path;if(!this.tabs.includes(doc))this.tabs.push(doc);
     if(this.active)this.active.viewState=this.editor.saveViewState();
-    if(this.windows)this.editor=this.windows.openDocument(doc);
+    if(this.windows)this.editor=this.windows.openDocument(doc,false,options.editorGroup);
     this.active=doc;if(!doc.virtual)this.lastSourcePath=doc.path;this.editor.setModel(model);this.editor.updateOptions({readOnly:doc.readonly});
     if(doc.viewState)this.editor.restoreViewState(doc.viewState);if(selection){if(selection.startLineNumber){this.editor.setSelection(selection);this.editor.revealRangeInCenter(selection);}else{this.editor.setPosition(selection);this.editor.revealPositionInCenter(selection);}}
     if(this.startupComplete&&['c','cpp'].includes(model.getLanguageId())&&this.addons.host.enabled('clangd')&&!this.lsp.ready&&!this.lsp.openStarting){this.lsp.openStarting=true;this.lsp.start().finally(()=>{this.lsp.openStarting=false;}).catch(safeError);}

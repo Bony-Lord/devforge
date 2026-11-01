@@ -5,6 +5,7 @@ const StudioCodeOSS={
  api:null,entries:new Map(),nativeApis:new Map(),changes:Promise.resolve(),themes:new Map(),themeWork:Promise.resolve(),
  async prepare(state){
   if(!state.capabilities?.codeoss)return false;
+  globalThis.devforgeEditorColumn=editor=>window.forge?.windows?.sourceColumn(editor);
   window.codeossProgress='agent';const info=await native('codeossInfo'),root=document.createElement('div');root.id='studio-codeoss-services';root.style.cssText='position:fixed;inset:0;overflow:hidden;pointer-events:none;background:transparent;z-index:1800';document.body.append(root);this.root=root;
   const assets=await(await fetch('vendor/codeoss/.vite/manifest.json')).json(),entry=Object.values(assets).find(e=>e.isEntry&&e.file==='codeoss.js');await Promise.all((entry.css||[assets['style.css'].file]).map(file=>new Promise((resolve,reject)=>{const css=document.createElement('link');css.rel='stylesheet';css.href='vendor/codeoss/'+file;css.onload=resolve;css.onerror=()=>reject(Error('Code OSS stylesheet failed to load'));document.head.append(css);})));
   if(state.settings.language==='ru')await import('./vendor/codeoss/ru.js');
@@ -24,17 +25,19 @@ const StudioCodeOSS={
  async openSource(reference,options={},side=false,preferredGroup){
   try{
    const ide=window.forge;if(!ide)return;const path=this.localURI(reference.object.textEditorModel.uri).fsPath.replaceAll('\\','/'),windows=ide.windows,previousEditor=ide.editor,previousDoc=ide.active,previousPanel=windows?.api.activePanel,sourcePanel=windows?.editorPanel(StudioDocumentViews.pane(previousEditor)?.id),focused=document.activeElement;
-   const groupService=await this.api.getService(this.api.IEditorGroupsService),requested=preferredGroup===-1||preferredGroup===-2?null:typeof preferredGroup==='number'?groupService.getGroup(preferredGroup):preferredGroup;
+   const groupService=await this.api.getService(this.api.IEditorGroupsService),column=options?.devforgeViewColumn,requested=preferredGroup===-1||preferredGroup===-2?null:typeof preferredGroup==='number'?groupService.getGroup(preferredGroup):preferredGroup;
+   side=side||column===-2;
    // Find a visible neighboring native group before activating the new tab.
-   let neighbor;if(side&&sourcePanel){const source=sourcePanel.group.element.getBoundingClientRect();neighbor=windows.api.groups.filter(group=>group!==sourcePanel.group&&group.panels.some(panel=>windows.isCode(panel.id))).map(group=>({group,box:group.element.getBoundingClientRect()})).filter(({box})=>box.left>=source.right-8&&box.bottom>source.top&&box.top<source.bottom).sort((a,b)=>a.box.left-b.box.left)[0]?.group;}
-   await ide.openFile(path,options?.selection,{text:true,preserveFocus:!!options?.preserveFocus});let editor=ide.editor,doc=ide.active;
+   let neighbor;if(side&&sourcePanel){const source=sourcePanel.group.element.getBoundingClientRect();neighbor=windows.sourceGroups().filter(group=>group!==sourcePanel.group).map(group=>({group,box:group.element.getBoundingClientRect()})).filter(({box})=>box.left>=source.right-8&&box.bottom>source.top&&box.top<source.bottom).sort((a,b)=>a.box.left-b.box.left)[0]?.group;if(!neighbor)neighbor=windows.api.addGroup({referenceGroup:sourcePanel.group,direction:'right',skipSetActive:true});}
+   const destination=windows&&(column>=0?windows.sourceGroup(column):column===-1?sourcePanel?.group:side?neighbor:requested?.editor?windows.editorPanel(StudioDocumentViews.pane(requested.editor)?.id)?.group:undefined);
+   await ide.openFile(path,options?.selection,{text:true,preserveFocus:!!options?.preserveFocus,editorGroup:destination});let editor=ide.editor,doc=ide.active;
    if(windows&&side&&sourcePanel){
     let target=windows.editorPanel(StudioDocumentViews.pane(editor)?.id);
     if(target===sourcePanel){editor=windows.openDocument(doc,true);editor.setModel(doc.model);editor.updateOptions({readOnly:doc.readonly});target=windows.editorPanel(StudioDocumentViews.pane(editor)?.id);}
     if(target.group!==neighbor)target.api.moveTo({group:neighbor||sourcePanel.group,position:neighbor?'center':'right'});
     target.api.setActive();ide.editor=editor;ide.active=doc;
    }else if(windows&&requested?.editor){const target=windows.editorPanel(StudioDocumentViews.pane(editor)?.id),destination=windows.editorPanel(StudioDocumentViews.pane(requested.editor)?.id);if(target&&destination&&target.group!==destination.group)target.api.moveTo({group:destination.group,position:'center'});}
-   if(options?.preserveFocus){if(side&&previousPanel){previousPanel.api.setActive();ide.editor=previousEditor;ide.active=previousDoc;}if(focused?.isConnected)focused.focus({preventScroll:true});}
+   if(options?.preserveFocus){if((side||destination)&&previousPanel){previousPanel.api.setActive();ide.editor=previousEditor;ide.active=previousDoc;}if(focused?.isConnected)focused.focus({preventScroll:true});}
    else editor.focus();
    await new Promise(resolve=>requestAnimationFrame(resolve));globalThis.dispatchEvent(new Event('devforge:editor-visibility-changed'));return editor;
   }finally{reference.dispose();}

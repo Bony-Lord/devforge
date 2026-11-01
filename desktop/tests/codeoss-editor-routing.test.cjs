@@ -31,6 +31,18 @@ test('engine validation checks the client API rather than the newer Node server'
  assert.equal(assertCompatible({publisher:'fixture',name:'supported',engines:{vscode:'^1.100.0'}}).engineCompatible,true);
  assert.throws(()=>assertCompatible({publisher:'fixture',name:'newer',engines:{vscode:'^1.143.0'}}),/VSX_ENGINE_INCOMPATIBLE.*1\.143\.0.*1\.142\.0/);
 });
+
+test('explicit columns allocate groups only after deciding the actual editor owner',async t=>{
+ const {installEditorRouting}=await import('../compat/editor-routing.js'),frame=global.requestAnimationFrame;
+ global.requestAnimationFrame=fn=>setImmediate(fn);t.after(()=>{global.requestAnimationFrame=frame;});
+ const calls=[],main={id:10},second={id:20},service={};
+ installEditorRouting({editorService:service,resolver:{getEditorMatches:()=>({hasExclusiveMatch:false})},extensions:{whenInstalledExtensionsRegistered:async()=>{}},groups:{mainPart:{activeGroup:main,getGroup:id=>id===20?second:undefined}},showEditor:async()=>{},columnGroup:async index=>{calls.push(['allocate',index]);return 20;},openWorkbench:async(input,options,group)=>{calls.push(['workbench',group]);},openNative:async input=>{calls.push(['native',input.options.devforgeViewColumn]);}});
+ await service.openEditor({resource:{scheme:'file',path:'/source.cpp'},options:{devforgeViewColumn:8,override:1}});
+ assert.deepEqual(calls,[['native',8]]);
+ calls.length=0;
+ await service.openEditor({resource:{scheme:'fixture-memory',path:'/virtual.cpp'},options:{devforgeViewColumn:1}});
+ assert.deepEqual(calls,[['allocate',1],['workbench',second]]);
+});
 test('native source opening always reveals through the layout even when the model is cached',async()=>{const {nativeEditorOpener}=await import('../compat/editor-routing.js'),calls=[],resource={scheme:'vscode-remote',path:'/source.cpp'},model={},editor={getModel:()=>model,focus(){},hasWidgetFocus:()=>false},ref={object:{textEditorModel:model}},options={preserveFocus:true,selection:{startLineNumber:2,startColumn:4}};const open=nativeEditorOpener({textModels:{canHandleResource:()=>true,createModelReference:async uri=>{assert.equal(uri,resource);return ref;}},openEditor:async(reference,value,side,group)=>{calls.push({reference,value,side,group});return editor;},applyOptions:(value,target)=>{assert.equal(value,options);assert.equal(target,editor);}});for(let n=0;n<2;n++){const pane=await open({resource,options},-2);assert.equal(pane.getControl(),editor);assert.equal(calls.at(-1).side,true);assert.equal(calls.at(-1).group,-2);}assert.equal(calls.length,2);await open({resource,options},{id:-4,editor});assert.equal(calls.at(-1).group.id,-4);});
 test('bundle activation rejects a newer engine even when stored compatibility metadata is stale',async t=>{
  const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),{VSCodeRuntime}=require('../vscode-runtime.cjs');
