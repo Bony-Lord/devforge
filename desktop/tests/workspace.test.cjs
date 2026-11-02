@@ -1,5 +1,13 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {Workspace,encode,decode,templates,inside}=require('../workspace.cjs');
+test('atomic profile writes tolerate temporary Windows locks and preserve the old file on failure',async t=>{
+  const {atomic}=require('../workspace.cjs'),dir=await fs.mkdtemp(path.join(os.tmpdir(),'cpp-studio-atomic-')),file=path.join(dir,'addons.json'),rename=fs.rename;
+  t.after(async()=>{fs.rename=rename;await fs.rm(dir,{recursive:true,force:true});});await fs.writeFile(file,'old');let attempts=0;
+  fs.rename=async(...args)=>{if(args[1]===file&&attempts++<2){assert.equal(await fs.readFile(file,'utf8'),'old');throw Object.assign(Error('locked'),{code:'EPERM'});}return rename(...args);};
+  await atomic(file,'new');assert.equal(attempts,3);assert.equal(await fs.readFile(file,'utf8'),'new');assert.deepEqual(await fs.readdir(dir),['addons.json']);
+  fs.rename=async(...args)=>{if(args[1]===file)throw Object.assign(Error('denied'),{code:'EPERM'});return rename(...args);};
+  await assert.rejects(atomic(file,'lost'),{code:'EPERM'});assert.equal(await fs.readFile(file,'utf8'),'new');assert.deepEqual(await fs.readdir(dir),['addons.json']);
+});
 async function fixture(t){const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cpp-studio-workspace-'));t.after(()=>fs.rm(dir,{recursive:true,force:true}));const ws=await new Workspace(dir).init();await ws.newProject('fixture');return ws;}
 test('lossless encodings preserve BOM, Cyrillic and reject destructive conversions',()=>{
   for(const encoding of ['UTF-8','UTF-8-BOM','UTF-16LE','UTF-16BE','windows-1251','KOI8-R']){const bytes=encode('Привет, C++\r\n',encoding,encoding.startsWith('UTF-16'));const decoded=decode(bytes,encoding);assert.equal(decoded.text,'Привет, C++\r\n');assert.deepEqual(encode(decoded.text,encoding,decoded.bom),bytes);}

@@ -52,4 +52,18 @@ button.primary,.studio-mini-form button.primary{background:#456884;color:#fff;bo
 @media(max-width:1179px){.studio-header .project-switch{flex-basis:140px;max-width:170px}.studio-header .studio-run-selectors .studio-select{max-width:96px}}
 .tree-row.tree-hidden{background:color-mix(in srgb,var(--yellow) 7%,transparent)}.tree-row.tree-hidden:hover{background:color-mix(in srgb,var(--yellow) 12%,transparent)}.tree-row.tree-hidden.selected{background:color-mix(in srgb,var(--yellow) 17%,var(--bg))}.tree-row.tree-hidden :is(.tree-label,.file-icon,svg){color:#c4beaf}.tree-row.tree-hidden .tree-label{opacity:1}.notebook-output[data-source=Runtime]:before{content:'[Runtime]';display:block;color:var(--red);font:11px Inter,sans-serif;margin-bottom:7px}
 .market-sidebar .market-filters{align-items:stretch;flex-wrap:nowrap}.market-sidebar .market-filters>input{flex:0 0 30px;min-height:30px;max-height:30px}.market-filter-options select{flex:1 1 0}
+/* Adapt to the docked panel, including short groups created by splitting. */
+#addonsDialog{container-type:inline-size}
+#addonsDialog.marketplace-mode>.dialog-heading{min-width:0;gap:6px}
+#addonsDialog.marketplace-mode>.dialog-heading h2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#addonsDialog.marketplace-mode>.dialog-heading .close-button{flex:0 0 25px;min-width:25px}
+#addonsDialog.marketplace-mode>.addon-toolbar{flex:0 1 auto;min-height:30px;max-height:38%;overflow:auto}
+#addonsDialog.marketplace-mode>.addon-toolbar button{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.market-sidebar{overflow:auto}.market-results{min-height:96px}
+.market-filters button,.market-filters select,.market-filters input{min-width:0;max-width:100%}
+.studio-codeoss-view .pane-header>.title{min-width:0;flex:1 1 0}
+.studio-codeoss-view .pane-header>.actions{flex:0 0 auto;max-width:100%;overflow-x:auto}
+.activitybar .studio-vsx-activity .codicon{font-size:21px;line-height:24px}.activitybar .studio-vsx-activity img{width:22px;height:22px;object-fit:contain}.studio-codeoss-view{overflow:hidden}
+.studio-codeoss-view>.part.sidebar{display:block!important;position:relative!important;inset:auto!important;max-width:100%;min-width:0;flex:1 1 0;box-shadow:none}
+@container(max-width:650px){.studio-marketplace{grid-template-columns:minmax(0,1fr)}.market-detail-host{display:none;padding:14px}.market-detail-open>.market-sidebar{display:none}.market-detail-open>.market-detail-host{display:block}}
 .studio-resource-settings>label.resource-gpu{flex-direction:row;align-items:center;justify-content:space-between}.studio-resource-settings .resource-gpu>select{height:31px;text-align:left;max-width:270px}.studio-desktop .tree-drag-handle{display:none!important}

@@ -54,7 +54,12 @@
     break;
    }
    case 'vsx-update-roundtrip':await install(action.phase);await wait(async()=>{const result=await api().execute('df.vsx.probe');globalThis.__vsxObservation={expectedVersion:fixture.packages[action.phase].manifest.version,actualVersion:result.version,phase:action.phase};return result.version===fixture.packages[action.phase].manifest.version;},'wrong extension version after switching versions');break;
-   case 'vsx-sidebar':await enable();await api().execute('df.vsx.tree.focus');await wait(()=>ide().windows.contents.get('extensionViews')?.textContent.includes('VSX Finder tree ready'),'VSX tree in sidebar');break;
+   case 'vsx-sidebar':{
+    await enable();const button=await (async()=>{await wait(()=>document.querySelector('.activitybar [data-vsx-container="workbench.view.extension.df-vsx"]'),'VSX container in native rail');return document.querySelector('.activitybar [data-vsx-container="workbench.view.extension.df-vsx"]');})();button.click();
+    await wait(()=>ide().windows.contents.get('extensionViews')?.textContent.includes('VSX Finder tree ready'),'VSX tree in sidebar');const content=ide().windows.contents.get('extensionViews');assert(!content.querySelector('[id="workbench.parts.activitybar"]'),'VSX sidebar duplicated the activity rail');
+    const panel=ide().windows.panel('extensionViews'),width=panel.group.element.clientWidth;for(const size of [180,380,width]){ide().windows.setGroupSize(panel.group,{width:size});await frame();await frame();const part=content.querySelector('[id="workbench.parts.sidebar"]'),box=part?.getBoundingClientRect(),available=content.getBoundingClientRect();assert(box&&box.width<=available.width+2,'VSX sidebar keeps a stale/minimum width after dock resize: '+box?.width+'/'+available.width);}
+    break;
+   }
    case 'vsx-context-menu':{
     model=await openSample();ide().fileMenu({path:ide().active.path},300,200);await frame();const button=[...document.querySelectorAll('#menu button')].find(b=>b.textContent.includes('VSX Finder Inspect'));assert(button,'VSX explorer/context command is absent');button.click();break;
    }

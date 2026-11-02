@@ -26,7 +26,7 @@ class StudioNotebookCellInput {
       else if(event.key==='Enter'&&(event.shiftKey||ctrl)){event.preventDefault();event.stopPropagation();if(this.record.cell.cell_type==='code')this.view.run(this.record.cell,event.shiftKey).catch(error=>this.view.status.textContent=error.message);}
     });
     input.addEventListener('pointerdown',()=>{this.history.group=null;});
-    this.sync();StudioMarkdown.attach(this);this.sizeObserver=new ResizeObserver(()=>{if(!this.disposed){this.measure();this.scroll();}});this.sizeObserver.observe(this.element);
+    this.sync();StudioMarkdown.attach(this);this.sizeObserver=new ResizeObserver(()=>{if(!this.disposed&&this.sizeFrame==null)this.sizeFrame=requestAnimationFrame(()=>{this.sizeFrame=null;if(!this.disposed){this.measure();this.scroll();}});});this.sizeObserver.observe(this.element);
   }
   snapshot(){return{text:this.input.value,start:this.input.selectionStart,end:this.input.selectionEnd};}
   language(){return this.record.cell.cell_type==='code'?'python':this.record.cell.cell_type==='markdown'?'markdown':'plaintext';}

@@ -159,7 +159,7 @@
     "manifest": {
       "schemaVersion": 1,
       "id": "studio.vsix",
-      "version": "1.0.7",
+      "version": "1.0.8",
       "api": {
         "min": "0.1.2",
         "maxExclusive": "0.2.0"

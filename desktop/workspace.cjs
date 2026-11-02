@@ -12,7 +12,7 @@ async function canonical(p){
 }
 async function atomic(p,data){
   await fs.mkdir(path.dirname(p),{recursive:true});const temp=path.join(path.dirname(p),'.studio-write-'+crypto.randomUUID());
-  try{await fs.writeFile(temp,data,{flag:'wx'});await fs.rename(temp,p);}finally{await fs.rm(temp,{force:true});}
+  try{await fs.writeFile(temp,data,{flag:'wx'});for(let attempt=0;;attempt++){try{await fs.rename(temp,p);break;}catch(error){if(!['EPERM','EACCES','EBUSY'].includes(error.code)||attempt>=6)throw error;await new Promise(resolve=>setTimeout(resolve,25*(attempt+1)));}}}finally{await fs.rm(temp,{force:true});}
 }
 const encodingMap={'UTF-8':'utf8','UTF-8-BOM':'utf8','UTF-16LE':'utf16-le','UTF-16BE':'utf16-be','windows-1251':'win1251','KOI8-R':'koi8-r','ISO-8859-1':'latin1','US-ASCII':'ascii','Shift_JIS':'shift_jis'};
 function decode(bytes,requested='auto'){

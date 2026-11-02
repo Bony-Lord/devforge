@@ -21,7 +21,7 @@
  const app=()=>need(window.forge,'window.forge'),nativeCall=(op,args)=>need(window.native,'native bridge')(op,args);
  const visible=node=>{if(!node?.isConnected||!node.checkVisibility({visibilityProperty:true,contentVisibilityAuto:true}))return false;const r=node.getBoundingClientRect();return r.width>1&&r.height>1;};
  const label=node=>(node.getAttribute('aria-label')||node.title||node.textContent||'').trim().replace(/\s+/g,' ');
- function target(name){const binding=need(bindings[name],'target '+name);let node;if(binding.names)node=[...document.querySelectorAll('button,[role=button],input')].find(n=>visible(n)&&binding.names.test(label(n)));node||=[...document.querySelectorAll(binding.fallback||':not(*)')].find(visible);return need(node,name);}
+ function target(name){const binding=need(bindings[name],'target '+name);let node=[...document.querySelectorAll(binding.fallback||':not(*)')].find(visible);if(!node&&binding.names)node=[...document.querySelectorAll('button,[role=button],input')].find(n=>visible(n)&&binding.names.test(label(n)));return need(node,name);}
  const point=node=>{const r=node.getBoundingClientRect();return{x:Math.max(1,Math.min(innerWidth-1,r.x+r.width/2)),y:Math.max(1,Math.min(innerHeight-1,r.y+r.height/2))};};
  async function settle(){await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));}
  function own(relative){if(typeof relative!=='string'||relative.startsWith('/')||relative.includes('..')||relative.includes('\\')||relative.includes(':'))throw Error('Unsafe scenario path');const root=app().state.root;if(!root||!window.__soakExpectedRoots?.includes(root.toLowerCase()))throw Error('Scenario escaped its synthetic project');return root+'/'+relative;}
