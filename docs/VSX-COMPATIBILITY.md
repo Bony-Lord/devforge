@@ -1,4 +1,4 @@
-# Code OSS extension runtime — Windows alpha.11
+# Code OSS extension runtime — Windows alpha.14
 
 Windows uses this runtime by default (`--legacy-editor` is a diagnostic fallback). It replaces the handwritten VS Code API subset with the actual
 Code OSS services and VSCodium Node Extension Host. Dockview remains DevForge's
@@ -266,3 +266,9 @@ with an isolated profile. The real Amerey markdown-snippets 1.0.11 archive was
 downloaded from Open VSX, checksum-verified, and inspected (34 snippets and icon).
 That public declarative check is not evidence that arbitrary executable extensions
 work. No native-preview or cross-platform parity is claimed.
+
+
+IDE packs, preserved native integrations and VSX dependencies for ordinary addons
+are described in [IDE-PACKS.md](IDE-PACKS.md). `desktop/gallery-regressions.cjs`
+checks actual renderer/Node dependency activation, gallery recovery and IDE pack
+layout; `--offline` omits public registry access.

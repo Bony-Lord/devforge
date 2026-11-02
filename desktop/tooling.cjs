@@ -125,8 +125,8 @@ class Tooling {
   terminate(child){if(!child||child.exitCode!==null)return;child.studioStopped=true;if(isWindows){const killer=launch(path.join(process.env.SystemRoot||'C:/Windows','System32/taskkill.exe'),['/pid',String(child.pid),'/t','/f']);killer.on('error',()=>child.kill());killer.stdout.resume();killer.stderr.resume();}
     else {try{process.kill(-child.pid,'SIGTERM');}catch{child.kill();}const timer=setTimeout(()=>{try{process.kill(-child.pid,'SIGKILL');}catch{child.kill('SIGKILL');}},600);timer.unref();}}
   async stop(){this.cancelled=true;this.dap?.stop();await this.stopDebug();this.terminate(this.execution);this.terminate(this.building);}
-  async startLsp(options){
-    this.stopLsp();await fs.mkdir(this.ws.cache,{recursive:true});const db=path.join(this.ws.cache,'compile_commands.json'),cmakeDb=path.join(await this.cmakeDir(options),'compile_commands.json');
+  async prepareAnalysis(options){
+    await fs.mkdir(this.ws.cache,{recursive:true});const db=path.join(this.ws.cache,'compile_commands.json'),cmakeDb=path.join(await this.cmakeDir(options),'compile_commands.json');
     if(options.buildMode==='cmake'&&await exists(cmakeDb))await fs.copyFile(cmakeDb,db);else await atomic(db,JSON.stringify((await this.sources()).map(file=>({directory:this.ws.root,file,arguments:[this.compiler(options,file.endsWith('.c')),...this.flags(options,file.endsWith('.c'),true),'-c',file]})),null,2));
     // Some IDE distributions ship only clangd.exe, without LLVM resource headers.
     // Keep complete clangd packages unchanged; use the selected compiler's fallback
@@ -134,6 +134,10 @@ class Tooling {
     const resourceRoot=path.resolve(path.dirname(this.tool('clangd')),'../lib/clang'),versions=await fs.readdir(resourceRoot).catch(()=>[]);let resources=false;for(const version of versions)if(await exists(path.join(resourceRoot,version,'include/stddef.h')))resources=true;
     if(!resources){const entries=JSON.parse(await fs.readFile(db,'utf8')),headers=new Map();for(const entry of entries){const c=entry.file.endsWith('.c'),compiler=this.compiler(options,c);if(!headers.has(compiler)){const result=await capture(compiler,['-E','-x',c?'c':'c++','-v','-'],{cwd:this.ws.root,env:this.env(),timeout:5000}),block=result.error.split('#include <...> search starts here:')[1]?.split('End of search list.')[0]||'',paths=[];for(const line of block.split(/\r?\n/)){const include=line.trim().replace(/ \(framework directory\)$/,'');if(path.isAbsolute(include)&&await exists(include))paths.push(portable(include));}headers.set(compiler,paths);}for(const include of headers.get(compiler)){if(entry.arguments)entry.arguments.push('-isystem',include);else if(entry.command)entry.command+=' -isystem '+quoteFlag(include);}}await atomic(db,JSON.stringify(entries,null,2));}
     const args=['--background-index','--background-index-priority=low','-j=2','--clang-tidy='+!!options.clangTidy,'--limit-results=100','--completion-style=detailed','--header-insertion=iwyu','--pch-storage=memory','--log=error','--compile-commands-dir='+portable(this.ws.cache),'--query-driver='+[this.tools.gcc,this.tools.gxx,this.tools.clang,this.tools.clangxx].filter(Boolean).join(',')];
+    return{args,directory:portable(this.ws.cache)};
+  }
+  async startLsp(options){
+    this.stopLsp();const {args}=await this.prepareAnalysis(options);
     const child=this.track(launch(this.tool('clangd'),args,{cwd:this.ws.root,env:this.env()}));this.lsp=child;const frames=new LspFrames(m=>{if(this.lsp===child)this.event('lsp',m);});
     child.stdout.on('data',chunk=>{try{frames.feed(chunk);}catch(e){child.kill();this.event('lspLog',e.message);}});child.stderr.on('data',b=>this.event('lspLog',b.toString().slice(0,16000)));child.stdin.on('error',()=>{});
     child.once('close',()=>{if(this.lsp===child){this.lsp=null;this.event('lspExit',{error:'clangd stopped'});}});await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});return{root:this.ws.root};

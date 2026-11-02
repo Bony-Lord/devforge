@@ -1,19 +1,20 @@
 'use strict';
 const fs=require('node:fs/promises'),path=require('node:path'),crypto=require('node:crypto');
 const {atomic,exists}=require('./workspace.cjs');
-const packages=require(require('./assets.cjs').ui+'/addon-packages.js');
+const packages=require(require('./assets.cjs').ui+'/addon-packages.js'),replacements=require(require('./assets.cjs').ui+'/addon-replacements.js');
 class AddonLibrary {
   constructor(host){this.host=host;this.file=path.join(host.ws.data,'addons.json');this.queue=Promise.resolve();}
   async init(){
     this.data={schemaVersion:1,revision:0,packages:[],profile:{schemaVersion:1,modulesVersion:0,requested:[],safeMode:false,activating:false,resolved:[]}};
     if(await exists(this.file))try{this.data=JSON.parse(await fs.readFile(this.file,'utf8'));}catch{this.data=JSON.parse(await fs.readFile(this.file+'.previous','utf8'));this.recovered=true;}
     if(this.data.pending){this.data=this.data.pending.before;this.recovered=true;await this.save();}
+    if(process.platform==='win32'){this.data.packages=this.data.packages.filter(e=>!replacements.retired.has(e.package.manifest.id));for(const key of ['requested','defaultRequested'])if(this.data.profile[key])this.data.profile[key]=replacements.migrate(this.data.profile[key],require(require('./assets.cjs').ui+'/addons/modules.json').map(d=>d.manifest),this.data.packages);this.data.profile.resolved=(this.data.profile.resolved||[]).filter(id=>!replacements.retired.has(id));}
     const support=this.catalog().find(p=>p.manifest.id==='studio.vsix');let upgraded=false,hasSupport=false;this.data.packages=this.data.packages.filter(e=>{if(e.source!=='bundled-catalog'||e.package.manifest.id!=='studio.vsix')return true;if(hasSupport){upgraded=true;return false;}hasSupport=true;if(e.package.manifest.version!==support.manifest.version){e.package=support;upgraded=true;}return true;});if(upgraded){for(const key of ['requested','defaultRequested'])for(const r of this.data.profile[key]||[])if(r.id==='studio.vsix')r.version=support.manifest.version;await this.save();}
-    if(!Array.isArray(this.data.builtins)){this.data.builtins=[...this.builtinIndex().keys()];await this.save();}this.data.builtins=this.data.builtins.filter(key=>!key.startsWith('studio.window-manager@')||process.platform!=='win32');await this.syncBuiltins();if(process.platform==='win32')await fs.unlink(path.join(this.host.ws.data,'builtin-addons','studio.window-manager@1.0.0.json')).catch(e=>{if(e.code!=='ENOENT')throw e;});return this;
+    if(!Array.isArray(this.data.builtins)){this.data.builtins=[...this.builtinIndex().keys()];await this.save();}this.data.builtins=this.data.builtins.filter(key=>process.platform!=='win32'||!key.startsWith('studio.window-manager@')&&!replacements.retired.has(key.split('@')[0]));await this.syncBuiltins();if(process.platform==='win32'){const folder=path.join(this.host.ws.data,'builtin-addons');for(const key of await fs.readdir(folder))if(/^[a-z0-9.-]+@[0-9][a-zA-Z0-9.+-]*\.json$/.test(key)&&replacements.retired.has(key.split('@')[0]))await fs.unlink(path.join(folder,key));await this.save();}if(process.platform==='win32')await fs.unlink(path.join(this.host.ws.data,'builtin-addons','studio.window-manager@1.0.0.json')).catch(e=>{if(e.code!=='ENOENT')throw e;});return this;
   }
-  builtinIndex(){const definitions=require(require('./assets.cjs').ui+'/addons/modules.json'),tools=require(require('./assets.cjs').assets+'/tool-packs.json').packs,index=new Map(definitions.filter(d=>process.platform!=='win32'||d.manifest.id!=='studio.window-manager').map(d=>[d.manifest.id+'@'+d.manifest.version,d]));for(const id of ['studio.navigation','studio.contrast',...tools.map(p=>'studio.tool.'+p.id)])index.set(id+'@1.0.0',{manifest:{id,version:'1.0.0'},adapter:true});return index;}
+  builtinIndex(){const definitions=require(require('./assets.cjs').ui+'/addons/modules.json'),tools=require(require('./assets.cjs').assets+'/tool-packs.json').packs,index=new Map(definitions.filter(d=>process.platform!=='win32'||d.manifest.id!=='studio.window-manager'&&!replacements.retired.has(d.manifest.id)).map(d=>[d.manifest.id+'@'+d.manifest.version,d]));for(const id of ['studio.navigation','studio.contrast',...tools.map(p=>'studio.tool.'+p.id)])index.set(id+'@1.0.0',{manifest:{id,version:'1.0.0'},adapter:true});return index;}
   async syncBuiltins(){const index=this.builtinIndex(),folder=path.join(this.host.ws.data,'builtin-addons');await fs.mkdir(folder,{recursive:true});if((await fs.lstat(folder)).isSymbolicLink())throw Error('Builtin addon storage cannot be a link');for(const[key,value]of index){const file=path.join(folder,key+'.json');if(this.data.builtins.includes(key)){const text=JSON.stringify(value);if(!await exists(file)||await fs.readFile(file,'utf8')!==text)await atomic(file,text);}else await fs.unlink(file).catch(error=>{if(error.code!=='ENOENT')throw error;});}}
-  catalog(){return require(require('./assets.cjs').ui+'/addons/catalog.json');}
+  catalog(){return require(require('./assets.cjs').ui+'/addons/catalog.json').filter(p=>process.platform!=='win32'||!replacements.retired.has(p.manifest.id));}
   state(){return{...structuredClone(this.data),pending:!!this.data.pending,recovered:!!this.recovered};}
   enabled(id){return (this.data.profile.resolved||[]).includes(id);}
   async save(){if(await exists(this.file))await atomic(this.file+'.previous',await fs.readFile(this.file));await atomic(this.file,JSON.stringify(this.data,null,2));}
@@ -31,6 +32,6 @@ class AddonLibrary {
     if(op==='addonFinish'){if(this.data.pending?.token!==d.token)throw Error('Stale addon transaction');if(!d.commit)this.data=this.data.pending.before;delete this.data.pending;this.data.revision++;await this.save();return this.state();}
     throw Error('Unsupported addon operation: '+op);
   });}
-  profile(value){if(!value||!Array.isArray(value.requested)||value.requested.length>128||!Array.isArray(value.resolved)||value.resolved.some(x=>typeof x!=='string'))throw Error('Invalid addon profile');}
+  profile(value){if(!value||!Array.isArray(value.requested)||value.requested.length>128||!Array.isArray(value.resolved)||value.resolved.some(x=>typeof x!=='string')||value.activatingResolved!==undefined&&(!Array.isArray(value.activatingResolved)||value.activatingResolved.length>512||value.activatingResolved.some(x=>typeof x!=='string')))throw Error('Invalid addon profile');}
 }
 module.exports={AddonLibrary};

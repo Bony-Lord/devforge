@@ -778,5 +778,35 @@
       "ru": "Учитывает несколько строк комментариев сразу после объявления или в начале тела функции, а также комментарии перед объявлением и docstring Python. Работает с локальными открытыми файлами; отключение убирает дополнительные подсказки и описания.",
       "en": "Reads consecutive comments immediately after declarations or at the start of function bodies, preceding line comments, and Python docstrings. Uses local open documents; disabling removes the extra hover provider and outline descriptions."
     }
+  },
+  "studio.tool.notebook-intelligence": {
+    "summary": {
+      "ru": "Вспомогательные инструменты редактора ячеек notebook. Скачиваются отдельно при выборе помощи для ячеек.",
+      "en": "Supporting tools for the DevForge notebook cell editor. Downloaded when notebook cell assistance is selected."
+    },
+    "details": {
+      "ru": "Вспомогательные инструменты редактора ячеек notebook. Скачиваются отдельно при выборе помощи для ячеек. Отдельный компонент для встроенного редактора ноутбуков, независимо от расширений обычных файлов.",
+      "en": "Supporting tools for the DevForge notebook cell editor. Downloaded when notebook cell assistance is selected. A separate integration for the built-in notebook editor, independent of ordinary-file extensions."
+    }
+  },
+  "studio.tool.notebook-style": {
+    "summary": {
+      "ru": "Вспомогательные инструменты редактора ячеек notebook. Скачиваются отдельно при выборе помощи для ячеек.",
+      "en": "Supporting tools for the DevForge notebook cell editor. Downloaded when notebook cell assistance is selected."
+    },
+    "details": {
+      "ru": "Вспомогательные инструменты редактора ячеек notebook. Скачиваются отдельно при выборе помощи для ячеек. Отдельный компонент для встроенного редактора ноутбуков, независимо от расширений обычных файлов.",
+      "en": "Supporting tools for the DevForge notebook cell editor. Downloaded when notebook cell assistance is selected. A separate integration for the built-in notebook editor, independent of ordinary-file extensions."
+    }
+  },
+  "studio.notebook-assistance": {
+    "summary": {
+      "ru": "Подсказки, документация, PEP 8 и форматирование в ячейках редактора DevForge. Инструменты устанавливаются автоматически.",
+      "en": "Completion, documentation, PEP 8 and formatting in DevForge notebook cells. Supporting tools are installed automatically."
+    },
+    "details": {
+      "ru": "Подсказки, документация, PEP 8 и форматирование в ячейках редактора DevForge. Инструменты устанавливаются автоматически. Отдельный компонент для встроенного редактора ноутбуков, независимо от расширений обычных файлов.",
+      "en": "Completion, documentation, PEP 8 and formatting in DevForge notebook cells. Supporting tools are installed automatically. A separate integration for the built-in notebook editor, independent of ordinary-file extensions."
+    }
   }
 }

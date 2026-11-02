@@ -10,7 +10,7 @@ class StudioPythonIntelligence {
     document.addEventListener('scroll',e=>{const popup=this.popup;if(popup&&!popup.element.contains(e.target)&&(e.target===document||e.target.contains?.(popup.source?.input)))this.hide();},true);window.addEventListener('resize',()=>this.hide());
   }
   t(ru,en){return this.ide.settings.language==='ru'?ru:en;}
-  enabled(){return this.ide.addons.host.enabled('pythonIntelligence')&&this.ide.addons.host.intelligenceState?.installed&&this.ide.state.trust?.trusted;}
+  enabled(){const feature=globalThis.StudioAddonReplacements?.enabled()?'notebookIntelligence':'pythonIntelligence';if(globalThis.StudioAddonReplacements?.enabled()&&this.ide.active?.model.getLanguageId()!=='notebook')return false;return this.ide.addons.host.enabled(feature)&&this.ide.addons.host.intelligenceState?.installed&&this.ide.state.trust?.trusted;}
   kindLabel(kind){return({function:this.t('функция','function'),class:this.t('класс','class'),module:this.t('модуль','module'),instance:this.t('значение','value'),keyword:this.t('ключевое слово','keyword'),param:this.t('параметр','parameter')})[kind]||kind;}
   options(){return this.ide.configurations.current()?.options||this.ide.settings;}
   contextKey(){const current=this.ide.configurations.current(),o=this.options();return JSON.stringify([this.ide.state.root,current?.configuration.id,o.pythonExecutable||'',o.toolPaths?.python||'',o.environment||{},o.workingDirectory||'.']);}
@@ -57,7 +57,8 @@ class StudioPythonIntelligence {
   async openTools(anchor=$('#lspStatus')){
     const panel=document.createElement('div');panel.className='studio-mini-form python-environment-popover';const title=document.createElement('strong');title.textContent=this.t('Python · окружение и подсказки','Python · environment and intelligence');panel.append(title);const info=await native('pythonInfo',{options:this.options()}),detail=document.createElement('p');detail.textContent=info.available?'Python '+(info.version||'')+'\n'+info.path:this.t('Интерпретатор не выбран','No interpreter selected');detail.style.whiteSpace='pre-wrap';panel.append(detail);
     const button=(label,work)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>Promise.resolve().then(work).catch(safeError);panel.append(b);};button(this.t('Выбрать интерпретатор проекта…','Choose project interpreter…'),()=>this.chooseInterpreter(anchor));
-    if(!this.enabled())button(this.t('Установить / включить подсказки Jedi · 5 МБ','Install / enable Jedi intelligence · 5 MB'),async()=>{await this.ide.addons.toggle('studio.python-intelligence','1.0.0');StudioPopover.close();this.sync();});
+    if(!globalThis.StudioAddonReplacements?.enabled()&&!this.enabled())button(this.t('Установить / включить подсказки Jedi · 5 МБ','Install / enable Jedi intelligence · 5 MB'),async()=>{await this.ide.addons.toggle('studio.python-intelligence','1.0.0');StudioPopover.close();this.sync();});
+    if(globalThis.StudioAddonReplacements?.enabled())button(this.t('IDE-паки и настройки анализа…','IDE packs and analysis settings…'),()=>{StudioPopover.close();return StudioIDEPresets.open(this.ide);});
     button(this.t('Форматирование и PEP 8…','Formatting and PEP 8…'),()=>this.ide.pythonStyle.openSettings());button(this.t('Менеджер аддонов…','Addon manager…'),()=>{StudioPopover.close();this.ide.addons.open();});StudioPopover.open(panel,anchor);
   }
 }

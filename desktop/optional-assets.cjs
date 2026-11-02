@@ -2,7 +2,7 @@
 const fs=require('node:fs/promises'),path=require('node:path'),crypto=require('node:crypto');
 const {atomic,inside}=require('./workspace.cjs');
 class OptionalAssets {
-  constructor(host,fetcher=fetch){this.host=host;this.fetch=fetcher;this.assets=require('./assets.cjs').assets;this.catalog=require(this.assets+'/ui/addons/optional-assets.json');this.cache=path.join(host.ws.data,'optional-assets');this.jobs=new Map();}
+  constructor(host,fetcher=fetch){this.host=host;this.fetch=fetcher;this.assets=require('./assets.cjs').assets;this.catalog=require(this.assets+'/ui/addons/optional-assets.json').filter(p=>process.platform!=='win32'||p.id!=='vim-assets');this.cache=path.join(host.ws.data,'optional-assets');this.jobs=new Map();}
   entry(id){const pack=this.catalog.find(p=>p.id===id);if(!pack)throw Error('Unknown optional asset pack');return pack;}
   cached(pack,file){return path.join(this.cache,pack.id,file.sha256+'-'+path.basename(file.path));}
   async valid(file,record){try{if((await fs.stat(file)).size!==record.bytes)return false;return crypto.createHash('sha256').update(await fs.readFile(file)).digest('hex')===record.sha256;}catch{return false;}}

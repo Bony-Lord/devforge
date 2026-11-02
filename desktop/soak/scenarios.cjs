@@ -2,7 +2,7 @@
 const files=['code.cpp','notes.md','data.json','scratch.txt'];
 const pick=(rng,values)=>values[Math.floor(rng()*values.length)];
 const names=['open-file','switch-tab','edit-save-undo','resize','settings-popup','command-search','addon-search','panel','sidebar','rename-roundtrip','copy-file','trash-restore','external-update','notebook-cell','project-roundtrip','reload','settings-values','split-editor','rapid-popup','invalid-path'];
-function generate(rng,index){const type=names[index<names.length?index:Math.floor(rng()*names.length)],params={};
+function generate(rng,index,coverage){let type=names[index<names.length?index:Math.floor(rng()*names.length)];if(coverage&&index>=names.length){const candidates=names.map(name=>({name,weight:1/Math.sqrt(1+(coverage[name]?.passed||0)+(coverage[name]?.failed||0)+(coverage[name]?.unavailable||0))})),total=candidates.reduce((sum,c)=>sum+c.weight,0);let target=rng()*total;for(const item of candidates){target-=item.weight;if(target<=0){type=item.name;break;}}}const params={};
  if(['open-file','switch-tab','edit-save-undo'].includes(type))params.file=pick(rng,files);
  if(type==='edit-save-undo')params.text='\n// soak_'+Math.floor(rng()*1e9).toString(36)+' Привет';
  if(type==='resize'){params.width=pick(rng,[390,480,720,900,1024,1360,1600,1920]);params.height=pick(rng,[640,720,900,1080]);params.scale=pick(rng,[1,1.25,1.5]);}

@@ -40,7 +40,11 @@
     // Validate an inactive install too, including its dependency closure.
     const roots=enable?[...requested.filter(r=>(typeof r==='string'?r:r.id)!==pack.manifest.id),{id:pack.manifest.id,version:pack.manifest.version}]:[{id:pack.manifest.id,version:pack.manifest.version}];
     const resolved=core.resolve([...builtins,...[...byKey.values()].map(p=>p.manifest)],roots),keys=new Set(existing.map(p=>p.manifest.id+'@'+p.manifest.version));
-    const packages=resolved.map(m=>byKey.get(m.id+'@'+m.version)).filter(p=>p&&!keys.has(p.manifest.id+'@'+p.manifest.version));
+    const needed=new Map(resolved.map(m=>[m.id+'@'+m.version,byKey.get(m.id+'@'+m.version)]).filter(([,p])=>p)),selected=new Map(resolved.map(m=>[m.id,m])),definitions=[...builtins,...[...byKey.values()].map(p=>p.manifest)].map(core.manifest),visited=new Set();
+    // Collections do not activate as dependency-owned features, but their
+    // definitions must survive installation when another addon refers to them.
+    const include=(id,requirement={})=>{const bundle=definitions.filter(m=>m.id===id&&m.kind==='pack'&&core.satisfies(core.API_VERSION,m.api)&&(!m.platforms||m.platforms.includes(core.currentPlatform()))&&core.satisfies(m.version,requirement)).sort((a,b)=>core.compare(b.version,a.version))[0],m=bundle||selected.get(id);if(!m)return;const key=m.id+'@'+m.version;if(visited.has(key))return;visited.add(key);if(bundle){if(byKey.has(key))needed.set(key,byKey.get(key));for(const[part,range]of Object.entries(m.includes))include(part,range);}else for(const[dependency,range]of Object.entries(m.dependencies))include(dependency,range);};for(const r of roots)include(typeof r==='string'?r:r.id,typeof r==='string'?{}:r.version??{});
+    const packages=[...needed.values()].filter(p=>!keys.has(p.manifest.id+'@'+p.manifest.version));
     return {packages,requested,safeMode:safeMode&&!enable,resolved};
   }
   return Object.freeze({parse,factory,plan,ACTIONS,COLORS});

@@ -107,53 +107,6 @@
     "formatVersion": 1,
     "manifest": {
       "schemaVersion": 1,
-      "id": "studio.vim",
-      "version": "1.0.1",
-      "api": {
-        "min": "0.1.2",
-        "maxExclusive": "0.2.0"
-      },
-      "name": {
-        "ru": "Vim",
-        "en": "Vim"
-      },
-      "description": {
-        "ru": "Режимы Normal/Insert/Visual, движения и команды Vim в редакторе Monaco. Движок загружается отдельно.",
-        "en": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately."
-      },
-      "publisher": "DevForge",
-      "license": "MIT",
-      "capabilities": [
-        "extensions.full-access"
-      ],
-      "dependencies": {
-        "studio.lib.vim": {
-          "min": "1.0.0",
-          "maxExclusive": "2.0.0"
-        }
-      },
-      "conflicts": {},
-      "kind": "feature",
-      "installationGroup": "editing",
-      "tags": [
-        "vim",
-        "editor"
-      ],
-      "readme": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately.",
-      "platforms": [
-        "win32",
-        "linux",
-        "darwin"
-      ]
-    },
-    "contributions": [],
-    "module": "return (async()=>{\n if(!window.StudioDesktop)throw Error('Vim requires the desktop Monaco editor');\n if(!window.__studioVimAlias){define('monaco-editor/esm/vs/editor/editor.api',[],()=>monaco);window.__studioVimAlias=true;}\n const library=await new Promise((resolve,reject)=>require(['vendor/monaco-vim.umd'],resolve,reject));\n const status=api.ui.element('span','','studio-vim-status');document.querySelector('.statusbar').prepend(status);api.use(()=>status.remove());\n const modes=new Map();let enabled=true;\n function attach(){if(!enabled)return;for(const editor of monaco.editor.getEditors?.()||[api.editor.active]){if(modes.has(editor)||!editor.getDomNode()?.isConnected||editor.getModel()?.isDisposed())continue;const mode=library.initVimMode(editor,status),listener=editor.onDidDispose(()=>{const entry=modes.get(editor);if(entry){modes.delete(editor);entry.listener.dispose();entry.mode.dispose();}});modes.set(editor,{mode,listener});}}\n function detach(){for(const entry of modes.values()){entry.listener.dispose();entry.mode.dispose();}modes.clear();status.textContent='';}\n api.use(detach);api.use(monaco.editor.onDidCreateEditor(()=>queueMicrotask(attach)));api.hook(api.raw.application,'openFile',async(next,...args)=>{const value=await next(...args);attach();return value;});\n api.commands.register('toggle',api.raw.application.settings.language==='en'?'Vim: toggle mode':'Vim: включить / выключить режим',()=>{enabled=!enabled;enabled?attach():detach();});\n api.ui.style('.studio-vim-status{color:#b6cbae;font:11px monospace;display:flex;align-items:center;gap:8px;min-width:50px}.studio-vim-status input{max-width:220px;height:21px;border:0;padding:0 3px}');attach();\n})();\n"
-  },
-  {
-    "format": "cppstudio.addon",
-    "formatVersion": 1,
-    "manifest": {
-      "schemaVersion": 1,
       "id": "studio.code-map",
       "version": "1.0.1",
       "api": {
@@ -206,7 +159,7 @@
     "manifest": {
       "schemaVersion": 1,
       "id": "studio.vsix",
-      "version": "1.0.3",
+      "version": "1.0.5",
       "api": {
         "min": "0.1.2",
         "maxExclusive": "0.2.0"
@@ -236,6 +189,1126 @@
       "scope": "application"
     },
     "contributions": [],
-    "module": "const previous={};for(const key of [\"openExternalGallery\", \"galleryAddonId\", \"galleryIcon\", \"renderExternalGallery\"])previous[key]=StudioAddons.prototype[key];\n\n'use strict';\nObject.assign(StudioAddons.prototype,{\n async openExternalGallery(){await this.open();this.tab='catalog';this.externalGallery=true;this.render();},\n galleryAddonId(entry){return 'vscode.'+entry.namespace.toLowerCase().replace(/[^a-z0-9-]/g,'-')+'.'+entry.name.toLowerCase().replace(/[^a-z0-9-]/g,'-');},\n galleryIcon(entry,size=33){const box=this.marketIcon('vscode.extension');box.style.width=box.style.height=size+'px';if(!entry.icon)return box;this.galleryIcons??=new Map();let promise=this.galleryIcons.get(entry.icon);if(!promise){promise=native('extensionGalleryIcon',{url:entry.icon}).catch(()=>null);this.galleryIcons.set(entry.icon,promise);if(this.galleryIcons.size>64)this.galleryIcons.delete(this.galleryIcons.keys().next().value);}promise.then(src=>{if(src&&box.isConnected){const image=this.element('img',undefined,'market-gallery-icon');image.width=image.height=size;image.style.width=image.style.height=size+'px';image.alt=entry.title||entry.name;image.src=src;box.replaceChildren(image);}});return box;},\n renderExternalGallery(container){\n  const section=this.element('section',undefined,'studio-marketplace'),side=this.element('aside',undefined,'market-sidebar'),detail=this.element('section',undefined,'market-detail-host');section.append(side,detail);container.append(section);const back=this.element('button','← DevForge','market-back');back.onclick=()=>{this.externalGallery=false;this.render();};const title=this.element('strong','Open VSX'),search=this.element('input');search.type='search';search.placeholder=this.text('Искать расширения VS Code','Search VS Code extensions');search.value=this.galleryQuery||'';const filters=this.element('div',undefined,'market-filter-options'),category=this.element('select'),sort=this.element('select');for(const[value,label]of [['all',this.text('Все категории','All categories')],['Snippets','Snippets'],['Themes','Themes'],['Programming Languages','Languages'],['Formatters','Formatters'],['Extension Packs','Packs']]){const o=this.element('option',label);o.value=value;category.append(o);}for(const[value,ru,en]of [['relevance','Релевантность','Relevance'],['downloadCount','Загрузки','Downloads'],['rating','Оценка','Rating'],['timestamp','Новые','Newest']]){const o=this.element('option',this.text(ru,en));o.value=value;sort.append(o);}filters.append(category,sort);const run=this.element('button',this.text('Найти','Search'),'primary'),status=this.element('small'),list=this.element('div',undefined,'market-results'),toolbar=this.element('div',undefined,'market-filters');toolbar.append(back,title,search,filters,run,status);side.append(toolbar,list);let sequence=0;\n  const show=async entry=>{this.gallerySelected=entry;const current=++sequence;detail.textContent=this.text('Загрузка…','Loading…');try{const data=await native('extensionGalleryInfo',entry);if(!detail.isConnected||current!==sequence)return;detail.replaceChildren();const id=this.galleryAddonId(data),local=this.marketplaceEntries().find(e=>e.manifest.id===id&&e.installed),active=this.manager.active.has(id),article=this.element('article',undefined,'market-detail'),head=this.element('div',undefined,'market-detail-heading'),heading=this.element('div');heading.append(this.element('h2',data.title),this.element('p',data.publisher),this.element('p',data.description));head.append(this.galleryIcon(data,72),heading);article.append(head);\n   const report=data.compatibility||{},compatibility=this.element('p',report.engineCompatible===false?this.text('Нужен VS Code ','Requires VS Code ')+data.engine+this.text('; в DevForge API ', '; DevForge API is ')+report.apiVersion:report.unsupported?.length?this.text('Ограничения: ','Limitations: ')+report.unsupported.join(', '):''),actions=this.element('div',undefined,'market-detail-actions'),error=this.element('p',undefined,'inline-error');compatibility.className='gallery-compatibility';compatibility.setAttribute('role','status');article.append(actions,compatibility,error);\n   const act=(label,callback,primary=false)=>{const button=this.element('button',label,primary?'primary':'');button.type='button';button.onclick=async()=>{button.disabled=true;error.textContent='';try{await callback();}catch(e){error.textContent=e.message;this.app.toast(e.message);}finally{button.disabled=false;}};actions.append(button);return button;};\n   if(data.versions?.length>1){const versions=this.element('select');versions.ariaLabel=this.text('Версия расширения','Extension version');for(const version of data.versions){const option=this.element('option',version);option.value=version;versions.append(option);}versions.value=data.version;versions.onchange=()=>show({...entry,version:versions.value});heading.append(versions);}\n   if(local){act(active?this.text('Отключить','Disable'):this.text('Включить','Enable'),async()=>{await this.marketToggle(local,!active);this.render();},!active);act(this.text('Настройки','Settings'),()=>this.openExtensionSettings(id));act(this.text('Удалить','Uninstall'),async()=>{await this.marketRemove(local);this.render();});}\n   else if(report.engineCompatible===false){const unavailable=act(this.text('Требуется другая версия API','Requires another API version'),()=>{});unavailable.disabled=true;unavailable.title=compatibility.textContent;}else act(this.text('Проверить и установить…','Review and install…'),async()=>{const progress=this.element('span',this.text('Загрузка…','Downloading…'));progress.dataset.galleryProgress='';const cancel=this.element('button',this.text('Отменить','Cancel'));cancel.type='button';cancel.onclick=()=>native('extensionGalleryCancel');actions.append(progress,cancel);try{const pkg=await native('extensionGalleryPrepare',data);this.externalGallery=false;await this.review(pkg.text,false,pkg);}finally{progress.remove();cancel.remove();}},true);\n   if(data.license)article.append(this.element('p',data.license));const readme=this.element('div',undefined,'notebook-markdown-preview');StudioMarkdown.render(readme,data.readme||data.description,this.app);article.append(readme);detail.append(article);this.restoreViewport(document.querySelector('#addonsDialog'));section.classList.add('market-detail-open');const backToList=this.element('button',this.text('← Результаты','← Results'),'market-back');backToList.onclick=()=>{this.gallerySelected=null;section.classList.remove('market-detail-open');};article.prepend(backToList);}catch(error){detail.textContent=error.message;}};\n  const find=async()=>{run.disabled=true;this.galleryQuery=search.value;status.textContent=this.text('Поиск…','Searching…');try{const response=await native('extensionGallerySearch',{query:search.value,category:category.value,sort:sort.value});if(!list.isConnected)return;list.replaceChildren();status.textContent=this.text('Найдено: ','Found: ')+response.total;for(const entry of response.extensions){const row=this.element('article',undefined,'market-item'),body=this.element('div',undefined,'market-item-info'),button=this.element('button',entry.title,'market-title'),id=this.galleryAddonId(entry),installed=this.library.packages.some(p=>p.package.manifest.id===id);row.dataset.addonState=this.manager.active.has(id)?'enabled':installed?'installed':'available';body.append(button,this.element('p',entry.description),this.element('small',entry.namespace+' · '+entry.downloads.toLocaleString()));row.append(this.galleryIcon(entry),body);row.onclick=()=>show(entry);list.append(row);}}catch(error){status.textContent=error.message;}finally{run.disabled=false;this.restoreViewport(document.querySelector('#addonsDialog'));}};run.onclick=find;search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();find();}};category.onchange=find;sort.onchange=find;find();if(this.gallerySelected)show(this.gallerySelected);\n }\n});\n\nconst installed=Object.fromEntries(Object.keys(previous).map(key=>[key,StudioAddons.prototype[key]]));\napi.commands.register('open',api.raw.application.settings.language==='ru'?'Open VSX: расширения':'Open VSX: extensions',()=>api.raw.application.addons.openExternalGallery());\napi.use(()=>{const addons=api.raw.application.addons;addons.externalGallery=false;addons.galleryIcons?.clear();for(const[key,value]of Object.entries(previous)){if(StudioAddons.prototype[key]!==installed[key])continue;if(value)StudioAddons.prototype[key]=value;else delete StudioAddons.prototype[key];}addons.render();});\n"
+    "module": "const previous={};for(const key of [\"galleryError\", \"galleryProgressText\", \"openExternalGallery\", \"galleryAddonId\", \"galleryIcon\", \"renderExternalGallery\"])previous[key]=StudioAddons.prototype[key];\n\n'use strict';\nObject.assign(StudioAddons.prototype,{\n galleryError(error){const message=error?.message||String(error);return message.includes('GALLERY_TIMEOUT:')?this.text('Сервер расширений не ответил вовремя. Повторите попытку.','The extension registry timed out. Try again.'):message.includes('GALLERY_CANCELLED:')?this.text('Загрузка отменена.','Download cancelled.'):message.includes('GALLERY_BUSY:')?this.text('Другая загрузка ещё выполняется. Её можно отменить выше.','Another download is running. You can cancel it above.'):message;},\n galleryProgressText(value){if(!value?.running)return '';const label=value.phase==='metadata'?this.text('Получение сведений…','Fetching metadata…'):value.phase==='verify'?this.text('Проверка пакета…','Verifying package…'):this.text('Загрузка…','Downloading…');return label+(value.extension?' '+value.extension:'')+(value.phase==='download'?' · '+Math.round((value.bytes||0)/1048576*10)/10+' MiB'+(value.total?' / '+Math.round(value.total/1048576*10)/10+' MiB':''):'');},\n async openExternalGallery(entry){await this.open();if(entry)this.gallerySelected=entry;this.tab='catalog';this.externalGallery=true;this.render();},\n galleryAddonId(entry){return 'vscode.'+entry.namespace.toLowerCase().replace(/[^a-z0-9-]/g,'-')+'.'+entry.name.toLowerCase().replace(/[^a-z0-9-]/g,'-');},\n galleryIcon(entry,size=33){const box=this.marketIcon('vscode.extension');box.style.width=box.style.height=size+'px';if(!entry.icon)return box;this.galleryIcons??=new Map();let promise=this.galleryIcons.get(entry.icon);if(!promise){promise=native('extensionGalleryIcon',{url:entry.icon}).catch(()=>null);this.galleryIcons.set(entry.icon,promise);if(this.galleryIcons.size>64)this.galleryIcons.delete(this.galleryIcons.keys().next().value);}promise.then(src=>{if(src&&box.isConnected){const image=this.element('img',undefined,'market-gallery-icon');image.width=image.height=size;image.style.width=image.style.height=size+'px';image.alt=entry.title||entry.name;image.src=src;box.replaceChildren(image);}});return box;},\n renderExternalGallery(container){\n  const section=this.element('section',undefined,'studio-marketplace'),side=this.element('aside',undefined,'market-sidebar'),detail=this.element('section',undefined,'market-detail-host');section.append(side,detail);container.append(section);const back=this.element('button','← DevForge','market-back');back.onclick=()=>{this.externalGallery=false;this.render();};const title=this.element('strong','Open VSX'),search=this.element('input');search.type='search';search.placeholder=this.text('Искать расширения VS Code','Search VS Code extensions');search.value=this.galleryQuery||'';const filters=this.element('div',undefined,'market-filter-options'),category=this.element('select'),sort=this.element('select');for(const[value,label]of [['all',this.text('Все категории','All categories')],['Snippets','Snippets'],['Themes','Themes'],['Programming Languages','Languages'],['Formatters','Formatters'],['Extension Packs','Packs']]){const o=this.element('option',label);o.value=value;category.append(o);}for(const[value,ru,en]of [['relevance','Релевантность','Relevance'],['downloadCount','Загрузки','Downloads'],['rating','Оценка','Rating'],['timestamp','Новые','Newest']]){const o=this.element('option',this.text(ru,en));o.value=value;sort.append(o);}filters.append(category,sort);const run=this.element('button',this.text('Найти','Search'),'primary'),status=this.element('small'),list=this.element('div',undefined,'market-results'),toolbar=this.element('div',undefined,'market-filters');toolbar.append(back,title,search,filters,run,status);side.append(toolbar,list);let sequence=0,infoRequest;\n  const downloadBar=this.element('div',undefined,'market-detail-actions'),downloadText=this.element('span'),downloadCancel=this.element('button',this.text('Отменить загрузку','Cancel download'));let runningDownload;downloadBar.hidden=true;downloadBar.append(downloadText,downloadCancel);toolbar.append(downloadBar);\n  const updateDownload=value=>{runningDownload=value;downloadBar.hidden=!value?.running;downloadText.textContent=this.galleryProgressText(value);};\n  downloadCancel.onclick=async()=>{downloadCancel.disabled=true;try{await native('extensionGalleryCancel',{operationId:runningDownload?.operationId});updateDownload(await native('extensionGalleryStatus'));}catch(error){status.textContent=this.galleryError(error);}finally{downloadCancel.disabled=false;}};\n  this.galleryStatusUnsubscribe?.();this.galleryStatusUnsubscribe=onNative('extensionGalleryProgress',value=>{if(section.isConnected)updateDownload(value);else{this.galleryStatusUnsubscribe?.();this.galleryStatusUnsubscribe=null;}});\n  native('extensionGalleryStatus').then(value=>{if(section.isConnected)updateDownload(value);}).catch(()=>{});\n  const show=async entry=>{this.gallerySelected=entry;const current=++sequence;if(infoRequest)native('extensionGalleryCancelInfo',{requestId:infoRequest}).catch(()=>{});const requestId=infoRequest=crypto.randomUUID(),loading=this.element('p',this.text('Загрузка…','Loading…')),cancelInfo=this.element('button',this.text('Отменить','Cancel'));detail.replaceChildren(loading,cancelInfo);cancelInfo.onclick=()=>native('extensionGalleryCancelInfo',{requestId});try{const data=await native('extensionGalleryInfo',{...entry,requestId});if(!detail.isConnected||current!==sequence)return;detail.replaceChildren();const id=this.galleryAddonId(data),local=this.marketplaceEntries().find(e=>e.manifest.id===id&&e.installed),active=this.manager.active.has(id),article=this.element('article',undefined,'market-detail'),head=this.element('div',undefined,'market-detail-heading'),heading=this.element('div');heading.append(this.element('h2',data.title),this.element('p',data.publisher),this.element('p',data.description));head.append(this.galleryIcon(data,72),heading);article.append(head);\n   const report=data.compatibility||{},compatibility=this.element('p',report.engineCompatible===false?this.text('Нужен VS Code ','Requires VS Code ')+data.engine+this.text('; в DevForge API ', '; DevForge API is ')+report.apiVersion:report.unsupported?.length?this.text('Ограничения: ','Limitations: ')+report.unsupported.join(', '):''),actions=this.element('div',undefined,'market-detail-actions'),error=this.element('p',undefined,'inline-error');compatibility.className='gallery-compatibility';compatibility.setAttribute('role','status');article.append(actions,compatibility,error);\n   const act=(label,callback,primary=false)=>{const button=this.element('button',label,primary?'primary':'');button.type='button';button.onclick=async()=>{button.disabled=true;error.textContent='';try{await callback();}catch(e){error.textContent=this.galleryError(e);this.app.toast(error.textContent);}finally{button.disabled=false;}};actions.append(button);return button;};\n   if(data.versions?.length>1){const versions=this.element('select');versions.ariaLabel=this.text('Версия расширения','Extension version');for(const version of data.versions){const option=this.element('option',version);option.value=version;versions.append(option);}versions.value=data.version;versions.onchange=()=>show({...entry,version:versions.value});heading.append(versions);}\n   if(local){act(active?this.text('Отключить','Disable'):this.text('Включить','Enable'),async()=>{await this.marketToggle(local,!active);this.render();},!active);act(this.text('Настройки','Settings'),()=>this.openExtensionSettings(id));act(this.text('Удалить','Uninstall'),async()=>{await this.marketRemove(local);this.render();});}\n   else if(report.engineCompatible===false){const unavailable=act(this.text('Требуется другая версия API','Requires another API version'),()=>{});unavailable.disabled=true;unavailable.title=compatibility.textContent;}else act(this.text('Проверить и установить…','Review and install…'),async()=>{const progress=this.element('span',this.text('Загрузка…','Downloading…'));progress.dataset.galleryProgress='';const cancel=this.element('button',this.text('Отменить','Cancel'));cancel.type='button';const operationId=crypto.randomUUID();cancel.onclick=()=>native('extensionGalleryCancel',{operationId});actions.append(progress,cancel);try{const pkg=await native('extensionGalleryPrepare',{...data,operationId});this.externalGallery=false;await this.review(pkg.text,false,pkg);}finally{progress.remove();cancel.remove();}},true);\n   if(data.license)article.append(this.element('p',data.license));const readme=this.element('div',undefined,'notebook-markdown-preview');StudioMarkdown.render(readme,data.readme||data.description,this.app);article.append(readme);detail.append(article);this.restoreViewport(document.querySelector('#addonsDialog'));section.classList.add('market-detail-open');const backToList=this.element('button',this.text('← Результаты','← Results'),'market-back');backToList.onclick=()=>{this.gallerySelected=null;section.classList.remove('market-detail-open');};article.prepend(backToList);}catch(error){if(!detail.isConnected||current!==sequence)return;const message=this.element('p',this.galleryError(error),'inline-error'),retry=this.element('button',this.text('Повторить','Retry'),'primary');retry.onclick=()=>show(entry);detail.replaceChildren(message,retry);}};\n  const find=async()=>{run.disabled=true;this.galleryQuery=search.value;status.textContent=this.text('Поиск…','Searching…');try{const response=await native('extensionGallerySearch',{query:search.value,category:category.value,sort:sort.value});if(!list.isConnected)return;list.replaceChildren();status.textContent=this.text('Найдено: ','Found: ')+response.total;for(const entry of response.extensions){const row=this.element('article',undefined,'market-item'),body=this.element('div',undefined,'market-item-info'),button=this.element('button',entry.title,'market-title'),id=this.galleryAddonId(entry),installed=this.library.packages.some(p=>p.package.manifest.id===id);row.dataset.addonState=this.manager.active.has(id)?'enabled':installed?'installed':'available';body.append(button,this.element('p',entry.description),this.element('small',entry.namespace+' · '+entry.downloads.toLocaleString()));row.append(this.galleryIcon(entry),body);row.onclick=()=>show(entry);list.append(row);}}catch(error){status.textContent=error.message;}finally{run.disabled=false;this.restoreViewport(document.querySelector('#addonsDialog'));}};run.onclick=find;search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();find();}};category.onchange=find;sort.onchange=find;find();if(this.gallerySelected)show(this.gallerySelected);\n }\n});\n\nconst installed=Object.fromEntries(Object.keys(previous).map(key=>[key,StudioAddons.prototype[key]]));\napi.commands.register('open',api.raw.application.settings.language==='ru'?'Open VSX: расширения':'Open VSX: extensions',()=>api.raw.application.addons.openExternalGallery());\napi.use(()=>{const addons=api.raw.application.addons;addons.externalGallery=false;addons.galleryStatusUnsubscribe?.();addons.galleryStatusUnsubscribe=null;addons.galleryIcons?.clear();for(const[key,value]of Object.entries(previous)){if(StudioAddons.prototype[key]!==installed[key])continue;if(value)StudioAddons.prototype[key]=value;else delete StudioAddons.prototype[key];}addons.render();});\n"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.cpp",
+      "name": {
+        "ru": "C++ IDE · интеграция DevForge",
+        "en": "C++ IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "C/C++, CMake, GCC, отладка, clangd, готовые настройки анализа.",
+        "en": "C/C++, CMake, GCC, debugging, clangd and analysis defaults."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true,
+            "clangd.arguments": [
+              "--background-index",
+              "--clang-tidy",
+              "--completion-style=detailed",
+              "--header-insertion=iwyu"
+            ]
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "cpp",
+        "settings": {
+          "editor.formatOnSave": true,
+          "clangd.arguments": [
+            "--background-index",
+            "--clang-tidy",
+            "--completion-style=detailed",
+            "--header-insertion=iwyu"
+          ]
+        },
+        "tools": "GCC/Clang, CMake и GDB: пути определяются автоматически / paths are detected automatically"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'cpp');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.cpp",
+      "name": "C++ IDE",
+      "description": {
+        "ru": "C/C++, CMake, GCC, отладка, clangd, готовые настройки анализа.",
+        "en": "C/C++, CMake, GCC, debugging, clangd and analysis defaults."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.cpp": {},
+        "studio.pack.cpp-full": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "llvm-vs-code-extensions.vscode-clangd": {}
+      },
+      "idePreset": {
+        "id": "cpp",
+        "tools": "GCC/Clang, CMake и GDB: пути определяются автоматически / paths are detected automatically",
+        "settings": {
+          "editor.formatOnSave": true,
+          "clangd.arguments": [
+            "--background-index",
+            "--clang-tidy",
+            "--completion-style=detailed",
+            "--header-insertion=iwyu"
+          ]
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.python",
+      "name": {
+        "ru": "Python IDE · интеграция DevForge",
+        "en": "Python IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "Python, анализ Pyright, autopep8, Flake8; автоматическая установка Python при необходимости.",
+        "en": "Python, Pyright, autopep8 and Flake8; managed Python installation when needed."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true,
+            "python.analysis.typeCheckingMode": "basic",
+            "python.analysis.diagnosticMode": "workspace"
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "python",
+        "settings": {
+          "editor.formatOnSave": true,
+          "python.analysis.typeCheckingMode": "basic",
+          "python.analysis.diagnosticMode": "workspace"
+        },
+        "tools": "Python: используется найденный интерпретатор или отдельная установка DevForge / detected or DevForge-managed interpreter"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'python');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.python",
+      "name": "Python IDE",
+      "description": {
+        "ru": "Python, анализ Pyright, autopep8, Flake8; автоматическая установка Python при необходимости.",
+        "en": "Python, Pyright, autopep8 and Flake8; managed Python installation when needed."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.python": {},
+        "studio.pack.python": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "ms-pyright.pyright": {},
+        "ms-python.autopep8": {},
+        "ms-python.flake8": {}
+      },
+      "idePreset": {
+        "id": "python",
+        "tools": "Python: используется найденный интерпретатор или отдельная установка DevForge / detected or DevForge-managed interpreter",
+        "settings": {
+          "editor.formatOnSave": true,
+          "python.analysis.typeCheckingMode": "basic",
+          "python.analysis.diagnosticMode": "workspace"
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.notebook",
+      "name": {
+        "ru": "Notebook IDE · интеграция DevForge",
+        "en": "Notebook IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "Ячейки ipynb, Python, Markdown и формулы с Pyright, autopep8 и Flake8.",
+        "en": "ipynb cells, Python, Markdown and math with Pyright, autopep8 and Flake8."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true,
+            "python.analysis.typeCheckingMode": "basic"
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "notebook",
+        "settings": {
+          "editor.formatOnSave": true,
+          "python.analysis.typeCheckingMode": "basic"
+        },
+        "tools": "Python: используется найденный интерпретатор или отдельная установка DevForge / detected or DevForge-managed interpreter"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'notebook');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.notebook",
+      "name": "Notebook IDE",
+      "description": {
+        "ru": "Ячейки ipynb, Python, Markdown и формулы с Pyright, autopep8 и Flake8.",
+        "en": "ipynb cells, Python, Markdown and math with Pyright, autopep8 and Flake8."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.notebook": {},
+        "studio.pack.notebooks": {},
+        "studio.markdown-math": {},
+        "studio.pack.ide-base": {},
+        "studio.notebook-assistance": {}
+      },
+      "vsxDependencies": {
+        "ms-pyright.pyright": {},
+        "ms-python.autopep8": {},
+        "ms-python.flake8": {}
+      },
+      "idePreset": {
+        "id": "notebook",
+        "tools": "Python: используется найденный интерпретатор или отдельная установка DevForge / detected or DevForge-managed interpreter",
+        "settings": {
+          "editor.formatOnSave": true,
+          "python.analysis.typeCheckingMode": "basic"
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.javascript",
+      "name": {
+        "ru": "JavaScript / TypeScript IDE · интеграция DevForge",
+        "en": "JavaScript / TypeScript IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "JavaScript и TypeScript, ESLint, Prettier и настройки форматирования.",
+        "en": "JavaScript, TypeScript, ESLint, Prettier and formatting defaults."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true,
+            "eslint.validate": [
+              "javascript",
+              "javascriptreact",
+              "typescript",
+              "typescriptreact"
+            ]
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "javascript",
+        "settings": {
+          "editor.formatOnSave": true,
+          "eslint.validate": [
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact"
+          ]
+        },
+        "tools": "Node.js / npm"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'javascript');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.javascript",
+      "name": "JavaScript / TypeScript IDE",
+      "description": {
+        "ru": "JavaScript и TypeScript, ESLint, Prettier и настройки форматирования.",
+        "en": "JavaScript, TypeScript, ESLint, Prettier and formatting defaults."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.javascript": {},
+        "studio.terminal": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "dbaeumer.vscode-eslint": {},
+        "esbenp.prettier-vscode": {}
+      },
+      "idePreset": {
+        "id": "javascript",
+        "tools": "Node.js / npm",
+        "settings": {
+          "editor.formatOnSave": true,
+          "eslint.validate": [
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact"
+          ]
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.rust",
+      "name": {
+        "ru": "Rust IDE · интеграция DevForge",
+        "en": "Rust IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "Rust Analyzer, Cargo и rustfmt: анализ, навигация и форматирование.",
+        "en": "Rust Analyzer, Cargo and rustfmt: analysis, navigation and formatting."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true,
+            "rust-analyzer.check.command": "clippy"
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "rust",
+        "settings": {
+          "editor.formatOnSave": true,
+          "rust-analyzer.check.command": "clippy"
+        },
+        "tools": "Rust toolchain / rustup, Cargo"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'rust');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.rust",
+      "name": "Rust IDE",
+      "description": {
+        "ru": "Rust Analyzer, Cargo и rustfmt: анализ, навигация и форматирование.",
+        "en": "Rust Analyzer, Cargo and rustfmt: analysis, navigation and formatting."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.rust": {},
+        "studio.terminal": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "rust-lang.rust-analyzer": {}
+      },
+      "idePreset": {
+        "id": "rust",
+        "tools": "Rust toolchain / rustup, Cargo",
+        "settings": {
+          "editor.formatOnSave": true,
+          "rust-analyzer.check.command": "clippy"
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.go",
+      "name": {
+        "ru": "Go IDE · интеграция DevForge",
+        "en": "Go IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "gopls, навигация, тесты и форматирование Go.",
+        "en": "gopls, navigation, tests and Go formatting."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true,
+            "go.useLanguageServer": true
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "go",
+        "settings": {
+          "editor.formatOnSave": true,
+          "go.useLanguageServer": true
+        },
+        "tools": "Go SDK; расширение Go управляет вспомогательными инструментами / Go extension manages supporting tools"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'go');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.go",
+      "name": "Go IDE",
+      "description": {
+        "ru": "gopls, навигация, тесты и форматирование Go.",
+        "en": "gopls, navigation, tests and Go formatting."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.go": {},
+        "studio.terminal": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "golang.Go": {}
+      },
+      "idePreset": {
+        "id": "go",
+        "tools": "Go SDK; расширение Go управляет вспомогательными инструментами / Go extension manages supporting tools",
+        "settings": {
+          "editor.formatOnSave": true,
+          "go.useLanguageServer": true
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.java",
+      "name": {
+        "ru": "Java IDE · интеграция DevForge",
+        "en": "Java IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "Языковой сервер Java, Maven/Gradle и настройки анализа.",
+        "en": "Java language server, Maven/Gradle and analysis defaults."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true,
+            "java.autobuild.enabled": true
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "java",
+        "settings": {
+          "editor.formatOnSave": true,
+          "java.autobuild.enabled": true
+        },
+        "tools": "JDK; настройки и загрузки — в расширении Java / managed through the Java extension"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'java');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.java",
+      "name": "Java IDE",
+      "description": {
+        "ru": "Языковой сервер Java, Maven/Gradle и настройки анализа.",
+        "en": "Java language server, Maven/Gradle and analysis defaults."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.java": {},
+        "studio.terminal": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "redhat.java": {}
+      },
+      "idePreset": {
+        "id": "java",
+        "tools": "JDK; настройки и загрузки — в расширении Java / managed through the Java extension",
+        "settings": {
+          "editor.formatOnSave": true,
+          "java.autobuild.enabled": true
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.csharp",
+      "name": {
+        "ru": "C# IDE · интеграция DevForge",
+        "en": "C# IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "C#, .NET, анализ и форматирование.",
+        "en": "C#, .NET, analysis and formatting."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "csharp",
+        "settings": {
+          "editor.formatOnSave": true
+        },
+        "tools": ".NET SDK"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'csharp');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.csharp",
+      "name": "C# IDE",
+      "description": {
+        "ru": "C#, .NET, анализ и форматирование.",
+        "en": "C#, .NET, analysis and formatting."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.csharp": {},
+        "studio.terminal": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "muhammad-sammy.csharp": {}
+      },
+      "idePreset": {
+        "id": "csharp",
+        "tools": ".NET SDK",
+        "settings": {
+          "editor.formatOnSave": true
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.ide.ruby",
+      "name": {
+        "ru": "Ruby IDE · интеграция DevForge",
+        "en": "Ruby IDE · DevForge integration"
+      },
+      "description": {
+        "ru": "Ruby LSP, навигация, диагностика и форматирование.",
+        "en": "Ruby LSP, navigation, diagnostics and formatting."
+      },
+      "kind": "feature",
+      "installationGroup": "projects",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {},
+      "configuration": {
+        "devforge.ide.applyRecommendedSettings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Применять рекомендуемые настройки один раз / Apply recommended settings once"
+        },
+        "devforge.ide.recommendedSettings": {
+          "type": "object",
+          "default": {
+            "editor.formatOnSave": true
+          },
+          "additionalProperties": true,
+          "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
+        },
+        "devforge.ide.detectTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Автоматически передавать найденные пути инструментов расширениям / Pass detected tool paths to extensions"
+        }
+      },
+      "ideIntegration": {
+        "id": "ruby",
+        "settings": {
+          "editor.formatOnSave": true
+        },
+        "tools": "Ruby / Bundler"
+      }
+    },
+    "contributions": [],
+    "module": "return StudioIDEPresets.activate(api, 'ruby');"
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.2",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "publisher": "DevForge",
+      "conflicts": {},
+      "platforms": [
+        "win32"
+      ],
+      "id": "studio.pack.ide.ruby",
+      "name": "Ruby IDE",
+      "description": {
+        "ru": "Ruby LSP, навигация, диагностика и форматирование.",
+        "en": "Ruby LSP, navigation, diagnostics and formatting."
+      },
+      "kind": "pack",
+      "installationGroup": "projects",
+      "capabilities": [],
+      "dependencies": {},
+      "includes": {
+        "studio.ide.ruby": {},
+        "studio.terminal": {},
+        "studio.pack.ide-base": {}
+      },
+      "vsxDependencies": {
+        "Shopify.ruby-lsp": {}
+      },
+      "idePreset": {
+        "id": "ruby",
+        "tools": "Ruby / Bundler",
+        "settings": {
+          "editor.formatOnSave": true
+        },
+        "category": "language"
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "conflicts": {},
+      "dependencies": {},
+      "id": "studio.pack.ide-base",
+      "name": "IDE Base",
+      "description": {
+        "ru": "Поиск, навигация, история, автосохранение, умный ввод, структура, разделение редакторов, шаблоны, Markdown и формулы.",
+        "en": "Search, navigation, history, autosave, smart input, outline, split editors, templates, Markdown and math."
+      },
+      "publisher": "DevForge",
+      "kind": "pack",
+      "installationGroup": "workspace",
+      "capabilities": [],
+      "includes": {
+        "studio.smart-typing": {},
+        "studio.indent-guides": {},
+        "studio.autosave": {},
+        "studio.local-history": {},
+        "studio.find-replace": {},
+        "studio.split-editors": {},
+        "studio.palette": {},
+        "studio.project-search": {},
+        "studio.outline": {},
+        "studio.console": {},
+        "studio.terminal": {},
+        "studio.run-configurations": {},
+        "studio.file-templates": {},
+        "studio.function-docs": {},
+        "studio.tooltips": {},
+        "studio.animations": {},
+        "studio.views.json": {},
+        "studio.views.markdown": {},
+        "studio.markdown-math": {}
+      },
+      "platforms": [
+        "win32",
+        "android"
+      ],
+      "idePreset": {
+        "id": "base",
+        "category": "foundation",
+        "tools": "DevForge",
+        "settings": {}
+      }
+    },
+    "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "conflicts": {},
+      "dependencies": {},
+      "id": "studio.pack.phone-ide",
+      "name": "Phone IDE",
+      "description": {
+        "ru": "IDE Base и экранная клавиатура DevForge с мобильными сочетаниями и управлением курсором.",
+        "en": "IDE Base and the DevForge on-screen keyboard with mobile shortcuts and cursor controls."
+      },
+      "publisher": "DevForge",
+      "kind": "pack",
+      "installationGroup": "workspace",
+      "capabilities": [],
+      "includes": {
+        "studio.pack.ide-base": {},
+        "studio.keyboard": {}
+      },
+      "platforms": [
+        "android"
+      ],
+      "idePreset": {
+        "id": "phone",
+        "category": "phone",
+        "tools": "Android",
+        "settings": {}
+      }
+    },
+    "contributions": []
   }
 ]

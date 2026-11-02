@@ -64,7 +64,10 @@
       "dependencies": {},
       "conflicts": {},
       "kind": "feature",
-      "installationGroup": "workspace"
+      "installationGroup": "workspace",
+      "platforms": [
+        "android"
+      ]
     },
     "contributions": [
       {
@@ -1509,10 +1512,6 @@
           "min": "1.0.0",
           "maxExclusive": "2.0.0"
         },
-        "studio.keyboard": {
-          "min": "1.0.0",
-          "maxExclusive": "2.0.0"
-        },
         "studio.language.json": {
           "min": "1.0.0",
           "maxExclusive": "2.0.0"
@@ -2580,10 +2579,6 @@
           "maxExclusive": "2.0.0"
         },
         "studio.project.cpp": {
-          "min": "1.0.0",
-          "maxExclusive": "2.0.0"
-        },
-        "studio.keyboard": {
           "min": "1.0.0",
           "maxExclusive": "2.0.0"
         },
@@ -3748,6 +3743,130 @@
         "id": "studio.function-docs/feature",
         "value": {
           "id": "functionDocs"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "conflicts": {},
+      "dependencies": {
+        "studio.tool.python": {}
+      },
+      "id": "studio.tool.notebook-intelligence",
+      "name": {
+        "ru": "Notebook · подсказки ячеек",
+        "en": "Notebook · intelligence tools"
+      },
+      "kind": "runtime",
+      "installationGroup": "tools",
+      "capabilities": [
+        "tools.runtime"
+      ],
+      "externalTool": "python-intelligence"
+    },
+    "contributions": [
+      {
+        "point": "runtimes",
+        "id": "studio.tool.notebook-intelligence/provider",
+        "value": {
+          "id": "python-intelligence"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "conflicts": {},
+      "dependencies": {
+        "studio.tool.python": {}
+      },
+      "id": "studio.tool.notebook-style",
+      "name": {
+        "ru": "Notebook · инструменты оформления ячеек",
+        "en": "Notebook · style tools"
+      },
+      "kind": "runtime",
+      "installationGroup": "tools",
+      "capabilities": [
+        "tools.runtime"
+      ],
+      "externalTool": "python-style"
+    },
+    "contributions": [
+      {
+        "point": "runtimes",
+        "id": "studio.tool.notebook-style/provider",
+        "value": {
+          "id": "python-style"
+        }
+      }
+    ]
+  },
+  {
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "license": "MIT",
+      "conflicts": {},
+      "dependencies": {
+        "studio.notebooks": {},
+        "studio.tool.notebook-intelligence": {},
+        "studio.tool.notebook-style": {}
+      },
+      "id": "studio.notebook-assistance",
+      "name": {
+        "ru": "Notebook · помощь в ячейках",
+        "en": "Notebook · cell assistance"
+      },
+      "description": {
+        "ru": "Подсказки, документация, PEP 8 и форматирование в ячейках редактора DevForge. Инструменты устанавливаются автоматически.",
+        "en": "Completion, documentation, PEP 8 and formatting in DevForge notebook cells. Supporting tools are installed automatically."
+      },
+      "kind": "feature",
+      "installationGroup": "editing",
+      "capabilities": [
+        "host.features"
+      ]
+    },
+    "contributions": [
+      {
+        "point": "features",
+        "id": "studio.notebook-assistance/notebookIntelligence",
+        "value": {
+          "id": "notebookIntelligence"
+        }
+      },
+      {
+        "point": "features",
+        "id": "studio.notebook-assistance/notebookFormatting",
+        "value": {
+          "id": "notebookFormatting"
+        }
+      },
+      {
+        "point": "features",
+        "id": "studio.notebook-assistance/notebookDiagnostics",
+        "value": {
+          "id": "notebookDiagnostics"
         }
       }
     ]
