@@ -11,15 +11,15 @@ Object.assign(StudioDesign.prototype,{
   for(const[owner,fields]of groups){
    const manifest=this.ide.addons.catalog.find(m=>m.id===owner),section=document.createElement('section'),heading=document.createElement('h3'),grid=document.createElement('div');section.dataset.addonSettings=owner;section.className='design-settings-page';heading.textContent=local(manifest?.name)||owner;grid.className='settings-grid';section.append(heading,grid);
    for(const field of fields){
-    const label=document.createElement('label'),input=document.createElement(field.type==='choice'?'select':'input'),value=this.ide.settings[field.key]??field.default;label.textContent=local(field.label);input.name=field.key;input.dataset.addonOwner=owner;
+    const label=document.createElement('label'),input=document.createElement(field.multiline?'textarea':field.type==='choice'?'select':'input'),value=this.ide.settings[field.key]??field.default;label.textContent=local(field.label);input.name=field.key;input.dataset.addonOwner=owner;
     if(field.type==='choice'){for(const choice of field.options){const option=document.createElement('option');option.value=typeof choice==='object'?choice.value:choice;option.textContent=local(typeof choice==='object'?choice.label:String(choice));input.append(option);}input.value=value;}
     else if(field.type==='toggle'){input.type='checkbox';input.checked=!!value;label.className='check';}
-    else{input.type=field.type==='number'?'number':'text';input.value=value;for(const attr of ['min','max','step'])if(field[attr]!==undefined)input[attr]=field[attr];}
+    else{if(input.tagName==='INPUT')input.type=field.type==='number'?'number':'text';input.value=Array.isArray(value)?value.join('\n'):value;for(const attr of ['min','max','step'])if(field[attr]!==undefined)input[attr]=field[attr];}
     label.append(input);grid.append(label);
    }
    this.addSettingsPage(section,heading.textContent,owner);this.settingsContent.append(section);
   }
   for(const entry of this.ide.addons.manager.active.values()){const manifest=entry.manifest;if(!Object.keys(manifest.configuration||{}).length)continue;const section=document.createElement('section');section.dataset.addonSettings=manifest.id;this.addSettingsPage(section,local(manifest.name)||manifest.id,manifest.id);this.settingsContent.append(section);this.ide.addons.renderExtensionSettings(section,manifest.id);}
-  const index=this.settingsPages.findIndex(p=>p.label===current);this.chooseSettingsPage(index>=0?index:0);
+  StudioDesktopTools.refresh(this.ide);const index=this.settingsPages.findIndex(p=>p.label===current);this.chooseSettingsPage(index>=0?index:0);
  }
 });

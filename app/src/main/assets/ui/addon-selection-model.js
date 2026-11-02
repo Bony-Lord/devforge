@@ -31,6 +31,7 @@
     if(!members.length)return requested;const selected=new Set(members.map(m=>m.id));if(checked){const next=[...requested.filter(r=>!selected.has(id(r))),...members.map(request)];core.resolve(catalog,next);return next;}
     return subtract(catalog,requested,selected);
   }
+  function packs(catalog){const latest=new Map(),modern=catalog.some(m=>m.idePreset);for(const m of catalog){if(m.kind!=='pack'||modern&&!m.idePreset||m.system||!core.satisfies(core.API_VERSION,m.api)||m.platforms&&!m.platforms.includes(core.currentPlatform()))continue;const old=latest.get(m.id);if(!old||core.compare(m.version,old.version)>0)latest.set(m.id,m);}return [...latest.values()].sort((a,b)=>Number(b.idePreset?.id==='base')-Number(a.idePreset?.id==='base'));}
   function groups(catalog){
     const latest=new Map();for(const m of catalog){if(m.system||m.kind==='core'||m.kind==='pack'||!core.satisfies(core.API_VERSION,m.api)||m.platforms&&!m.platforms.includes(core.currentPlatform()))continue;const old=latest.get(m.id);if(!old||core.compare(m.version,old.version)>0)latest.set(m.id,m);}
     const order=['languages','projects','editing','analysis','workspace','tools','extensions'],result=new Map(order.map(id=>[id,[]]));
@@ -38,5 +39,5 @@
   }
   function view(saved={}){if(!saved||typeof saved!=='object'||Array.isArray(saved))saved={};const offset=value=>Math.min(10000000,Math.max(0,Number(value)||0));return {...(typeof saved.detail==='string'?{detail:saved.detail.slice(0,140)}:{}),tab:saved.tab==='components'?'components':'packs',expanded:Array.isArray(saved.expanded)?saved.expanded.filter(x=>typeof x==='string'&&x.length<=140).slice(0,128):[],search:typeof saved.search==='string'?saved.search.slice(0,120):'',selectedOnly:!!saved.selectedOnly,scroll:{packs:offset(saved.scroll?.packs),components:offset(saved.scroll?.components)}};}
   function changes(catalog,before,after){const old=core.resolve(catalog,before),next=core.resolve(catalog,after),a=new Map(old.map(m=>[m.id,m])),b=new Map(next.map(m=>[m.id,m]));return {previous:old,resolved:next,added:next.filter(m=>a.get(m.id)?.version!==m.version),removed:old.filter(m=>b.get(m.id)?.version!==m.version)};}
-  return Object.freeze({members,state,manual,toggle,groupState,toggleGroup,groups,view,changes});
+  return Object.freeze({members,state,manual,toggle,groupState,toggleGroup,packs,groups,view,changes});
 });

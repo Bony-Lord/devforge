@@ -20,6 +20,12 @@ const StudioIDEPresets={
  },
  async activate(api,key){
   const ide=api.raw.application,definition=ide.addons.available.find(p=>p.manifest.ideIntegration?.id===key)?.manifest;if(!definition)return;
+  if(['cpp','python','notebook'].includes(key)&&!StudioAddonReplacements.enabled()){
+   const apply=async(force=false)=>{const defaults=api.configuration.get('devforge.ide.recommendedSettings',definition.ideIntegration.settings);const extensionSettings=structuredClone(ide.settings.extensionSettings||{});extensionSettings[definition.id]={...extensionSettings[definition.id],'devforge.ide.appliedVersion':definition.version};await ide.changeSettings({...defaults,extensionSettings});};
+   api.commands.register('apply-preset',ide.settings.language==='en'?'Apply '+key+' defaults':'Применить настройки '+key,()=>apply(true));
+   if(api.configuration.get('devforge.ide.applyRecommendedSettings',true)&&api.configuration.get('devforge.ide.appliedVersion')!==definition.version)await apply();
+   return;
+  }
   const analysis=async()=>{
    if(key!=='cpp'||!ide.state.trust?.trusted||ide.state.capabilities.projectReadOnly)return null;
    const tools=await native('idePresetTools');if(!tools.clangd||!(ide.settings.compiler==='clang'?tools.clangxx:tools.gxx))return null;

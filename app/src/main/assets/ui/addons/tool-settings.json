@@ -1,0 +1,69 @@
+{
+  "platform": [],
+  "gcc": [
+    [
+      "gxx",
+      "G++"
+    ],
+    [
+      "gcc",
+      "GCC"
+    ]
+  ],
+  "clang": [
+    [
+      "clangxx",
+      "Clang++"
+    ],
+    [
+      "clang",
+      "Clang"
+    ]
+  ],
+  "analysis": [
+    [
+      "clangd",
+      "clangd"
+    ],
+    [
+      "format",
+      "clang-format"
+    ]
+  ],
+  "cmake": [
+    [
+      "cmake",
+      "CMake"
+    ],
+    [
+      "ninja",
+      "Ninja"
+    ]
+  ],
+  "debugger": [
+    [
+      "gdb",
+      "GDB"
+    ],
+    [
+      "gdbserver",
+      "gdbserver"
+    ],
+    [
+      "lldbdap",
+      "LLDB DAP"
+    ]
+  ],
+  "git": [
+    [
+      "git",
+      "Git"
+    ]
+  ],
+  "python": [
+    [
+      "python",
+      "Python"
+    ]
+  ]
+}

@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const ui=path.join(__dirname,'../app/src/main/assets/ui'),templates=require(ui+'/project-templates.js'),runs=require(ui+'/run-configurations.js'),packages=require(ui+'/addon-packages.js'),core=require(ui+'/addon-core.js');
-const catalog=JSON.parse(fs.readFileSync(ui+'/addons/templates.json','utf8')),byId=id=>structuredClone(catalog.find(t=>t.id==='studio.template.'+id));
+const catalog=[...JSON.parse(fs.readFileSync(ui+'/addons/templates.json','utf8')),...JSON.parse(fs.readFileSync(ui+'/addons/modules.json','utf8')).flatMap(d=>d.contributions.filter(c=>c.point==='projectTemplates').map(c=>c.value))],byId=id=>structuredClone(catalog.find(t=>t.id==='studio.template.'+id));
 test('all built-in templates instantiate and their projects have one main configuration',()=>{
   assert.equal(catalog.length,13);for(const raw of catalog){const t=templates.parse(raw),instance=templates.instantiate(t,{},'demo');assert(Object.isFrozen(t));if(t.kind==='project'){const plan=templates.plan(instance);runs.validate(plan.project);assert.equal(plan.project.configurations.length,1);assert.equal(plan.project.active,plan.project.configurations[0].id);}}
   for(const id of ['python','notebook']){const p=templates.plan(templates.instantiate(byId(id))).project;assert(!p.configurations[0].actions.build);assert(!p.configurations[0].actions.debug);assert(!p.addons.requested.some(id=>/clangd|formatter|cmake/.test(id)));}

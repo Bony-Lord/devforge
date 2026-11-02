@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs/promises'),path=require('node:path'),{spawn}=require('node:child_process');
 const {Store,atomic,inside,sleep,escape,sizeOf}=require('./core.cjs'),{plan,monitor}=require('./performance.cjs'),{resourceUse,killOwned}=require('./cdp.cjs');
-const suites=['VSX file operations','Editors and windows','VSX editor columns','VSX workspaces','VSX workspace creation','VSX workspace Save As','VSX gallery and IDE packs'];
+const suites=['Native addons and lifecycle','VSX file operations','Editors and windows','VSX editor columns','VSX workspaces','VSX workspace creation','VSX workspace Save As','VSX gallery and IDE packs'];
 async function readWorker(record){
  try{const active=await fs.readFile(path.join(record.root,'active.json'),'utf8').then(JSON.parse,error=>{if(error.code!=='ENOENT')throw error;return fs.readFile(path.join(record.root,'latest.json'),'utf8').then(JSON.parse);});if(!inside(active.run,record.root)||path.dirname(active.run)!==record.root)throw Error('Worker report escaped its root');if(active.token)record.token=active.token;record.run=active.run;record.stopFile=path.join(active.run,'STOP');record.state=JSON.parse(await fs.readFile(path.join(active.run,'status.json'),'utf8'));}catch(error){if(!['ENOENT','SyntaxError'].includes(error.code||error.name))throw error;}
  if(record.run)record.profiles=await fs.readFile(path.join(record.run,'owned-profiles.json'),'utf8').then(JSON.parse,()=>null);return record.state;

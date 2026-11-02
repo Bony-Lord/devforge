@@ -1,4 +1,4 @@
-/* Windows uses the upstream language extensions and Open VSX providers. */
+/* Native providers remain the default; VSX extensions are optional additions. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.StudioAddonReplacements=api;})(globalThis,()=>{
  'use strict';
  const providers=[
@@ -9,7 +9,7 @@
   {namespace:'ms-python',name:'flake8',title:'Flake8',ids:['studio.python-diagnostics','studio.tool.python-style','studio.python-style']}
  ];
  const languages=['cpp','json','yaml','markdown','shell','python'],retired=new Set([...providers.flatMap(p=>p.ids),'studio.keyboard',...languages.map(id=>'studio.language.'+id)]),id=r=>typeof r==='string'?r:r.id;
- const enabled=()=>globalThis.StudioDesktop?.platform==='win32'&&!!globalThis.StudioCodeOSS?.api;
+ const enabled=()=>false;
  const upstreamId=p=>'vscode.'+p.namespace.toLowerCase()+'.'+p.name.toLowerCase();
  function alias(manifest){return {...manifest,kind:'core',platforms:undefined,capabilities:[],dependencies:{},conflicts:{},replacement:providers.filter(p=>p.ids.includes(manifest.id)).map(upstreamId)};}
  function definitions(values){return values.map(d=>retired.has(d.manifest.id)?{manifest:alias(d.manifest),contributions:[]}:d);}
@@ -21,5 +21,12 @@
   for(const p of providers)if(p.ids.some(name=>needed.has(name))){const name=upstreamId(p),m=packages.get(name);if(m&&!included.has(name)){result.push({id:name,version:m.version});included.add(name);}}
   return result;
  }
- return Object.freeze({providers,languages,retired,enabled,upstreamId,alias,definitions,catalogAliases,migrate});
+ function restoreNative(profile,packages=[],disabled=[]){
+  if(profile.nativeProvidersRestored)return profile;const automatic=new Set(packages.filter(e=>e.source==='runtime-default').map(e=>e.package.manifest.id)),result={...profile,nativeProvidersRestored:true};
+  for(const key of ['requested','defaultRequested'])if(Array.isArray(profile[key])){const roots=profile[key].filter(r=>!automatic.has(id(r))),ids=new Set(roots.map(id));
+   if(ids.has('studio.project.cpp')||ids.has('studio.project.cmake')||ids.has('studio.pack.cpp-full')||ids.has('studio.pack.ide.cpp'))for(const name of ['studio.clangd','studio.completion','studio.formatter','studio.diagnostics','studio.semantic','studio.inlay-hints'])if(!ids.has(name)&&!disabled.includes(name))roots.push(name);
+   result[key]=roots;
+  }return result;
+ }
+ return Object.freeze({providers,languages,retired,enabled,restoreNative,upstreamId,alias,definitions,catalogAliases,migrate});
 });

@@ -159,7 +159,7 @@
     "manifest": {
       "schemaVersion": 1,
       "id": "studio.vsix",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "api": {
         "min": "0.1.2",
         "maxExclusive": "0.2.0"
@@ -189,14 +189,14 @@
       "scope": "application"
     },
     "contributions": [],
-    "module": "const previous={};for(const key of [\"galleryError\", \"galleryProgressText\", \"openExternalGallery\", \"galleryAddonId\", \"galleryIcon\", \"renderExternalGallery\"])previous[key]=StudioAddons.prototype[key];\n\n'use strict';\nObject.assign(StudioAddons.prototype,{\n galleryError(error){const message=error?.message||String(error);return message.includes('GALLERY_TIMEOUT:')?this.text('Сервер расширений не ответил вовремя. Повторите попытку.','The extension registry timed out. Try again.'):message.includes('GALLERY_CANCELLED:')?this.text('Загрузка отменена.','Download cancelled.'):message.includes('GALLERY_BUSY:')?this.text('Другая загрузка ещё выполняется. Её можно отменить выше.','Another download is running. You can cancel it above.'):message;},\n galleryProgressText(value){if(!value?.running)return '';const label=value.phase==='metadata'?this.text('Получение сведений…','Fetching metadata…'):value.phase==='verify'?this.text('Проверка пакета…','Verifying package…'):this.text('Загрузка…','Downloading…');return label+(value.extension?' '+value.extension:'')+(value.phase==='download'?' · '+Math.round((value.bytes||0)/1048576*10)/10+' MiB'+(value.total?' / '+Math.round(value.total/1048576*10)/10+' MiB':''):'');},\n async openExternalGallery(entry){await this.open();if(entry)this.gallerySelected=entry;this.tab='catalog';this.externalGallery=true;this.render();},\n galleryAddonId(entry){return 'vscode.'+entry.namespace.toLowerCase().replace(/[^a-z0-9-]/g,'-')+'.'+entry.name.toLowerCase().replace(/[^a-z0-9-]/g,'-');},\n galleryIcon(entry,size=33){const box=this.marketIcon('vscode.extension');box.style.width=box.style.height=size+'px';if(!entry.icon)return box;this.galleryIcons??=new Map();let promise=this.galleryIcons.get(entry.icon);if(!promise){promise=native('extensionGalleryIcon',{url:entry.icon}).catch(()=>null);this.galleryIcons.set(entry.icon,promise);if(this.galleryIcons.size>64)this.galleryIcons.delete(this.galleryIcons.keys().next().value);}promise.then(src=>{if(src&&box.isConnected){const image=this.element('img',undefined,'market-gallery-icon');image.width=image.height=size;image.style.width=image.style.height=size+'px';image.alt=entry.title||entry.name;image.src=src;box.replaceChildren(image);}});return box;},\n renderExternalGallery(container){\n  const section=this.element('section',undefined,'studio-marketplace'),side=this.element('aside',undefined,'market-sidebar'),detail=this.element('section',undefined,'market-detail-host');section.append(side,detail);container.append(section);const back=this.element('button','← DevForge','market-back');back.onclick=()=>{this.externalGallery=false;this.render();};const title=this.element('strong','Open VSX'),search=this.element('input');search.type='search';search.placeholder=this.text('Искать расширения VS Code','Search VS Code extensions');search.value=this.galleryQuery||'';const filters=this.element('div',undefined,'market-filter-options'),category=this.element('select'),sort=this.element('select');for(const[value,label]of [['all',this.text('Все категории','All categories')],['Snippets','Snippets'],['Themes','Themes'],['Programming Languages','Languages'],['Formatters','Formatters'],['Extension Packs','Packs']]){const o=this.element('option',label);o.value=value;category.append(o);}for(const[value,ru,en]of [['relevance','Релевантность','Relevance'],['downloadCount','Загрузки','Downloads'],['rating','Оценка','Rating'],['timestamp','Новые','Newest']]){const o=this.element('option',this.text(ru,en));o.value=value;sort.append(o);}filters.append(category,sort);const run=this.element('button',this.text('Найти','Search'),'primary'),status=this.element('small'),list=this.element('div',undefined,'market-results'),toolbar=this.element('div',undefined,'market-filters');toolbar.append(back,title,search,filters,run,status);side.append(toolbar,list);let sequence=0,infoRequest,searchSequence=0,searchTimer;\n  const downloadBar=this.element('div',undefined,'market-detail-actions'),downloadText=this.element('span'),downloadCancel=this.element('button',this.text('Отменить загрузку','Cancel download'));let runningDownload;downloadBar.hidden=true;downloadBar.append(downloadText,downloadCancel);toolbar.append(downloadBar);\n  const updateDownload=value=>{runningDownload=value;downloadBar.hidden=!value?.running;downloadText.textContent=this.galleryProgressText(value);};\n  downloadCancel.onclick=async()=>{downloadCancel.disabled=true;try{await native('extensionGalleryCancel',{operationId:runningDownload?.operationId});updateDownload(await native('extensionGalleryStatus'));}catch(error){status.textContent=this.galleryError(error);}finally{downloadCancel.disabled=false;}};\n  this.galleryStatusUnsubscribe?.();this.galleryStatusUnsubscribe=onNative('extensionGalleryProgress',value=>{if(section.isConnected)updateDownload(value);else{this.galleryStatusUnsubscribe?.();this.galleryStatusUnsubscribe=null;}});\n  native('extensionGalleryStatus').then(value=>{if(section.isConnected)updateDownload(value);}).catch(()=>{});\n  const show=async entry=>{this.gallerySelected=entry;const current=++sequence;if(infoRequest)native('extensionGalleryCancelInfo',{requestId:infoRequest}).catch(()=>{});const requestId=infoRequest=crypto.randomUUID(),loading=this.element('p',this.text('Загрузка…','Loading…')),cancelInfo=this.element('button',this.text('Отменить','Cancel'));detail.replaceChildren(loading,cancelInfo);cancelInfo.onclick=()=>native('extensionGalleryCancelInfo',{requestId});try{const data=await native('extensionGalleryInfo',{...entry,requestId});if(!detail.isConnected||current!==sequence)return;detail.replaceChildren();const id=this.galleryAddonId(data),local=this.marketplaceEntries().find(e=>e.manifest.id===id&&e.installed),active=this.manager.active.has(id),article=this.element('article',undefined,'market-detail'),head=this.element('div',undefined,'market-detail-heading'),heading=this.element('div');heading.append(this.element('h2',data.title),this.element('p',data.publisher),this.element('p',data.description));head.append(this.galleryIcon(data,72),heading);article.append(head);\n   const report=data.compatibility||{},compatibility=this.element('p',report.engineCompatible===false?this.text('Нужен VS Code ','Requires VS Code ')+data.engine+this.text('; в DevForge API ', '; DevForge API is ')+report.apiVersion:report.unsupported?.length?this.text('Ограничения: ','Limitations: ')+report.unsupported.join(', '):''),actions=this.element('div',undefined,'market-detail-actions'),error=this.element('p',undefined,'inline-error');compatibility.className='gallery-compatibility';compatibility.setAttribute('role','status');article.append(actions,compatibility,error);\n   const act=(label,callback,primary=false)=>{const button=this.element('button',label,primary?'primary':'');button.type='button';button.onclick=async()=>{button.disabled=true;error.textContent='';try{await callback();}catch(e){error.textContent=this.galleryError(e);this.app.toast(error.textContent);}finally{button.disabled=false;}};actions.append(button);return button;};\n   if(data.versions?.length>1){const versions=this.element('select');versions.ariaLabel=this.text('Версия расширения','Extension version');for(const version of data.versions){const option=this.element('option',version);option.value=version;versions.append(option);}versions.value=data.version;versions.onchange=()=>show({...entry,version:versions.value});heading.append(versions);}\n   if(local){act(active?this.text('Отключить','Disable'):this.text('Включить','Enable'),async()=>{await this.marketToggle(local,!active);this.render();},!active);act(this.text('Настройки','Settings'),()=>this.openExtensionSettings(id));act(this.text('Удалить','Uninstall'),async()=>{await this.marketRemove(local);this.render();});}\n   else if(report.engineCompatible===false){const unavailable=act(this.text('Требуется другая версия API','Requires another API version'),()=>{});unavailable.disabled=true;unavailable.title=compatibility.textContent;}else act(this.text('Проверить и установить…','Review and install…'),async()=>{const progress=this.element('span',this.text('Загрузка…','Downloading…'));progress.dataset.galleryProgress='';const cancel=this.element('button',this.text('Отменить','Cancel'));cancel.type='button';const operationId=crypto.randomUUID();cancel.onclick=()=>native('extensionGalleryCancel',{operationId});actions.append(progress,cancel);try{const pkg=await native('extensionGalleryPrepare',{...data,operationId});this.externalGallery=false;await this.review(pkg.text,false,pkg);}finally{progress.remove();cancel.remove();}},true);\n   if(data.license)article.append(this.element('p',data.license));const readme=this.element('div',undefined,'notebook-markdown-preview');StudioMarkdown.render(readme,data.readme||data.description,this.app);article.append(readme);detail.append(article);this.restoreViewport(document.querySelector('#addonsDialog'));section.classList.add('market-detail-open');const backToList=this.element('button',this.text('← Результаты','← Results'),'market-back');backToList.onclick=()=>{this.gallerySelected=null;section.classList.remove('market-detail-open');};article.prepend(backToList);}catch(error){if(!detail.isConnected||current!==sequence)return;const message=this.element('p',this.galleryError(error),'inline-error'),retry=this.element('button',this.text('Повторить','Retry'),'primary');retry.onclick=()=>show(entry);detail.replaceChildren(message,retry);}};\n  const find=async()=>{clearTimeout(searchTimer);const ticket=++searchSequence;run.disabled=true;this.galleryQuery=search.value;status.textContent=this.text('Поиск…','Searching…');try{const response=await native('extensionGallerySearch',{query:search.value,category:category.value,sort:sort.value});if(!list.isConnected||ticket!==searchSequence)return;list.replaceChildren();status.textContent=this.text('Найдено: ','Found: ')+response.total;for(const entry of response.extensions){const row=this.element('article',undefined,'market-item'),body=this.element('div',undefined,'market-item-info'),button=this.element('button',entry.title,'market-title'),id=this.galleryAddonId(entry),installed=this.library.packages.some(p=>p.package.manifest.id===id);row.dataset.addonState=this.manager.active.has(id)?'enabled':installed?'installed':'available';body.append(button,this.element('p',entry.description),this.element('small',entry.namespace+' · '+entry.downloads.toLocaleString()));row.append(this.galleryIcon(entry),body);row.onclick=()=>show(entry);list.append(row);}}catch(error){if(ticket===searchSequence)status.textContent=this.galleryError(error);}finally{if(ticket===searchSequence){run.disabled=false;this.restoreViewport(document.querySelector('#addonsDialog'));}}};run.onclick=find;search.oninput=()=>{++searchSequence;clearTimeout(searchTimer);searchTimer=setTimeout(()=>{if(section.isConnected)find();},250);};search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();find();}};category.onchange=find;sort.onchange=find;find();if(this.gallerySelected)show(this.gallerySelected);\n }\n});\n\nconst installed=Object.fromEntries(Object.keys(previous).map(key=>[key,StudioAddons.prototype[key]]));\napi.commands.register('open',api.raw.application.settings.language==='ru'?'Open VSX: расширения':'Open VSX: extensions',()=>api.raw.application.addons.openExternalGallery());\napi.use(()=>{const addons=api.raw.application.addons;addons.externalGallery=false;addons.galleryStatusUnsubscribe?.();addons.galleryStatusUnsubscribe=null;addons.galleryIcons?.clear();for(const[key,value]of Object.entries(previous)){if(StudioAddons.prototype[key]!==installed[key])continue;if(value)StudioAddons.prototype[key]=value;else delete StudioAddons.prototype[key];}addons.render();});\n"
+    "module": "const previous={};for(const key of [\"galleryError\", \"galleryProgressText\", \"openExternalGallery\", \"galleryAddonId\", \"galleryIcon\", \"renderExternalGallery\"])previous[key]=StudioAddons.prototype[key];\n\n'use strict';\nObject.assign(StudioAddons.prototype,{\n galleryError(error){const message=error?.message||String(error);return message.includes('GALLERY_TIMEOUT:')?this.text('Сервер расширений не ответил вовремя. Повторите попытку.','The extension registry timed out. Try again.'):message.includes('GALLERY_CANCELLED:')?this.text('Загрузка отменена.','Download cancelled.'):message.includes('GALLERY_BUSY:')?this.text('Другая загрузка ещё выполняется. Её можно отменить выше.','Another download is running. You can cancel it above.'):message;},\n galleryProgressText(value){if(!value?.running)return '';const label=value.phase==='metadata'?this.text('Получение сведений…','Fetching metadata…'):value.phase==='verify'?this.text('Проверка пакета…','Verifying package…'):this.text('Загрузка…','Downloading…');return label+(value.extension?' '+value.extension:'')+(value.phase==='download'?' · '+Math.round((value.bytes||0)/1048576*10)/10+' MiB'+(value.total?' / '+Math.round(value.total/1048576*10)/10+' MiB':''):'');},\n async openExternalGallery(entry){await this.open();if(entry)this.gallerySelected=entry;this.tab='catalog';this.externalGallery=true;this.render();},\n galleryAddonId(entry){return 'vscode.'+entry.namespace.toLowerCase().replace(/[^a-z0-9-]/g,'-')+'.'+entry.name.toLowerCase().replace(/[^a-z0-9-]/g,'-');},\n galleryIcon(entry,size=33){const box=this.marketIcon('vscode.extension');box.style.width=box.style.height=size+'px';if(!entry.icon)return box;this.galleryIcons??=new Map();let promise=this.galleryIcons.get(entry.icon);if(!promise){promise=native('extensionGalleryIcon',{url:entry.icon}).catch(()=>null);this.galleryIcons.set(entry.icon,promise);if(this.galleryIcons.size>64)this.galleryIcons.delete(this.galleryIcons.keys().next().value);}promise.then(src=>{if(src&&box.isConnected){const image=this.element('img',undefined,'market-gallery-icon');image.width=image.height=size;image.style.width=image.style.height=size+'px';image.alt=entry.title||entry.name;image.src=src;box.replaceChildren(image);}});return box;},\n renderExternalGallery(container){\n  const section=this.element('section',undefined,'studio-marketplace'),side=this.element('aside',undefined,'market-sidebar'),detail=this.element('section',undefined,'market-detail-host');section.append(side,detail);container.append(section);const back=this.element('button','← DevForge','market-back');back.onclick=()=>{this.externalGallery=false;this.render();};const title=this.element('strong','Open VSX'),search=this.element('input');search.type='search';search.placeholder=this.text('Искать расширения VS Code','Search VS Code extensions');search.value=this.galleryQuery||'';const filters=this.element('div',undefined,'market-filter-options'),category=this.element('select'),sort=this.element('select');for(const[value,label]of [['all',this.text('Все категории','All categories')],['Snippets','Snippets'],['Themes','Themes'],['Programming Languages','Languages'],['Formatters','Formatters'],['Extension Packs','Packs']]){const o=this.element('option',label);o.value=value;category.append(o);}for(const[value,ru,en]of [['relevance','Релевантность','Relevance'],['downloadCount','Загрузки','Downloads'],['rating','Оценка','Rating'],['timestamp','Новые','Newest']]){const o=this.element('option',this.text(ru,en));o.value=value;sort.append(o);}filters.append(category,sort);const run=this.element('button',this.text('Найти','Search'),'primary'),status=this.element('small'),list=this.element('div',undefined,'market-results'),toolbar=this.element('div',undefined,'market-filters');toolbar.append(back,title,search,filters,run,status);side.append(toolbar,list);let sequence=0,infoRequest,searchSequence=0,searchTimer;\n  const downloadBar=this.element('div',undefined,'market-detail-actions'),downloadText=this.element('span'),downloadCancel=this.element('button',this.text('Отменить загрузку','Cancel download'));let runningDownload;downloadBar.hidden=true;downloadBar.append(downloadText,downloadCancel);toolbar.append(downloadBar);\n  const updateDownload=value=>{runningDownload=value;downloadBar.hidden=!value?.running;downloadText.textContent=this.galleryProgressText(value);};\n  downloadCancel.onclick=async()=>{downloadCancel.disabled=true;try{await native('extensionGalleryCancel',{operationId:runningDownload?.operationId});updateDownload(await native('extensionGalleryStatus'));}catch(error){status.textContent=this.galleryError(error);}finally{downloadCancel.disabled=false;}};\n  const observer=new MutationObserver(()=>{if(!section.isConnected){observer.disconnect();for(const preview of detail.querySelectorAll('.notebook-markdown-preview'))preview.__disposeReadme?.();}});observer.observe(container,{childList:true});this.galleryStatusUnsubscribe?.();this.galleryStatusUnsubscribe=onNative('extensionGalleryProgress',value=>{if(section.isConnected)updateDownload(value);else{this.galleryStatusUnsubscribe?.();this.galleryStatusUnsubscribe=null;}});\n  native('extensionGalleryStatus').then(value=>{if(section.isConnected)updateDownload(value);}).catch(()=>{});\n  const show=async entry=>{for(const preview of detail.querySelectorAll('.notebook-markdown-preview'))preview.__disposeReadme?.();this.gallerySelected=entry;const current=++sequence;if(infoRequest)native('extensionGalleryCancelInfo',{requestId:infoRequest}).catch(()=>{});const requestId=infoRequest=crypto.randomUUID(),loading=this.element('p',this.text('Загрузка…','Loading…')),cancelInfo=this.element('button',this.text('Отменить','Cancel'));detail.replaceChildren(loading,cancelInfo);cancelInfo.onclick=()=>native('extensionGalleryCancelInfo',{requestId});try{const data=await native('extensionGalleryInfo',{...entry,requestId});if(!detail.isConnected||current!==sequence)return;detail.replaceChildren();const id=this.galleryAddonId(data),local=this.marketplaceEntries().find(e=>e.manifest.id===id&&e.installed),active=this.manager.active.has(id),article=this.element('article',undefined,'market-detail'),head=this.element('div',undefined,'market-detail-heading'),heading=this.element('div');heading.append(this.element('h2',data.title),this.element('p',data.publisher),this.element('p',data.description));head.append(this.galleryIcon(data,72),heading);article.append(head);\n   const report=data.compatibility||{},compatibility=this.element('p',report.engineCompatible===false?this.text('Нужен VS Code ','Requires VS Code ')+data.engine+this.text('; в DevForge API ', '; DevForge API is ')+report.apiVersion:report.unsupported?.length?this.text('Ограничения: ','Limitations: ')+report.unsupported.join(', '):''),actions=this.element('div',undefined,'market-detail-actions'),error=this.element('p',undefined,'inline-error');compatibility.className='gallery-compatibility';compatibility.setAttribute('role','status');article.append(actions,compatibility,error);\n   const act=(label,callback,primary=false)=>{const button=this.element('button',label,primary?'primary':'');button.type='button';button.onclick=async()=>{button.disabled=true;error.textContent='';try{await callback();}catch(e){error.textContent=this.galleryError(e);this.app.toast(error.textContent);}finally{button.disabled=false;}};actions.append(button);return button;};\n   if(data.versions?.length>1){const versions=this.element('select');versions.ariaLabel=this.text('Версия расширения','Extension version');for(const version of data.versions){const option=this.element('option',version);option.value=version;versions.append(option);}versions.value=data.version;versions.onchange=()=>show({...entry,version:versions.value});heading.append(versions);}\n   if(local){act(active?this.text('Отключить','Disable'):this.text('Включить','Enable'),async()=>{await this.marketToggle(local,!active);this.render();},!active);act(this.text('Настройки','Settings'),()=>this.openExtensionSettings(id));act(this.text('Удалить','Uninstall'),async()=>{await this.marketRemove(local);this.render();});}\n   else if(report.engineCompatible===false){const unavailable=act(this.text('Требуется другая версия API','Requires another API version'),()=>{});unavailable.disabled=true;unavailable.title=compatibility.textContent;}else act(this.text('Проверить и установить…','Review and install…'),async()=>{const progress=this.element('span',this.text('Загрузка…','Downloading…'));progress.dataset.galleryProgress='';const cancel=this.element('button',this.text('Отменить','Cancel'));cancel.type='button';const operationId=crypto.randomUUID();cancel.onclick=()=>native('extensionGalleryCancel',{operationId});actions.append(progress,cancel);try{const pkg=await native('extensionGalleryPrepare',{...data,operationId});this.externalGallery=false;await this.review(pkg.text,false,pkg);}finally{progress.remove();cancel.remove();}},true);\n   if(data.license)article.append(this.element('p',data.license));const readme=this.element('div',undefined,'notebook-markdown-preview');if(StudioCodeOSS.api){const rendered=StudioCodeOSS.api.renderReadme(readme,data.readme||data.description,data.repository||undefined,url=>{if(/^https:\\/\\//i.test(url))native('openDocumentationLink',{url}).catch(safeError);});readme.__disposeReadme=()=>rendered.dispose();}else StudioMarkdown.render(readme,data.readme||data.description,this.app);article.append(readme);detail.append(article);this.restoreViewport(document.querySelector('#addonsDialog'));section.classList.add('market-detail-open');const backToList=this.element('button',this.text('← Результаты','← Results'),'market-back');backToList.onclick=()=>{this.gallerySelected=null;section.classList.remove('market-detail-open');};article.prepend(backToList);}catch(error){if(!detail.isConnected||current!==sequence)return;const message=this.element('p',this.galleryError(error),'inline-error'),retry=this.element('button',this.text('Повторить','Retry'),'primary');retry.onclick=()=>show(entry);detail.replaceChildren(message,retry);}};\n  const find=async()=>{clearTimeout(searchTimer);const ticket=++searchSequence;run.disabled=true;this.galleryQuery=search.value;status.textContent=this.text('Поиск…','Searching…');try{const response=await native('extensionGallerySearch',{query:search.value,category:category.value,sort:sort.value});if(!list.isConnected||ticket!==searchSequence)return;list.replaceChildren();status.textContent=this.text('Найдено: ','Found: ')+response.total;for(const entry of response.extensions){const row=this.element('article',undefined,'market-item'),body=this.element('div',undefined,'market-item-info'),button=this.element('button',entry.title,'market-title'),id=this.galleryAddonId(entry),installed=this.library.packages.some(p=>p.package.manifest.id===id);row.dataset.addonState=this.manager.active.has(id)?'enabled':installed?'installed':'available';body.append(button,this.element('p',entry.description),this.element('small',entry.namespace+' · '+entry.downloads.toLocaleString()));row.append(this.galleryIcon(entry),body);row.onclick=()=>show(entry);list.append(row);}}catch(error){if(ticket===searchSequence)status.textContent=this.galleryError(error);}finally{if(ticket===searchSequence){run.disabled=false;this.restoreViewport(document.querySelector('#addonsDialog'));}}};run.onclick=find;search.oninput=()=>{++searchSequence;clearTimeout(searchTimer);searchTimer=setTimeout(()=>{if(section.isConnected)find();},250);};search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();find();}};category.onchange=find;sort.onchange=find;find();if(this.gallerySelected)show(this.gallerySelected);\n }\n});\n\nconst installed=Object.fromEntries(Object.keys(previous).map(key=>[key,StudioAddons.prototype[key]]));\napi.commands.register('open',api.raw.application.settings.language==='ru'?'Open VSX: расширения':'Open VSX: extensions',()=>api.raw.application.addons.openExternalGallery());\napi.use(()=>{const addons=api.raw.application.addons;addons.externalGallery=false;addons.galleryStatusUnsubscribe?.();addons.galleryStatusUnsubscribe=null;addons.galleryIcons?.clear();for(const[key,value]of Object.entries(previous)){if(StudioAddons.prototype[key]!==installed[key])continue;if(value)StudioAddons.prototype[key]=value;else delete StudioAddons.prototype[key];}addons.render();});\n"
   },
   {
     "format": "cppstudio.addon",
     "formatVersion": 1,
     "manifest": {
       "schemaVersion": 1,
-      "version": "1.0.2",
+      "version": "1.0.3",
       "api": {
         "min": "0.1.2",
         "maxExclusive": "0.2.0"
@@ -231,13 +231,8 @@
         "devforge.ide.recommendedSettings": {
           "type": "object",
           "default": {
-            "editor.formatOnSave": true,
-            "clangd.arguments": [
-              "--background-index",
-              "--clang-tidy",
-              "--completion-style=detailed",
-              "--header-insertion=iwyu"
-            ]
+            "semanticHighlighting": true,
+            "inlayHints": true
           },
           "additionalProperties": true,
           "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
@@ -251,13 +246,8 @@
       "ideIntegration": {
         "id": "cpp",
         "settings": {
-          "editor.formatOnSave": true,
-          "clangd.arguments": [
-            "--background-index",
-            "--clang-tidy",
-            "--completion-style=detailed",
-            "--header-insertion=iwyu"
-          ]
+          "semanticHighlighting": true,
+          "inlayHints": true
         },
         "tools": "GCC/Clang, CMake и GDB: пути определяются автоматически / paths are detected automatically"
       }
@@ -284,8 +274,8 @@
       "id": "studio.pack.ide.cpp",
       "name": "C++ IDE",
       "description": {
-        "ru": "C/C++, CMake, GCC, отладка, clangd, готовые настройки анализа.",
-        "en": "C/C++, CMake, GCC, debugging, clangd and analysis defaults."
+        "ru": "Набор штатных компонентов DevForge: cpp. Состав и параметры выбираются отдельно.",
+        "en": "Native DevForge components for cpp. Choose individual components and settings."
       },
       "kind": "pack",
       "installationGroup": "projects",
@@ -295,9 +285,6 @@
         "studio.ide.cpp": {},
         "studio.pack.cpp-full": {},
         "studio.pack.ide-base": {}
-      },
-      "vsxDependencies": {
-        "llvm-vs-code-extensions.vscode-clangd": {}
       },
       "idePreset": {
         "id": "cpp",
@@ -355,11 +342,7 @@
         },
         "devforge.ide.recommendedSettings": {
           "type": "object",
-          "default": {
-            "editor.formatOnSave": true,
-            "python.analysis.typeCheckingMode": "basic",
-            "python.analysis.diagnosticMode": "workspace"
-          },
+          "default": {},
           "additionalProperties": true,
           "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
         },
@@ -371,11 +354,7 @@
       },
       "ideIntegration": {
         "id": "python",
-        "settings": {
-          "editor.formatOnSave": true,
-          "python.analysis.typeCheckingMode": "basic",
-          "python.analysis.diagnosticMode": "workspace"
-        },
+        "settings": {},
         "tools": "Python: используется найденный интерпретатор или отдельная установка DevForge / detected or DevForge-managed interpreter"
       }
     },
@@ -401,8 +380,8 @@
       "id": "studio.pack.ide.python",
       "name": "Python IDE",
       "description": {
-        "ru": "Python, анализ Pyright, autopep8, Flake8; автоматическая установка Python при необходимости.",
-        "en": "Python, Pyright, autopep8 and Flake8; managed Python installation when needed."
+        "ru": "Набор штатных компонентов DevForge: python. Состав и параметры выбираются отдельно.",
+        "en": "Native DevForge components for python. Choose individual components and settings."
       },
       "kind": "pack",
       "installationGroup": "projects",
@@ -412,11 +391,6 @@
         "studio.ide.python": {},
         "studio.pack.python": {},
         "studio.pack.ide-base": {}
-      },
-      "vsxDependencies": {
-        "ms-pyright.pyright": {},
-        "ms-python.autopep8": {},
-        "ms-python.flake8": {}
       },
       "idePreset": {
         "id": "python",
@@ -470,10 +444,7 @@
         },
         "devforge.ide.recommendedSettings": {
           "type": "object",
-          "default": {
-            "editor.formatOnSave": true,
-            "python.analysis.typeCheckingMode": "basic"
-          },
+          "default": {},
           "additionalProperties": true,
           "description": "Параметры пресета; команда применения доступна в палитре / Preset options; apply using its palette command"
         },
@@ -485,10 +456,7 @@
       },
       "ideIntegration": {
         "id": "notebook",
-        "settings": {
-          "editor.formatOnSave": true,
-          "python.analysis.typeCheckingMode": "basic"
-        },
+        "settings": {},
         "tools": "Python: используется найденный интерпретатор или отдельная установка DevForge / detected or DevForge-managed interpreter"
       }
     },
@@ -514,8 +482,8 @@
       "id": "studio.pack.ide.notebook",
       "name": "Notebook IDE",
       "description": {
-        "ru": "Ячейки ipynb, Python, Markdown и формулы с Pyright, autopep8 и Flake8.",
-        "en": "ipynb cells, Python, Markdown and math with Pyright, autopep8 and Flake8."
+        "ru": "Набор штатных компонентов DevForge: notebook. Состав и параметры выбираются отдельно.",
+        "en": "Native DevForge components for notebook. Choose individual components and settings."
       },
       "kind": "pack",
       "installationGroup": "projects",
@@ -527,11 +495,6 @@
         "studio.markdown-math": {},
         "studio.pack.ide-base": {},
         "studio.notebook-assistance": {}
-      },
-      "vsxDependencies": {
-        "ms-pyright.pyright": {},
-        "ms-python.autopep8": {},
-        "ms-python.flake8": {}
       },
       "idePreset": {
         "id": "notebook",
@@ -1309,5 +1272,52 @@
       }
     },
     "contributions": []
+  },
+  {
+    "format": "cppstudio.addon",
+    "formatVersion": 1,
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "studio.vim",
+      "version": "1.0.1",
+      "api": {
+        "min": "0.1.2",
+        "maxExclusive": "0.2.0"
+      },
+      "name": {
+        "ru": "Vim",
+        "en": "Vim"
+      },
+      "description": {
+        "ru": "Режимы Normal/Insert/Visual, движения и команды Vim в редакторе Monaco. Движок загружается отдельно.",
+        "en": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately."
+      },
+      "publisher": "DevForge",
+      "license": "MIT",
+      "capabilities": [
+        "extensions.full-access"
+      ],
+      "dependencies": {
+        "studio.lib.vim": {
+          "min": "1.0.0",
+          "maxExclusive": "2.0.0"
+        }
+      },
+      "conflicts": {},
+      "kind": "feature",
+      "installationGroup": "editing",
+      "tags": [
+        "vim",
+        "editor"
+      ],
+      "readme": "Normal/Insert/Visual modes, motions and Vim commands in Monaco. Engine downloads separately.",
+      "platforms": [
+        "win32",
+        "linux",
+        "darwin"
+      ]
+    },
+    "contributions": [],
+    "module": "return (async()=>{\n if(!window.StudioDesktop)throw Error('Vim requires the desktop Monaco editor');\n if(!window.__studioVimAlias){define('monaco-editor/esm/vs/editor/editor.api',[],()=>monaco);window.__studioVimAlias=true;}\n const library=await new Promise((resolve,reject)=>require(['vendor/monaco-vim.umd'],resolve,reject));\n const status=api.ui.element('span','','studio-vim-status');document.querySelector('.statusbar').prepend(status);api.use(()=>status.remove());\n const modes=new Map();let enabled=true;\n function attach(){if(!enabled)return;for(const editor of monaco.editor.getEditors?.()||[api.editor.active]){if(modes.has(editor)||!editor.getDomNode()?.isConnected||editor.getModel()?.isDisposed())continue;const mode=library.initVimMode(editor,status),listener=editor.onDidDispose(()=>{const entry=modes.get(editor);if(entry){modes.delete(editor);entry.listener.dispose();entry.mode.dispose();}});modes.set(editor,{mode,listener});}}\n function detach(){for(const entry of modes.values()){entry.listener.dispose();entry.mode.dispose();}modes.clear();status.textContent='';}\n api.use(detach);api.use(monaco.editor.onDidCreateEditor(()=>queueMicrotask(attach)));api.hook(api.raw.application,'openFile',async(next,...args)=>{const value=await next(...args);attach();return value;});\n api.commands.register('toggle',api.raw.application.settings.language==='en'?'Vim: toggle mode':'Vim: включить / выключить режим',()=>{enabled=!enabled;enabled?attach():detach();});\n api.ui.style('.studio-vim-status{color:#b6cbae;font:11px monospace;display:flex;align-items:center;gap:8px;min-width:50px}.studio-vim-status input{max-width:220px;height:21px;border:0;padding:0 3px}');attach();\n})();\n"
   }
 ]

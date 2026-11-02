@@ -27,13 +27,13 @@ class ClangdClient {
     }
   }
   async start(){if(this.ide?.state.capabilities.projectReadOnly)return;
-    if(!this.ide.state.root){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'No project open':'Проект не открыт','pending');return;}
+    if(!this.ide.state.root){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'No project open':'Проект не открыт','off');return;}
     if(!this.ide.startupComplete||this.ide.setupOpen){this.startDeferred=true;return;}this.startDeferred=false;
     if((['python','notebook'].includes(this.ide.configurations?.document?.projectType)||['python','notebook'].includes(this.ide.active?.model.getLanguageId())&&!['cmake-cpp','cmake-c','cmake'].includes(this.ide.configurations?.document?.projectType))&&![...this.ide.docs.values()].some(d=>['c','cpp'].includes(d.model.getLanguageId()))){this.ready=false;await native('lspStop');this.ide.pythonIntelligence?.sync();return;}
-    if(this.ide.state.trust?.trusted===false){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'Restricted mode':'Ограниченный режим','pending');return;}
-    if(globalThis.StudioCodeOSS?.api)return this.startUpstream();
-    if(this.ide.addons?.host.lastFeatures&&!this.ide.addons.host.enabled('clangd')){this.ready=false;this.ide.lspStatus(this.ide.addons.text('Анализ отключён аддоном','Analysis disabled by addon'),'pending');return;}
-    if(window.forge?.requireToolPack){const state=await native('toolPacks');if(!state.packs.find(p=>p.id==='analysis')?.installed){this.ready=false;this.ide.lspStatus('Анализ не установлен','pending');return;}}
+    if(this.ide.state.trust?.trusted===false){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'Restricted mode':'Ограниченный режим','off');return;}
+    if(!this.ide.addons?.host.enabled('clangd')&&this.ide.addons?.manager.active.has('vscode.llvm-vs-code-extensions.vscode-clangd'))return this.startUpstream();
+    if(this.ide.addons?.host.lastFeatures&&!this.ide.addons.host.enabled('clangd')){this.ready=false;this.ide.lspStatus(this.ide.addons.text('Анализ отключён аддоном','Analysis disabled by addon'),'off');return;}
+    if(window.forge?.requireToolPack){const state=await native('toolPacks');if(!state.packs.find(p=>p.id==='analysis')?.installed){this.ready=false;this.ide.lspStatus('Анализ не установлен','off');return;}}
     const epoch=++this.epoch;
     this.ready=false;this.ide.lspStatus('Запуск clangd…','pending');
     for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(new Error('clangd перезапускается'));}this.pending.clear();this.opened.clear();this.changes.clear();
@@ -55,7 +55,7 @@ class ClangdClient {
     const ide=this.ide,id='vscode.llvm-vs-code-extensions.vscode-clangd';this.ready=false;
     this.upstreamStarting=(async()=>{
       ide.lspStatus(ide.settings.language==='en'?'Starting C/C++ analysis…':'Запуск анализа C/C++…','pending');
-      const result=await native('cppAnalysisDefault');
+      const result={id,installed:false};
       if(result.library)ide.addons.adopt(result.library);
       if(result.installed||ide.addons.manager.active.has(id)){
         const tools=await native('idePresetTools'),prepared=await native('idePresetAnalysis',ide.configurations?.current()?.options||ide.settings),extensionSettings=structuredClone(ide.settings.extensionSettings||{}),values=extensionSettings[id]??={};

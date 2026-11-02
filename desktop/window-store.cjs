@@ -28,7 +28,7 @@ class WindowStore {
 class WindowAddons {
  constructor(host,store){this.host=host;this.store=store;this.base=store.addons;this.profile=null;}
  get data(){return{...this.base.data,profile:this.profile||this.base.data.profile};}
- async init(){await this.store.addonsReady;this.profile=this.base.coreProfile(structuredClone(this.host.ws.prefs.windowAddonProfile||this.base.data.profile));const support=this.base.data.packages.find(e=>e.source==='bundled-catalog'&&e.package.manifest.id==='studio.vsix');if(support)for(const key of ['requested','defaultRequested'])for(const r of this.profile[key]||[])if(r.id==='studio.vsix')r.version=support.package.manifest.version;return this;}
+ async init(){await this.store.addonsReady;this.profile=this.base.coreProfile(require(require('./assets.cjs').ui+'/addon-replacements.js').restoreNative(structuredClone(this.host.ws.prefs.windowAddonProfile||this.base.data.profile),this.base.data.packages,this.host.ws.prefs.settings?.disabledAddons||[]));const support=this.base.data.packages.find(e=>e.source==='bundled-catalog'&&e.package.manifest.id==='studio.vsix');if(support)for(const key of ['requested','defaultRequested'])for(const r of this.profile[key]||[])if(r.id==='studio.vsix')r.version=support.package.manifest.version;return this;}
  catalog(){return this.base.catalog();}
  state(){return{...this.base.state(),profile:{...structuredClone(this.profile),defaultRequested:structuredClone(this.base.data.profile.defaultRequested||this.base.data.profile.requested||[])}};}
  enabled(id){return require(require('./assets.cjs').ui+'/window-policy.js').coreAddon(id,process.platform)||(this.profile.resolved||[]).includes(id);}

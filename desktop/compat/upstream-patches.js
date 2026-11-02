@@ -1,5 +1,13 @@
 function replace(source,before,after,label){if(!source.includes(before))throw Error('Pinned upstream patch no longer applies: '+label);return source.replace(before,after);}
 export function upstreamPatches(){return{name:'devforge-upstream-integration',enforce:'pre',transform(source,file){const id=file.replaceAll('\\','/');
+ if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.js'))return replace(source,'const resourceExtensions = await this.extensionManagementService.getExtensions(locations);',`const resourceExtensions = (await Promise.all(locations.map(async location => {
+            try { return (await this.extensionManagementService.getExtensions([location]))[0]; }
+            catch (error) {
+                // A queued additions event can outlive an intentional unload.
+                if (error.fileOperationResult === 1 && !this.extensionService.extensions.some(e => e.extensionLocation.toString() === location.toString())) return undefined;
+                throw error;
+            }
+        }))).filter(Boolean);`,'ignore only stale resource lookups for extensions removed during an asynchronous running-extension update');
  if(id.endsWith('/@codingame/monaco-vscode-views-service-override/index.js')){
   source=replace(source,'const observer = new ResizeObserver(() => layoutPart(part));','let frame; const observer = new ResizeObserver(() => { if (frame === undefined) frame = requestAnimationFrame(() => { frame = undefined; layoutPart(part); }); });','defer workbench layout outside ResizeObserver delivery');
   return replace(source,'return observer.disconnect();','if (frame !== undefined) cancelAnimationFrame(frame); return observer.disconnect();','cancel detached workbench layout');
