@@ -3,6 +3,14 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const {transform}=require('../compat/server-patches.cjs');
 test('remote file-delete patch is pinned, idempotent and rejects unknown upstream code',async()=>{const bytes=await fs.readFile(path.resolve(__dirname,'../compat/server/out/vs/workbench/api/node/extensionHostProcess.js')),patched=transform(bytes);assert.deepEqual(transform(patched),patched);assert(patched.includes(Buffer.from('useTrash&&o.scheme!=="file"?')));assert.throws(()=>transform(Buffer.from('unexpected runtime')),/changed/);const modified=Buffer.from(bytes);modified[0]^=1;assert.throws(()=>transform(modified),/changed/);});
 
+test('the pinned workspace lock policy waits for release and never steals an active lock',async()=>{
+ const {devforgeWaitForWorkspaceLock:wait}=require('../compat/workspace-lock.cjs');let clock=0,retries=0;const acquired={owned:true},options={primary:true,identity:'devforge-a',read:async()=>({pid:1,willReleaseAt:0}),isAlive:()=>clock<600,retry:async()=>{retries++;return acquired;},sleep:async ms=>{clock+=ms;},now:()=>clock,timeout:1000};
+ assert.equal(await wait(null,options),acquired);assert.equal(retries,1);assert.equal(clock,600);
+ clock=0;retries=0;assert.equal(await wait(null,{...options,isAlive:()=>true}),null);assert.equal(retries,0);assert.equal(clock,1000);
+ clock=0;assert.equal(await wait(null,{...options,primary:false}),null);assert.equal(await wait(null,{...options,identity:'another-app'}),null);assert.equal(clock,0);assert.equal(await wait(acquired,options),acquired);
+ const patched=transform(await fs.readFile(path.resolve(__dirname,'../compat/server/out/vs/workbench/api/node/extensionHostProcess.js')));assert(patched.includes(Buffer.from('identity:e,read:()=>p2')));assert(patched.includes(Buffer.from('async function devforgeWaitForWorkspaceLock')));
+});
+
 test('native logger patch is pinned, idempotent and opens a real Windows extended-length path',{skip:process.platform!=='win32'},async t=>{
  const {transformLog}=require('../compat/server-patches.cjs'),os=require('node:os'),{spawnSync}=require('node:child_process'),index=path.resolve(__dirname,'../compat/server/node_modules/@vscode/spdlog/index.js'),source=await fs.readFile(index),patched=transformLog(source);assert.deepEqual(transformLog(patched),patched);assert.throws(()=>transformLog(Buffer.from('unknown logger')),/changed/);
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'devforge-log-path-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const folder=path.join(root,...Array(12).fill('long-profile-component'));await fs.mkdir(folder,{recursive:true});const file=path.join(folder,'native.log');assert(file.length>260);

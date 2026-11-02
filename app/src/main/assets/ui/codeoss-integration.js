@@ -10,7 +10,7 @@ const StudioCodeOSS={
   const assets=await(await fetch('vendor/codeoss/.vite/manifest.json')).json(),entry=Object.values(assets).find(e=>e.isEntry&&e.file==='codeoss.js');await Promise.all((entry.css||[assets['style.css'].file]).map(file=>new Promise((resolve,reject)=>{const css=document.createElement('link');css.rel='stylesheet';css.href='vendor/codeoss/'+file;css.onload=resolve;css.onerror=()=>reject(Error('Code OSS stylesheet failed to load'));document.head.append(css);})));
   if(state.settings.language==='ru')await import('./vendor/codeoss/ru.js');
   window.codeossProgress='import';const {boot}=await import('./vendor/codeoss/codeoss.js');
-  window.codeossProgress='initialize';this.authority=info.authority;this.api=await boot({info,openWorkspace:(workspace,options)=>this.openWorkspace(workspace,options),saveDocument:(resource,value,options)=>this.commitDocument(resource,value,options),documentResolved:(resource,text)=>this.acceptResolvedDocument(resource,text),fileOperationChanged:message=>this.synchronizeFileOperation(message),root:state.root,workspaceFile:state.workspaceFile,workspaceFolders:state.workspaceFolders,workspaceChanged:()=>this.refreshWorkspace(),createWorkspace:(folders,options)=>this.createWorkspace(folders,options),checkWorkspaceFolders:folders=>this.checkWorkspaceFolders(folders),activeSourceEditor:()=>this.activeSourceEditor(),container:root,trusted:!!state.trust?.trusted,readOnly:!!state.capabilities.projectReadOnly,showExtensionEditor:async()=>{if(window.forge)await window.forge.openFile('devforge://extensions/studio.codeoss/editor');},openEditor:(reference,options,side,group)=>this.openSource(reference,options,side,group)});
+  window.codeossProgress='initialize';this.authority=info.authority;this.api=await boot({info,openWorkspace:(workspace,options)=>this.openWorkspace(workspace,options),saveDocument:(resource,value,options)=>this.commitDocument(resource,value,options),documentResolved:(resource,text)=>this.acceptResolvedDocument(resource,text),fileOperationChanged:message=>this.synchronizeFileOperation(message),root:state.root,workspaceFile:state.workspaceFile,workspaceFolders:state.workspaceFolders,workspaceChanged:()=>this.refreshWorkspace(),createWorkspace:(folders,options)=>this.createWorkspace(folders,options),pickWorkspaceSave:()=>this.pickWorkspaceSave(),saveWorkspaceAs:target=>this.saveWorkspaceAs(target),checkWorkspaceFolders:folders=>this.checkWorkspaceFolders(folders),activeSourceEditor:()=>this.activeSourceEditor(),container:root,trusted:!!state.trust?.trusted,readOnly:!!state.capabilities.projectReadOnly,showExtensionEditor:async()=>{if(window.forge)await window.forge.openFile('devforge://extensions/studio.codeoss/editor');},openEditor:(reference,options,side,group)=>this.openSource(reference,options,side,group)});
   window.codeossProgress='settings';const upstream=this.api.monaco;window.monaco={...upstream,editor:{...upstream.editor,defineTheme:(id,definition)=>this.defineTheme(id,definition)},Uri:class extends upstream.Uri{static file(path){return StudioCodeOSS.api.uri(path);}}};
   registerForgeThemes(monaco);await this.themeWork;
   this.parking=document.createElement('div');this.parking.className='studio-codeoss-parking';this.parking.style.cssText='position:fixed;left:-100000px;width:900px;height:600px;visibility:hidden';document.body.append(this.parking);this.currentRoot=state.root;this.currentWorkspaceFile=state.workspaceFile||'';this.trusted=!!state.trust?.trusted;this.readOnly=!!state.capabilities.projectReadOnly;
@@ -43,10 +43,11 @@ const StudioCodeOSS={
   }finally{reference.dispose();}
  },
  activeSourceEditor(){const ide=window.forge;if(!ide?.active||ide.active.virtual||ide.editor?.getModel()!==ide.active.model)return;const panel=ide.windows?.editorPanel(StudioDocumentViews.pane(ide.editor)?.id);if(panel?.api.isVisible)return ide.editor;},
- workspacePath(uri){if(!['file','vscode-remote'].includes(uri.scheme)||uri.scheme==='vscode-remote'&&uri.authority!==this.authority)throw Error('Unsupported workspace URI: '+uri.scheme);return this.localURI(uri).fsPath;},
+ workspacePath(uri){if(!['file','vscode-remote'].includes(uri.scheme)||uri.scheme==='vscode-remote'&&uri.authority!==this.authority)throw Error('Unsupported workspace URI: '+uri.scheme);return this.localURI(uri).fsPath.replaceAll('\\','/');},
  workspaceFolderData(folders){return folders.map(folder=>({path:this.workspacePath(folder.uri),...folder.name!==undefined?{name:folder.name}:{}}));},
  checkWorkspaceFolders(folders){return native('workspaceCheckFolders',{project:window.forge?.state.project,folders:this.workspaceFolderData(folders)});},
  createWorkspace(folders,{target,settings}={}){
+  if(target)return this.saveWorkspaceAs(target,{folders,settings});
   const ide=window.forge;if(!ide)throw Error('DevForge is not ready');const project=ide.state.project,root=ide.state.root;
   const task=(this.workspaceUpdates||Promise.resolve()).catch(()=>{}).then(async()=>{
    if(ide.state.project!==project)throw Error('Workspace changed');await ide.windows?.persist(true);await ide.persistSession(true);
@@ -55,6 +56,28 @@ const StudioCodeOSS={
    await this.workspace(ide.state);if(root!==state.root){await ide.configurations.load();ide.configurations.contextRoot=state.root;}
    this.updateWorkspaceDocuments(state);ide.updateRunButtons();await ide.persistSession(true);return true;
   });this.workspaceUpdates=task;return task;
+ },
+ async pickWorkspaceSave(){this.workspaceSaveChoice=null;const picked=await native('workspaceSaveTarget');if(!picked)return;this.workspaceSaveChoice=picked;return this.api.uri(picked.path);},
+ saveWorkspaceAs(target,{folders,settings}={}){
+  const ide=window.forge;if(!ide)throw Error('DevForge is not ready');const project=ide.state.project,file=this.workspacePath(target),choice=this.workspaceSaveChoice;
+  const task=(this.workspaceUpdates||Promise.resolve()).catch(()=>{}).then(async()=>{
+   if(ide.state.project!==project)throw Error('Workspace changed');const snapshot=await native('workspaceSaveSnapshot');if(snapshot.project!==project)throw Error('Workspace changed');
+   const current=snapshot.source?this.fileDocument(this.api.uri(snapshot.source)):null,destination=this.fileDocument(this.api.uri(file));
+   if(destination&&destination!==current&&destination.model.getValue()!==destination.saved)throw Error(ide.settings.language==='en'?'The destination has unsaved edits. Save or close it first.':'В файле назначения есть несохранённые изменения. Сначала сохраните или закройте его.');
+   const raw=snapshot.source?(current?.model.getValue()??snapshot.text):JSON.stringify({folders:this.workspaceFolderData(folders||[]),settings:settings||{}},null,2),text=this.api.rewriteWorkspace(raw,snapshot.source||file,file),previous={...ide.state};
+   await ide.windows?.persist(true);await ide.persistSession(true);await this.api.prepareWorkspaceSave();
+   let state;try{state=await native('workspaceSaveAs',{project,source:snapshot.source,sourceHash:snapshot.hash,file,text,targetHash:choice?.path.toLowerCase()===file.toLowerCase()?choice.hash:null,fromId:this.api.workspaceIdentity(snapshot.source||snapshot.root),toId:this.api.workspaceIdentity(file),fromScope:this.api.workspaceStorageScope(snapshot.source||snapshot.root),toScope:this.api.workspaceStorageScope(file)});}catch(error){const recovery=ide.state;await this.api.setWorkspace(recovery.root,{workspaceFile:recovery.workspaceFile,workspaceFolders:recovery.workspaceFolders,trusted:!!recovery.trust?.trusted,readOnly:!!recovery.capabilities.projectReadOnly});throw error;}
+   if(this.workspaceSaveChoice===choice)this.workspaceSaveChoice=null;Object.assign(ide.state,state);ide.treeData=state.tree;ide.renderState();ide.renderWorkspaceTrust();await this.workspace(ide.state);
+   if(previous.root!==state.root){await ide.configurations.load();ide.configurations.contextRoot=state.root;}
+   if(current&&snapshot.source)await this.retargetWorkspaceDocument(current,file,text);
+   this.updateWorkspaceDocuments(state);ide.updateRunButtons();await ide.persistSession(true);await ide.windows?.persist(true);return true;
+  });this.workspaceUpdates=task;return task;
+ },
+ async retargetWorkspaceDocument(original,file,text){
+  const ide=window.forge,model=await ide.ensureModel(file),replacement=ide.docs.get(model.uri.toString());replacement.externalRefreshing=true;try{if(model.getValue()!==text)model.setValue(text);replacement.saved=text;}finally{replacement.externalRefreshing=false;}
+  for(const record of ide.windows?.codeWindows.values()||[])if(record.editor.getModel()===original.model){const view=record.editor.saveViewState();record.path=file;record.editor.setModel(model);record.editor.restoreViewState(view);ide.windows.api.getPanel(record.id)?.api.updateParameters({path:file});}
+  ide.tabs=ide.tabs.map(doc=>doc===original?replacement:doc).filter((doc,index,all)=>all.indexOf(doc)===index);if(ide.active===original)ide.active=replacement;if(ide.lastSourcePath===original.path)ide.lastSourcePath=file;
+  clearTimeout(original.saveTimer);clearTimeout(original.syncTimer);original.externalRefreshing=true;await this.api.revertWorkspaceDocument(original.model.uri);ide.docs.delete(original.model.uri.toString());if(original.modelReference)original.modelReference.dispose();else original.model.dispose();ide.updateDirty();ide.updateStandard();
  },
  updateWorkspaceDocuments(state){const ide=window.forge;for(const doc of ide.docs.values())if(!doc.virtual){doc.readonly=!!state.capabilities.projectReadOnly||!this.ownsFile(doc.path);for(const pane of NativeEditing.panes.values())if(pane.editor.getModel()===doc.model)pane.editor.updateOptions({readOnly:doc.readonly});}},
  fileDocument(resource){const ide=window.forge;if(!ide||!['file','vscode-remote'].includes(resource.scheme)||resource.scheme==='vscode-remote'&&resource.authority!==this.authority)return;const key=this.localURI(resource).fsPath.replaceAll('\\','/').replace(/^\/([a-z]:\/)/i,'$1').toLowerCase();return ide.docs.get(resource.toString())||[...ide.docs.values()].find(doc=>!doc.virtual&&doc.path.replaceAll('\\','/').toLowerCase()===key);},

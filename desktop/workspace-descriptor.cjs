@@ -4,7 +4,12 @@ const fs=require('node:fs/promises'),path=require('node:path'),{fileURLToPath}=r
 async function readWorkspace(input){
  const {canonical,key}=require('./workspace.cjs'),file=await canonical(input),stat=await fs.stat(file);
  if(!file.toLowerCase().endsWith('.code-workspace')||!stat.isFile()||stat.size>4*1024*1024)throw Error('Select a .code-workspace file up to 4 MB');
- const data=JSON5.parse((await fs.readFile(file,'utf8')).replace(/^\uFEFF/,''));
+ return parseWorkspace(file,await fs.readFile(file,'utf8'));
+}
+async function parseWorkspace(file,text){
+ const {canonical,key}=require('./workspace.cjs');
+ if(typeof text!=='string'||Buffer.byteLength(text)>4*1024*1024)throw Error('Invalid workspace contents');
+ const data=JSON5.parse(text.replace(/^\uFEFF/,''));
  if(!data||!Array.isArray(data.folders)||data.folders.length>256)throw Error('Invalid workspace folders');
  const folders=[],seen=new Set();
  for(const entry of data.folders){
@@ -34,4 +39,4 @@ function projectsOverlap(first,second){
  if(first.workspaceFile&&projectRoots(second).some(root=>inside(first.workspaceFile,root))||second.workspaceFile&&projectRoots(first).some(root=>inside(second.workspaceFile,root)))return true;
  return projectRoots(first).some(a=>projectRoots(second).some(b=>inside(a,b)||inside(b,a)));
 }
-module.exports={readWorkspace,normalizeFolders,projectRoots,projectsOverlap};
+module.exports={readWorkspace,parseWorkspace,normalizeFolders,projectRoots,projectsOverlap};

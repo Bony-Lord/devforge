@@ -11,6 +11,14 @@ export function installWorkspaceCreation({editing,context,configuration,properti
  return{dispose(){delete editing.createAndEnterWorkspace;editing.createAndEnterWorkspace=original;}};
 }
 
+export function installWorkspaceSaving({editing,context,pick,save,equals}){
+ const originalPick=editing.pickNewWorkspacePath,originalSave=editing.saveAndEnterWorkspace;
+ delete editing.pickNewWorkspacePath;delete editing.saveAndEnterWorkspace;
+ editing.pickNewWorkspacePath=()=>pick();
+ editing.saveAndEnterWorkspace=target=>{const current=context.getWorkspace().configuration;return current&&equals(current,target)?originalSave.call(editing,target):save(target);};
+ return{dispose(){delete editing.pickNewWorkspacePath;delete editing.saveAndEnterWorkspace;editing.pickNewWorkspacePath=originalPick;editing.saveAndEnterWorkspace=originalSave;}};
+}
+
 // A starting manager can create RPC customers after dispose(). Wait for its
 // existing startup, but never force an idle lazy host to start just to stop it.
 export async function stopExtensionHosts(service,kinds){

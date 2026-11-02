@@ -4,6 +4,7 @@ const {atomic}=require('./workspace.cjs');
 class CodeOSSStorage{
  constructor(data,event=()=>{},encryption){this.data=path.resolve(data);this.root=path.resolve(data,'codeoss','storage');this.event=event;this.encryption=encryption;this.states=new Map();this.tail=Promise.resolve();}
  handle(d){const task=this.tail.catch(()=>{}).then(()=>this.perform(d));this.tail=task;return task;}
+ async transferWorkspace(d){const transfer=require('./workspace-storage-transfer.cjs');await transfer.waitForLocks(this,d);const task=this.tail.catch(()=>{}).then(()=>transfer(this,d));this.tail=task;return task;}
  async perform(d){
   if(typeof d.scope!=='string'||d.scope.length>4096||!d.scope)throw Error('Invalid extension storage scope');this.root=await require('./codeoss-paths.cjs').profileDirectory(this.data,'codeoss','storage');const id=crypto.createHash('sha256').update(d.scope).digest('hex'),file=path.join(this.root,id+'.json');let items=this.states.get(id);if(!items){try{items=new Map(JSON.parse(await fs.readFile(file,'utf8')).items);}catch(error){if(error.code!=='ENOENT')throw error;items=new Map();}this.states.set(id,items);}
   if(d.action==='read')return[...items];
