@@ -5,7 +5,7 @@ const suites=['VSX workbench and C++ analysis','VSX file operations','VSX editor
 function environmentWarning(message){return /^\s*(?:%c)?\[Extension Host\]\s*(?:%c)?\(node:\d+\)\s*\[(DEP\d+)\]\s+DeprecationWarning:/.exec(message)?.[1];}
 function findingSignature(title,detail){if(!title.startsWith('vsx-'))return;const prefix=title+'|';return String(detail).startsWith(prefix)?String(detail):prefix+String(detail).split('\n')[0];}
 function generate(rng,index,coverage){
- const untouched=coverage&&names.find(name=>!((coverage[name]?.passed||0)+(coverage[name]?.failed||0)+(coverage[name]?.unavailable||0)));
+ const pending=coverage&&names.filter(name=>!((coverage[name]?.passed||0)+(coverage[name]?.failed||0)+(coverage[name]?.unavailable||0))),untouched=pending?.length?pending[Math.floor(rng()*pending.length)]:null;
  let type=names[index<names.length?index:Math.floor(rng()*names.length)];
  if(coverage&&index>=names.length){const weights=names.map(name=>({name,w:1/Math.sqrt(1+(coverage[name]?.passed||0)+(coverage[name]?.failed||0)+(coverage[name]?.unavailable||0))}));let n=rng()*weights.reduce((sum,c)=>sum+c.w,0);for(const c of weights){n-=c.w;if(n<=0){type=c.name;break;}}}
  if(untouched)type=untouched;const params={mode:rng()<.5?'one':'two'};if(type==='vsx-resize'){params.width=[390,480,720,1360,1920][Math.floor(rng()*5)];params.height=[640,900,1080][Math.floor(rng()*3)];}return{schema:1,type,params};
