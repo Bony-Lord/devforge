@@ -3,6 +3,7 @@ const {app,BrowserWindow,ipcMain,session,dialog,shell,nativeTheme,Menu}=require(
 const fs=require('node:fs/promises'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {DesktopHost}=require('./host.cjs');
 const {inside}=require('./workspace.cjs');
+const {projectsOverlap}=require('./workspace-descriptor.cjs');
 let stores,codeoss,codeossStorage,codeossUserData;const openWindows=new Set(),openingProjects=new Set();
 const {WindowStore}=require('./window-store.cjs');
 const smoke=process.argv.includes('--smoke');
@@ -55,11 +56,13 @@ async function serve(){
   await require('./browser-server.cjs').listenBrowserServer(server);origin='http://127.0.0.1:'+server.address().port;base=origin+'/'+token+'/';return base+'index.html';
 }
 async function start(){
-  const existing=project&&[...openWindows].find(r=>r.host.ws.prefs.current===project&&!r.host.ws.projectReadOnly);if((existing||openingProjects.has(project))&&!readOnly)return{conflict:true};if(project&&!readOnly){openingProjects.add(project);reserved=true;}
+  const overlaps=id=>project&&projectsOverlap(stores.global.projects[project],stores.global.projects[id]);
+  const existing=project&&[...openWindows].find(r=>overlaps(r.host.ws.prefs.current)&&!r.host.ws.projectReadOnly);if((existing||[...openingProjects].some(overlaps))&&!readOnly)return{conflict:true};if(project&&!readOnly){openingProjects.add(project);reserved=true;}
   const page=await serve();const workspace=await stores.workspace(project,initial,readOnly);
   host=await new DesktopHost(app.getPath('userData'),(type,data)=>{if(window&&!window.isDestroyed())window.webContents.send('studio:event',type,data);},{
     workspace,projectsDirectory:smoke||process.argv.includes('--isolated')?undefined:path.join(app.getPath('documents'),'DevForge'),
-    pythonRuntimeInUse:directory=>[...openWindows].some(r=>r.host!==host&&[r.host.python.kernel,r.host.pythonIntelligence.child,r.host.tools.execution].some(child=>child?.spawnfile&&inside(path.resolve(child.spawnfile),directory))),openProjectWindow:(id,readOnly)=>openWindow(id,false,readOnly),projectInUse:id=>[...openWindows].some(r=>r.host!==host&&r.host.ws.prefs.current===id),projectEditingElsewhere:id=>[...openWindows].some(r=>r.host!==host&&r.host.ws.prefs.current===id&&!r.host.ws.projectReadOnly),
+    pythonRuntimeInUse:directory=>[...openWindows].some(r=>r.host!==host&&[r.host.python.kernel,r.host.pythonIntelligence.child,r.host.tools.execution].some(child=>child?.spawnfile&&inside(path.resolve(child.spawnfile),directory))),openProjectWindow:(id,readOnly)=>openWindow(id,false,readOnly),projectInUse:id=>[...openWindows].some(r=>r.host!==host&&projectsOverlap(stores.global.projects[id],stores.global.projects[r.host.ws.prefs.current])),projectEditingElsewhere:id=>[...openWindows].some(r=>r.host!==host&&!r.host.ws.projectReadOnly&&projectsOverlap(stores.global.projects[id],stores.global.projects[r.host.ws.prefs.current])),
+    workspaceFoldersInUse:folders=>[...openWindows].some(r=>r.host!==host&&!r.host.ws.projectReadOnly&&projectsOverlap({workspaceFile:'pending',workspaceFolders:folders},stores.global.projects[r.host.ws.prefs.current])),
     reducedMotion:()=>nativeTheme.prefersReducedMotion,
     codeossInfo:async()=>{codeoss||=new(require('./codeoss-server.cjs').CodeOSSServer)(app.getPath('userData'));const info=await codeoss.start();return{...info,authority:new URL(origin).host,serverBasePath:'/'+new URL(base).pathname.split('/')[1]+'/_codeoss',callbackBase:base+'_extension-callback/',webviewDomain:'http://{{uuid}}.localhost:'+new URL(origin).port,enabled:codeossEnabled};},
     codeossEnabled:()=>codeossEnabled,
@@ -69,6 +72,7 @@ async function start(){
     codeossStorage:async d=>{codeossStorage||=new(require('./codeoss-storage.cjs').CodeOSSStorage)(app.getPath('userData'),value=>{for(const record of openWindows)if(!record.window.isDestroyed())record.window.webContents.send('studio:event','codeossStorageChanged',value);},require('electron').safeStorage);return d.secret?codeossStorage.secret(d):codeossStorage.handle(d);},
     chooseFolder:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openDirectory']});return r.canceled?null:r.filePaths[0];},
     chooseFile:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openFile']});return r.canceled?null:r.filePaths[0];},
+    chooseWorkspace:async()=>{const r=await dialog.showOpenDialog(window,{properties:['openFile'],filters:[{name:'VS Code workspace',extensions:['code-workspace']}]});return r.canceled?null:r.filePaths[0];},
     showInFiles:file=>shell.showItemInFolder(file),
     showNotices:()=>shell.openPath(app.isPackaged?path.join(process.platform==='darwin'?process.resourcesPath:path.resolve(process.resourcesPath,'..'),'LICENSES.chromium.html'):path.join(__dirname,'node_modules/electron/dist/LICENSES.chromium.html')),
     writeClipboard:text=>require('electron').clipboard.writeText(text),
@@ -85,7 +89,7 @@ async function start(){
   if(smoke){if(!host.ws.prefs.current)await host.ws.newProject('smoke-fixture');host.ws.prefs.settings.interfaceMode='simple';host.ws.prefs.settings.pythonExecutable=process.env.DEVFORGE_TEST_PYTHON||'';host.ws.prefs.settings.setupDismissed=true;host.ws.prefs.settings.language=process.env.CPP_STUDIO_SMOKE_LANGUAGE||'ru';host.ws.prefs.settings.toolPaths={...host.ws.prefs.settings.toolPaths,...process.env.CPP_STUDIO_FORMAT?{format:process.env.CPP_STUDIO_FORMAT}:{},...process.env.CPP_STUDIO_CLANGD?{clangd:process.env.CPP_STUDIO_CLANGD}:{},...process.env.CPP_STUDIO_NINJA?{ninja:process.env.CPP_STUDIO_NINJA}:{}};await host.ws.persist();await host.tools.discover();}
   const bounds=host.ws.prefs.window||{};
   window=new BrowserWindow({width:Math.max(800,Math.min(2400,bounds.width||1360)),height:Math.max(560,Math.min(1800,bounds.height||880)),minWidth:720,minHeight:480,show:false,backgroundColor:'#1e1e1e',title:'DevForge',backgroundMaterial:'none',...(process.platform==='win32'?{titleBarStyle:'hidden',titleBarOverlay:{color:'#181818',symbolColor:'#d4d4d4',height:28}}:{}),icon:path.join(__dirname,'icon.png'),autoHideMenuBar:true,
-    webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,spellcheck:false,backgroundThrottling:!smoke,offscreen:smoke||headless,devTools:!app.isPackaged}});
+    webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,spellcheck:false,backgroundThrottling:!smoke&&!headless,offscreen:smoke||headless,devTools:!app.isPackaged}});
   record={window,host};openWindows.add(record);
   window.on('focus',()=>{if(!window.isDestroyed())window.webContents.send('studio:event','globalStateChanged',{projects:Object.keys(stores.global.projects),projectLabels:Object.fromEntries(Object.entries(stores.global.projects).map(([id,p])=>[id,p.label]))});});
   if(process.platform==='darwin')app.dock?.setIcon(path.join(__dirname,'icon.png'));Menu.setApplicationMenu(null);

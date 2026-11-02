@@ -32,6 +32,11 @@ test('engine validation checks the client API rather than the newer Node server'
  assert.throws(()=>assertCompatible({publisher:'fixture',name:'newer',engines:{vscode:'^1.143.0'}}),/VSX_ENGINE_INCOMPATIBLE.*1\.143\.0.*1\.142\.0/);
 });
 
+test('the selected native source remains the active editor without requiring OS focus',async()=>{
+ const {installActiveSourceEditor}=await import('../compat/editor-routing.js'),native={},workbench={},service={};let active=native;
+ installActiveSourceEditor(service,()=>active,()=>workbench);assert.equal(service.activeTextEditorControl,native);active=undefined;assert.equal(service.activeTextEditorControl,workbench);
+});
+
 test('explicit columns allocate groups only after deciding the actual editor owner',async t=>{
  const {installEditorRouting}=await import('../compat/editor-routing.js'),frame=global.requestAnimationFrame;
  global.requestAnimationFrame=fn=>setImmediate(fn);t.after(()=>{global.requestAnimationFrame=frame;});

@@ -3,6 +3,9 @@
 // Always ask the native layout to reveal a source. Upstream wrapOpenEditor
 // returns any cached standalone editor, even a hidden tab, and ignores Beside.
 // openEditor owns the supplied reference on every path, as the views fallback does.
+export function installActiveSourceEditor(service,activeSource,fallback){
+ Object.defineProperty(service,'activeTextEditorControl',{configurable:true,get:()=>activeSource()??fallback()});
+}
 export function nativeEditorOpener({textModels,openEditor,applyOptions}){
  return async(input,optionsOrGroup,group)=>{
   const preferred=group??(typeof optionsOrGroup==='number'||optionsOrGroup&&'id'in optionsOrGroup?optionsOrGroup:undefined);

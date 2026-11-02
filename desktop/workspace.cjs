@@ -58,9 +58,14 @@ class Workspace {
   }
   persist(){const data=JSON.stringify(this.prefs,null,2);return this.saveQueue=this.saveQueue.catch(()=>{}).then(()=>atomic(this.file,data));}
   get root(){const root=this.prefs.projects[this.prefs.current]?.path;if(!root)throw Error('Project unavailable');return root;}
+  get workspaceFile(){return this.prefs.projects[this.prefs.current]?.workspaceFile||'';}
+  get folders(){const project=this.prefs.projects[this.prefs.current];return project?.workspaceFile?project.workspaceFolders||[]:project?[{path:project.path,name:project.label}]:[];}
+  async containingRoot(input,{internal=false}={}){const file=await canonical(input),roots=this.folders.map(f=>f.path);if(this.workspaceFile){roots.push(portable(path.join(this.root,'.devforge')));if(internal)roots.push(portable(path.join(this.root,'.forge')));}return roots.filter(root=>inside(file,root)).sort((a,b)=>b.length-a.length)[0];}
+  async openWorkspace(input){const descriptor=await require('./workspace-descriptor.cjs').readWorkspace(input),entry=Object.entries(this.prefs.projects).find(([,p])=>p.workspaceFile&&key(p.workspaceFile)===key(descriptor.file)),id=entry?.[0]||crypto.randomUUID(),label=path.basename(descriptor.file,'.code-workspace');this.prefs.projects[id]={path:portable(path.dirname(descriptor.file)),label,workspaceFile:descriptor.file,workspaceFolders:descriptor.folders};await this.persist();return{project:id,label,path:this.prefs.projects[id].path};}
+  async refreshWorkspace(id=this.prefs.current){const project=this.prefs.projects[id];if(!project?.workspaceFile)return false;const descriptor=await require('./workspace-descriptor.cjs').readWorkspace(project.workspaceFile);if(JSON.stringify(descriptor.folders)===JSON.stringify(project.workspaceFolders))return false;project.workspaceFolders=descriptor.folders;await this.persist();return true;}
   get cache(){return path.join(this.data,'workspaces',this.prefs.current);}
   async open(folder){const root=await canonical(folder);if(!(await fs.stat(root)).isDirectory())throw Error('Folder not found');
-    let entry=Object.entries(this.prefs.projects).find(([,p])=>key(p.path)===key(root));
+    let entry=Object.entries(this.prefs.projects).find(([,p])=>!p.workspaceFile&&key(p.path)===key(root));
     const id=entry?.[0]||crypto.randomUUID();this.prefs.projects[id]={path:root,label:path.basename(root)};await this.persist();return {project:id,label:path.basename(root),path:root};
   }
   async newProject(name,language='cpp',select=true){
@@ -73,8 +78,9 @@ class Workspace {
     await fs.writeFile(path.join(folder,'.gitignore'),'.forge/\nbuild/\n');
     const result=await this.open(folder);if(select)this.prefs.current=result.project;await this.persist();return result;
   }
-  async writable(input){const file=await canonical(path.isAbsolute(input)?input:path.join(this.root,input)),root=await canonical(this.root);if(!inside(file,root)||key(file)===key(root))throw Error('Path outside project');return file;}
-  async tree(folder=this.root,depth=0,budget={remaining:12000}){
+  async writable(input,{allowRoot=false,internal=false}={}){const file=await canonical(path.isAbsolute(input)?input:path.join(this.root,input)),root=await this.containingRoot(file,{internal});if(this.workspaceFile&&key(file)===key(this.workspaceFile))return file;if(!root||!allowRoot&&this.folders.some(folder=>key(folder.path)===key(file)))throw Error('Path outside project');return file;}
+  async tree(folder,depth=0,budget={remaining:12000}){
+    if(folder===undefined&&this.workspaceFile){const result=[];for(const entry of this.folders)result.push({name:entry.name,path:entry.path,dir:true,workspaceRoot:true,children:await this.tree(entry.path,0,budget),unloaded:false,missing:entry.missing});return result;}folder??=this.root;
     if(depth>16)return[];const entries=await fs.readdir(folder,{withFileTypes:true}).catch(error=>{if(['ENOENT','ENOTDIR'].includes(error.code))return[];throw error;}),result=[];
     entries.sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name));
     for(const entry of entries){if(budget.remaining--<=0)break;if(entry.isSymbolicLink()||entry.name.startsWith('.studio-write-'))continue;
@@ -84,11 +90,11 @@ class Workspace {
     }return result;
   }
   async read(input,encoding,track=true){
-    const file=await canonical(input);if(!inside(file,await canonical(this.root))&&!this.readRoots?.some(root=>inside(file,root)))throw Error('File outside project and compiler headers');
+    const file=await canonical(input),owned=!!await this.containingRoot(file)||!!this.workspaceFile&&key(file)===key(this.workspaceFile);if(!owned&&!this.readState.has(file)&&!this.readRoots?.some(root=>inside(file,root)))throw Error('File outside project and compiler headers');
     if((await fs.stat(file)).size>4*1024*1024)throw Error('Editor opens files up to 4 MB');
     const bytes=await fs.readFile(file),decoded=decode(bytes,encoding||this.prefs.encodings[file]||'auto');
     if(track){this.prefs.encodings[file]=decoded.encoding;this.readState.set(file,{hash:crypto.createHash('sha256').update(bytes).digest('hex'),bom:decoded.bom});}
-    return {...decoded,path:file,readonly:!!this.projectReadOnly||!inside(file,await canonical(this.root))};
+    return {...decoded,path:file,readonly:!!this.projectReadOnly||!owned};
   }
   historyDir(file){return path.join(this.cache,'history','sha256-'+crypto.createHash('sha256').update(key(file)).digest('hex'));}
   async write(input,text,encoding){
@@ -104,15 +110,15 @@ class Workspace {
     this.prefs.encodings[file]=format;this.readState.set(file,{hash:crypto.createHash('sha256').update(bytes).digest('hex'),bom:format==='UTF-8-BOM'||!!read?.bom});await this.persist();return true;
   }
   async history(input){const file=await this.writable(input),dirs=[this.historyDir(file)],legacy=Buffer.from(key(file)).toString('base64url');if(legacy.length<=255)dirs.push(path.join(this.cache,'history',legacy));const records=[];for(const dir of dirs)if(await exists(dir))for(const name of await fs.readdir(dir))if(name.endsWith('.json'))records.push(JSON.parse(await fs.readFile(path.join(dir,name),'utf8')));return records.sort((a,b)=>Number(b.time)-Number(a.time));}
-  async createTemplate(d,preview=false){const files=templates(d.kind,d.name,d.namespace||''),result=[],created=[];
+  async createTemplate(d,preview=false){const files=templates(d.kind,d.name,d.namespace||''),result=[],created=[],base=path.resolve(this.root,d.directory|| (this.workspaceFile?this.folders[0]?.path||'':'')),target=name=>this.writable(path.resolve(base,name));
     if(!preview)this.assertEditable();
-    for(const file of Object.keys(files))if(await exists(await this.writable(file)))throw Error('File already exists: '+file);
-    const commit=async()=>{try{for(const [name,text]of Object.entries(files)){const file=await this.writable(name);if(!preview){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,encode(text,this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});created.push(file);}result.push({path:preview?name:file,text});}}catch(error){for(const file of created)await fs.rm(file);throw error;}return result;};return preview?commit():this.withFileOperation('create',await Promise.all(Object.keys(files).map(async name=>({target:await this.writable(name)}))),commit);
+    for(const file of Object.keys(files))if(await exists(await target(file)))throw Error('File already exists: '+file);
+    const commit=async()=>{try{for(const [name,text]of Object.entries(files)){const file=await target(name);if(!preview){await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,encode(text,this.prefs.settings.defaultEncoding||'UTF-8'),{flag:'wx'});created.push(file);}result.push({path:preview?name:file,text});}}catch(error){for(const file of created)await fs.rm(file);throw error;}return result;};return preview?commit():this.withFileOperation('create',await Promise.all(Object.keys(files).map(async name=>({target:await target(name)}))),commit);
   }
   withFileOperation(operation,files,commit){return this.fileOperationEvents?this.fileOperationEvents.run(operation,files,commit):commit();}
   async createItem(d){
     this.assertEditable();
-    if(!/^[A-Za-z0-9_+.-]{0,24}$/.test(d.extension||''))throw Error('Invalid file extension');const dir=await canonical(path.join(this.root,d.directory||''));if(!inside(dir,await canonical(this.root)))throw Error('Path outside project');
+    if(!/^[A-Za-z0-9_+.-]{0,24}$/.test(d.extension||''))throw Error('Invalid file extension');const dir=await this.writable(path.resolve(this.root,d.directory|| (this.workspaceFile?this.folders[0]?.path||'':'')),{allowRoot:true});
     for(let n=1;n<10000;n++){
       const folder=d.kind==='folder',base=folder?'new_folder':d.kind==='cmakelists'?'CMakeLists':'new_file',suffix=n===1?'':n;
       const ext=folder?'':d.kind==='cmakelists'?'.txt':d.kind==='empty'?(d.extension?(d.extension.startsWith('.')?'':'.')+d.extension:''):'.'+d.kind;

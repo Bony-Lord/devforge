@@ -36,7 +36,8 @@ suite covers commands, hover, diagnostics, configuration, webviews, custom
 editors, virtual documents, notebooks, diffs and unloading.
 
 This is not a claim that every VSX extension works. Mixed native and embedded
-workbench layouts still have separate group owners; workspace-file/multi-root
-integration, differing client/server API versions, extension-managed installation,
+workbench layouts still have separate group owners; saved workspace-file/multi-root
+integration is covered separately in [VSX-WORKSPACES.md](VSX-WORKSPACES.md).
+Differing client/server API versions, extension-managed installation,
 proposed/private APIs and native dependencies require further compatibility work.
 Never replace an installed build while an unattended test owns its processes.

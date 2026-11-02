@@ -5,6 +5,7 @@ class ProjectLibrary {
  constructor(host){this.host=host;this.ws=host.ws;this.queue=Promise.resolve();}
  async describe(id){const item=this.ws.prefs.projects[id];if(!item)throw Error('Project unavailable');const root=await canonical(item.path);let canTrash=true;try{await this.checkTrash(id,root);}catch{canTrash=false;}return{id,label:item.label,path:root,canTrash};}
  async checkTrash(id,root){
+  if(this.ws.prefs.projects[id]?.workspaceFile)throw Error('A workspace links existing folders. Remove it from the project list to keep their files.');
   for(const protectedPath of [os.homedir(),this.ws.data,this.ws.projectsDirectory,path.parse(root).root])if(inside(await canonical(protectedPath),root))throw Error('Protected folder cannot be moved to project trash');
   for(const [other,p]of Object.entries(this.ws.prefs.projects))if(other!==id&&inside(await canonical(p.path),root))throw Error('Folder contains another registered project');
   if((await fs.lstat(root)).isSymbolicLink()||!(await fs.stat(root)).isDirectory())throw Error('Select a regular project folder');

@@ -63,3 +63,15 @@ node desktop/soak/run.cjs --self-check --steps 1 --no-regressions
 node --test desktop/tests/soak.test.cjs
 node desktop/soak/run.cjs --steps 40 --no-regressions --seed adapter-check
 ```
+
+Проверки VSX также включают **VSX editor columns** (группы редактора) и
+**VSX workspaces** (сохранённые рабочие области с несколькими папками). Для
+отдельного запуска на исходниках:
+
+```powershell
+node desktop/soak/run.cjs --app desktop --suite "VSX workspaces" --cycles 1 --minutes 5 --no-keep-awake --report-root work/workspace-suite
+```
+
+Область проверки и оставшиеся ограничения описаны в
+[VSX-WORKSPACES.md](VSX-WORKSPACES.md) и
+[VSX-EDITOR-COLUMNS.md](VSX-EDITOR-COLUMNS.md).

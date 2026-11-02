@@ -43,5 +43,5 @@ class StudioPythonStyle {
   }
 }
 const pythonStyleMethods={
-  formatCurrentDocument(){const lang=this.active?.model.getLanguageId(),provider=this.addons.registry.list('formatters').find(e=>e.value.languages.includes(lang)&&this.addons.host.enabled(e.value.feature));if(!provider)return;return provider.value.handler==='python-style'?this.pythonStyle.format():formatterMethods.formatCurrentDocument.call(this);}
+  async formatCurrentDocument(){const lang=this.active?.model.getLanguageId(),provider=this.addons.registry.list('formatters').find(e=>e.value.languages.includes(lang)&&this.addons.host.enabled(e.value.feature));if(!provider){const action=globalThis.StudioCodeOSS?.api&&this.editor?.getAction('editor.action.formatDocument');if(action?.isSupported?.())return action.run();return;}return provider.value.handler==='python-style'?this.pythonStyle.format():formatterMethods.formatCurrentDocument.call(this);}
 };
