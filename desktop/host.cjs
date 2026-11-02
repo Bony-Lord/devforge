@@ -57,6 +57,7 @@ class DesktopHost {
     switch(op){
       case 'codeossInfo':return this.system.codeossInfo?.()||null;
       case 'workspaceCheckFolders':{this.ws.assertEditable();if(d.project!==this.ws.prefs.current||!Array.isArray(d.folders)||d.folders.length>256)throw Error('Workspace changed');const folders=[];for(const folder of d.folders){if(typeof folder.path!=='string')throw Error('Invalid workspace folder');folders.push({path:await canonical(folder.path)});}if(this.system.workspaceFoldersInUse?.(folders))throw Error('PROJECT_IN_USE: A workspace folder is being edited in another window');return true;}
+      case 'workspaceCreate':{const task=(this.workspaceChange||Promise.resolve()).catch(()=>{}).then(async()=>{this.ws.assertEditable();if(d.project!==this.ws.prefs.current)throw Error('Workspace changed');const folders=await require('./workspace-descriptor.cjs').normalizeFolders(d.folders);if(this.system.workspaceFoldersInUse?.(folders))throw Error('PROJECT_IN_USE: A workspace folder is being edited in another window');await this.ws.createWorkspace({...d,folders});return this.state();});this.workspaceChange=task;return task;}
       case 'codeossExternal':return this.system.codeossExternal?.(d.url);
       case 'codeossCallback':return this.system.codeossCallback?.(d);
       case 'codeossUserData':return this.system.codeossUserData?.(d);

@@ -957,6 +957,18 @@
           ],
           "filenames": []
         }
+      },
+      {
+        "point": "languages",
+        "id": "studio.language.json/comments",
+        "value": {
+          "language": "jsonc",
+          "extensions": [
+            ".jsonc",
+            ".code-workspace"
+          ],
+          "filenames": []
+        }
       }
     ]
   },

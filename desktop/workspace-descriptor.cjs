@@ -18,6 +18,15 @@ async function readWorkspace(input){
  }
  return{file,folders};
 }
+async function normalizeFolders(entries){
+ const {canonical,key}=require('./workspace.cjs');if(!Array.isArray(entries)||entries.length>256)throw Error('Invalid workspace folders');
+ const result=[],seen=new Set();for(const entry of entries){
+  if(!entry||typeof entry.path!=='string'||!path.isAbsolute(entry.path)||entry.name!==undefined&&(typeof entry.name!=='string'||!entry.name.trim()||entry.name.length>256))throw Error('Invalid workspace folder');
+  const root=await canonical(entry.path),identity=key(root);if(seen.has(identity))continue;
+  const stat=await fs.stat(root).catch(error=>{if(error.code==='ENOENT')return null;throw error;});if(stat&&!stat.isDirectory())throw Error('Workspace folder is not a directory: '+root);
+  seen.add(identity);result.push({path:root,name:entry.name||path.basename(root),missing:!stat});
+ }return result;
+}
 function projectRoots(project){return project?.workspaceFile?(project.workspaceFolders||[]).map(f=>f.path):project?.path?[project.path]:[];}
 function projectsOverlap(first,second){
  const {inside,key}=require('./workspace.cjs');if(!first||!second)return false;
@@ -25,4 +34,4 @@ function projectsOverlap(first,second){
  if(first.workspaceFile&&projectRoots(second).some(root=>inside(first.workspaceFile,root))||second.workspaceFile&&projectRoots(first).some(root=>inside(second.workspaceFile,root)))return true;
  return projectRoots(first).some(a=>projectRoots(second).some(b=>inside(a,b)||inside(b,a)));
 }
-module.exports={readWorkspace,projectRoots,projectsOverlap};
+module.exports={readWorkspace,normalizeFolders,projectRoots,projectsOverlap};

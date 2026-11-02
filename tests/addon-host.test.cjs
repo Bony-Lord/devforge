@@ -7,6 +7,15 @@ test('official module graph resolves complete C++ workspace and native dependenc
 test('Python and notebook packs coexist with C++ essentials regardless of activation order',async()=>{
  for(const roots of [['studio.pack.notebooks','studio.pack.essentials'],['studio.pack.essentials','studio.pack.notebooks']]){const {adapter,registry}=host(),entries=await adapter.load(),manager=new core.Manager({catalog:entries.map(e=>e.manifest),factories:new Map(entries.map(e=>[e.manifest.id+'@'+e.manifest.version,e.activate])),registry});await manager.setProfile(roots);assert.equal(adapter.language('/project/main.py'),'python');assert.equal(adapter.language('/project/test.ipynb'),'notebook');assert(adapter.enabled('python'));assert(adapter.enabled('notebooks'));assert(adapter.types().some(t=>t.id==='python'));await manager.dispose();}
 });
+test('JSON workspace and commented configuration support follows addon activation',async()=>{
+ const {adapter,registry}=host(),entries=await adapter.load(),manager=new core.Manager({catalog:entries.map(e=>e.manifest),factories:new Map(entries.map(e=>[e.manifest.id+'@'+e.manifest.version,e.activate])),registry});
+ assert.equal(adapter.language('/project/session.code-workspace'),'plaintext');
+ await manager.setProfile(['studio.language.json']);
+ for(const file of ['session.code-workspace','settings.jsonc'])assert.equal(adapter.language('/project/'+file),'jsonc');
+ assert.equal(adapter.language('/project/settings.json'),'json');assert.equal(adapter.language('/project/notebook.ipynb'),'json');
+ await manager.dispose();assert.equal(adapter.language('/project/session.code-workspace'),'plaintext');
+});
+
 test('module activation contributes real languages, views, project types and runtime providers',async()=>{
  const {adapter,registry}=host(),entries=await adapter.load(),manager=new core.Manager({catalog:entries.map(e=>e.manifest),factories:new Map(entries.map(e=>[e.manifest.id+'@'+e.manifest.version,e.activate])),registry});await manager.setProfile([{id:'studio.pack.cpp-full',version:'1.0.0'}]);assert(adapter.enabled('keyboard'));assert(adapter.enabled('windows'));assert(adapter.runtimeEnabled('gcc'));assert.equal(adapter.language('/project/main.cpp'),'cpp');assert.equal(adapter.language('/project/file.c'),'c');assert.equal(adapter.language('/project/CMakeLists.txt'),'cmake');assert.equal(adapter.language('/project/.clang-format'),'yaml');assert.equal(adapter.language('/project/a.ipynb'),'json');assert(adapter.types().some(t=>t.id==='cmake-cpp'));assert.equal(registry.list('views').length,2);await manager.dispose();assert(!adapter.enabled('windows'));assert.equal(adapter.language('/project/main.cpp'),'plaintext');assert.equal(adapter.types().length,1);
 });
