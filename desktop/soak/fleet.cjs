@@ -53,10 +53,11 @@ async function main(config){
  try{
   telemetry=await monitor();if(config.keepAwake)awake=await require('./power.cjs').keepAwake();console.log('REPORT '+path.join(store.run,'index.html'));console.log('PERFORMANCE '+config.performance+'; memory '+config.maxMemoryMb+' MiB; reserve '+config.reserveMemoryMb+' MiB');
   while(!stopped&&Date.now()<deadline){
+   await require('./control.cjs').apply(store,config,state,{engine:'fleet'});const paused=state.controls.paused;state.status=paused?'paused':'running';if(paused&&awake){await awake.release();awake=null;}else if(!paused&&config.keepAwake&&!awake)awake=await require('./power.cjs').keepAwake();
    if(await fs.stat(store.stopFile).then(()=>true,()=>false))break;await collect();if(config.steps&&state.steps>=config.steps||config.cycles&&state.cycles>=config.cycles||findings.size>=200)break;
    if(Date.now()-lastUsage>10000){lastUsage=Date.now();usage=await resourceUse(process.pid);if(usage){state.memory=usage;state.peakRssMb=Math.max(state.peakRssMb||0,usage.rssMb);}let external=0;for(const record of workers)for(const profile of record.profiles?.profiles||[])external+=await sizeOf(profile);await store.checkSpace(external);}
-   const schedule=plan(config,{...telemetry.sample(),ownedMb:usage?.rssMb||0});state.scheduler=schedule;
-   if(usage?.rssMb>config.maxMemoryMb)schedule.target=Math.max(0,workers.filter(w=>!w.finished).length-1);
+   const schedule=plan(config,{...telemetry.sample(),ownedMb:usage?.rssMb||0});state.scheduler=schedule;if(paused){schedule.target=0;schedule.mode='paused';}
+   if(!paused&&usage?.rssMb>config.maxMemoryMb)schedule.target=Math.max(0,workers.filter(w=>!w.finished).length-1);
    const active=workers.filter(w=>!w.finished),keeping=active.filter(w=>!w.stopRequested);
    for(const record of keeping.slice(schedule.target))await stopWorker(record);
    for(const record of active)if(record.stopRequested&&Date.now()-record.stopRequested>20000)await killOwned(record.child);

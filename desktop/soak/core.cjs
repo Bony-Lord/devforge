@@ -33,7 +33,7 @@ function options(argv){
  }
  result.regressions=!result.noRegressions;result.keepAwake=!result.noKeepAwake;return result;
 }
-async function atomic(file,value){await fs.mkdir(path.dirname(file),{recursive:true});const temporary=file+'.tmp-'+crypto.randomUUID();await fs.writeFile(temporary,typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value,null,2));await fs.rename(temporary,file);}
+async function atomic(file,value){await fs.mkdir(path.dirname(file),{recursive:true});const temporary=file+'.tmp-'+crypto.randomUUID();await fs.writeFile(temporary,typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value,null,2));for(let attempt=0;;attempt++){try{await fs.rename(temporary,file);return;}catch(error){if(!['EPERM','EACCES','EBUSY'].includes(error.code)||attempt>=6)throw error;await sleep(25*(attempt+1));}}}
 async function sizeOf(root){let size=0;const entries=await fs.readdir(root,{withFileTypes:true}).catch(error=>{if(error.code==='ENOENT')return[];throw error;});for(const entry of entries){if(entry.isSymbolicLink())continue;const file=path.join(root,entry.name),stat=await fs.lstat(file).catch(error=>{if(error.code==='ENOENT')return null;throw error;});if(!stat||stat.isSymbolicLink())continue;if(stat.isDirectory())size+=await sizeOf(file);else if(stat.isFile())size+=stat.size;}return size;}
 class Store{
  constructor(root,maxDiskMb){this.root=path.resolve(root);this.maxBytes=maxDiskMb*1048576;this.findings=new Map();this.bytes=0;this.externalProfiles=new Map();}
