@@ -30,7 +30,7 @@ const treeMethods={
     handle.onpointermove=e=>{const drag=this.treeDrag;if(!drag?.ghost)return;e.preventDefault();drag.ghost.style.left=e.clientX+12+'px';drag.ghost.style.top=e.clientY+12+'px';this.markTreeDrop(this.dropDirectory(document.elementFromPoint(e.clientX,e.clientY)||document.body));const box=$('#tree').getBoundingClientRect();if(e.clientY<box.top+30)$('#tree').scrollTop-=12;else if(e.clientY>box.bottom-30)$('#tree').scrollTop+=12;};
     handle.onpointerup=e=>{if(!this.treeDrag?.ghost)return;e.preventDefault();e.stopPropagation();const source=this.treeDrag.source,target=this.treeDropTarget;this.endTreeDrag();if(handle.hasPointerCapture(e.pointerId))handle.releasePointerCapture(e.pointerId);if(target)this.moveTreeItem(source,target).catch(safeError);};handle.onpointercancel=()=>this.endTreeDrag();handle.onlostpointercapture=()=>this.endTreeDrag();handle.onclick=e=>{e.stopPropagation();e.preventDefault();};
   },
-  folderMenu(item,x,y){this.selectTreeItem(item);this.menu([{label:'Создать…',run:()=>this.newFile(relative(item.path,this.state.root))},{label:'Переименовать',run:()=>this.renameTreeItem(item)},{label:'Показать в проводнике',run:()=>this.showInFiles(item.path)}],x,y);},
+  folderMenu(item,x,y){this.selectTreeItem(item);this.treeMenu([{label:'Создать…',run:()=>this.newFile(relative(item.path,this.state.root))},{label:'Переименовать',run:()=>this.renameTreeItem(item)},{label:'Показать в проводнике',run:()=>this.showInFiles(item.path)}],item,x,y);},
   async moveTreeItem(source,directory){
     return this.relocateTreeItem(source,directory+'/'+basename(source),true);
   },

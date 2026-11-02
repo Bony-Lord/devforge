@@ -5,8 +5,8 @@
  function compatible(m,platform){return !m.platforms||m.platforms.includes(platform);}
  function entries({catalog=[],available=[],installed=[]}){
   const result=new Map();
-  for(const m of catalog.filter(m=>m.kind!=='core'))result.set(m.id,{manifest:m,builtin:!installed.some(e=>e.package.manifest.id===m.id),package:installed.find(e=>e.package.manifest.id===m.id&&e.package.manifest.version===m.version)?.package});
-  for(const pkg of available)if(!result.has(pkg.manifest.id))result.set(pkg.manifest.id,{manifest:pkg.manifest,builtin:false,package:pkg});
+  for(const m of catalog.filter(m=>m.kind!=='core'&&!m.system))result.set(m.id,{manifest:m,builtin:!installed.some(e=>e.package.manifest.id===m.id),package:installed.find(e=>e.package.manifest.id===m.id&&e.package.manifest.version===m.version)?.package});
+  for(const pkg of available)if(!pkg.manifest.system&&!result.has(pkg.manifest.id))result.set(pkg.manifest.id,{manifest:pkg.manifest,builtin:false,package:pkg});
   return [...result.values()];
  }
  function search(entries,{query='',platform,showOtherPlatforms=false,kind='all',status='all',category='all',publisher='all',capability='all',sort='enabled',locale='en',active=[],installed=[]}={}){
@@ -21,7 +21,7 @@
   return matches.sort((a,b)=>(sort==='enabled'?Number(b.enabled??enabled.has(b.manifest.id))-Number(a.enabled??enabled.has(a.manifest.id)):sort==='publisher'?String(a.manifest.publisher||'DevForge').localeCompare(b.manifest.publisher||'DevForge'):sort==='version'?b.manifest.version.localeCompare(a.manifest.version,undefined,{numeric:true}):0)||local(a.manifest.name,locale).localeCompare(local(b.manifest.name,locale)));
  }
  function screenshot(value){return typeof value==='string'&&(/^(?:addons\/previews\/[a-zA-Z0-9._-]+\.(?:png|jpg|webp))$/.test(value)||value.length<=131072&&/^data:image\/(?:png|jpeg|webp);base64,[a-zA-Z0-9+/]+=*$/.test(value));}
- function removal(entry){
+ function removal(entry){if(entry.manifest?.system)return{allowed:false,reason:'core'};
   if(entry.installed===false||entry.manifest?.kind==='pack'&&!entry.packageInstalled)return{allowed:false,reason:'not-installed'};
   if(entry.packageInstalled)return{allowed:true,kind:'package'};
   const tool=entry.tool;

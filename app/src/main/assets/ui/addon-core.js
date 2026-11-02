@@ -56,12 +56,12 @@
     async dispose(){if(this.closed)return;this.closed=true;this.abort.abort();for(const dispose of this.disposers.reverse())try{await dispose();}catch(e){try{this.report(e,this.manifest.id);}catch{}}this.disposers=[];}
   }
   class Manager {
-    constructor({catalog,factories,registry,platform=currentPlatform(),apiVersion=API_VERSION,report=()=>{},timeout=5000}){this.catalog=catalog.map(manifest);this.factories=factories;this.registry=registry;this.platform=platform;this.apiVersion=apiVersion;this.report=report;this.timeout=timeout;this.active=new Map();this.requested=[];this.safeMode=false;this.tail=Promise.resolve();}
+    constructor({catalog,factories,registry,platform=currentPlatform(),apiVersion=API_VERSION,report=()=>{},timeout=5000,required=[]}){this.catalog=catalog.map(manifest);this.factories=factories;this.registry=registry;this.platform=platform;this.apiVersion=apiVersion;this.report=report;this.timeout=timeout;this.required=required;this.active=new Map();this.requested=[];this.safeMode=false;this.tail=Promise.resolve();}
     enqueue(work){const next=this.tail.then(work);this.tail=next.catch(()=>{});return next;}
-    setProfile(requested,{safeMode=false}={}){const input=JSON.parse(JSON.stringify(requested));return this.enqueue(()=>this.reconcile(input,safeMode));}
-    async reconcile(requested,safeMode){
+    setProfile(requested,{safeMode=false}={}){const input=JSON.parse(JSON.stringify(requested));return this.enqueue(()=>{const required=typeof this.required==='function'?this.required():this.required,ids=new Set(required.map(r=>typeof r==='string'?r:r.id));return this.reconcile([...input.filter(r=>!ids.has(typeof r==='string'?r:r.id)),...required],safeMode,required);});}
+    async reconcile(requested,safeMode,required=[]){
       const roots=new Set(requested.map(r=>typeof r==='string'?r:r.id)),prefer=Object.fromEntries([...this.active].filter(([id])=>!roots.has(id)).map(([id,e])=>[id,e.manifest.version]));
-      const target=safeMode?[]:resolve(this.catalog,requested,{platform:this.platform,apiVersion:this.apiVersion,prefer}),wanted=new Map(target.map(m=>[m.id,m]));
+      const target=resolve(this.catalog,safeMode?required:requested,{platform:this.platform,apiVersion:this.apiVersion,prefer}),wanted=new Map(target.map(m=>[m.id,m]));
       const retiring=new Set([...this.active].filter(([id,e])=>!wanted.has(id)||wanted.get(id).version!==e.manifest.version).map(([id])=>id)),stage=this.registry.transaction(retiring);
       const added=[];try{for(const m of target){if(this.active.get(m.id)?.manifest.version===m.version)continue;const activate=this.factories.get(m.id+'@'+m.version);if(typeof activate!=='function')fail('No trusted loader: '+m.id);const scope=new Scope(m,stage,(e,id)=>this.report(e,id));added.push({manifest:m,scope});let timer;try{const result=await Promise.race([Promise.resolve().then(()=>activate(scope.context())),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Addon activation timed out: '+m.id)),this.timeout);})]);if(result)scope.use(result);}finally{clearTimeout(timer);}}stage.commit();}
       catch(error){for(const entry of added.reverse())await entry.scope.dispose();try{this.report(error,added[0]?.manifest.id);}catch{}throw error;}
@@ -69,7 +69,7 @@
       for(const entry of added)this.active.set(entry.manifest.id,entry);this.requested=requested;this.safeMode=safeMode;return this.status();
     }
     status(){return {requested:JSON.parse(JSON.stringify(this.requested)),safeMode:this.safeMode,active:[...this.active.values()].map(e=>({id:e.manifest.id,version:e.manifest.version}))};}
-    dispose(){return this.setProfile([]);}
+    dispose(){return this.enqueue(()=>this.reconcile([],false));}
   }
   return Object.freeze({API_VERSION,currentPlatform,version,compare,satisfies,manifest,resolve,Registry,Manager});
 });

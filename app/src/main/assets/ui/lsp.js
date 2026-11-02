@@ -31,6 +31,7 @@ class ClangdClient {
     if(!this.ide.startupComplete||this.ide.setupOpen){this.startDeferred=true;return;}this.startDeferred=false;
     if((['python','notebook'].includes(this.ide.configurations?.document?.projectType)||['python','notebook'].includes(this.ide.active?.model.getLanguageId())&&!['cmake-cpp','cmake-c','cmake'].includes(this.ide.configurations?.document?.projectType))&&![...this.ide.docs.values()].some(d=>['c','cpp'].includes(d.model.getLanguageId()))){this.ready=false;await native('lspStop');this.ide.pythonIntelligence?.sync();return;}
     if(this.ide.state.trust?.trusted===false){this.ready=false;this.ide.lspStatus(this.ide.settings.language==='en'?'Restricted mode':'Ограниченный режим','pending');return;}
+    if(globalThis.StudioCodeOSS?.api)return this.startUpstream();
     if(this.ide.addons?.host.lastFeatures&&!this.ide.addons.host.enabled('clangd')){this.ready=false;this.ide.lspStatus(this.ide.addons.text('Анализ отключён аддоном','Analysis disabled by addon'),'pending');return;}
     if(window.forge?.requireToolPack){const state=await native('toolPacks');if(!state.packs.find(p=>p.id==='analysis')?.installed){this.ready=false;this.ide.lspStatus('Анализ не установлен','pending');return;}}
     const epoch=++this.epoch;
@@ -48,6 +49,33 @@ class ClangdClient {
       for(const doc of this.ide.docs.values()){this.sync(doc.model);NativeEditing.scheduleAnalysis(doc.model);}
       this.ide.lspStatus('clangd готов','ready');this.ide.updateOutline();
     }catch(e){if(epoch===this.epoch){this.ready=false;this.ide.lspStatus('Ошибка clangd','error');this.ide.toast(e.message);console.error(e);}}
+  }
+  async startUpstream(){
+    if(this.upstreamStarting)return this.upstreamStarting;
+    const ide=this.ide,id='vscode.llvm-vs-code-extensions.vscode-clangd';this.ready=false;
+    this.upstreamStarting=(async()=>{
+      ide.lspStatus(ide.settings.language==='en'?'Starting C/C++ analysis…':'Запуск анализа C/C++…','pending');
+      const result=await native('cppAnalysisDefault');
+      if(result.library)ide.addons.adopt(result.library);
+      if(result.installed||ide.addons.manager.active.has(id)){
+        const tools=await native('idePresetTools'),prepared=await native('idePresetAnalysis',ide.configurations?.current()?.options||ide.settings),extensionSettings=structuredClone(ide.settings.extensionSettings||{}),values=extensionSettings[id]??={};
+        if(tools.clangd)values['clangd.path']??=tools.clangd;
+        values['clangd.arguments']=[...(values['clangd.arguments']||['--background-index','--clang-tidy']).filter(arg=>!/^--(?:compile-commands-dir|query-driver)=/.test(arg)),...prepared.args.filter(arg=>/^--(?:compile-commands-dir|query-driver)=/.test(arg))];
+        if(JSON.stringify(extensionSettings)!==JSON.stringify(ide.settings.extensionSettings))await ide.changeSettings({extensionSettings});
+        if(result.installed)await ide.addons.apply([...ide.addons.baseProfile,{id,version:result.library.packages.find(e=>e.package.manifest.id===id).package.manifest.version}]);
+      }
+      if(result.disabled||!ide.addons.manager.active.has(id)){
+        this.upstreamState='off';ide.lspStatus(ide.settings.language==='en'?'C/C++ analysis is disabled':'Анализ C/C++ отключён','off');return;
+      }
+      // A response from the actual language server, including an empty result,
+      // confirms readiness. Merely loading the extension does not.
+      const doc=[...ide.docs.values()].find(d=>['c','cpp'].includes(d.model.getLanguageId()));
+      if(!doc){this.upstreamState='off';ide.lspStatus(ide.settings.language==='en'?'Open a C/C++ file':'Откройте файл C/C++','off');return;}
+      const deadline=Date.now()+30000;while(!await StudioCodeOSS.api.hasLanguageProvider(doc.model)){if(Date.now()>deadline)throw Error(ide.settings.language==='en'?'clangd did not start. Check the clangd output channel.':'clangd не запустился. Подробности — в канале вывода clangd.');await new Promise(resolve=>setTimeout(resolve,150));}
+      await StudioCodeOSS.api.execute('vscode.executeDocumentSymbolProvider',doc.model.uri);
+      this.upstreamState='ready';ide.lspStatus(ide.settings.language==='en'?'C/C++ · clangd':'C/C++ · clangd','ready');ide.updateOutline();
+    })().catch(error=>{this.upstreamState='error';ide.lspStatus(error.message,'error');console.error('C/C++ analysis',error);}).finally(()=>{this.upstreamStarting=null;});
+    return this.upstreamStarting;
   }
   changed(model,event){
     const uri=model.uri.toString();if(!this.opened.has(uri))return;

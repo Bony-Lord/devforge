@@ -55,3 +55,5 @@ test('late live contributions during asynchronous activation are preserved and a
 });
 
 test("SemVer prerelease and build identities retain their standard precedence",()=>{assert.equal(sdk.compare("1.0.0-alpha.2","1.0.0-alpha.10"),-1);assert.equal(sdk.compare("1.0.0-beta","1.0.0"),-1);assert.equal(sdk.compare("1.0.0+build.1","1.0.0+build.2"),0);assert.deepEqual(sdk.version("1.2.3-rc.1+win32"),[1,2,3]);});
+
+test('mandatory service remains active in normal and safe profiles but disposes on shutdown',async()=>{const one=m('test.required'),other=m('test.optional'),registry=new sdk.Registry({commands:'ui.commands'}),manager=new sdk.Manager({catalog:[one,other],registry,required:[one.id],factories:new Map([one,other].map(m=>[m.id+'@'+m.version,ctx=>ctx.contribute('commands',m.id+'/open',{})]))});await manager.setProfile([other.id]);assert.deepEqual(manager.status().active.map(m=>m.id).sort(),[other.id,one.id].sort());await manager.setProfile([],{safeMode:true});assert.deepEqual(manager.status().active.map(m=>m.id),[one.id]);await manager.dispose();assert.equal(manager.active.size,0);assert.equal(registry.entries.size,0);});

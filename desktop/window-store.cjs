@@ -28,16 +28,16 @@ class WindowStore {
 class WindowAddons {
  constructor(host,store){this.host=host;this.store=store;this.base=store.addons;this.profile=null;}
  get data(){return{...this.base.data,profile:this.profile||this.base.data.profile};}
- async init(){await this.store.addonsReady;this.profile=structuredClone(this.host.ws.prefs.windowAddonProfile||this.base.data.profile);const support=this.base.data.packages.find(e=>e.source==='bundled-catalog'&&e.package.manifest.id==='studio.vsix');if(support)for(const key of ['requested','defaultRequested'])for(const r of this.profile[key]||[])if(r.id==='studio.vsix')r.version=support.package.manifest.version;return this;}
+ async init(){await this.store.addonsReady;this.profile=this.base.coreProfile(structuredClone(this.host.ws.prefs.windowAddonProfile||this.base.data.profile));const support=this.base.data.packages.find(e=>e.source==='bundled-catalog'&&e.package.manifest.id==='studio.vsix');if(support)for(const key of ['requested','defaultRequested'])for(const r of this.profile[key]||[])if(r.id==='studio.vsix')r.version=support.package.manifest.version;return this;}
  catalog(){return this.base.catalog();}
  state(){return{...this.base.state(),profile:{...structuredClone(this.profile),defaultRequested:structuredClone(this.base.data.profile.defaultRequested||this.base.data.profile.requested||[])}};}
- enabled(id){return(this.profile.resolved||[]).includes(id);}
+ enabled(id){return require(require('./assets.cjs').ui+'/window-policy.js').coreAddon(id,process.platform)||(this.profile.resolved||[]).includes(id);}
  async remember(){this.host.ws.prefs.windowAddonProfile=structuredClone(this.profile);await this.host.ws.persist();}
  async handle(op,d){
   if(op==='addonBuiltinInstall'||op==='addonBuiltinRemove'){await this.base.handle(op,d);return this.state();}if(op==='addonLibrary')return this.state();if(op==='addonCatalog')return this.catalog();if(op==='addonState')return this.state().profile;
   const defaults=d.defaultRequested||this.base.data.profile.defaultRequested||this.base.data.profile.requested||[];
-  if(op==='addonStateCommit'){this.profile=structuredClone(d);await this.base.handle(op,{...d,defaultRequested:structuredClone(defaults)});await this.remember();return true;}
-  if(op==='addonBegin'){this.before=structuredClone(this.profile);const result=await this.base.handle(op,{...d,profile:{...d.profile,defaultRequested:structuredClone(defaults)}});this.profile=structuredClone(d.profile);return{token:result.token,library:this.state()};}
+  if(op==='addonStateCommit'){d=this.base.coreProfile(d);this.profile=structuredClone(d);await this.base.handle(op,{...d,defaultRequested:structuredClone(defaults)});await this.remember();return true;}
+  if(op==='addonBegin'){d={...d,profile:this.base.coreProfile(d.profile)};this.before=structuredClone(this.profile);const result=await this.base.handle(op,{...d,profile:{...d.profile,defaultRequested:structuredClone(defaults)}});this.profile=structuredClone(d.profile);return{token:result.token,library:this.state()};}
   if(op==='addonFinish'){await this.base.handle(op,d);if(!d.commit&&this.before)this.profile=this.before;this.before=null;await this.remember();return this.state();}
   throw Error('Unsupported addon operation');
  }

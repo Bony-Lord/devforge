@@ -78,7 +78,14 @@ const StudioChoices={
     for(const [select]of this.buttons)if(!select.isConnected)this.buttons.delete(select);
   },
   close(restore=false){const current=this.active;if(!current)return;this.active=null;current.button.setAttribute('aria-expanded','false');current.observer?.disconnect();current.popover.remove();NativeEditing.queueLayout();if(restore&&current.button.isConnected)current.button.focus();},
-  position(){const a=this.active;if(!a)return;if(!a.button.isConnected||!a.button.getClientRects().length){this.close();return;}const b=a.button.getBoundingClientRect(),v=window.visualViewport,left=v?.offsetLeft||0,top=v?.offsetTop||0,width=v?.width||innerWidth,height=v?.height||innerHeight,p=a.popover;p.style.width=Math.min(width-16,Math.max(a.select.id==='projectSelect'?360:a.select.matches('#compilerSelect,[name=compiler]')?320:210,b.width))+'px';p.style.maxHeight=Math.max(80,height-24)+'px';p.style.left=Math.max(left+8,Math.min(b.left,left+width-p.offsetWidth-8))+'px';const below=top+height-b.bottom-8,above=b.top-top-8;const y=below>=Math.min(180,p.scrollHeight)||below>=above?b.bottom+4:b.top-p.offsetHeight-4;p.style.top=Math.max(top+8,Math.min(y,top+height-p.offsetHeight-8))+'px';NativeEditing.queueLayout();},
+  position(){
+    const a=this.active;if(!a)return;if(!a.button.isConnected||!a.button.getClientRects().length){this.close();return;}
+    const b=a.button.getBoundingClientRect(),v=window.visualViewport,left=v?.offsetLeft||0,top=v?.offsetTop||0,width=v?.width||innerWidth,height=v?.height||innerHeight,p=a.popover;
+    p.style.width=Math.min(width-16,Math.max(a.select.id==='projectSelect'?360:240,Math.min(b.width,560)))+'px';
+    p.style.maxHeight='none';const natural=p.scrollHeight,below=Math.max(0,top+height-b.bottom-12),above=Math.max(0,b.top-top-12),down=natural<=below||natural>above&&below>=above,space=down?below:above;
+    p.style.maxHeight=Math.max(32,natural<=space?natural:Math.min(space,560,height*.72))+'px';
+    p.style.left=Math.max(left+8,Math.min(b.left,left+width-p.offsetWidth-8))+'px';p.style.top=Math.max(top+8,Math.min(down?b.bottom+4:b.top-p.offsetHeight-4,top+height-p.offsetHeight-8))+'px';NativeEditing.queueLayout();
+  },
   open(select,focus=false){
     if(select.disabled)return;this.close();const button=this.buttons.get(select);if(!button)return;if(select.studioOpen?.(button))return;const popover=document.createElement('div');popover.className='studio-choice-popover';
     const search=document.createElement('input');search.type='search';search.placeholder=tr('Поиск…');search.setAttribute('aria-label',tr('Поиск…'));search.spellcheck=false;search.autocomplete='off';search.hidden=select.id!=='projectSelect'&&select.options.length<=10;popover.append(search);

@@ -1,4 +1,4 @@
-"""Keep the removable VSX addon and its reviewed source in sync (no downloads)."""
+"""Keep the Windows core VSX service and its reviewed source in sync (no downloads)."""
 import json
 from pathlib import Path
 

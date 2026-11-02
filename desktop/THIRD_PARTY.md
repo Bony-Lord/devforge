@@ -29,3 +29,9 @@ Optional Jedi 0.20.1/parso 0.8.7 are separate verified downloads, with all upstr
 Markdown-it 14.1.0 (MIT) renders notebook/document Markdown; json5 2.2.3 (MIT) parses declarative VSIX metadata. Their license files accompany the package. Build-only resedit 1.7.2 (MIT) sets DevForge PE icons; it is not loaded by the installed application.
 
 Code OSS integration uses pinned CodinGame monaco-vscode-api 38.1.3 and service packages (MIT), plus VSCodium REH 1.143.17232. Component and npm license notices are in resources/app/ui/vendor/codeoss/THIRD_PARTY.md; the remote runtime license accompanies resources/app/compat/server. yauzl 3.4.0 (MIT), pend 1.2.0 (MIT), and semver 7.8.5 (ISC) support streamed VSIX/ZIP64 import and version checks. VSIX archives retain their original licenses and resource files.
+
+The Windows distribution bundles the original llvm-vs-code-extensions.vscode-clangd
+0.6.0 VSIX from Open VSX (MIT). Its original license and
+notices remain in default-extensions/clangd.vsix. Source URL and SHA-256 are recorded
+in default-extensions/manifest.json. The extension uses the locally installed clangd;
+no clangd executable is included in this VSIX.
