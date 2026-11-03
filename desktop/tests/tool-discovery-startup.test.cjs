@@ -1,0 +1,7 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),{discoverTools}=require('../tooling.cjs');
+const portable=p=>p.replaceAll('\\','/').replace(/^[A-Z]:/,v=>v.toLowerCase());
+test('directory inventory preserves PATH precedence and sees tools installed between discoveries',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'df-discovery-')),oldPath=process.env.PATH,a=path.join(root,'first'),b=path.join(root,'second');t.after(async()=>{process.env.PATH=oldPath;await fs.rm(root,{recursive:true,force:true});});await fs.mkdir(a);await fs.mkdir(b);const exe=process.platform==='win32'?'.exe':'';await fs.writeFile(path.join(a,'gcc'+exe),'fixture');await fs.writeFile(path.join(b,'g++'+exe),'fixture');process.env.PATH=[a,b].join(path.delimiter);const before=await discoverTools(['gxx','gcc']);assert.equal(before.gxx,portable(path.join(b,'g++'+exe)));assert.deepEqual(Object.keys(before),['gxx','gcc']);await fs.writeFile(path.join(a,'g++'+exe),'new fixture');const after=await discoverTools(['gxx','gcc']);assert.equal(after.gxx,portable(path.join(a,'g++'+exe)));
+});
+test('explicit missing overrides still fail rather than silently choosing a different compiler',async()=>{await assert.rejects(discoverTools(['gcc'],{gcc:path.join(os.tmpdir(),'df-missing-'+process.pid,'gcc.exe')}),/Tool unavailable/);});
