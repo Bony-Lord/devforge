@@ -9,7 +9,7 @@ const StudioIDEPresets={
   return ide.openFile(this.uri);
  },
  render(ide,container){
-  const addons=ide.addons,page=addons.element('section',undefined,'ide-presets-page'),heading=addons.element('header'),grid=addons.element('div',undefined,'ide-presets-grid');heading.append(addons.element('h2',addons.text('IDE-паки','IDE packs')));page.append(heading,grid);container.append(page);
+  const addons=ide.addons,page=addons.element('section',undefined,'ide-presets-page'),heading=addons.element('header'),grid=addons.element('div',undefined,'ide-presets-grid');heading.append(addons.element('h2',addons.text('IDE-паки','IDE packs')));const tools=addons.element('button',addons.text('Инструменты и среды…','Tools and runtimes…'));tools.onclick=()=>StudioToolchains.open(ide);heading.append(tools);page.append(heading,grid);container.append(page);
   for(const pkg of addons.available.filter(p=>p.manifest.idePreset)){
    const m=pkg.manifest,card=addons.element('article',undefined,'ide-preset-card');card.dataset.idePreset=m.idePreset.id;card.append(addons.element('h3',addons.local(m.name)),addons.element('p',addons.local(m.description)));if(m.idePreset.tools!=='DevForge')card.append(addons.element('small',m.idePreset.tools));
    const contents=addons.element('details'),list=addons.element('ul');contents.append(addons.element('summary',addons.text('Состав','Components')),list);for(const id of Object.keys(m.includes||{})){const manifest=addons.catalog.find(m=>m.id===id)||addons.available.find(p=>p.manifest.id===id)?.manifest;list.append(addons.element('li',manifest?addons.local(manifest.name):id));}card.append(contents);

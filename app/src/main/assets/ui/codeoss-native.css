@@ -18,6 +18,19 @@
 .studio-codeoss-view{container-type:inline-size;container-name:studio-vsx}
 .studio-addon-actions{min-width:0;flex-shrink:1;gap:4px}
 .studio-native-addons-button span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* Allocate search actions beside the input, never on top of its text. */
+.studio-codeoss-view .extensions-viewlet>.header>.extensions-search-container{display:flex;align-items:center;gap:6px;padding:0!important;min-width:0}
+.studio-codeoss-view .extensions-viewlet>.header>.extensions-search-container>.search-box{flex:1 1 0;min-width:0;padding-right:0!important;width:0!important}
+.studio-codeoss-view .extensions-viewlet>.header>.extensions-search-container>.extensions-search-actions-container{position:static!important;flex:0 0 auto;margin:0!important;display:flex;align-items:center;max-width:64px}
+.studio-codeoss-view .extensions-search-actions-container .action-item{display:flex;align-items:center;justify-content:center;width:24px;height:26px;margin:0!important}
+.studio-codeoss-view .extensions-viewlet>.header{padding:5px 10px 6px!important;box-sizing:border-box}
+.studio-codeoss-view .extensions-viewlet>.header>.extensions-search-container{margin:0!important;width:100%!important;max-width:100%!important}
+.studio-codeoss-view .extensions-search-container>.suggest-input-container{flex:1 1 0!important;min-width:0!important;width:0!important;box-sizing:border-box;overflow:hidden}
+.studio-codeoss-view .composite.title .title-actions{display:flex!important;align-items:center;justify-content:flex-end;gap:4px;min-width:0;flex:0 0 auto;overflow:visible}
+.studio-codeoss-view .studio-addon-actions{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.studio-codeoss-view .studio-addon-actions button{height:26px;min-height:26px;padding:3px 5px;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.studio-codeoss-view .studio-addon-actions svg{width:16px;height:16px;flex:0 0 16px}
+.studio-codeoss-view .composite.title>.title-label{min-width:0;overflow:hidden;flex:1 1 auto}
 @container studio-vsx (max-width:320px){.studio-native-addons-button span{display:none}.studio-native-addons-button{width:28px;min-width:28px;padding:4px}.studio-addon-actions>.icon-button{width:28px;min-width:28px}}
 @container studio-vsx (max-width:220px){.composite.title>.title-label{display:none}.composite.title .title-actions>.monaco-action-bar .action-item:not(:last-child){display:none}}
 @container studio-vsx (max-width:220px){.extensions .extension-list-item{padding-left:8px}.extension-list-item .footer>.monaco-action-bar{min-width:0;max-width:100%;margin-left:0}.extension-list-item .footer .actions-container{max-width:100%}.extension-list-item .footer .action-item{min-width:0;flex-shrink:1}.extension-list-item .extension-action.label{min-width:0;max-width:100%!important;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}}
@@ -39,3 +52,5 @@
 @media(max-width:700px){.statusbar #cursorStatus,.statusbar #encodingStatus,.statusbar #fontStatus,.statusbar #indentStatus,.statusbar #languageStatus{display:none}.statusbar #lspStatus{max-width:120px}}
 .notebook-document{container-type:inline-size;container-name:studio-notebook}
 @container studio-notebook (max-width:220px){.notebook-toolbar .notebook-run-all span{display:none}.notebook-toolbar button{min-width:26px;padding:4px}.notebook-toolbar{gap:4px;padding:6px;justify-content:flex-start}.notebook-toolbar .notebook-interpreter{max-width:100%;overflow:hidden;text-overflow:ellipsis}}
+
+.studio-toolchains{padding:20px;max-width:1050px;margin:auto;overflow-wrap:anywhere}.studio-toolchains article{padding:14px 0;border-bottom:1px solid var(--line)}.studio-toolchains article>div{display:flex;flex-wrap:wrap;gap:8px}.studio-toolchains pre{white-space:pre-wrap;max-height:140px;overflow:auto}.studio-toolchains h3{margin:4px 0}

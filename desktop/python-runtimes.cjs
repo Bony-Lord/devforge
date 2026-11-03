@@ -9,7 +9,7 @@ class PythonRuntimes {
  executable(id){return path.join(this.directory(id),'python',process.platform==='win32'?'python.exe':'bin/python3');}
  async info(){const result=[];for(const record of this.catalog.filter(r=>r.platform===process.platform&&r.arch===process.arch))result.push({...record,installed:await exists(this.executable(record.id)),executable:this.executable(record.id),name:'CPython '+record.version});return result;}
  async candidates(){return(await this.info()).filter(r=>r.installed).map(r=>r.executable);}
- install(id){if(this.jobs.has(id))return this.jobs.get(id);const controller=new AbortController();this.controllers.set(id,controller);const task=this.installNow(id,controller.signal).finally(()=>{this.jobs.delete(id);this.controllers.delete(id);});this.jobs.set(id,task);return task;}
+ install(id){if(this.jobs.has(id))return this.jobs.get(id);const controller=new AbortController();this.controllers.set(id,controller);const task=this.installNow(id,controller.signal).finally(()=>{this.jobs.delete(id);this.controllers.delete(id);this.host.event('runtimeProgress',{id,running:false,phase:controller.signal.aborted?'cancelled':'complete'});});this.jobs.set(id,task);return task;}
  cancel(){for(const controller of this.controllers.values())controller.abort();return true;}
  async installNow(id,signal){
   const record=this.entry(id),destination=this.directory(id);if(await exists(this.executable(id)))return this.info();await fs.mkdir(this.root,{recursive:true});const staging=await fs.mkdtemp(path.join(this.root,'.install-')),archive=path.join(staging,'runtime.tar.gz'),content=path.join(staging,'content');
