@@ -6,8 +6,9 @@ async function main(argv=process.argv.slice(2)){
  if(argv.includes('--help')){console.log('DevForge Finder Dashboard: open existing or start a local panel. Options: --no-open --shutdown');return;}
  const data=path.join(os.homedir(),'DevForgeFinderControl');await fs.mkdir(data,{recursive:true});let record=await json(path.join(data,'server.json'));
  if(argv.includes('--shutdown')){if(record&&await health(record))await fetch(new URL('api/shutdown',record.url),{method:'POST',headers:{Origin:new URL(record.url).origin,'Content-Type':'application/json'},body:'{}'});return;}
+ let resumeURL;if(argv.includes('--restart')&&record&&await health(record)){resumeURL=record.url;await fetch(new URL('api/shutdown',record.url),{method:'POST',headers:{Origin:new URL(record.url).origin,'Content-Type':'application/json'},body:'{}'});for(let n=0;n<50&&await health(record);n++)await new Promise(resolve=>setTimeout(resolve,100));}
  if(!record||!await health(record)){
-  const log=await fs.open(path.join(data,'server.log'),'a'),child=spawn(process.execPath,[path.join(__dirname,'dashboard.cjs'),'--data='+data],{cwd:path.resolve(__dirname,'../..'),detached:true,windowsHide:true,stdio:['ignore',log.fd,log.fd]});await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});child.unref();await log.close();
+  const log=await fs.open(path.join(data,'server.log'),'a'),child=spawn(process.execPath,[path.join(__dirname,'dashboard.cjs'),'--data='+data,...resumeURL?['--resume-url='+resumeURL]:[]],{cwd:path.resolve(__dirname,'../..'),detached:true,windowsHide:true,stdio:['ignore',log.fd,log.fd]});await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});child.unref();await log.close();
   for(let n=0;n<100;n++){record=await json(path.join(data,'server.json'));if(record&&await health(record))break;await new Promise(resolve=>setTimeout(resolve,100));}if(!record||!await health(record))throw Error('Dashboard did not start; see '+path.join(data,'server.log'));
  }
  if(!argv.includes('--no-open')){

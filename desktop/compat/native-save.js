@@ -15,9 +15,14 @@ export function installNativeSave({textFiles,fileService,commit}){
  return async(resource,reason)=>{
   const key=resource.toString();failures.delete(key);
   const model=textFiles.files.get(resource);if(!model)throw Error('Text-file model is not registered for '+key);
-  const saved=await model.save({force:true,reason,ignoreErrorHandler:false});
-  if(failures.has(key)){const error=failures.get(key);failures.delete(key);throw error;}
-  if(!saved)throw Error('File save did not complete: '+key);
-  return true;
+  // Upstream may coalesce this request with an older in-flight auto-save.
+  // A completed older version must not satisfy Save All for a newer notebook edit.
+  for(let attempt=0;attempt<4;attempt++){
+   const saved=await model.save({force:true,reason,ignoreErrorHandler:false});
+   if(failures.has(key)){const error=failures.get(key);failures.delete(key);throw error;}
+   if(!saved)throw Error('File save did not complete: '+key);
+   if(!model.isDirty())return true;
+  }
+  throw Error('Document kept changing while saving: '+key);
  };
 }

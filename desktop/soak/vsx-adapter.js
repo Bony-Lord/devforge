@@ -4,7 +4,7 @@
  const need=(value,label)=>{if(!value){const error=Error('Missing VSX adapter binding: '+label);error.name='AdapterMismatch';throw error;}return value;};
  const assert=(value,message)=>{if(!value)throw Error(message);};
  const frame=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
- const entry=id=>need(a().marketplaceEntries().find(e=>e.manifest.id===id&&e.manifest.version===(a().manager.active.get(id)?.manifest.version||e.manifest.version)),'extension '+id);
+ const entry=id=>{const version=a().manager.active.get(id)?.manifest.version,visible=a().marketplaceEntries().find(e=>e.manifest.id===id&&(!version||e.manifest.version===version));if(visible)return visible;const stored=a().library.packages.find(e=>e.package.manifest.id===id&&(!version||e.package.manifest.version===version));return need(stored&&{manifest:stored.package.manifest,package:stored.package,installed:true,enabled:!!version,builtin:false},'installed extension '+id);};
  async function wait(test,label){const deadline=Date.now()+15000;while(Date.now()<deadline){if(await test())return;await new Promise(resolve=>setTimeout(resolve,100));}throw Error('VSX assertion timed out: '+label);}
  async function install(key){const pkg=fixture.packages[key];await a().review(pkg,false,{dependenciesPrepared:true,dependencyPackages:[fixture.packages.library]});assert(!a().pendingReview?.prepareError,'VSIX review failed: '+a().pendingReview?.prepareError);a().pendingReview.accepted=true;await a().install(pkg,true);}
  async function enable(key='probe'){
@@ -41,6 +41,7 @@
     await openSample();await a().marketToggle(entry(ids.probe),false,true,true);
     assert(!a().manager.active.has(ids.probe),'Disabled extension remains active');assert(!(await commands()).includes('df.vsx.probe'),'Disabled extension left a command behind');
     assert(!a().registry.list('languages').some(e=>e.owner===ids.probe),'Disabled extension left a language contribution behind');assert(!monaco.editor.getModelMarkers({}).some(m=>m.message==='VSX Finder BAD token'),'Disabled extension left diagnostics behind');
+      await wait(()=>!document.querySelector('.activitybar [data-vsx-container="workbench.view.extension.df-vsx"]'),'disabled extension left its sidebar button behind');
     await enable();break;
    }
    case 'vsx-dependency-review':{
@@ -49,15 +50,15 @@
    }
    case 'vsx-uninstall-reinstall':{
     if(action.phase==='install'){await install('probe');await enable();break;}
-    await enable();await a().marketToggle(entry(ids.probe),false,true,true);await a().marketRemove(entry(ids.probe),true);
+    await enable();const installed=entry(ids.probe);await a().marketToggle(installed,false,true,true);await a().marketRemove(installed,true);
     assert(!a().library.packages.some(e=>e.package.manifest.id===ids.probe),'Uninstalled VSIX remains installed');assert(!(await commands()).includes('df.vsx.probe'),'Uninstalled VSIX left a command behind');
     break;
    }
    case 'vsx-update-roundtrip':await install(action.phase);await wait(async()=>{const result=await api().execute('df.vsx.probe');globalThis.__vsxObservation={expectedVersion:fixture.packages[action.phase].manifest.version,actualVersion:result.version,phase:action.phase};return result.version===fixture.packages[action.phase].manifest.version;},'wrong extension version after switching versions');break;
    case 'vsx-sidebar':{
-    await enable();const button=await (async()=>{await wait(()=>document.querySelector('.activitybar [data-vsx-container="workbench.view.extension.df-vsx"]'),'VSX container in native rail');return document.querySelector('.activitybar [data-vsx-container="workbench.view.extension.df-vsx"]');})();button.click();
+    await enable();const button=await (async()=>{await wait(()=>document.querySelector('.activitybar [data-vsx-container="workbench.view.extension.df-vsx"]'),'VSX container in native rail');return document.querySelector('.activitybar [data-vsx-container="workbench.view.extension.df-vsx"]');})();const viewService=await api().getService(api().IViewsService);if(!viewService.isViewContainerVisible('workbench.view.extension.df-vsx')||!ide().windows.panel('extensionViews')?.api.isVisible||ide().windows.sideMode!=='extensionViews')button.click();
     await wait(()=>ide().windows.contents.get('extensionViews')?.textContent.includes('VSX Finder tree ready'),'VSX tree in sidebar');const content=ide().windows.contents.get('extensionViews');assert(!content.querySelector('[id="workbench.parts.activitybar"]'),'VSX sidebar duplicated the activity rail');
-    const panel=ide().windows.panel('extensionViews'),width=panel.group.element.clientWidth;for(const size of [180,380,width]){ide().windows.setGroupSize(panel.group,{width:size});await frame();await frame();const part=content.querySelector('[id="workbench.parts.sidebar"]'),box=part?.getBoundingClientRect(),available=content.getBoundingClientRect();assert(box&&box.width<=available.width+2,'VSX sidebar keeps a stale/minimum width after dock resize: '+box?.width+'/'+available.width);}
+    const panel=ide().windows.panel('extensionViews'),width=panel.api.group.element.clientWidth;for(const size of [180,380,width]){ide().windows.setGroupSize(panel.api.group,{width:size});await frame();await frame();const part=content.querySelector('[id="workbench.parts.sidebar"]'),box=part?.getBoundingClientRect(),available=content.getBoundingClientRect();assert(box&&box.width<=available.width+2,'VSX sidebar keeps a stale/minimum width after dock resize: '+box?.width+'/'+available.width);}
     break;
    }
    case 'vsx-context-menu':{

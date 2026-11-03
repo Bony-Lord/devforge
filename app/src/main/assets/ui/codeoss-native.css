@@ -1,0 +1,41 @@
+/* Text action labels must never inherit the codicon glyph size/font. */
+.studio-desktop .studio-codeoss-view .extension-action.label,
+.studio-desktop .studio-codeoss-view .monaco-button:not(.codicon),
+.studio-desktop .studio-codeoss-view .monaco-dropdown .action-label:not(.codicon){font-family:Inter,system-ui,'Segoe UI',sans-serif;font-size:12px;line-height:20px}
+.studio-codeoss-view .extension-editor>.header>.details{min-width:0;overflow-wrap:anywhere}
+.studio-codeoss-view .extension-editor>.header>.details>.actions-status-container{flex-wrap:wrap;gap:6px;min-width:0;overflow:visible;padding:3px}
+.studio-codeoss-view .extension-editor .actions-status-container>.monaco-action-bar{min-width:0;max-width:100%;overflow:visible}
+.studio-codeoss-view .extension-editor .actions-status-container>.monaco-action-bar>.actions-container{gap:4px;overflow:visible;white-space:normal;max-width:100%}
+.studio-codeoss-view .extension-editor .actions-container>.action-item{max-width:100%;min-width:0!important}
+.studio-codeoss-view .extension-editor .action-item.checkbox-action-item{overflow:visible!important;margin:0 6px!important;padding:2px}
+.studio-codeoss-view .extension-editor .action-item .extension-action.label{white-space:normal;overflow-wrap:anywhere;max-width:100%!important}
+.studio-booting #app>.work-area,.studio-booting #app>.panel,.studio-booting #app>.horizontal-resizer{visibility:hidden}
+#studioBoot{position:fixed;inset:28px 0 28px;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);color:var(--text)}
+#studioBoot strong{font-size:24px}#studioBoot span{font-size:13px;color:var(--muted)}#studioBoot progress{width:min(300px,70vw);height:4px;accent-color:var(--accent)}
+#studioDownloads{position:fixed;bottom:35px;right:16px;z-index:10000;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.studio-download{padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 20px #0005;font:12px system-ui;overflow-wrap:anywhere}
+.studio-download progress{display:block;width:100%;height:5px;margin-top:9px;accent-color:var(--accent)}
+.studio-codeoss-view{container-type:inline-size;container-name:studio-vsx}
+.studio-addon-actions{min-width:0;flex-shrink:1;gap:4px}
+.studio-native-addons-button span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+@container studio-vsx (max-width:320px){.studio-native-addons-button span{display:none}.studio-native-addons-button{width:28px;min-width:28px;padding:4px}.studio-addon-actions>.icon-button{width:28px;min-width:28px}}
+@container studio-vsx (max-width:220px){.composite.title>.title-label{display:none}.composite.title .title-actions>.monaco-action-bar .action-item:not(:last-child){display:none}}
+@container studio-vsx (max-width:220px){.extensions .extension-list-item{padding-left:8px}.extension-list-item .footer>.monaco-action-bar{min-width:0;max-width:100%;margin-left:0}.extension-list-item .footer .actions-container{max-width:100%}.extension-list-item .footer .action-item{min-width:0;flex-shrink:1}.extension-list-item .extension-action.label{min-width:0;max-width:100%!important;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}}
+.studio-codeoss-view .extension-list-item>.details>.footer>.publisher-container{min-width:0;flex:1 1 0}
+.studio-codeoss-view .extension-list-item>.details>.footer>.monaco-action-bar{flex:0 1 auto;max-width:100%;min-width:0}
+.studio-codeoss-view .extension-list-item .extension-action.label{font-size:11px;line-height:16px}
+.studio-codeoss-view .extension-list-item .action-dropdown-item{min-width:0;max-width:100%}
+.studio-code-surface{overflow:clip}
+.notebook-document{overflow:auto;overscroll-behavior:contain}
+.statusbar #studioVSXStatus{min-width:64px;flex-shrink:0}
+#studioVSXStatus>.part>.items-container.left-items{flex:1 1 auto;min-width:0;overflow:hidden}
+#studioVSXStatus>.part>.items-container.right-items{flex:0 0 auto;max-width:100%;min-width:0}
+#studioVSXStatus .statusbar-item{min-width:0;max-width:100%;flex-shrink:1}
+.dialog-buttons{flex-wrap:wrap}
+.extension-settings-page .dialog-buttons button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.studio-docking #dockWorkspace .dv-tabs-container .dv-tab{min-width:0;max-width:100%}
+.studio-docking #dockWorkspace .dv-default-tab{min-width:0;max-width:100%}
+.studio-docking #dockWorkspace .dv-default-tab-content{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+@media(max-width:700px){.statusbar #cursorStatus,.statusbar #encodingStatus,.statusbar #fontStatus,.statusbar #indentStatus,.statusbar #languageStatus{display:none}.statusbar #lspStatus{max-width:120px}}
+.notebook-document{container-type:inline-size;container-name:studio-notebook}
+@container studio-notebook (max-width:220px){.notebook-toolbar .notebook-run-all span{display:none}.notebook-toolbar button{min-width:26px;padding:4px}.notebook-toolbar{gap:4px;padding:6px;justify-content:flex-start}.notebook-toolbar .notebook-interpreter{max-width:100%;overflow:hidden;text-overflow:ellipsis}}

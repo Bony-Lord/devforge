@@ -1,5 +1,12 @@
 function replace(source,before,after,label){if(!source.includes(before))throw Error('Pinned upstream patch no longer applies: '+label);return source.replace(before,after);}
 export function upstreamPatches(){return{name:'devforge-upstream-integration',enforce:'pre',transform(source,file){const id=file.replaceAll('\\','/');
+ if(id.endsWith('/vs/workbench/contrib/notebook/browser/view/renderers/webviewPreloads.js')){
+  // This function runs in a different JavaScript realm after serialization.
+  // Bundler name/minifier helpers belong to the parent realm and cannot follow it.
+  const boundary=source.indexOf('\nfunction preloadsScriptStr(');if(boundary<0||!source.slice(0,boundary).trim().startsWith('async function webviewPreloads('))throw Error('Pinned notebook preload source changed');
+  const preload=source.slice(0,boundary).trim();source='const devforgeNotebookPreloadsSource='+JSON.stringify(preload)+';\n'+source;
+  return replace(source,'${webviewPreloads}','${devforgeNotebookPreloadsSource}','serialize the original self-contained notebook preload before bundling');
+ }
  if(id.endsWith('/vs/base/browser/overlayLayoutElement.js')){
  source="import {bindNativeOverlay,disposeNativeOverlay} from 'devforge-native-overlay';\n"+source;
  source=replace(source,'    dispose() {\n        this.root.remove();','    dispose() {\n        disposeNativeOverlay(this);\n        this.root.remove();','dispose native overlay observations');

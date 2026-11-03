@@ -87,7 +87,7 @@ async function main(){
    await check('Extension webview opens inside Dockview and retains source and addon tabs',"document.querySelector('#studio-codeoss-services iframe.webview')&&forge.tabs.some(d=>d.path.endsWith('/extension-test.cpp'))&&forge.tabs.some(d=>d.path==='devforge://settings/Addons')?true:false");
    await evaluate("(async()=>{await forge.closeTab(forge.active);await forge.openFile('devforge://extensions/studio.codeoss/editor');})()");
    await check('Closing and reopening an extension pane preserves its upstream editor part',"document.querySelector('.studio-codeoss-view [id=\"workbench.parts.editor\"]')?.isConnected===true");
-   await evaluate("StudioCodeOSS.api.execute('fixture-tree.focus')");await until("forge.active?.path==='devforge://extensions/studio.codeoss/sidebar'");
+   await evaluate("StudioCodeOSS.api.execute('fixture-tree.focus')");await until("forge.windows.sideMode==='extensionViews'&&forge.windows.panel('extensionViews')?.api.isVisible");
    await until("[...document.querySelectorAll('.studio-codeoss-view')].some(e=>e.textContent.includes('Tree child'))");
    await check('Contributed TreeView opens next to previous documents',"[...document.querySelectorAll('.studio-codeoss-view')].some(e=>e.textContent.includes('Tree child'))&&forge.tabs.some(d=>d.path==='devforge://extensions/studio.codeoss/editor')");
    await evaluate("(async()=>{const file=forge.state.root+'/example.fixture';await native('newFile',{path:file,text:'custom file data'});await StudioCodeOSS.api.execute('vscode.openWith',StudioCodeOSS.api.uri(file),'fixture.custom');})()");await until("forge.active?.path==='devforge://extensions/studio.codeoss/editor'");

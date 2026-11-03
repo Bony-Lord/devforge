@@ -2,7 +2,7 @@
 const http=require('node:http'),fs=require('node:fs/promises'),{createReadStream}=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {DashboardStore}=require('./dashboard-store.cjs'),{atomic}=require('./core.cjs');
 async function createDashboard(options={}){
- const store=await new DashboardStore(options).init(),token=crypto.randomBytes(24).toString('hex'),ui=path.join(__dirname,'dashboard');let origin,server,snapshotWork,snapshotAt=0,lastSnapshot;
+ const resume=options.resumeURL&&new URL(options.resumeURL);if(resume&&(resume.protocol!=='http:'||resume.hostname!=='127.0.0.1'||!/^\/[a-f0-9]{48,64}\/$/.test(resume.pathname)||resume.username||resume.password||resume.search||resume.hash))throw Error('Invalid dashboard resume URL');const store=await new DashboardStore(options).init(),token=resume?resume.pathname.slice(1,-1):crypto.randomBytes(24).toString('hex'),ui=path.join(__dirname,'dashboard');let origin,server,snapshotWork,snapshotAt=0,lastSnapshot;
  const snapshot=async()=>{if(snapshotWork)return snapshotWork;if(Date.now()-snapshotAt<1000&&lastSnapshot)return lastSnapshot;snapshotWork=store.snapshot().then(value=>{lastSnapshot=value;snapshotAt=Date.now();return value;}).finally(()=>snapshotWork=null);return snapshotWork;};
  const send=(res,code,value)=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
  const body=async req=>{let value='';for await(const bytes of req){value+=bytes;if(Buffer.byteLength(value)>65536)throw Error('Слишком большой запрос');}return value?JSON.parse(value):{};};
@@ -36,8 +36,8 @@ async function createDashboard(options={}){
    const file=assets[route];res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-cache'});res.end(await fs.readFile(path.join(ui,file)));
   }catch(error){if(!res.headersSent)send(res,400,{error:error.message});else res.destroy();}
  });
- await require('../browser-server.cjs').listenBrowserServer(server);origin='http://127.0.0.1:'+server.address().port;const url=origin+'/'+token+'/';
+ await require('../browser-server.cjs').listenBrowserServer(server,{preferredPort:resume?Number(resume.port):0});origin='http://127.0.0.1:'+server.address().port;const url=origin+'/'+token+'/';
  return{server,store,url,origin,async close(){await new Promise(resolve=>server.close(resolve));}};
 }
 module.exports={createDashboard};
-if(require.main===module){const data=process.argv.find(a=>a.startsWith('--data='))?.slice(7);createDashboard(data?{data}:{}).then(async app=>{await atomic(path.join(app.store.data,'server.json'),{service:'devforge.finder.dashboard/1',pid:process.pid,url:app.url,startedAt:new Date().toISOString()});console.log(app.url);const close=()=>app.server.close();process.once('SIGINT',close);process.once('SIGTERM',close);}).catch(error=>{console.error(error);process.exitCode=1;});}
+if(require.main===module){const data=process.argv.find(a=>a.startsWith('--data='))?.slice(7);createDashboard({...(data?{data}:{}),resumeURL:process.argv.find(a=>a.startsWith('--resume-url='))?.slice(13)}).then(async app=>{await atomic(path.join(app.store.data,'server.json'),{service:'devforge.finder.dashboard/1',pid:process.pid,url:app.url,startedAt:new Date().toISOString()});console.log(app.url);const close=()=>app.server.close();process.once('SIGINT',close);process.once('SIGTERM',close);}).catch(error=>{console.error(error);process.exitCode=1;});}

@@ -38,7 +38,7 @@ const StudioCodeOSS={
     if(target.group!==neighbor)target.api.moveTo({group:neighbor||sourcePanel.group,position:neighbor?'center':'right'});
     target.api.setActive();ide.editor=editor;ide.active=doc;
    }else if(windows&&requested?.editor){const target=windows.editorPanel(StudioDocumentViews.pane(editor)?.id),destination=windows.editorPanel(StudioDocumentViews.pane(requested.editor)?.id);if(target&&destination&&target.group!==destination.group)target.api.moveTo({group:destination.group,position:'center'});}
-   if(options?.preserveFocus){if((side||destination)&&previousPanel){previousPanel.api.setActive();ide.editor=previousEditor;ide.active=previousDoc;}if(focused?.isConnected)focused.focus({preventScroll:true});}
+   if(options?.preserveFocus){if((side||destination&&destination!==sourcePanel?.group)&&previousPanel){previousPanel.api.setActive();ide.editor=previousEditor;ide.active=previousDoc;}if(focused?.isConnected)focused.focus({preventScroll:true});}
    else editor.focus();
    await new Promise(resolve=>requestAnimationFrame(resolve));globalThis.dispatchEvent(new Event('devforge:editor-visibility-changed'));return editor;
   }finally{reference.dispose();}
@@ -151,7 +151,7 @@ const StudioCodeOSS={
    if(container.icon?.id){const icon=document.createElement('span');icon.className='codicon codicon-'+container.icon.id;button.append(icon);}else if(container.icon?.path){const icon=document.createElement('img');icon.src=this.api.resourceUrl(container.icon.fsPath);icon.alt='';button.append(icon);}else button.innerHTML=svg('blocks');
    button.onclick=async()=>{const panel=window.forge.windows.panel('extensionViews');if(service.isViewContainerVisible(container.id)&&window.forge.windows.sideMode==='extensionViews'&&panel?.api.isVisible&&window.forge.windows.api.activePanel===panel){window.forge.windows.hide('extensionViews');return;}await service.openViewContainer(container.id,true);await this.showTool('sidebar');};bar.insertBefore(button,anchor?.parentNode===bar?anchor:null);
   }};const schedule=()=>{if(!queued){queued=true;queueMicrotask(paint);}};
-  this.railSubscriptions=[views.onDidChangeViewContainers(schedule),views.onDidChangeContainerLocation(schedule),service.onDidChangeViewContainerVisibility(schedule)];paint();
+  this.railSubscriptions=[views.onDidChangeViewContainers(schedule),views.onDidChangeContainerLocation(schedule),service.onDidChangeViewContainerVisibility(schedule)];const extensions=await this.api.getService(this.api.IExtensionService),management=await this.api.getService(this.api.IExtensionManagementServerService);for(const event of [extensions.onDidChangeExtensions,extensions.onDidChangeExtensionsStatus])if(event)this.railSubscriptions.push(event(schedule));for(const server of [management.localExtensionManagementServer,management.remoteExtensionManagementServer,management.webExtensionManagementServer])if(server)for(const key of ['onDidInstallExtensions','onDidUninstallExtension']){const event=server.extensionManagementService[key];if(event)this.railSubscriptions.push(event(schedule));}paint();
  },
  registerViews(){
   StudioExtensionAPI.commands.set('studio.codeoss/theme',{id:'studio.codeoss/theme',label:'Цветовая тема…',run:()=>this.api.execute('workbench.action.selectTheme')});
