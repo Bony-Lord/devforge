@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
 const names=['vsx-command','vsx-language-resources','vsx-providers','vsx-settings','vsx-settings-ui','vsx-lifecycle','vsx-dependency-review','vsx-uninstall-reinstall','vsx-update-roundtrip','vsx-sidebar','vsx-context-menu','vsx-keybinding','vsx-webview','vsx-browser','vsx-gallery-search','vsx-resize','vsx-reload'];
-const suites=['VSX workbench and C++ analysis','VSX file operations','VSX editor columns','VSX workspaces','VSX workspace creation','VSX workspace Save As','VSX gallery and IDE packs'];
+const suites=['VSX workbench and C++ analysis','VSX file operations','VSX editor columns','VSX workspaces','VSX workspace creation','VSX workspace Save As','VSX gallery and IDE packs','VSX stock uninstall and reload','Startup cache and reload'];
 function environmentWarning(message){return /^\s*(?:%c)?\[Extension Host\]\s*(?:%c)?\(node:\d+\)\s*\[(DEP\d+)\]\s+DeprecationWarning:/.exec(message)?.[1];}
 function findingSignature(title,detail){if(!title.startsWith('vsx-'))return;const prefix=title+'|';return String(detail).startsWith(prefix)?String(detail):prefix+String(detail).split('\n')[0];}
 function generate(rng,index,coverage){

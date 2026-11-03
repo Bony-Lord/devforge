@@ -1,5 +1,12 @@
 function replace(source,before,after,label){if(!source.includes(before))throw Error('Pinned upstream patch no longer applies: '+label);return source.replace(before,after);}
 export function upstreamPatches(){return{name:'devforge-upstream-integration',enforce:'pre',transform(source,file){const id=file.replaceAll('\\','/');
+ if(id.endsWith('/vs/base/browser/overlayLayoutElement.js')){
+ source="import {bindNativeOverlay,disposeNativeOverlay} from 'devforge-native-overlay';\n"+source;
+ source=replace(source,'    dispose() {\n        this.root.remove();','    dispose() {\n        disposeNativeOverlay(this);\n        this.root.remove();','dispose native overlay observations');
+ return replace(source,'        this._updateZIndex(anchorElement);','        this._updateZIndex(anchorElement);\n        if(globalThis.StudioDesktop)bindNativeOverlay(this,anchorElement,options?.clippingContainer);','follow real visible native webview bounds');
+ }
+ if(id.endsWith('/vs/base/browser/browser.js'))return replace(source,'export { addMatchMediaChangeListener,','function setNativeZoomFactor(factor,targetWindow){WindowManager.INSTANCE.setZoomFactor(factor,targetWindow);WindowManager.INSTANCE.setZoomLevel(Math.log(factor)/Math.log(1.2),targetWindow);}\nexport { setNativeZoomFactor, addMatchMediaChangeListener,','synchronize upstream geometry with native page zoom');
+ if(id.endsWith('/vs/workbench/services/host/browser/browserHostService.js'))return replace(source,'        return this.lifecycleService.withExpectedShutdown(reason);','        if(globalThis.StudioDesktop&&globalThis.devforgeBeforeShutdown)return globalThis.devforgeBeforeShutdown(reason);\n        return this.lifecycleService.withExpectedShutdown(reason);','native reload awaits dirty documents and storage instead of unsupported browser lifecycle');
  if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.js')){
  source=replace(source,'const resourceExtensions = await this.extensionManagementService.getExtensions(locations);',`const resourceExtensions = (await Promise.all(locations.map(async location => {
             try { return (await this.extensionManagementService.getExtensions([location]))[0]; }

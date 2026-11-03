@@ -3,7 +3,7 @@ const workspaceMethods={
   initWorkspace(){
     this.primaryEditor=this.editor;this.attachWorkspaceEditor(this.editor);registerForgeThemes(monaco);
     this.settings.uiScale??=100;this.settings.codeScale??=100;this.settings.layout??={};
-    this.scaleCSS=Promise.all(['style.css','project-tools.css','tools.css','interaction.css','compact-ui.css','dock-windows.css','addons.css','addon-picker.css','notebook.css','project-context.css','project-templates.css','python-style.css','editor-overlays.css','studio-design.css','requested-fixes.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
+    this.scaleCSS=window.StudioDesktop?null:Promise.all(['style.css','project-tools.css','tools.css','interaction.css','compact-ui.css','dock-windows.css','addons.css','addon-picker.css','notebook.css','project-context.css','project-templates.css','python-style.css','editor-overlays.css','studio-design.css','requested-fixes.css'].map(p=>fetch(p).then(r=>r.ok?r.text():'')));
     this.applyUIScale();
     onNative('keyboardGeometry',geometry=>{this.keyboardGeometry=geometry;requestAnimationFrame(()=>this.updateKeyboardOcclusion());});
     window.addEventListener('resize',()=>this.updateKeyboardOcclusion());
@@ -30,6 +30,7 @@ const workspaceMethods={
     for(const name of ['pointerup','pointercancel'])container.addEventListener(name,e=>{touches.delete(e.pointerId);if(touches.size<2&&initial){initial=null;this.saveWorkspaceSettings();}});
   },
   async applyUIScale(){
+    if(window.StudioDesktop){const scale=Math.max(.65,Math.min(1.8,(this.settings.uiScale||100)/100));document.getElementById('uiScaleStyle')?.remove();document.documentElement.style.setProperty('--studio-native-icon-size',Math.max(16,20*scale)/scale+'px');document.documentElement.style.setProperty('--studio-native-hit-size',Math.max(26,32*scale)/scale+'px');await native('uiScale',{scale:scale*100});StudioCodeOSS.api?.uiScale(scale);await new Promise(resolve=>requestAnimationFrame(()=>{this.windows?.layout();StudioCodeOSS.api?.layoutParts();this.layoutEditors();document.dispatchEvent(new Event('studio:dock-layout'));requestAnimationFrame(resolve);}));return;}
     if(!this.scaleCSS)return;
     const sheets=await this.scaleCSS;let style=$('#uiScaleStyle');if(!style){style=document.createElement('style');style.id='uiScaleStyle';document.head.append(style);}
     const scale=Math.max(.65,Math.min(1.8,(this.settings.uiScale||100)/100));

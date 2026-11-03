@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs/promises'),path=require('node:path'),{spawn}=require('node:child_process');
 const {Store,atomic,inside,sleep,escape,sizeOf}=require('./core.cjs'),{plan,monitor}=require('./performance.cjs'),{resourceUse,killOwned}=require('./cdp.cjs');
-const suites=['Native addons and lifecycle','VSX file operations','Editors and windows','VSX editor columns','VSX workspaces','VSX workspace creation','VSX workspace Save As','VSX gallery and IDE packs'];
+const suites=['Native addons and lifecycle','VSX file operations','Editors and windows','VSX editor columns','VSX workspaces','VSX workspace creation','VSX workspace Save As','VSX gallery and IDE packs','VSX stock uninstall and reload','Startup cache and reload'];
 async function readWorker(record){
  try{const active=await fs.readFile(path.join(record.root,'active.json'),'utf8').then(JSON.parse,error=>{if(error.code!=='ENOENT')throw error;return fs.readFile(path.join(record.root,'latest.json'),'utf8').then(JSON.parse);});if(!inside(active.run,record.root)||path.dirname(active.run)!==record.root)throw Error('Worker report escaped its root');if(active.token)record.token=active.token;record.run=active.run;record.stopFile=path.join(active.run,'STOP');record.state=JSON.parse(await fs.readFile(path.join(active.run,'status.json'),'utf8'));}catch(error){if(!['ENOENT','SyntaxError'].includes(error.code||error.name))throw error;}
  if(record.run)record.profiles=await fs.readFile(path.join(record.run,'owned-profiles.json'),'utf8').then(JSON.parse,()=>null);return record.state;
@@ -51,9 +51,9 @@ async function main(config){
   for(const stream of [child.stdout,child.stderr])stream.on('data',bytes=>{record.log=(record.log+bytes).slice(-16000);});child.on('error',error=>{record.error=error.message;record.finished=true;});child.once('exit',(code,signal)=>{record.exit={code,signal};record.finished=true;});
  }
  try{
-  telemetry=await monitor();if(config.keepAwake)awake=await require('./power.cjs').keepAwake();console.log('REPORT '+path.join(store.run,'index.html'));console.log('PERFORMANCE '+config.performance+'; memory '+config.maxMemoryMb+' MiB; reserve '+config.reserveMemoryMb+' MiB');
+  telemetry=await monitor();if(config.keepAwake){awake=await require('./power.cjs').keepAwake();state.power={active:awake.active,pid:awake.pid,method:awake.method};}console.log('REPORT '+path.join(store.run,'index.html'));console.log('PERFORMANCE '+config.performance+'; memory '+config.maxMemoryMb+' MiB; reserve '+config.reserveMemoryMb+' MiB');
   while(!stopped&&Date.now()<deadline){
-   await require('./control.cjs').apply(store,config,state,{engine:'fleet'});const paused=state.controls.paused;state.status=paused?'paused':'running';if(paused&&awake){await awake.release();awake=null;}else if(!paused&&config.keepAwake&&!awake)awake=await require('./power.cjs').keepAwake();
+   await require('./control.cjs').apply(store,config,state,{engine:'fleet'});const paused=state.controls.paused;state.status=paused?'paused':'running';if(paused&&awake){state.power.release=await awake.release();state.power.active=false;awake=null;}else if(!paused&&config.keepAwake&&!awake){awake=await require('./power.cjs').keepAwake();state.power={active:awake.active,pid:awake.pid,method:awake.method};}
    if(await fs.stat(store.stopFile).then(()=>true,()=>false))break;await collect();if(config.steps&&state.steps>=config.steps||config.cycles&&state.cycles>=config.cycles||findings.size>=200)break;
    if(Date.now()-lastUsage>10000){lastUsage=Date.now();usage=await resourceUse(process.pid);if(usage){state.memory=usage;state.peakRssMb=Math.max(state.peakRssMb||0,usage.rssMb);}let external=0;for(const record of workers)for(const profile of record.profiles?.profiles||[])external+=await sizeOf(profile);await store.checkSpace(external);}
    const schedule=plan(config,{...telemetry.sample(),ownedMb:usage?.rssMb||0});state.scheduler=schedule;if(paused){schedule.target=0;schedule.mode='paused';}
@@ -69,7 +69,7 @@ async function main(config){
  }catch(error){state.status=error.code==='DISK_BUDGET'?'budget-reached':'failed';state.reason=error.stack||String(error);}
  finally{
   for(const record of workers.filter(w=>!w.finished))await stopWorker(record).catch(()=>{});const stopDeadline=Date.now()+20000;while(workers.some(w=>!w.finished)&&Date.now()<stopDeadline)await sleep(100);for(const record of workers.filter(w=>!w.finished))await killOwned(record.child);
-  await telemetry?.close();if(awake)await awake.release();state.finishedAt=new Date().toISOString();for(const record of workers)await store.write('workers/task-'+record.ordinal+'.log',record.log);await report(true).catch(async error=>{await atomic(path.join(store.run,'final-status.json'),{...state,reportError:error.message});});await store.close();process.off('SIGINT',interrupt);process.off('SIGTERM',interrupt);
+  await telemetry?.close();if(awake){state.power.release=await awake.release();state.power.active=false;}state.finishedAt=new Date().toISOString();for(const record of workers)await store.write('workers/task-'+record.ordinal+'.log',record.log);await report(true).catch(async error=>{await atomic(path.join(store.run,'final-status.json'),{...state,reportError:error.message});});await store.close();process.off('SIGINT',interrupt);process.off('SIGTERM',interrupt);
  }
  console.log('FINISHED '+state.status+'; '+state.steps+' steps; '+state.findings.length+' findings\n'+path.join(store.run,'index.html'));return state;
 }

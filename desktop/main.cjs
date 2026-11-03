@@ -101,6 +101,7 @@ async function start(){
   window=new BrowserWindow({width:Math.max(800,Math.min(2400,bounds.width||1360)),height:Math.max(560,Math.min(1800,bounds.height||880)),minWidth:720,minHeight:480,show:false,backgroundColor:'#1e1e1e',title:'DevForge',backgroundMaterial:'none',...(process.platform==='win32'?{titleBarStyle:'hidden',titleBarOverlay:{color:'#181818',symbolColor:'#d4d4d4',height:28}}:{}),icon:path.join(__dirname,'icon.png'),autoHideMenuBar:true,
     webPreferences:{v8CacheOptions:'bypassHeatCheck',preload:path.join(__dirname,'preload.cjs'),additionalArguments:['--devforge-build-channel='+build.channel],nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,spellcheck:false,backgroundThrottling:!smoke&&!headless,offscreen:smoke||headless,devTools:build.debug||!app.isPackaged}});
   if(build.debug){window.setTitle('DevForge [Debug]');window.webContents.on('page-title-updated',(event,title)=>{event.preventDefault();window.setTitle(title.replace(/ \[Debug\]$/,'')+' [Debug]');});diagnostics.attach(window);}
+  window.webContents.setZoomFactor(Math.max(.65,Math.min(1.8,(Number(host.ws.prefs.settings.uiScale)||100)/100)));
   record={window,host};openWindows.add(record);
   window.on('focus',()=>{if(!window.isDestroyed())window.webContents.send('studio:event','globalStateChanged',{projects:Object.keys(stores.global.projects),projectLabels:Object.fromEntries(Object.entries(stores.global.projects).map(([id,p])=>[id,p.label]))});});
   if(process.platform==='darwin')app.dock?.setIcon(path.join(__dirname,'icon.png'));Menu.setApplicationMenu(null);
@@ -112,6 +113,7 @@ async function start(){
   if(smoke){window.webContents.on('console-message',(_event,level,message)=>console.log('renderer',level,message));window.webContents.on('did-finish-load',()=>console.log('page loaded'));window.webContents.on('did-fail-load',(_e,code,description)=>console.log('load failed',code,description));}
   window.webContents.on('render-process-gone',(_event,details)=>{if(!quitting&&!headless)dialog.showErrorBox('DevForge','The editor process stopped: '+details.reason+'\nSaved project files are unchanged.');});
   const dispatch=async(op,data)=>{
+    if(op==='uiScale'){const factor=Number(data.scale)/100;if(!Number.isFinite(factor)||factor<.65||factor>1.8)throw Error('Invalid interface scale');window.webContents.setZoomFactor(factor);return {factor};}
     if(op==='debugTools'){if(!diagnostics)throw Error('Debug tools are only available in the Debug build');return diagnostics.action(window,data);}
     if(op==='debugReady'){if(!diagnostics)throw Error('Debug tools are only available in the Debug build');await diagnostics.log.write('workspace-ready',{elapsedMs:Number(data.elapsedMs)||0,domNodes:Number(data.domNodes)||0});return true;}
     if(op==='debugFault'){if(!diagnostics)throw Error('Debug tools are only available in the Debug build');await diagnostics.log.write('renderer-fault',{kind:String(data.kind).slice(0,64),message:String(data.message).slice(0,8192)});return true;}
