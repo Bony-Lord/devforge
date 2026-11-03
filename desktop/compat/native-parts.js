@@ -6,9 +6,12 @@ import {ILayoutService} from '@codingame/monaco-vscode-api/vscode/vs/platform/la
 export async function nativePartService(){
  const layout=await getService(ILayoutService);
  return (id,container)=>{
-  const part=layout.getPart(id);container.append(part.getContainer());let frame=0,disposed=false;
-  const update=()=>{if(frame||disposed)return;frame=requestAnimationFrame(()=>{frame=0;if(disposed||!container.isConnected)return;const r=container.getBoundingClientRect();if(r.width&&r.height)part.layout(Math.floor(r.width),Math.floor(r.height),r.top,r.left);});};
+  const part=layout.getPart(id),original=part.layout;container.append(part.getContainer());let frame=0,disposed=false;
+  // Workbench commands can lay the part out again without resizing its host.
+  // Every caller must use the dock's bounds, including internal lists/editors.
+  const resize=(...fallback)=>{const width=container.clientWidth,height=container.clientHeight;if(!disposed&&container.isConnected&&width&&height)return original.call(part,width,height,0,0);return original.apply(part,fallback);};part.layout=resize;
+  const update=()=>{if(frame||disposed)return;frame=requestAnimationFrame(()=>{frame=0;if(disposed||!container.isConnected)return;resize(container.clientWidth,container.clientHeight,0,0);});};
   const observer=new ResizeObserver(update),visibility=part.onDidVisibilityChange(update);observer.observe(container);update();
-  return{dispose(){disposed=true;cancelAnimationFrame(frame);observer.disconnect();visibility.dispose();}};
+  return{dispose(){disposed=true;cancelAnimationFrame(frame);observer.disconnect();visibility.dispose();if(part.layout===resize)part.layout=original;}};
  };
 }

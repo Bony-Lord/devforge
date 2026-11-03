@@ -1,0 +1,5 @@
+'use strict';
+// Both variants use the same sources, dependencies, extension runtime and tests.
+const {spawn}=require('node:child_process'),path=require('node:path'),{flavor}=require('./build-flavor.cjs');
+async function run(file,args,channel){await new Promise((resolve,reject)=>{const child=spawn(process.execPath,[path.join(__dirname,file),...args],{cwd:path.resolve(__dirname,'..'),windowsHide:true,stdio:'inherit',env:{...process.env,DEVFORGE_BUILD_CHANNEL:channel}});child.once('error',reject);child.once('exit',code=>code?reject(Error(file+' exited '+code)):resolve());});}
+(async()=>{const values=process.argv.filter(a=>a.startsWith('--channel='));if(values.length>1)throw Error('Specify one --channel');const channel=values[0]?.slice(10)||'all',channels=channel==='all'?['debug','release']:[flavor(channel).channel];for(const value of channels){await run('compat/prepare.cjs',[],value);await run('package.cjs',['--channel='+value],value);if(process.argv.includes('--installers'))await run('installers.cjs',['--channel='+value],value);}})().catch(error=>{console.error(error);process.exitCode=1;});

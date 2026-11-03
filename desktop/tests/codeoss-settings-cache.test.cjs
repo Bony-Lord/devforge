@@ -1,0 +1,5 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),vm=require('node:vm');
+test('identical pending settings share one write, changed settings serialize and failed writes remain retryable',async()=>{
+ const source=await fs.readFile(path.resolve(__dirname,'../../app/src/main/assets/ui/codeoss-integration.js'),'utf8'),service=vm.runInNewContext(source+'\nStudioCodeOSS',{structuredClone,clearTimeout,Map,Promise,JSON});service.api={};const calls=[];service.applySettings=async s=>{calls.push(s.fontSize);if(s.fontSize===99)throw Error('write failed');};
+ const a=service.settings({fontSize:14}),b=service.settings({fontSize:14}),c=service.settings({fontSize:16});assert.equal(a,b);await Promise.all([a,b,c]);assert.deepEqual(calls,[14,16]);await assert.rejects(service.settings({fontSize:99}),/write failed/);await assert.rejects(service.settings({fontSize:99}),/write failed/);assert.deepEqual(calls,[14,16,99,99]);assert.equal(service.uiColors({theme:'forge-dark'})['sideBar.background'],'#252526');assert.equal(service.uiColors({theme:'forge-light'})['input.background'],'#f2f6fc');
+});

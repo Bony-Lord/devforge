@@ -69,10 +69,9 @@
     await enable('browser');let result=await api().execute('df.vsx.browser');assert(result.worker&&result.answer===42,'Browser VSX did not run in a worker');await a().marketToggle(entry(ids.browser),false,true,true);assert(!(await commands()).includes('df.vsx.browser'),'Browser extension command remained after disable');await enable('browser');result=await api().execute('df.vsx.browser');assert(result.answer===42,'Browser extension did not recover after enable');break;
    }
    case 'vsx-gallery-search':{
-    await enable();const original=window.native,queries=[];
-    // Network responses are controlled here; search input/debounce/rendering are real.
-    window.native=(op,data)=>op==='extensionGallerySearch'?(queries.push(data.query),new Promise(resolve=>setTimeout(()=>resolve({total:data.query==='latest'?2:1,extensions:[]}),data.query==='old'?500:20))):op==='extensionGalleryIcon'?Promise.resolve(null):original(op,data);
-    try{a().openExternalGallery();await frame();const input=need(document.querySelector('.market-filters input[type=search]'),'gallery search');for(const query of ['old','latest']){input.value=query;input.dispatchEvent(new Event('input',{bubbles:true}));await new Promise(resolve=>setTimeout(resolve,300));}await wait(()=>document.querySelector('.market-filters small')?.textContent==='Найдено: 2','latest gallery search');assert(queries.includes('latest'),'Gallery search did not run on input');}finally{window.native=original;}break;
+    await enable();await a().openExternalGallery();const composite=await (await api().getService(api().IViewsService)).openViewContainer('workbench.view.extensions',true),view=composite.getViewPaneContainer(),input=need(view.searchBox?.inputModel,'workbench gallery input'),original=view.doSearch,queries=[];
+    view.doSearch=function(...args){queries.push(this.searchValue);return original.apply(this,args);};
+    try{input.setValue('old');await wait(()=>queries.includes('old'),'runtime old search');input.setValue('latest');await wait(()=>queries.includes('latest'),'runtime latest search');await frame();assert(view.searchValue==='latest','Gallery lost its current input');globalThis.__vsxObservation={galleryQueries:queries};}finally{view.doSearch=original;}break;
    }
    case 'vsx-resize':await enable();await a().openExtensionSettings(ids.probe);await frame();break;
    default:{const error=Error('Unknown VSX scenario: '+action.type);error.name='AdapterMismatch';throw error;}

@@ -3,7 +3,7 @@ body.light{--color-project:#326bb7;--color-search:#3574a1;--color-outline:#257e7
 .tool-project{--tool-color:var(--color-project)}.tool-search{--tool-color:var(--color-search)}.tool-outline{--tool-color:var(--color-outline)}.tool-git{--tool-color:var(--color-git)}.tool-console{--tool-color:var(--color-console)}.tool-terminal{--tool-color:var(--color-terminal)}.tool-build{--tool-color:var(--color-build)}.tool-debug{--tool-color:var(--color-debug)}.tool-problems{--tool-color:var(--color-problems)}
 .tool-editor{--tool-color:var(--color-project)}
 body.studio-docking .work-area{display:flex!important;min-height:0;position:relative}
-body.studio-docking .activitybar{display:flex!important;position:static;min-width:40px;width:40px;min-height:0;overflow:auto;padding:5px 0;gap:4px}
+body.studio-docking .activitybar{display:flex!important;position:static;min-width:40px;width:40px;min-height:0;overflow-x:hidden;overflow-y:auto;padding:5px 0;gap:4px}
 .studio-docking .activity{width:32px;height:32px;min-height:32px;color:var(--tool-color,var(--muted));border-left:2px solid transparent;border-radius:4px;position:relative}
 .studio-docking .activity.active{border-left-color:var(--tool-color);background:color-mix(in srgb,var(--tool-color) 15%,transparent);color:var(--tool-color)}
 .studio-tool-badge{position:absolute;right:0;bottom:0;font-size:8px;line-height:12px;min-width:12px;padding:0 2px;border-radius:5px;background:var(--yellow);color:var(--bg);font-weight:650}.tool-errors .studio-tool-badge{background:var(--red)}

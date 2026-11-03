@@ -1,6 +1,7 @@
 function replace(source,before,after,label){if(!source.includes(before))throw Error('Pinned upstream patch no longer applies: '+label);return source.replace(before,after);}
 export function upstreamPatches(){return{name:'devforge-upstream-integration',enforce:'pre',transform(source,file){const id=file.replaceAll('\\','/');
- if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.js'))return replace(source,'const resourceExtensions = await this.extensionManagementService.getExtensions(locations);',`const resourceExtensions = (await Promise.all(locations.map(async location => {
+ if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.js')){
+ source=replace(source,'const resourceExtensions = await this.extensionManagementService.getExtensions(locations);',`const resourceExtensions = (await Promise.all(locations.map(async location => {
             try { return (await this.extensionManagementService.getExtensions([location]))[0]; }
             catch (error) {
                 // A queued additions event can outlive an intentional unload.
@@ -8,6 +9,9 @@ export function upstreamPatches(){return{name:'devforge-upstream-integration',en
                 throw error;
             }
         }))).filter(Boolean);`,'ignore only stale resource lookups for extensions removed during an asynchronous running-extension update');
+ source=replace(source,'const extensions = await this.getExtensions(extensionsToFetch.map(e => ({\n                id: e.identifier.value,\n                uuid: e.uuid\n            })), CancellationToken.None);','const extensions = await this.getResourceExtensions(extensionsToFetch.map(e => e.extensionLocation), true);','local registered extensions do not require a gallery connection');
+ return replace(source,'const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();\n        const pager = await this.galleryService.query(options, token);','const [extensionsControlManifest, pager] = await Promise.all([this.galleryService.getExtensionsControlManifest(), this.galleryService.query(options, token)]);','catalog uses its own gallery metadata in parallel; installation still validates through remote management');
+ }
  if(id.endsWith('/@codingame/monaco-vscode-views-service-override/index.js')){
   source=replace(source,'const observer = new ResizeObserver(() => layoutPart(part));','let frame; const observer = new ResizeObserver(() => { if (frame === undefined) frame = requestAnimationFrame(() => { frame = undefined; layoutPart(part); }); });','defer workbench layout outside ResizeObserver delivery');
   return replace(source,'return observer.disconnect();','if (frame !== undefined) cancelAnimationFrame(frame); return observer.disconnect();','cancel detached workbench layout');
@@ -19,7 +23,21 @@ export function upstreamPatches(){return{name:'devforge-upstream-integration',en
   return replace(source,'await deltaExtensions({ toAdd: [localizedExtension]','extension.location = realLocation;\n                await deltaExtensions({ toAdd: [localizedExtension]','remote removal identity');
  }
  if(id.endsWith('/@codingame/monaco-vscode-extensions-service-override/index.js'))return replace(source,'    createExtensionHost(runningLocations, runningLocation, isInitialStart) {','    createExtensionHost(runningLocations, runningLocation, isInitialStart) {\n        if (globalThis.devforgeWorkspaceReadOnly && runningLocation.kind !== ExtensionHostKind.LocalProcess) return null;','read-only windows keep the local command bridge without launching Node or worker extension hosts');
- if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.js'))return replace(source,'const extensions = await this.getExtensions(extensionsToFetch.map(e => ({\n                id: e.identifier.value,\n                uuid: e.uuid\n            })), CancellationToken.None);','const extensions = await this.getResourceExtensions(extensionsToFetch.map(e => e.extensionLocation), true);','local registered extensions do not require a gallery connection');
+ if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionEditor.js')){
+  source=replace(source,'import { editorBackground }', 'import { editorBackground, editorForeground }','README uses the active editor palette');
+  return replace(source,'                        padding-bottom: 75px;','                        padding-bottom: 75px;\n                        background-color: ${this.themeService.getColorTheme().getColor(editorBackground)};\n                        color: ${this.themeService.getColorTheme().getColor(editorForeground)};','README has an explicit theme background in the webview');
+ }
+ if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsViews.js')){
+  source=replace(source,'request.finally(() => this.queryRequest = null);','const clearRequest = () => { if (this.queryRequest?.request === request) this.queryRequest = null; };\n        request.then(clearRequest, clearRequest);','observe search cancellation without an orphan finally rejection or clearing a newer query');
+  source=replace(source,'this.queryResult = await this.query(parsedQuery, options, token);','const result = await this.query(parsedQuery, options, token);\n                if (token.isCancellationRequested) { result.disposables.dispose(); return new PagedModel([]); }\n                this.queryResult = result;','discard cancelled gallery responses before touching a replacement view');
+  source=replace(source,'this.searchWaitPromise = queryPromise.then(null, null);','this.searchWaitPromise = queryPromise.then(() => undefined, () => undefined);','telemetry observes completion without duplicating the caller-owned query rejection');
+  return replace(source,'this.reportSearchFinishedDelayer.trigger(() => this.reportSearchFinished());','this.reportSearchFinishedDelayer.trigger(() => this.reportSearchFinished()).catch(error => { if (!isCancellationError(error)) this.logService.error(error); });','observe a pending search report cancelled by view disposal');
+ }
+ if(id.endsWith('/vs/workbench/contrib/extensions/browser/extensionsViewlet.js')){
+  source=replace(source,'this.showExtensionsViews(addedViews);','this.showExtensionsViews(addedViews).catch(error => this.onError(error));','observe pending searches when contributed views are disposed or replaced');
+  source=replace(source,'this.doSearch(true);','this.doSearch(true).catch(error => this.onError(error));','observe a refresh cancelled by another gallery query');
+  return replace(source,'}, () => promise);','}, () => promise.catch(error => { if (!isCancellationError(error)) throw error; }));','settle expected gallery cancellation before handing the task to progress cleanup');
+ }
  if(id.endsWith('/backgroundTokenization/textMateWorkerTokenizerController.js')){
   const start=source.indexOf('        if (!this._applyStateStackDiffFn || !this._initialState) {');const end=source.indexOf('        for (const d of stateDeltas)',start);if(start<0||end<start)throw Error('Pinned upstream tokenizer initialization changed');const initialization=replace(source.slice(start,end),"await import('@codingame/monaco-vscode-api/_virtual/main').then(function (n) { return n.main; })",'devforgeTextmateImplementation','synchronous state-stack implementation');source="import {main as devforgeTextmateImplementation} from '@codingame/monaco-vscode-api/_virtual/main';\n"+source.slice(0,start)+source.slice(end);
   return replace(source,'        let tokens = ContiguousMultilineTokensBuilder.deserialize',initialization+'        if (this._model.isDisposed()) return;\n        let tokens = ContiguousMultilineTokensBuilder.deserialize','load TextMate state implementation before rebasing pending edits');
